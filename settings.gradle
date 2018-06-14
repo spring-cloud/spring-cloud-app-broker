@@ -1,3 +1,5 @@
 rootProject.name = "spring-cloud-app-broker"
 
 include "spring-cloud-app-broker-core"
+include "spring-cloud-app-broker-deployer"
+include "spring-cloud-app-broker-deployer-cloudfoundry"

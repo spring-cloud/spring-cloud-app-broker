@@ -1,3 +1,8 @@
+image:https://circleci.com/gh/spring-cloud-incubator/spring-cloud-app-broker.svg?style=svg["CircleCI", link="https://circleci.com/gh/spring-cloud-incubator/spring-cloud-app-broker"]
+image:https://api.codacy.com/project/badge/Grade/72dc83489cb84106bcca9d0d20430622["Codacy code quality", link="https://www.codacy.com/app/scottfrederick/spring-cloud-app-broker?utm_source=github.com&utm_medium=referral&utm_content=spring-cloud-incubator/spring-cloud-app-broker&utm_campaign=Badge_Grade"]
+//image:https://codecov.io/gh/spring-cloud-incubator/spring-cloud-app-broker/branch/master/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud-incubator/spring-cloud-app-broker/branch/master"]
+
+
 = Spring Cloud App Broker
 
 Spring Cloud App Broker is a project for implementing service broker functionality within a Spring Boot application.

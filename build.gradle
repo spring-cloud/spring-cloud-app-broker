@@ -24,6 +24,8 @@ configure(allprojects) {
 	apply plugin: "maven"
 	apply plugin: "eclipse"
 	apply plugin: "idea"
+	apply plugin: "jacoco"
+	apply plugin: "pmd"
 	apply plugin: "propdeps"
 	apply plugin: "propdeps-maven"
 	apply plugin: "propdeps-idea"
@@ -209,6 +211,33 @@ configure(rootProject) {
 		archives docsZip
 		archives distZip
 	}
+}
+
+pmd {
+	ruleSetFiles = files("${project.rootDir}/config/pmdRuleSet.xml")
+}
+
+pmdTest {
+	ruleSetFiles = files("${project.rootDir}/config/pmdTestRuleSet.xml")
+}
+
+task codeCoverageReport(type: JacocoReport) {
+	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+	subprojects.each {
+		sourceSets it.sourceSets.main
+	}
+
+	reports {
+		xml.enabled true
+		xml.destination new File("${buildDir}/reports/jacoco/report.xml")
+		html.enabled false
+		csv.enabled false
+	}
+}
+
+codeCoverageReport.dependsOn {
+	subprojects*.test
 }
 
 task wrapper(type: Wrapper) {

@@ -17,8 +17,13 @@ configure(allprojects) {
 		ext.springVersion = "5.0.5.RELEASE"
 	}
 	if (!project.hasProperty("springBootVersion")) {
-		ext.springBootVersion = "2.0.1.RELEASE"
+		ext.springBootVersion = "2.0.2.RELEASE"
 	}
+	ext.springCloudOpenServiceBrokerVersion = "2.0.0.RC1"
+	ext.junitJupiterVersion = "5.2.0"
+    ext.assertjVersion = "3.10.0"
+    ext.mockitoVersion = "2.18.3"
+    ext.joolVersion = "0.9.13"
 
 	apply plugin: "java"
 	apply plugin: "maven"
@@ -140,6 +145,53 @@ subprojects { subproject ->
 	artifacts {
 		archives sourcesJar
 		archives javadocJar
+	}
+}
+
+project("spring-cloud-app-broker-core") {
+	description = "Spring Cloud App Broker Core"
+
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework:spring-framework-bom:${springVersion}"
+		}
+	}
+
+	dependencies {
+		compile("org.springframework:spring-core")
+		compile("org.springframework:spring-context")
+        compile("org.springframework.security:spring-security-core:${springVersion}")
+		compile("org.springframework.cloud:spring-cloud-open-service-broker-core:${springCloudOpenServiceBrokerVersion}")
+        compile("org.jooq:jool-java-8:${joolVersion}")
+		testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+		testCompile("org.springframework:spring-test") {
+			exclude group:"commons-logging", module:"commons-logging"
+		}
+		testCompile("org.assertj:assertj-core:${assertjVersion}")
+		testCompile("org.mockito:mockito-core:${mockitoVersion}")
+
+	}
+}
+project("spring-cloud-app-broker-autoconfigure") {
+	description = "Spring Cloud App Broker Core"
+
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework:spring-framework-bom:${springVersion}"
+            mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+        }
+	}
+
+	dependencies {
+        compile project(":spring-cloud-app-broker-core")
+        compile("org.springframework.boot:spring-boot-starter-web")
+		compile("org.springframework.cloud:spring-cloud-open-service-broker-autoconfigure:${springCloudOpenServiceBrokerVersion}")
+        compile("org.jooq:jool-java-8:${joolVersion}")
+		testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+		testCompile("org.springframework:spring-test") {
+			exclude group:"commons-logging", module:"commons-logging"
+		}
+        testCompile('org.springframework.boot:spring-boot-starter-test')
 	}
 }
 

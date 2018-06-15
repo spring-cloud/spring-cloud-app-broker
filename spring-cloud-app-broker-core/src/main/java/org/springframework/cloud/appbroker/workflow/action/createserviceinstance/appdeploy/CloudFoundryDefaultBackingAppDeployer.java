@@ -1,8 +1,8 @@
-package org.springframework.cloud.appbroker.workflow.createserviceinstance.action.appdeploy;
+package org.springframework.cloud.appbroker.workflow.action.createserviceinstance.appdeploy;
 
 import java.util.Collections;
 
-import org.springframework.cloud.appbroker.workflow.createserviceinstance.CreateServiceRequestContext;
+import org.springframework.cloud.appbroker.workflow.action.createserviceinstance.CreateServiceRequestContext;
 
 public class CloudFoundryDefaultBackingAppDeployer implements BackingAppDeployer {
 

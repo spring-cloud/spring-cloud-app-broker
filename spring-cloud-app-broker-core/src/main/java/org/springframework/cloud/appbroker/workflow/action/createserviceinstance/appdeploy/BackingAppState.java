@@ -1,4 +1,4 @@
-package org.springframework.cloud.appbroker.workflow.createserviceinstance.action.appdeploy;
+package org.springframework.cloud.appbroker.workflow.action.createserviceinstance.appdeploy;
 
 import java.util.Map;
 

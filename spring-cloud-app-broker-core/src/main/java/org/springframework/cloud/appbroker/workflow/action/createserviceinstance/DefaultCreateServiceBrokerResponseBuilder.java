@@ -1,8 +1,7 @@
-package org.springframework.cloud.appbroker.workflow.createserviceinstance.action;
+package org.springframework.cloud.appbroker.workflow.action.createserviceinstance;
 
 import java.util.function.Function;
 
-import org.springframework.cloud.appbroker.workflow.createserviceinstance.CreateServiceRequestContext;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 
 public interface DefaultCreateServiceBrokerResponseBuilder extends Function<CreateServiceRequestContext, CreateServiceInstanceResponse> {

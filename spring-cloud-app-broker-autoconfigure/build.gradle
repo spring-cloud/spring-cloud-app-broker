@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-description = "Spring Cloud App Broker Core"
+description = "Spring Cloud App Broker Autoconfiguration"
 
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework:spring-framework-bom:${springVersion}"
+		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
 	}
-}
-
-ext {
-	springCloudOpenServiceBrokerVersion = "2.0.0.RC1"
 }
 
 dependencies {
-	compile project(":spring-cloud-app-broker-deployer")
-
-	compile("org.springframework:spring-core")
-	compile("org.springframework:spring-context")
-	compile("org.springframework.security:spring-security-core:${springVersion}")
-	compile("org.springframework.cloud:spring-cloud-open-service-broker-core:${springCloudOpenServiceBrokerVersion}")
+	compile project(":spring-cloud-app-broker-core")
 
 	testCompile("org.springframework:spring-test") {
-		exclude group:"commons-logging", module:"commons-logging"
+		exclude group: "commons-logging", module: "commons-logging"
 	}
+	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-	testCompile("org.assertj:assertj-core:${assertjVersion}")
-	testCompile("org.mockito:mockito-core:${mockitoVersion}")
+    testCompile("org.assertj:assertj-core:${assertjVersion}")
+    testCompile("org.mockito:mockito-core:${mockitoVersion}")
 }

@@ -1,9 +1,10 @@
 package org.springframework.cloud.appbroker.workflow.action.createserviceinstance;
 
+import org.springframework.cloud.appbroker.workflow.BrokerRequestContext;
 import org.springframework.cloud.appbroker.workflow.action.createserviceinstance.appdeploy.BackingAppState;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 
-public class CreateServiceRequestContext {
+public class CreateServiceRequestContext implements BrokerRequestContext {
 
 	private BackingAppState backingAppState;
 	private boolean instanceExisted;

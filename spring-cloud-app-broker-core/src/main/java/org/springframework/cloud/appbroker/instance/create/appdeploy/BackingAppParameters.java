@@ -14,11 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow;
+package org.springframework.cloud.appbroker.instance.create.appdeploy;
 
-import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
-import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
+import java.util.Map;
 
-public interface UpdateServiceInstanceWorkflow
-	extends ServiceBrokerWorkflow<UpdateServiceInstanceRequest, UpdateServiceInstanceResponse> {
+public class BackingAppParameters {
+
+	private final String name;
+
+	private final Map<String, String> properties;
+
+	public BackingAppParameters(String name, Map<String, String> properties) {
+		this.name = name;
+		this.properties = properties;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public Map<String, String> getProperties() {
+		return properties;
+	}
 }

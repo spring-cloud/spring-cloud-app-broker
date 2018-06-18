@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow.action.createserviceinstance.appdeploy;
+package org.springframework.cloud.appbroker.instance.create.appdeploy;
 
-import java.util.function.BiConsumer;
+import java.util.Map;
 
-import org.springframework.cloud.appbroker.workflow.action.createserviceinstance.CreateServiceRequestContext;
+public class BackingAppState {
 
+	private Map<String, String> state;
 
-public interface BackingAppDeployer extends BiConsumer<BackingAppParameters, CreateServiceRequestContext> {
+	public BackingAppState(Map<String, String> state) {
+		this.state = state;
+	}
 
+	public Map<String, String> getState() {
+		return state;
+	}
 }

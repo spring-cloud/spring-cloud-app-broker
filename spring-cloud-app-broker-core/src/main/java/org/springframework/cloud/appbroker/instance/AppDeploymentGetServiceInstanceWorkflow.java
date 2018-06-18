@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow;
+package org.springframework.cloud.appbroker.instance;
 
-public interface BrokerRequestContext {
+import org.springframework.cloud.appbroker.workflow.GetServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceResponse;
+
+public class AppDeploymentGetServiceInstanceWorkflow implements GetServiceInstanceWorkflow {
+
+	@Override
+	public GetServiceInstanceResponse perform(GetServiceInstanceRequest requestData) {
+		return null;
+	}
 }

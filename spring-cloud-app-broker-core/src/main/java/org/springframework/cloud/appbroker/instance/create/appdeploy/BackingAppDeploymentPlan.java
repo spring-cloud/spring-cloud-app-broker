@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow.action.createserviceinstance.appdeploy;
+package org.springframework.cloud.appbroker.instance.create.appdeploy;
 
 public class BackingAppDeploymentPlan {
 	private BackingAppDeployer backingAppDeployer;

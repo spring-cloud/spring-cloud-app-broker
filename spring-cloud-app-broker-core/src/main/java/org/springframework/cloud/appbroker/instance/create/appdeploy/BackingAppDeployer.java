@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow;
+package org.springframework.cloud.appbroker.instance.create.appdeploy;
 
-import org.springframework.cloud.servicebroker.model.ServiceBrokerRequest;
+import java.util.function.BiConsumer;
 
-public interface AppBrokerWorkflow<REQ extends ServiceBrokerRequest, RES> {
+import org.springframework.cloud.appbroker.instance.create.CreateServiceRequestContext;
 
-	RES perform(REQ requestData);
+public interface BackingAppDeployer extends BiConsumer<BackingAppParameters, CreateServiceRequestContext> {
+
 }
-

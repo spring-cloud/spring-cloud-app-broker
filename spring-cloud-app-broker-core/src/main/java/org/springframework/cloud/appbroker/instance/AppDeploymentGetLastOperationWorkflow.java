@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow;
+package org.springframework.cloud.appbroker.instance;
 
-import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
-import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
+import org.springframework.cloud.appbroker.workflow.GetLastOperationWorkflow;
+import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest;
+import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationResponse;
 
-public class DeleteServiceInstanceDefaultWorkflow implements DeleteServiceInstanceWorkflow<DeleteServiceInstanceRequest, DeleteServiceInstanceResponse> {
+public class AppDeploymentGetLastOperationWorkflow implements GetLastOperationWorkflow {
 
 	@Override
-	public DeleteServiceInstanceResponse perform(DeleteServiceInstanceRequest requestData) {
+	public GetLastServiceOperationResponse perform(GetLastServiceOperationRequest requestData) {
 		return null;
 	}
 }

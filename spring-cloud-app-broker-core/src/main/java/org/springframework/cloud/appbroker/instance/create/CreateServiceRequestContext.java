@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow.action.createserviceinstance;
+package org.springframework.cloud.appbroker.instance.create;
 
-import org.springframework.cloud.appbroker.workflow.BrokerRequestContext;
-import org.springframework.cloud.appbroker.workflow.action.createserviceinstance.appdeploy.BackingAppState;
+import org.springframework.cloud.appbroker.context.BrokerRequestContext;
+import org.springframework.cloud.appbroker.instance.create.appdeploy.BackingAppState;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 
 public class CreateServiceRequestContext implements BrokerRequestContext {

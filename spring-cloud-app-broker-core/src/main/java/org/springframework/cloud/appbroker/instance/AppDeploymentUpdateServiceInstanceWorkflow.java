@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow.action.createserviceinstance.appdeploy;
+package org.springframework.cloud.appbroker.instance;
 
-public class BackingAppDeploymentPlan {
-	private BackingAppDeployer backingAppDeployer;
+import org.springframework.cloud.appbroker.workflow.UpdateServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 
-	private BackingAppParameters backingAppParameters;
+public class AppDeploymentUpdateServiceInstanceWorkflow implements UpdateServiceInstanceWorkflow {
 
-
-	public BackingAppDeploymentPlan(BackingAppDeployer backingAppDeployer, BackingAppParameters backingAppParameters) {
-		this.backingAppDeployer = backingAppDeployer;
-		this.backingAppParameters = backingAppParameters;
+	@Override
+	public UpdateServiceInstanceResponse perform(UpdateServiceInstanceRequest requestData) {
+		return null;
 	}
-
-	public BackingAppDeployer getBackingAppDeployer() {
-		return backingAppDeployer;
-	}
-
-	public BackingAppParameters getBackingAppParameters() {
-		return backingAppParameters;
-	}
-
 }

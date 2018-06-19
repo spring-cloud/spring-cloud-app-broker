@@ -14,15 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow;
+package org.springframework.cloud.appbroker.instance.create.appdeploy;
 
-import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest;
-import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationResponse;
+import java.util.Map;
 
-public class GetLastOperationDefaultWorkflow implements GetLastOperationWorkflow<GetLastServiceOperationRequest, GetLastServiceOperationResponse> {
+public class BackingAppParameters {
 
-	@Override
-	public GetLastServiceOperationResponse perform(GetLastServiceOperationRequest requestData) {
-		return null;
+	private final String name;
+
+	private final Map<String, String> properties;
+
+	public BackingAppParameters(String name, Map<String, String> properties) {
+		this.name = name;
+		this.properties = properties;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public Map<String, String> getProperties() {
+		return properties;
 	}
 }

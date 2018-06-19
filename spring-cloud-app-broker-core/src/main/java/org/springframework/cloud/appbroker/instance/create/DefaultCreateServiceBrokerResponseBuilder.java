@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow;
+package org.springframework.cloud.appbroker.instance.create;
 
-import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest;
-import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceResponse;
+import java.util.function.Function;
 
-public class GetServiceInstanceDefaultWorkflow implements GetServiceInstanceWorkflow<GetServiceInstanceRequest, GetServiceInstanceResponse> {
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 
-	@Override
-	public GetServiceInstanceResponse perform(GetServiceInstanceRequest requestData) {
-		return null;
+public interface DefaultCreateServiceBrokerResponseBuilder extends Function<CreateServiceRequestContext, CreateServiceInstanceResponse> {
+
+	default CreateServiceInstanceResponse apply(CreateServiceRequestContext createServiceRequestContext) {
+		return CreateServiceInstanceResponse.builder()
+											.instanceExisted(createServiceRequestContext.getInstanceExisted())
+											.build();
 	}
+
 }

@@ -14,7 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow;
+package org.springframework.cloud.appbroker.instance.create.appdeploy;
 
-public interface BrokerRequestContext {
+public class BackingAppDeploymentPlan {
+	private BackingAppDeployer backingAppDeployer;
+
+	private BackingAppParameters backingAppParameters;
+
+
+	public BackingAppDeploymentPlan(BackingAppDeployer backingAppDeployer, BackingAppParameters backingAppParameters) {
+		this.backingAppDeployer = backingAppDeployer;
+		this.backingAppParameters = backingAppParameters;
+	}
+
+	public BackingAppDeployer getBackingAppDeployer() {
+		return backingAppDeployer;
+	}
+
+	public BackingAppParameters getBackingAppParameters() {
+		return backingAppParameters;
+	}
+
 }

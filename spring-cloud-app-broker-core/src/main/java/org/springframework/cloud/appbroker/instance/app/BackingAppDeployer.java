@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.instance.create.appdeploy;
+package org.springframework.cloud.appbroker.instance.app;
 
-public class BackingAppDeploymentPlan {
-	private BackingAppDeployer backingAppDeployer;
+import org.springframework.cloud.appbroker.instance.create.CreateServiceRequestContext;
+import reactor.core.publisher.Mono;
 
-	private BackingAppParameters backingAppParameters;
-
-
-	public BackingAppDeploymentPlan(BackingAppDeployer backingAppDeployer, BackingAppParameters backingAppParameters) {
-		this.backingAppDeployer = backingAppDeployer;
-		this.backingAppParameters = backingAppParameters;
-	}
-
-	public BackingAppDeployer getBackingAppDeployer() {
-		return backingAppDeployer;
-	}
-
-	public BackingAppParameters getBackingAppParameters() {
-		return backingAppParameters;
-	}
-
+public interface BackingAppDeployer {
+	Mono<String> deploy(BackingAppParameters backingAppParameters, CreateServiceRequestContext createServiceRequestContext);
 }

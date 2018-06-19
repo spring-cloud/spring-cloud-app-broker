@@ -17,7 +17,7 @@
 package org.springframework.cloud.appbroker.instance.create;
 
 import org.springframework.cloud.appbroker.context.BrokerRequestContext;
-import org.springframework.cloud.appbroker.instance.create.appdeploy.BackingAppState;
+import org.springframework.cloud.appbroker.instance.app.BackingAppState;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 
 public class CreateServiceRequestContext implements BrokerRequestContext {

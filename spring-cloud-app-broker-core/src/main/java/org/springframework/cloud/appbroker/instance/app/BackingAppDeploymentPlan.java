@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.instance.create.appdeploy;
+package org.springframework.cloud.appbroker.instance.app;
 
-import java.util.Map;
+public class BackingAppDeploymentPlan {
+	private BackingAppDeployer backingAppDeployer;
+	private BackingAppParameters backingAppParameters;
 
-public class BackingAppState {
-
-	private Map<String, String> state;
-
-	public BackingAppState(Map<String, String> state) {
-		this.state = state;
+	public BackingAppDeploymentPlan(BackingAppDeployer backingAppDeployer, BackingAppParameters backingAppParameters) {
+		this.backingAppDeployer = backingAppDeployer;
+		this.backingAppParameters = backingAppParameters;
 	}
 
-	public Map<String, String> getState() {
-		return state;
+	public BackingAppDeployer getBackingAppDeployer() {
+		return backingAppDeployer;
 	}
+
+	public BackingAppParameters getBackingAppParameters() {
+		return backingAppParameters;
+	}
+
 }

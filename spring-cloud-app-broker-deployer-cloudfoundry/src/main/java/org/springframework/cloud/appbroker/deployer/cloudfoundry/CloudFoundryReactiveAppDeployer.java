@@ -32,6 +32,7 @@ import org.cloudfoundry.operations.applications.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.cloudfoundry.AppNameGenerator;
@@ -141,14 +142,14 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 			manifest.route(Route.builder().route(route(request)).build());
 		}
 
-		if (! routes(request).isEmpty()){
+		if (!routes(request).isEmpty()) {
 			Set<Route> routes = routes(request).stream()
 					.map(r -> Route.builder().route(r).build())
 					.collect(Collectors.toSet());
 			manifest.routes(routes);
 		}
 
-		if(getDockerImage(request) != null){
+		if (getDockerImage(request) != null) {
 			manifest.docker(Docker.builder().image(getDockerImage(request)).build());
 		} else {
 			manifest.buildpack(buildpack(request));
@@ -169,38 +170,26 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 	}
 
 	@Override
-	public AppStatus status(String id) {
-		try {
-			return getStatus(id)
-					.doOnSuccess(v -> logger.info("Successfully computed status [{}] for {}", v, id))
-					.doOnError(logError(String.format("Failed to compute status for %s", id)))
-					.block(Duration.ofMillis(this.deploymentProperties.getStatusTimeout()));
-		}
-		catch (Exception timeoutDueToBlock) {
-			logger.error("Caught exception while querying for status of {}", id, timeoutDueToBlock);
-			return createErrorAppStatus(id);
-		}
+	public Mono<AppStatus> status(String id) {
+		return getStatus(id)
+			.doOnSuccess(v -> logger.info("Successfully computed status [{}] for {}", v, id))
+			.doOnError(logError(String.format("Failed to compute status for %s", id)))
+			.timeout(Duration.ofMillis(this.deploymentProperties.getStatusTimeout()))
+			.onErrorResume(t -> {
+				logger.error("Caught exception while querying for status of {}", id, t);
+				return Mono.just(createErrorAppStatus(id));
+			});
 	}
 
 	@Override
-	public Mono<String> undeploy(String id) {
-		getStatus(id)
-				.doOnNext(status -> assertApplicationExists(id, status))
-				// Need to block here to be able to throw exception early
-				.block(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()));
-		requestDeleteApplication(id)
+	public Mono<Void> undeploy(String id) {
+		return getStatus(id)
+			.doOnNext(status -> assertApplicationExists(id, status))
+			.timeout(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()))
+			.then(requestDeleteApplication(id)
 				.timeout(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()))
 				.doOnSuccess(v -> logger.info("Successfully undeployed app {}", id))
-				.doOnError(logError(String.format("Failed to undeploy app %s", id)))
-				.subscribe();
-		return Mono.just(id);
-	}
-
-	private void assertApplicationDoesNotExist(String deploymentId, AppStatus status) {
-		DeploymentState state = status.getState();
-		if (state != DeploymentState.unknown && state != DeploymentState.error) {
-			throw new IllegalStateException(String.format("App %s is already deployed with state %s", deploymentId, state));
-		}
+				.doOnError(logError(String.format("Failed to undeploy app %s", id))));
 	}
 
 	private void assertApplicationExists(String deploymentId, AppStatus status) {
@@ -239,7 +228,7 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 	}
 
 	private String deploymentId(AppDeploymentRequest request) {
-		String prefix = Optional.ofNullable(request.getDeploymentProperties().get(GROUP_PROPERTY_KEY))
+		String prefix = Optional.ofNullable(request.getDeploymentProperties().get(AppDeployer.GROUP_PROPERTY_KEY))
 				.map(group -> String.format("%s-", group))
 				.orElse("");
 
@@ -287,7 +276,7 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 		if (StringUtils.hasText(javaOpts)) {
 			envVariables.put("JAVA_OPTS", javaOpts(request));
 		}
-		String group = request.getDeploymentProperties().get(ReactiveAppDeployer.GROUP_PROPERTY_KEY);
+		String group = request.getDeploymentProperties().get(AppDeployer.GROUP_PROPERTY_KEY);
 		if (StringUtils.hasText(group)) {
 			envVariables.put("SPRING_CLOUD_APPLICATION_GROUP", group);
 		}
@@ -340,7 +329,7 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 	}
 
 	private int instances(AppDeploymentRequest request) {
-		return Optional.ofNullable(request.getDeploymentProperties().get(ReactiveAppDeployer.COUNT_PROPERTY_KEY))
+		return Optional.ofNullable(request.getDeploymentProperties().get(AppDeployer.COUNT_PROPERTY_KEY))
 				.map(Integer::parseInt)
 				.orElse(this.deploymentProperties.getInstances());
 	}

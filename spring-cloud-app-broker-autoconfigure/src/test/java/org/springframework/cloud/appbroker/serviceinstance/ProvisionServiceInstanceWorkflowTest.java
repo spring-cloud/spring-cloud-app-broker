@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class ProvisionServiceInstanceWorkflowTest {
 
-	private AppBrokerCreateInstanceProperties appBrokerCreateInstanceProperties;
+	private CreateInstanceProperties createInstanceProperties;
 	@Mock
 	private DeployerClient deployerClient;
 	private ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow;
@@ -22,9 +22,9 @@ class ProvisionServiceInstanceWorkflowTest {
 	@Test
 	void shouldProvisionDefaultServiceInstance() {
 		// given that properties contains app name
-		appBrokerCreateInstanceProperties = new AppBrokerCreateInstanceProperties();
-		appBrokerCreateInstanceProperties.setAppName("helloworldapp");
-		provisionServiceInstanceWorkflow = new ProvisionServiceInstanceWorkflow(appBrokerCreateInstanceProperties, deployerClient);
+		createInstanceProperties = new CreateInstanceProperties();
+		createInstanceProperties.setAppName("helloworldapp");
+		provisionServiceInstanceWorkflow = new ProvisionServiceInstanceWorkflow(createInstanceProperties, deployerClient);
 
 		// when
 		provisionServiceInstanceWorkflow.provision(null);

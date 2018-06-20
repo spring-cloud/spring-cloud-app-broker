@@ -14,7 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-//TODO This should be in the App Broker core subproject
+// TODO This should be in the App Broker core subproject
 // NB: this can't be in the core subproject. the dependency graph for subprojects is:
 //           -deployer
 //           /      \
@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = AppBrokerAutoConfigureApplication.class,
+	classes = TestAppBrokerApplication.class,
 	properties = "spring.cloud.app.broker.create.instance.appName=helloworldapp")
 public class ProvisionInstanceComponentTest {
 

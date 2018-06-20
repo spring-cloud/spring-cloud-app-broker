@@ -1,12 +1,10 @@
 package org.springframework.cloud.appbroker.deployer;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class DeployerClientTest {
 
@@ -26,6 +24,6 @@ class DeployerClientTest {
 		Mono<String> lastState = deployerClient.deploy(deployerApplication);
 
 		//then
-		Assert.assertThat(lastState.block(), is(equalTo("running")));
+		assertThat(lastState.block()).isEqualTo("running");
 	}
 }

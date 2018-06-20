@@ -19,7 +19,7 @@ package org.springframework.cloud.appbroker.serviceinstance;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("spring.cloud.app.broker.create.instance")
-public class AppBrokerCreateInstanceProperties {
+public class CreateInstanceProperties {
 
 	private String appName;
 

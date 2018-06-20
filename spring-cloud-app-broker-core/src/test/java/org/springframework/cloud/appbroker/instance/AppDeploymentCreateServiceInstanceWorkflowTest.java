@@ -22,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.appbroker.instance.app.BackingAppDeployer;
 import org.springframework.cloud.appbroker.instance.app.BackingAppDeploymentPlan;
-import org.springframework.cloud.appbroker.instance.create.CreateServiceRequestContext;
 import org.springframework.cloud.appbroker.instance.create.DefaultCreateServiceBrokerResponseBuilder;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
@@ -32,7 +31,6 @@ import java.util.Collections;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
@@ -46,10 +44,10 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		// this is exposing a Law of Demeter issue in the design: this Workflow should only be dealing with
 		// objects it is injected with (BackingAppDeploymentPlans), not objects that are a level of indirection
 		// removed (BackingAppDeployer)
-		when(deployer.deploy(isNull(), any(CreateServiceRequestContext.class)))
+		when(deployer.deploy(isNull(), isNull()))
 			.thenReturn(Mono.just("test"));
 
-		Set<BackingAppDeploymentPlan> plans = Collections.singleton(new BackingAppDeploymentPlan(deployer, null));
+		Set<BackingAppDeploymentPlan> plans = Collections.singleton(new BackingAppDeploymentPlan("plan-id", deployer, null));
 		DefaultCreateServiceBrokerResponseBuilder responseBuilder = new DefaultCreateServiceBrokerResponseBuilder();
 		AppDeploymentCreateServiceInstanceWorkflow workflow =
 			new AppDeploymentCreateServiceInstanceWorkflow(plans, responseBuilder);

@@ -26,13 +26,15 @@ dependencyManagement {
 
 dependencies {
 	compile project(":spring-cloud-app-broker-core")
-    compile("org.springframework.boot:spring-boot-starter-web")
-	testCompile("org.springframework:spring-test") {
-		exclude group: "commons-logging", module: "commons-logging"
-	}
-	testCompile('org.springframework.boot:spring-boot-starter-test')
-	testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-    testCompile("org.assertj:assertj-core:${assertjVersion}")
-    testCompile("org.mockito:mockito-core:${mockitoVersion}")
-    testCompile("io.rest-assured:rest-assured:${restAssuredVersion}")
+	compile("org.springframework.boot:spring-boot-starter-web")
+
+	testImplementation("org.springframework:spring-test")
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+	testImplementation("org.assertj:assertj-core:${assertjVersion}")
+	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+	testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
 }

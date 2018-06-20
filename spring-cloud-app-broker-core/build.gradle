@@ -34,11 +34,11 @@ dependencies {
 	compile("org.springframework.security:spring-security-core:${springVersion}")
 	compile("org.springframework.cloud:spring-cloud-open-service-broker-core:${springCloudOpenServiceBrokerVersion}")
 
-	testCompile("org.springframework:spring-test") {
-		exclude group:"commons-logging", module:"commons-logging"
-	}
-	testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-	testCompile("org.assertj:assertj-core:${assertjVersion}")
-	testCompile("org.mockito:mockito-core:${mockitoVersion}")
-	testCompile("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+	testImplementation("org.springframework:spring-test")
+
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+	testImplementation("org.assertj:assertj-core:${assertjVersion}")
+	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 }

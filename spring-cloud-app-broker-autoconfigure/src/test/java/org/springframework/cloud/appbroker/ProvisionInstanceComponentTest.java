@@ -1,8 +1,6 @@
 package org.springframework.cloud.appbroker;
 
 import io.restassured.http.ContentType;
-import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -14,13 +12,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 //TODO This should be in the App Broker core subproject
+// NB: this can't be in the core subproject. the dependency graph for subprojects is:
+//           -deployer
+//           /      \
+//       -core    -deployer-cloudfoundry
+//         /
+//   -autoconfigure
+// this test requires full autoconfiguration, sample configuration, and a sample SpringBootApplication, so it's
+// well beyond the scope of what can be in core. It might be best to have a separate
+// -integration subproject to contain this test and the test infrastructure it depends on.
 
 /**
- * This is a black box test to validate the end-to-end flow of provisioning a Cf application from a service broker request
+ * This is a black box test to validate the end-to-end flow of deploying an application from a service broker request.
  * The black box test validates the flow has been performed and external contracts are satisfied but does not
  * rely on external dependencies (eg pushing an app to a real CF)
  * {@see https://github.com/spring-cloud-incubator/spring-cloud-app-broker/issues/4}
@@ -68,6 +74,6 @@ public class ProvisionInstanceComponentTest {
 
 		// deployer app object
 		// TODO assert cloudfoundry API contract for pushing our helloworld application was satisfied
-		Assert.assertThat("The CF API endpoint was called with operation", is(equalTo("push")));// which is the value from the deployer
+		assertThat("The CF API endpoint was called with operation").isEqualTo("push");// which is the value from the deployer
 	}
 }

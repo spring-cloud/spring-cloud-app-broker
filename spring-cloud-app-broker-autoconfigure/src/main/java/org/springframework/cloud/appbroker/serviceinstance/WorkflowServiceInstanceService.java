@@ -16,16 +16,15 @@ import org.springframework.stereotype.Service;
 
 /**
  * TODO This should be in the App Broker core subproject
- * TODO ServiceInstanceServiceImpl is clearly a bad name however there is no obvious name for this implementation as it provides the entry point
- * for a number of distinct service broker workflows. Ideally we would like to only have to provide @Bean implementations for individual
- * workflow implementations instead of the more coarsely grained  `ServiceInstanceService` interface
+ * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects for each service broker
+ * operation.
  */
 @Service
-public class ServiceInstanceServiceImpl implements ServiceInstanceService {
+public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	private ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow;
 
-	public ServiceInstanceServiceImpl(ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow) {
+	public WorkflowServiceInstanceService(ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow) {
 		this.provisionServiceInstanceWorkflow = provisionServiceInstanceWorkflow;
 	}
 

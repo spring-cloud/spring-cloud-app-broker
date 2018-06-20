@@ -32,6 +32,5 @@ class ProvisionServiceInstanceWorkflowTest {
 		//then deployer should be called with the application name
 		verify(deployerClient, times(1))
 			.deploy(DeployerApplicationBuilder.builder().withAppName("helloworldapp").build());
-
 	}
 }

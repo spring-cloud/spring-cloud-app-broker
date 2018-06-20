@@ -17,16 +17,23 @@
 package org.springframework.cloud.appbroker.instance.app;
 
 public class BackingAppDeploymentPlan {
+	private String deploymentPlanId;
 	private BackingAppDeployer backingAppDeployer;
 	private BackingAppParameters backingAppParameters;
 
-	public BackingAppDeploymentPlan(BackingAppDeployer backingAppDeployer, BackingAppParameters backingAppParameters) {
+
+	public BackingAppDeploymentPlan(String deploymentPlanId, BackingAppDeployer backingAppDeployer, BackingAppParameters backingAppParameters) {
+		this.deploymentPlanId = deploymentPlanId;
 		this.backingAppDeployer = backingAppDeployer;
 		this.backingAppParameters = backingAppParameters;
 	}
 
 	public BackingAppDeployer getBackingAppDeployer() {
 		return backingAppDeployer;
+	}
+
+	public String getDeploymentPlanId() {
+		return deploymentPlanId;
 	}
 
 	public BackingAppParameters getBackingAppParameters() {

@@ -18,9 +18,10 @@ package org.springframework.cloud.appbroker.instance;
 
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.instance.create.CreateServiceRequestContext;
 import org.springframework.cloud.appbroker.instance.create.DefaultCreateServiceBrokerResponseBuilder;
-import org.springframework.cloud.appbroker.instance.app.BackingAppDeploymentPlan;
+import org.springframework.cloud.appbroker.instance.create.appdeploy.BackingAppDeploymentPlan;
 import org.springframework.cloud.appbroker.workflow.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
@@ -29,16 +30,17 @@ public class AppDeploymentCreateServiceInstanceWorkflow implements CreateService
 
 	private Set<BackingAppDeploymentPlan> deploymentPlans;
 	private DefaultCreateServiceBrokerResponseBuilder createServiceBrokerResponseBuilder;
+	private CreateServiceRequestContext requestContext;
 
 	public AppDeploymentCreateServiceInstanceWorkflow(Set<BackingAppDeploymentPlan> deploymentPlans,
 													  DefaultCreateServiceBrokerResponseBuilder createServiceBrokerResponseBuilder) {
 		this.deploymentPlans = deploymentPlans;
 		this.createServiceBrokerResponseBuilder = createServiceBrokerResponseBuilder;
+		this.requestContext = requestContext;
 	}
 
 	@Override
 	public CreateServiceInstanceResponse perform(CreateServiceInstanceRequest requestData) {
-		CreateServiceRequestContext requestContext = new CreateServiceRequestContext(requestData);
 		deploymentPlans.forEach(plan -> plan.getBackingAppDeployer().deploy(plan.getBackingAppParameters(), requestContext));
 		return createServiceBrokerResponseBuilder.apply(requestContext);
 	}

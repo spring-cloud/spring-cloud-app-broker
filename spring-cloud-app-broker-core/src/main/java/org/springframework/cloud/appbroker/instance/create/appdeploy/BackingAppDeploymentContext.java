@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.cloud.appbroker.instance.create.appdeploy;
 
-package org.springframework.cloud.appbroker.instance.create;
-
-import java.util.function.Function;
-
-import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
-
-public class DefaultCreateServiceBrokerResponseBuilder implements Function<CreateServiceRequestContext, CreateServiceInstanceResponse> {
-
-	public CreateServiceInstanceResponse apply(CreateServiceRequestContext createServiceRequestContext) {
-		return CreateServiceInstanceResponse.builder()
-											.build();
-	}
-
+/**
+ * Holder for data that is specific within the context of deploying a single backing application
+ */
+public class BackingAppDeploymentContext {
 }

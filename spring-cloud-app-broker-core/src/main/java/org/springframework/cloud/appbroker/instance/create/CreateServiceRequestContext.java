@@ -16,34 +16,30 @@
 
 package org.springframework.cloud.appbroker.instance.create;
 
+import java.util.Set;
+
 import org.springframework.cloud.appbroker.context.BrokerRequestContext;
 import org.springframework.cloud.appbroker.instance.app.BackingAppState;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 
+/**
+ * Holder for data that is specific within the context of a single service broker request
+ */
 public class CreateServiceRequestContext implements BrokerRequestContext {
 
-	private BackingAppState backingAppState;
-	private boolean instanceExisted;
+	private Set<BackingAppState> backingAppState;
 	private CreateServiceInstanceRequest originatingRequest;
 
 	public CreateServiceRequestContext(CreateServiceInstanceRequest requestData) {
 		this.originatingRequest = requestData;
 	}
 
-	public BackingAppState getBackingAppState() {
+	public Set<BackingAppState> getBackingAppState() {
 		return backingAppState;
 	}
 
-	public void setBackingAppState(BackingAppState backingAppState) {
-		this.backingAppState = backingAppState;
-	}
-
-	public boolean getInstanceExisted() {
-		return instanceExisted;
-	}
-
-	public void setInstanceExisted(boolean instanceExisted) {
-		this.instanceExisted = instanceExisted;
+	public void addBackingAppState(BackingAppState backingAppState) {
+		this.backingAppState.add( backingAppState);
 	}
 
 	public CreateServiceInstanceRequest getOriginatingRequest() {

@@ -43,8 +43,11 @@ configure(allprojects) {
 
 	ext {
 		junitJupiterVersion = "5.2.0"
+		junitJupiterPlatformVersion = "1.2.0"
+        mockitoJunitJupiterVersion = "2.19.0"
 		assertjVersion = "3.10.0"
 		mockitoVersion = "2.18.3"
+        restAssuredVersion = "3.1.0"
 	}
 
 	if (!project.hasProperty("springVersion")) {

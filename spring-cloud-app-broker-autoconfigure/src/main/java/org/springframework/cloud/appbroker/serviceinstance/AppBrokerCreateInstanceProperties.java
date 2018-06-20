@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.config;
+package org.springframework.cloud.appbroker.serviceinstance;
 
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Configuration
-public class WorkflowConfiguration {
+@ConfigurationProperties("spring.cloud.app.broker.create.instance")
+public class AppBrokerCreateInstanceProperties {
 
+	private String appName;
+
+	public String getAppName() {
+		return appName;
+	}
+
+	public void setAppName(String appName) {
+		this.appName = appName;
+	}
 }

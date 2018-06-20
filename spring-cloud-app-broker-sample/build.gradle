@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-description = "Spring Cloud App Broker Autoconfiguration"
+description = "Spring Cloud App Broker Sample"
+ext.restAssuredVersion = "3.1.0"
 
 dependencyManagement {
 	imports {
@@ -26,19 +27,12 @@ dependencyManagement {
 dependencies {
 	compile project(":spring-cloud-app-broker-core")
     compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-actuator")
-    compile("org.springframework.cloud:spring-cloud-open-service-broker-autoconfigure:2.0.0.RC2")
-    compile("org.springframework.cloud:spring-cloud-starter-open-service-broker-webmvc:2.0.0.RC2")
-
-    compileOnly("org.springframework.boot:spring-boot-configuration-processor")
-
-    testCompile("org.springframework.boot:spring-boot-starter-test")
+	testCompile("org.springframework:spring-test") {
+		exclude group: "commons-logging", module: "commons-logging"
+	}
+	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-	testCompile("org.junit.platform:junit-platform-launcher:${junitJupiterPlatformVersion}")
-    testCompile("org.mockito:mockito-junit-jupiter:${mockitoJunitJupiterVersion}")
     testCompile("org.assertj:assertj-core:${assertjVersion}")
     testCompile("org.mockito:mockito-core:${mockitoVersion}")
     testCompile("io.rest-assured:rest-assured:${restAssuredVersion}")
-
 }
-compileJava.dependsOn(processResources)

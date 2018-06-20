@@ -18,10 +18,9 @@ package org.springframework.cloud.appbroker.instance;
 
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.appbroker.instance.app.BackingAppDeploymentPlan;
 import org.springframework.cloud.appbroker.instance.create.CreateServiceRequestContext;
 import org.springframework.cloud.appbroker.instance.create.DefaultCreateServiceBrokerResponseBuilder;
-import org.springframework.cloud.appbroker.instance.create.appdeploy.BackingAppDeploymentPlan;
 import org.springframework.cloud.appbroker.workflow.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;

@@ -16,20 +16,21 @@
 
 package org.springframework.cloud.appbroker.instance;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.appbroker.instance.app.BackingAppDeployer;
 import org.springframework.cloud.appbroker.instance.app.BackingAppDeploymentPlan;
 import org.springframework.cloud.appbroker.instance.create.CreateServiceRequestContext;
 import org.springframework.cloud.appbroker.instance.create.DefaultCreateServiceBrokerResponseBuilder;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
-import reactor.core.publisher.Mono;
-
-import java.util.Collections;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,7 +50,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		when(deployer.deploy(isNull(), any(CreateServiceRequestContext.class)))
 			.thenReturn(Mono.just("test"));
 
-		Set<BackingAppDeploymentPlan> plans = Collections.singleton(new BackingAppDeploymentPlan(deployer, null));
+		Set<BackingAppDeploymentPlan> plans = Collections.singleton(new BackingAppDeploymentPlan("app1", deployer, null));
 		DefaultCreateServiceBrokerResponseBuilder responseBuilder = new DefaultCreateServiceBrokerResponseBuilder();
 		AppDeploymentCreateServiceInstanceWorkflow workflow =
 			new AppDeploymentCreateServiceInstanceWorkflow(plans, responseBuilder);

@@ -16,42 +16,42 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.net.MalformedURLException;
 import java.util.Collections;
-
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.core.io.FileUrlResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 //TODO This should be in the App Broker core subproject
-// TODO I should not be public in order to avoid usage outside of it's bounded context (app deployment)
-/**
- * The deployer client exists to provide an adapter / anti-corruption layer between the platform deployer component {@see ReactiveAppDeployer}
- * and App Broker workflow components. For rationale {@see https://docs.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer}
- *
- * A simple rule we have been following is;
- * Controller --calls--> Service ✅
- * Service    --calls--> Client  ✅
- * Service    --calls--> Service ⛔️ probably a tight coupling between two bounded contexts
- */
+
 @Component
-public class DeployerClient {
+class DeployerClient {
 
 	private ReactiveAppDeployer reactiveAppDeployer;
 
-	public DeployerClient(ReactiveAppDeployer reactiveAppDeployer) {
+	DeployerClient(ReactiveAppDeployer reactiveAppDeployer) {
 		this.reactiveAppDeployer = reactiveAppDeployer;
 	}
 
-	// TODO I should not be public in order to avoid usage outside of it's bounded context (app deployment)
-	public Mono<String> deploy(DeployerApplication deployerApplication) {
+	Mono<String> deploy(DeployerApplication deployerApplication) {
 
 		AppDefinition appDefinition = new AppDefinition(deployerApplication.getAppName(), Collections.emptyMap());
-		Resource resource = null;
+		Resource resource = getResource(deployerApplication.getPath());
 		AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(appDefinition, resource);
-		return reactiveAppDeployer.deploy(appDeploymentRequest);
+		Mono<String> deployedApplicationId = reactiveAppDeployer.deploy(appDeploymentRequest);
+		deployedApplicationId.block();
+		return Mono.just("running");
+	}
+
+	private Resource getResource(String path) {
+		try {
+			return new FileUrlResource(path);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("The URL given from the resource is not correct");
+		}
 	}
 
 }

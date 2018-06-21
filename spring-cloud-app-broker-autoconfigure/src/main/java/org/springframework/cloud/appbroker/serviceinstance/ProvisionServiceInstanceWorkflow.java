@@ -39,10 +39,15 @@ class ProvisionServiceInstanceWorkflow {
 
 	void provision() {
 		final String appName = backingAppDeployProperties.getAppName();
-		deploymentPlan.execute(createDeployerApplication(appName));
+		final String path = backingAppDeployProperties.getPath();
+		deploymentPlan.execute(createDeployerApplication(appName, path));
 	}
 
-	private DeployerApplication createDeployerApplication(String appName) {
-		return DeployerApplication.DeployerApplicationBuilder.builder().withAppName(appName).build();
+	private DeployerApplication createDeployerApplication(String appName, String path) {
+		DeployerApplication deployerApplication = new DeployerApplication();
+		deployerApplication.setAppName(appName);
+		deployerApplication.setPath(path);
+
+		return deployerApplication;
 	}
 }

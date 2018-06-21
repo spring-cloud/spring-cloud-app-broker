@@ -22,6 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class BackingAppDeployProperties {
 
 	private String appName;
+	private String path;
 
 	public String getAppName() {
 		return appName;
@@ -29,5 +30,13 @@ public class BackingAppDeployProperties {
 
 	public void setAppName(String appName) {
 		this.appName = appName;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
 	}
 }

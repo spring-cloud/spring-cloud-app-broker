@@ -20,8 +20,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeployProperties;
+import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeployerAutoConfiguration;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = CloudFoundryDeployerAutoConfiguration.class)
 @EnableConfigurationProperties({BackingAppDeployProperties.class})
 public class TestAppBrokerApplication {
 

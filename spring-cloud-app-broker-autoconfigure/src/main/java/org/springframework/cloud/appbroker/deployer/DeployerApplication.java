@@ -17,7 +17,6 @@ package org.springframework.cloud.appbroker.deployer;
 
 
 import java.util.Objects;
-
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 
 //TODO This should be in the App Broker core subproject
@@ -28,12 +27,23 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 public class DeployerApplication {
 
 	private String appName;
+	private String path;
 
-	private DeployerApplication() {
+
+	public String getAppName() {
+		return appName;
 	}
 
-	String getAppName() {
-		return appName;
+	public String getPath() {
+		return path;
+	}
+
+	public void setAppName(String appName) {
+		this.appName = appName;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
 	}
 
 	@Override
@@ -41,42 +51,21 @@ public class DeployerApplication {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		DeployerApplication that = (DeployerApplication) o;
-		return Objects.equals(appName, that.appName);
+		return Objects.equals(appName, that.appName) &&
+			Objects.equals(path, that.path);
 	}
 
 	@Override
 	public int hashCode() {
 
-		return Objects.hash(appName);
+		return Objects.hash(appName, path);
 	}
 
 	@Override
 	public String toString() {
 		return "DeployerApplication{" +
 			"appName='" + appName + '\'' +
+			", path='" + path + '\'' +
 			'}';
-	}
-
-	public static final class DeployerApplicationBuilder {
-
-		private String appName;
-
-		private DeployerApplicationBuilder() {
-		}
-
-		public DeployerApplication build() {
-			DeployerApplication deployerApplication = new DeployerApplication();
-			deployerApplication.appName = this.appName;
-			return deployerApplication;
-		}
-
-		public DeployerApplicationBuilder withAppName(String appName) {
-			this.appName = appName;
-			return this;
-		}
-
-		public static DeployerApplicationBuilder builder() {
-			return new DeployerApplicationBuilder();
-		}
 	}
 }

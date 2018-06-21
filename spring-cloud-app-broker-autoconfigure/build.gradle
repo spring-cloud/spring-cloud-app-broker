@@ -25,6 +25,7 @@ dependencyManagement {
 
 dependencies {
 	compile project(":spring-cloud-app-broker-core")
+
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("org.springframework.boot:spring-boot-starter-actuator")
 	compile("org.springframework.cloud:spring-cloud-open-service-broker-autoconfigure:2.0.0.RC2")

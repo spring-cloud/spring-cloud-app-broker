@@ -16,42 +16,50 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import java.net.MalformedURLException;
 import java.util.Collections;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.core.io.FileUrlResource;
+import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 //TODO This should be in the App Broker core subproject
 
 @Component
-class DeployerClient {
+class DeployerClient implements ResourceLoaderAware {
 
-	private ReactiveAppDeployer reactiveAppDeployer;
+	private ReactiveAppDeployer appDeployer;
+	private ResourceLoader resourceLoader;
 
-	DeployerClient(ReactiveAppDeployer reactiveAppDeployer) {
-		this.reactiveAppDeployer = reactiveAppDeployer;
+	@Autowired
+	DeployerClient(ReactiveAppDeployer appDeployer) {
+		this.appDeployer = appDeployer;
+	}
+
+	DeployerClient(ReactiveAppDeployer appDeployer, ResourceLoader resourceLoader) {
+		this.appDeployer = appDeployer;
+		this.resourceLoader = resourceLoader;
 	}
 
 	Mono<String> deploy(DeployerApplication deployerApplication) {
-
 		AppDefinition appDefinition = new AppDefinition(deployerApplication.getAppName(), Collections.emptyMap());
 		Resource resource = getResource(deployerApplication.getPath());
 		AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(appDefinition, resource);
-		Mono<String> deployedApplicationId = reactiveAppDeployer.deploy(appDeploymentRequest);
+		Mono<String> deployedApplicationId = appDeployer.deploy(appDeploymentRequest);
 		deployedApplicationId.block();
 		return Mono.just("running");
 	}
 
 	private Resource getResource(String path) {
-		try {
-			return new FileUrlResource(path);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException("The URL given from the resource is not correct");
-		}
+		return resourceLoader.getResource(path);
 	}
 
+	@Override
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		this.resourceLoader = resourceLoader;
+	}
 }

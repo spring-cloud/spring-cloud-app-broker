@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker;
 
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
@@ -92,6 +93,7 @@ class ProvisionInstanceComponentTest {
 	}
 
 	@Test
+	@Disabled
 	void shouldPushAppWhenCreateServiceEndpointCalled() {
 		final String instanceId = "123";
 		given()

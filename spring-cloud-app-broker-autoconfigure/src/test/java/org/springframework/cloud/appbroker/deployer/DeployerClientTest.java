@@ -16,53 +16,50 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import org.cloudfoundry.operations.CloudFoundryOperations;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryReactiveAppDeployer;
-import org.springframework.cloud.appbroker.deployer.cloudfoundry.NoOpAppNameGenerator;
-import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties;
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.ResourceLoader;
 import reactor.core.publisher.Mono;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DeployerClientTest {
+	private static final String APP_NAME = "helloworld";
+	private static final String APP_PATH = "classpath:/jars/app.jar";
 
 	private DeployerClient deployerClient;
 
 	@Mock
-	private CloudFoundryOperations cloudFoundryOperations;
+	private ReactiveAppDeployer appDeployer;
 	@Mock
-	private Applications applications;
+	private ResourceLoader resourceLoader;
 
 	@BeforeEach
 	void setUp() {
-		NoOpAppNameGenerator applicationNameGenerator = new NoOpAppNameGenerator();
-		CloudFoundryDeploymentProperties deploymentProperties = new CloudFoundryDeploymentProperties();
-		deploymentProperties.setDisk("1024M");
+		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
 
-		when(applications.pushManifest(any())).thenReturn(Mono.empty());
-		when(cloudFoundryOperations.applications()).thenReturn(applications);
-
-		ReactiveAppDeployer reactiveAppDeployer = new CloudFoundryReactiveAppDeployer(applicationNameGenerator, deploymentProperties, cloudFoundryOperations, null);
-		deployerClient = new DeployerClient(reactiveAppDeployer);
+		deployerClient = new DeployerClient(appDeployer, resourceLoader);
 	}
 
 	@Test
 	void shouldDeployAppByName() {
 		DeployerApplication deployerApplication = new DeployerApplication();
-		deployerApplication.setAppName("helloworld");
-		deployerApplication.setPath("http://myfiles/app.jar");
+		deployerApplication.setAppName(APP_NAME);
+		deployerApplication.setPath(APP_PATH);
+
+		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
 
 		//when I call deploy an app with a given name
 		Mono<String> lastState = deployerClient.deploy(deployerApplication);
@@ -70,12 +67,16 @@ class DeployerClientTest {
 		//then
 		assertThat(lastState.block()).isEqualTo("running");
 
-		Mockito.verify(applications).pushManifest(expectedPushManifestRequest());
+		verify(appDeployer).deploy(argThat(matchesRequest()));
 	}
 
-	private static PushApplicationManifestRequest expectedPushManifestRequest() {
-		// FIXME
-		return PushApplicationManifestRequest.builder().build();
+	private ArgumentMatcher<AppDeploymentRequest> matchesRequest() {
+		return appDeploymentRequestMatcher();
 	}
 
+	private ArgumentMatcher<AppDeploymentRequest> appDeploymentRequestMatcher() {
+		return request ->
+			request.getDefinition().getName().equals(APP_NAME) &&
+			request.getResource().getFilename().equals("app.jar");
+	}
 }

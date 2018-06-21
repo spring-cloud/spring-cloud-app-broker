@@ -37,13 +37,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(
 	classes = TestAppBrokerApplication.class,
 	properties = "spring.cloud.app.broker.create.instance.appName=helloworldapp")
-@Disabled
 public class ProvisionInstanceComponentAlternativeTest {
 
 	@Autowired
 	private ServiceInstanceService serviceInstanceService;
 
 	@Test
+	@Disabled
 	void shouldPushAppWhenCreateServiceEndpointCalled() {
 		CreateServiceInstanceRequest request = CreateServiceInstanceRequest.builder()
 			.serviceDefinitionId("bdb1be2e-360b-495c-8115-d7697f9c6a9e")

@@ -6,7 +6,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.appbroker.deployer.DeployerApplication.DeployerApplicationBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,7 +27,10 @@ class BackingAppDeploymentPlanTest {
 
 		//When
 		when(deployerClient.deploy(any())).thenReturn(Mono.just("running"));
-		final String testAppStatus = backingAppDeploymentPlan.execute(DeployerApplicationBuilder.builder().withAppName("testapp1").build());
+		DeployerApplication deployerApplication = new DeployerApplication();
+		deployerApplication.setAppName("testApp1");
+		deployerApplication.setPath("http://myfiles/app.jar");
+		final String testAppStatus = backingAppDeploymentPlan.execute(deployerApplication);
 		//then
 		String expectedStatus = "running";
 		assertThat(testAppStatus).isEqualTo(expectedStatus);

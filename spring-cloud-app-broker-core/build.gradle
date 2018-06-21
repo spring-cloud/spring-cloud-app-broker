@@ -28,6 +28,8 @@ ext {
 
 dependencies {
 	compile project(":spring-cloud-app-broker-deployer")
+	// TODO revisit the circular dependencies
+	compile project(":spring-cloud-app-broker-deployer-cloudfoundry")
 
 	compile("org.springframework:spring-core")
 	compile("org.springframework:spring-context")

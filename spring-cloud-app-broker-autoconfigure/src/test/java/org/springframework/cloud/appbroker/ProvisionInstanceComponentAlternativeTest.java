@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import org.springframework.cloud.servicebroker.model.instance.CreateServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(
 	classes = TestAppBrokerApplication.class,
 	properties = "spring.cloud.app.broker.create.instance.appName=helloworldapp")
+@Disabled
 public class ProvisionInstanceComponentAlternativeTest {
 
 	@Autowired

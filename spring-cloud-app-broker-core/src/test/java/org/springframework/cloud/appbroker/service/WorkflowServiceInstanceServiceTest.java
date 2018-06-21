@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.serviceinstance;
+package org.springframework.cloud.appbroker.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,12 +33,12 @@ import static org.mockito.Mockito.verify;
 class WorkflowServiceInstanceServiceTest {
 
 	@Mock
-	private ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow;
+	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
 	private WorkflowServiceInstanceService workflowServiceInstanceService;
 
 	@BeforeEach
 	void setUp() {
-		workflowServiceInstanceService = new WorkflowServiceInstanceService(provisionServiceInstanceWorkflow);
+		workflowServiceInstanceService = new WorkflowServiceInstanceService(createServiceInstanceWorkflow);
 	}
 
 	@Test
@@ -46,7 +47,7 @@ class WorkflowServiceInstanceServiceTest {
 		CreateServiceInstanceResponse createServiceInstanceResponse = workflowServiceInstanceService.createServiceInstance(null);
 
 		// then we should delegate in the default workflow
-		verify(provisionServiceInstanceWorkflow, times(1)).provision();
+		verify(createServiceInstanceWorkflow, times(1)).provision();
 
 		// and then it should return a valid response with the last status
 		assertThat(createServiceInstanceResponse).isNotNull();

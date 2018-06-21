@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.catalog;
+package org.springframework.cloud.appbroker.component.catalog;
 
 import org.springframework.cloud.servicebroker.model.catalog.Catalog;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;

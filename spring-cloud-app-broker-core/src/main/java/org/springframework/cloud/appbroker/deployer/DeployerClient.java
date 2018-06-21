@@ -18,23 +18,19 @@ package org.springframework.cloud.appbroker.deployer;
 
 import java.util.Collections;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-@Component
-class DeployerClient implements ResourceLoaderAware {
+public class DeployerClient implements ResourceLoaderAware {
 
 	private ReactiveAppDeployer appDeployer;
 	private ResourceLoader resourceLoader;
 
-	@Autowired
-	DeployerClient(ReactiveAppDeployer appDeployer) {
+	public DeployerClient(ReactiveAppDeployer appDeployer) {
 		this.appDeployer = appDeployer;
 	}
 

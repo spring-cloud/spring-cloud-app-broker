@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.serviceinstance;
+package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,26 +24,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 
-
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class ProvisionServiceInstanceWorkflowTest {
+class CreateServiceInstanceWorkflowTest {
 
 	private BackingAppProperties backingAppProperties;
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
-	private ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow;
+	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
 
 	@Test
 	void shouldProvisionDefaultServiceInstance() {
 		// given that properties contains app name
 		backingAppProperties = new BackingAppProperties("helloworldapp", "http://myfiles/app.jar");
-		provisionServiceInstanceWorkflow = new ProvisionServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
+		createServiceInstanceWorkflow = new CreateServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
 
 		// when
-		provisionServiceInstanceWorkflow.provision();
+		createServiceInstanceWorkflow.provision();
 
 		//then deployer should be called with the application name
 		verify(backingAppDeploymentService, times(1))

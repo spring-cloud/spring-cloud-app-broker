@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker;
+package org.springframework.cloud.appbroker.component;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
 import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeployerAutoConfiguration;
 
 @SpringBootApplication(exclude = CloudFoundryDeployerAutoConfiguration.class)
-@EnableConfigurationProperties({BackingAppProperties.class})
 public class TestAppBrokerApplication {
 
 	public static void main(String[] args) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker;
+package org.springframework.cloud.appbroker.component;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

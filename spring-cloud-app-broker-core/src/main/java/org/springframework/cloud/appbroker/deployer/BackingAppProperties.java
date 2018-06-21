@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-@ConfigurationProperties("spring.cloud.app.broker.deploy")
 public class BackingAppProperties {
 	private String appName;
 	private String path;

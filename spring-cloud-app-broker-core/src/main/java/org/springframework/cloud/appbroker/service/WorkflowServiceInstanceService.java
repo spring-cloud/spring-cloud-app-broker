@@ -16,8 +16,9 @@
  *
  */
 
-package org.springframework.cloud.appbroker.serviceinstance;
+package org.springframework.cloud.appbroker.service;
 
+import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
@@ -29,26 +30,22 @@ import org.springframework.cloud.servicebroker.model.instance.GetServiceInstance
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
-import org.springframework.stereotype.Service;
-
 
 /**
- * TODO This should be in the App Broker core subproject
  * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects for each service broker
  * operation.
  */
-@Service
 public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
-	private ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow;
+	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
 
-	public WorkflowServiceInstanceService(ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow) {
-		this.provisionServiceInstanceWorkflow = provisionServiceInstanceWorkflow;
+	public WorkflowServiceInstanceService(CreateServiceInstanceWorkflow createServiceInstanceWorkflow) {
+		this.createServiceInstanceWorkflow = createServiceInstanceWorkflow;
 	}
 
 	@Override
 	public CreateServiceInstanceResponse createServiceInstance(CreateServiceInstanceRequest request) {
-		provisionServiceInstanceWorkflow.provision();
+		createServiceInstanceWorkflow.provision();
 
 		return CreateServiceInstanceResponse.builder().build();
 	}

@@ -55,14 +55,11 @@ class DeployerClientTest {
 
 	@Test
 	void shouldDeployAppByName() {
-		DeployerApplication deployerApplication = new DeployerApplication();
-		deployerApplication.setAppName(APP_NAME);
-		deployerApplication.setPath(APP_PATH);
-
 		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
 
 		//when I call deploy an app with a given name
-		Mono<String> lastState = deployerClient.deploy(deployerApplication);
+		BackingAppProperties application = new BackingAppProperties(APP_NAME, APP_PATH);
+		Mono<String> lastState = deployerClient.deploy(application);
 
 		//then
 		assertThat(lastState.block()).isEqualTo("running");

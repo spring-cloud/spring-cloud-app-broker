@@ -18,36 +18,23 @@
 
 package org.springframework.cloud.appbroker.serviceinstance;
 
-import org.springframework.cloud.appbroker.deployer.BackingAppDeployProperties;
-import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentPlan;
-import org.springframework.cloud.appbroker.deployer.DeployerApplication;
+import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
+import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.stereotype.Service;
 
-//TODO This should be in the App Broker core subproject
 @Service
 class ProvisionServiceInstanceWorkflow {
 
-	private BackingAppDeployProperties backingAppDeployProperties;
+	private BackingAppProperties backingAppProperties;
+	private BackingAppDeploymentService deploymentPlan;
 
-	private BackingAppDeploymentPlan deploymentPlan;
-
-	public ProvisionServiceInstanceWorkflow(BackingAppDeployProperties backingAppDeployProperties,
-											BackingAppDeploymentPlan deploymentPlan) {
-		this.backingAppDeployProperties = backingAppDeployProperties;
+	public ProvisionServiceInstanceWorkflow(BackingAppProperties backingAppProperties,
+											BackingAppDeploymentService deploymentPlan) {
+		this.backingAppProperties = backingAppProperties;
 		this.deploymentPlan = deploymentPlan;
 	}
 
 	void provision() {
-		final String appName = backingAppDeployProperties.getAppName();
-		final String path = backingAppDeployProperties.getPath();
-		deploymentPlan.execute(createDeployerApplication(appName, path));
-	}
-
-	private DeployerApplication createDeployerApplication(String appName, String path) {
-		DeployerApplication deployerApplication = new DeployerApplication();
-		deployerApplication.setAppName(appName);
-		deployerApplication.setPath(path);
-
-		return deployerApplication;
+		deploymentPlan.execute(backingAppProperties);
 	}
 }

@@ -21,9 +21,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import org.springframework.cloud.appbroker.deployer.BackingAppDeployProperties;
-import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentPlan;
-import org.springframework.cloud.appbroker.deployer.DeployerApplication;
+import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
+import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 
 
 import static org.mockito.Mockito.times;
@@ -32,28 +31,22 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class ProvisionServiceInstanceWorkflowTest {
 
-	private BackingAppDeployProperties backingAppDeployProperties;
+	private BackingAppProperties backingAppProperties;
 	@Mock
-	private BackingAppDeploymentPlan backingAppDeploymentPlan;
+	private BackingAppDeploymentService backingAppDeploymentService;
 	private ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow;
 
 	@Test
 	void shouldProvisionDefaultServiceInstance() {
 		// given that properties contains app name
-		backingAppDeployProperties = new BackingAppDeployProperties();
-		backingAppDeployProperties.setAppName("helloworldapp");
-		backingAppDeployProperties.setPath("http://myfiles/app.jar");
-		provisionServiceInstanceWorkflow = new ProvisionServiceInstanceWorkflow(backingAppDeployProperties, backingAppDeploymentPlan);
+		backingAppProperties = new BackingAppProperties("helloworldapp", "http://myfiles/app.jar");
+		provisionServiceInstanceWorkflow = new ProvisionServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
 
 		// when
 		provisionServiceInstanceWorkflow.provision();
 
 		//then deployer should be called with the application name
-		DeployerApplication expectedDeployerApplication = new DeployerApplication();
-		expectedDeployerApplication.setPath("http://myfiles/app.jar");
-		expectedDeployerApplication.setAppName("helloworldapp");
-
-		verify(backingAppDeploymentPlan, times(1))
-			.execute(expectedDeployerApplication);
+		verify(backingAppDeploymentService, times(1))
+			.execute(backingAppProperties);
 	}
 }

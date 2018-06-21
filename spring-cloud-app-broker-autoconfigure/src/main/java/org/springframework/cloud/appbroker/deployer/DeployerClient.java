@@ -27,8 +27,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-//TODO This should be in the App Broker core subproject
-
 @Component
 class DeployerClient implements ResourceLoaderAware {
 
@@ -45,9 +43,9 @@ class DeployerClient implements ResourceLoaderAware {
 		this.resourceLoader = resourceLoader;
 	}
 
-	Mono<String> deploy(DeployerApplication deployerApplication) {
-		AppDefinition appDefinition = new AppDefinition(deployerApplication.getAppName(), Collections.emptyMap());
-		Resource resource = getResource(deployerApplication.getPath());
+	Mono<String> deploy(BackingAppProperties backingApplication) {
+		AppDefinition appDefinition = new AppDefinition(backingApplication.getAppName(), Collections.emptyMap());
+		Resource resource = getResource(backingApplication.getPath());
 		AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(appDefinition, resource);
 		Mono<String> deployedApplicationId = appDeployer.deploy(appDeploymentRequest);
 		deployedApplicationId.block();

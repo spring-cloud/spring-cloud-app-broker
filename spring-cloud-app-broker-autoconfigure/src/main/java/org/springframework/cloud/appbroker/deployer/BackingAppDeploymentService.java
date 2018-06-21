@@ -23,27 +23,16 @@ import reactor.core.publisher.Mono;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BackingAppDeploymentPlan {
+public class BackingAppDeploymentService {
 
-	private final BackingAppDeployProperties deployProperties;
 	private final DeployerClient deployerClient;
 
-	public BackingAppDeploymentPlan(BackingAppDeployProperties deployProperties, DeployerClient deployerClient) {
-
-		this.deployProperties = deployProperties;
+	public BackingAppDeploymentService(DeployerClient deployerClient) {
 		this.deployerClient = deployerClient;
 	}
 
-	public String execute(DeployerApplication application) {
+	public String execute(BackingAppProperties application) {
 		final Mono<String> result = deployerClient.deploy(application);
 		return result.block();
-	}
-
-	public BackingAppDeployProperties getDeployProperties() {
-		return deployProperties;
-	}
-
-	public DeployerClient getDeployerClient() {
-		return deployerClient;
 	}
 }

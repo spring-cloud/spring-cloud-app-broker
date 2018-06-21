@@ -12,7 +12,8 @@ class DeployerClientTest {
 
 	@BeforeEach
 	void setUp() {
-		deployerClient = new DeployerClient();
+		ReactiveAppDeployer reactiveAppDeployer = null;
+		deployerClient = new DeployerClient(reactiveAppDeployer);
 	}
 
 	@Test

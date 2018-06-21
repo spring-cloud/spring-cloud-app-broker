@@ -29,6 +29,13 @@ public class DeployerApplication {
 
 	private String appName;
 
+	private DeployerApplication() {
+	}
+
+	String getAppName() {
+		return appName;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;

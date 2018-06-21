@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow;
+package org.springframework.cloud.appbroker.deployer;
 
-import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
-import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-public interface UpdateServiceInstanceWorkflow
-	extends ServiceBrokerWorkflow<UpdateServiceInstanceRequest, UpdateServiceInstanceResponse> {
+@ConfigurationProperties("spring.cloud.app.broker.deploy")
+public class BackingAppDeployProperties {
+
+	private String appName;
+
+	public String getAppName() {
+		return appName;
+	}
+
+	public void setAppName(String appName) {
+		this.appName = appName;
+	}
 }

@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -31,7 +30,7 @@ class WorkflowServiceInstanceServiceTest {
 		CreateServiceInstanceResponse createServiceInstanceResponse = workflowServiceInstanceService.createServiceInstance(null);
 
 		// then we should delegate in the default workflow
-		verify(provisionServiceInstanceWorkflow, times(1)).provision(any());
+		verify(provisionServiceInstanceWorkflow, times(1)).provision();
 
 		// and then it should return a valid response with the last status
 		assertThat(createServiceInstanceResponse).isNotNull();

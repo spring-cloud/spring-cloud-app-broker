@@ -5,8 +5,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.cloud.appbroker.deployer.BackingAppDeployProperties;
+import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentPlan;
 import org.springframework.cloud.appbroker.deployer.DeployerApplication.DeployerApplicationBuilder;
-import org.springframework.cloud.appbroker.deployer.DeployerClient;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -14,23 +15,23 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class ProvisionServiceInstanceWorkflowTest {
 
-	private CreateInstanceProperties createInstanceProperties;
+	private BackingAppDeployProperties backingAppDeployProperties;
 	@Mock
-	private DeployerClient deployerClient;
+	private BackingAppDeploymentPlan backingAppDeploymentPlan;
 	private ProvisionServiceInstanceWorkflow provisionServiceInstanceWorkflow;
 
 	@Test
 	void shouldProvisionDefaultServiceInstance() {
 		// given that properties contains app name
-		createInstanceProperties = new CreateInstanceProperties();
-		createInstanceProperties.setAppName("helloworldapp");
-		provisionServiceInstanceWorkflow = new ProvisionServiceInstanceWorkflow(createInstanceProperties, deployerClient);
+		backingAppDeployProperties = new BackingAppDeployProperties();
+		backingAppDeployProperties.setAppName("helloworldapp");
+		provisionServiceInstanceWorkflow = new ProvisionServiceInstanceWorkflow(backingAppDeployProperties, backingAppDeploymentPlan);
 
 		// when
-		provisionServiceInstanceWorkflow.provision(null);
+		provisionServiceInstanceWorkflow.provision();
 
 		//then deployer should be called with the application name
-		verify(deployerClient, times(1))
-			.deploy(DeployerApplicationBuilder.builder().withAppName("helloworldapp").build());
+		verify(backingAppDeploymentPlan, times(1))
+			.execute(DeployerApplicationBuilder.builder().withAppName("helloworldapp").build());
 	}
 }

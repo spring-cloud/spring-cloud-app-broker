@@ -60,18 +60,18 @@ import static org.springframework.cloud.appbroker.component.ProvisionInstanceCom
 		 * TODO we should get the jar remotely but see
 		 * {@link org.springframework.cloud.appbroker.deployer.cloudfoundry.AbstractCloudFoundryReactiveAppDeployer.getApplication}
 		 */
-		"spring.cloud.app.broker.deploy.path=classpath:demo.jar",
-		"spring.cloud.app.broker.deploy.appName=helloworldapp",
+		"spring.cloud.appbroker.deploy.path=classpath:demo.jar",
+		"spring.cloud.appbroker.deploy.appName=helloworldapp",
 		// TODO not hardcode, we should be stubbing this with fake data
-		"spring.cloud.app.broker.cf.apiHost=" + SIMULATED_CF_HOST,
-		"spring.cloud.app.broker.cf.apiPort=80",
-		"spring.cloud.app.broker.cf.proxyHost=http://localhost",
-		"spring.cloud.app.broker.cf.proxyPort=" + PROXY_PORT,
-		"spring.cloud.app.broker.cf.username=admin",
-		"spring.cloud.app.broker.cf.password=adminpass",
-		"spring.cloud.app.broker.cf.defaultOrg=test",
-		"spring.cloud.app.broker.cf.defaultSpace=development",
-		"spring.cloud.app.broker.cf.skipSslValidation=true"
+		"spring.cloud.appbroker.cf.apiHost=" + SIMULATED_CF_HOST,
+		"spring.cloud.appbroker.cf.apiPort=80",
+		"spring.cloud.appbroker.cf.proxyHost=http://localhost",
+		"spring.cloud.appbroker.cf.proxyPort=" + PROXY_PORT,
+		"spring.cloud.appbroker.cf.username=admin",
+		"spring.cloud.appbroker.cf.password=adminpass",
+		"spring.cloud.appbroker.cf.defaultOrg=test",
+		"spring.cloud.appbroker.cf.defaultSpace=development",
+		"spring.cloud.appbroker.cf.skipSslValidation=true"
 
 	})
 public class ProvisionInstanceComponentTest {

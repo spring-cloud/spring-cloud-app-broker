@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker;
+package org.springframework.cloud.appbroker.autoconfigure;
 
 import org.cloudfoundry.operations.CloudFoundryOperations;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryReactiveAppDeployer;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.NoOpAppNameGenerator;
@@ -27,8 +28,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(CloudFoundryProperties.class)
-public class ReactiveAppDeployerConfiguration {
+@AutoConfigureAfter(CloudFoundryClientAutoConfiguration.class)
+public class AppDeployerAutoConfiguration {
 
 	@Bean
 	public AppNameGenerator noOpApplicationNameGenerator() {
@@ -36,16 +37,11 @@ public class ReactiveAppDeployerConfiguration {
 	}
 
 	@Bean
-	public CloudFoundryDeploymentProperties cloudFoundryDeploymentProperties() {
-		CloudFoundryDeploymentProperties cloudFoundryDeploymentProperties = new CloudFoundryDeploymentProperties();
-		cloudFoundryDeploymentProperties.setDisk("1024M");
-		return cloudFoundryDeploymentProperties;
-	}
-
-	@Bean
+	@ConditionalOnBean(CloudFoundryOperations.class)
 	public ReactiveAppDeployer cloudFoundryReactiveAppDeployer(AppNameGenerator noOpApplicationNameGenerator,
-															   CloudFoundryDeploymentProperties cloudFoundryDeploymentProperties,
-															   CloudFoundryOperations defaultCloudFoundryOperations) {
-		return new CloudFoundryReactiveAppDeployer(noOpApplicationNameGenerator, cloudFoundryDeploymentProperties, defaultCloudFoundryOperations, null);
+															   CloudFoundryOperations cloudFoundryOperations) {
+		CloudFoundryDeploymentProperties cloudFoundryDeploymentProperties = new CloudFoundryDeploymentProperties();
+		return new CloudFoundryReactiveAppDeployer(noOpApplicationNameGenerator, cloudFoundryDeploymentProperties,
+			cloudFoundryOperations, null);
 	}
 }

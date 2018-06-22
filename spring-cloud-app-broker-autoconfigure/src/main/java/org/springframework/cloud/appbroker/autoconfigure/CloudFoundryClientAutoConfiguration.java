@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker;
+package org.springframework.cloud.appbroker.autoconfigure;
 
 import java.util.Optional;
 
@@ -32,18 +32,21 @@ import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.UaaClient;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(CloudFoundryProperties.class)
-public class CloudFoundryOperationsConfiguration {
+@ConditionalOnProperty(CloudFoundryProperties.PROPERTY_PREFIX + ".apiHost")
+public class CloudFoundryClientAutoConfiguration {
 
-	@Autowired
-	private CloudFoundryProperties properties;
-
+	@Bean
+	@ConfigurationProperties(prefix = CloudFoundryProperties.PROPERTY_PREFIX)
+	CloudFoundryProperties cloudFoundryProperties() {
+		return new CloudFoundryProperties();
+	}
+	
 	@Bean
 	ReactorCloudFoundryClient cloudFoundryClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
 		return ReactorCloudFoundryClient.builder()
@@ -53,7 +56,8 @@ public class CloudFoundryOperationsConfiguration {
 	}
 
 	@Bean
-	CloudFoundryOperations cloudFoundryOperations(CloudFoundryClient client, DopplerClient dopplerClient, UaaClient uaaClient) {
+	CloudFoundryOperations cloudFoundryOperations(CloudFoundryProperties properties, CloudFoundryClient client,
+												  DopplerClient dopplerClient, UaaClient uaaClient) {
 		return DefaultCloudFoundryOperations.builder()
 											.cloudFoundryClient(client)
 											.dopplerClient(dopplerClient)
@@ -64,7 +68,7 @@ public class CloudFoundryOperationsConfiguration {
 	}
 
 	@Bean
-	DefaultConnectionContext connectionContext() {
+	DefaultConnectionContext connectionContext(CloudFoundryProperties properties) {
 		Optional<ProxyConfiguration> proxyConfiguration = Optional.empty();
 		String proxyHost = properties.getProxyHost();
 		int proxyPort = properties.getProxyPort();
@@ -77,7 +81,7 @@ public class CloudFoundryOperationsConfiguration {
 		}
 		return DefaultConnectionContext.builder()
 									   .apiHost(properties.getApiHost())
-									   .port(properties.getApiPort())
+									   .port(Optional.ofNullable(properties.getApiPort()))
 									   .proxyConfiguration(proxyConfiguration)
 									   .skipSslValidation(properties.isSkipSslValidation())
 									   .build();
@@ -92,7 +96,9 @@ public class CloudFoundryOperationsConfiguration {
 	}
 
 	@Bean
-	PasswordGrantTokenProvider tokenProvider() {
+	@ConditionalOnProperty({CloudFoundryProperties.PROPERTY_PREFIX + ".username",
+		CloudFoundryProperties.PROPERTY_PREFIX + ".password"})
+	PasswordGrantTokenProvider tokenProvider(CloudFoundryProperties properties) {
 		return PasswordGrantTokenProvider.builder()
 										 .password(properties.getPassword())
 										 .username(properties.getUsername())

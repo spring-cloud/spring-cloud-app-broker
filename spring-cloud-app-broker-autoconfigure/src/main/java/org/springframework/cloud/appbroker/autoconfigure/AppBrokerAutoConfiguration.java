@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker;
+package org.springframework.cloud.appbroker.autoconfigure;
 
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
@@ -27,11 +29,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-//FIXME This appeared to be not being loading in test with conditional on property
-//@ConditionalOnProperty("spring.cloud.app.broker.deploy")
-public class AppBrokerConfiguration {
+@AutoConfigureAfter(AppDeployerAutoConfiguration.class)
+@ConditionalOnBean(ReactiveAppDeployer.class)
+public class AppBrokerAutoConfiguration {
+	static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deploy";
+
 	@Bean
-	@ConfigurationProperties("spring.cloud.app.broker.deploy")
+	@ConfigurationProperties(PROPERTY_PREFIX)
 	public BackingAppProperties backingAppProperties() {
 		return new BackingAppProperties();
 	}

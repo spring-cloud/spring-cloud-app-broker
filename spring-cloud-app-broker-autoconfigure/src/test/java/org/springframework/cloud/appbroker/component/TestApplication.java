@@ -18,13 +18,10 @@ package org.springframework.cloud.appbroker.component;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.appbroker.AppBrokerConfiguration;
 import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeployerAutoConfiguration;
 
-@SpringBootApplication(exclude = CloudFoundryDeployerAutoConfiguration.class,
-	scanBasePackageClasses = AppBrokerConfiguration.class)
+@SpringBootApplication(exclude = CloudFoundryDeployerAutoConfiguration.class)
 public class TestApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(TestApplication.class, args);
 	}

@@ -52,9 +52,10 @@ import static org.springframework.cloud.appbroker.component.ProvisionInstanceCom
  * {@see https://github.com/spring-cloud-incubator/spring-cloud-app-broker/issues/4}
  */
 @ExtendWith(SpringExtension.class)
-@ExtendWith(HoverflyExtension.class)
-@HoverflySimulate(source = @HoverflySimulate.Source(value = "requests.json", type = HoverflySimulate.SourceType.CLASSPATH),
-	config = @HoverflyConfig(proxyPort = PROXY_PORT, destination = SIMULATED_CF_HOST))
+//TODO: Fix Hoverfly replaying of CF responses via a proxy
+//@ExtendWith(HoverflyExtension.class)
+//@HoverflySimulate(source = @HoverflySimulate.Source(value = "requests.json", type = HoverflySimulate.SourceType.CLASSPATH),
+//	config = @HoverflyConfig(proxyPort = PROXY_PORT, destination = SIMULATED_CF_HOST))
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 	classes = {ProvisionInstanceComponentTest.ProvisionInstanceComponentTestConfig.class, AppBrokerApplication.class,},

@@ -17,9 +17,6 @@
 package org.springframework.cloud.appbroker.component;
 
 import io.restassured.http.ContentType;
-import io.specto.hoverfly.junit5.HoverflyExtension;
-import io.specto.hoverfly.junit5.api.HoverflyConfig;
-import io.specto.hoverfly.junit5.api.HoverflySimulate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -27,7 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.appbroker.AppBrokerApplication;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -58,9 +54,9 @@ import static org.springframework.cloud.appbroker.component.ProvisionInstanceCom
 //	config = @HoverflyConfig(proxyPort = PROXY_PORT, destination = SIMULATED_CF_HOST))
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = {ProvisionInstanceComponentTest.ProvisionInstanceComponentTestConfig.class, AppBrokerApplication.class,},
+	classes = {ProvisionInstanceComponentTest.ProvisionInstanceComponentTestConfig.class, TestApplication.class},
 	properties = {
-		/**
+		/*
 		 * TODO we should get the jar remotely but see
 		 * {@link org.springframework.cloud.appbroker.deployer.cloudfoundry.AbstractCloudFoundryReactiveAppDeployer.getApplication}
 		 */

@@ -22,7 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.appbroker.TestAppBrokerApplication;
+import org.springframework.cloud.appbroker.AppBrokerApplication;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
-	classes = TestAppBrokerApplication.class,
+	classes = AppBrokerApplication.class,
 	properties = "spring.cloud.app.broker.create.instance.appName=helloworldapp")
 @Disabled
 public class ProvisionInstanceComponentAlternativeTest {

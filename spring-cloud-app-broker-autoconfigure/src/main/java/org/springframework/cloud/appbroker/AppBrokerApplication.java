@@ -23,9 +23,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeployerAutoConfiguration;
 
 @SpringBootApplication(exclude = CloudFoundryDeployerAutoConfiguration.class)
-public class TestAppBrokerApplication {
+public class AppBrokerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(TestAppBrokerApplication.class, args);
+		SpringApplication.run(AppBrokerApplication.class, args);
 	}
 }

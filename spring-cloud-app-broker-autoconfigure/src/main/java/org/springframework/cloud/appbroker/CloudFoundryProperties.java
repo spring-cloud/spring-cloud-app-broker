@@ -18,6 +18,8 @@ package org.springframework.cloud.appbroker;
 
 import java.net.URI;
 
+import org.cloudfoundry.reactor.ProxyConfiguration;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = CloudFoundryProperties.PROPERTY_PREFIX)
@@ -28,6 +30,8 @@ public class CloudFoundryProperties {
 	private String apiHost;
 
 	private int apiPort;
+	private String proxyHost;
+	private int proxyPort;
 
 	private String username;
 
@@ -43,6 +47,26 @@ public class CloudFoundryProperties {
 
 	public String getApiHost() {
 		return apiHost;
+	}
+
+	public ProxyConfiguration getProxyConfiguration() {
+		return null;
+	}
+
+	public String getProxyHost() {
+		return proxyHost;
+	}
+
+	public void setProxyHost(String proxyHost) {
+		this.proxyHost = proxyHost;
+	}
+
+	public int getProxyPort() {
+		return proxyPort;
+	}
+
+	public void setProxyPort(int proxyPort) {
+		this.proxyPort = proxyPort;
 	}
 
 	public void setApiHost(String apiHost) {

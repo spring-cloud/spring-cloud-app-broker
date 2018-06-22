@@ -42,6 +42,7 @@ dependencies {
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
 	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 	testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
+	testImplementation("io.specto:hoverfly-java-junit5:${hoverflyVersion}")
 }
 
 compileJava.dependsOn(processResources)

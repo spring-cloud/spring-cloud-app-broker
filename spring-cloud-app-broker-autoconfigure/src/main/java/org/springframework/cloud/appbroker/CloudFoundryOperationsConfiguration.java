@@ -16,12 +16,15 @@
 
 package org.springframework.cloud.appbroker;
 
+import java.util.Optional;
+
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.doppler.DopplerClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.ConnectionContext;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
+import org.cloudfoundry.reactor.ProxyConfiguration;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
@@ -42,55 +45,66 @@ public class CloudFoundryOperationsConfiguration {
 	private CloudFoundryProperties properties;
 
 	@Bean
-	DefaultConnectionContext connectionContext() {
-		return DefaultConnectionContext.builder()
-									   .apiHost(properties.getApiHost())
-									   .port(properties.getApiPort())
-									   .skipSslValidation(properties.isSkipSslValidation())
-									   .build();
-	}
-
-	@Bean
-	PasswordGrantTokenProvider tokenProvider() {
-		return PasswordGrantTokenProvider.builder()
-			.password(properties.getPassword())
-			.username(properties.getUsername())
-			.build();
-	}
-
-	@Bean
 	ReactorCloudFoundryClient cloudFoundryClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
 		return ReactorCloudFoundryClient.builder()
-			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
-			.build();
-	}
-
-	@Bean
-	ReactorDopplerClient dopplerClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
-		return ReactorDopplerClient.builder()
-			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
-			.build();
-	}
-
-	@Bean
-	ReactorUaaClient uaaClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
-		return ReactorUaaClient.builder()
-			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
-			.build();
+										.connectionContext(connectionContext)
+										.tokenProvider(tokenProvider)
+										.build();
 	}
 
 	@Bean
 	CloudFoundryOperations cloudFoundryOperations(CloudFoundryClient client, DopplerClient dopplerClient, UaaClient uaaClient) {
 		return DefaultCloudFoundryOperations.builder()
-			.cloudFoundryClient(client)
-			.dopplerClient(dopplerClient)
-			.uaaClient(uaaClient)
-			.organization(properties.getDefaultOrg())
-			.space(properties.getDefaultSpace())
-			.build();
+											.cloudFoundryClient(client)
+											.dopplerClient(dopplerClient)
+											.uaaClient(uaaClient)
+											.organization(properties.getDefaultOrg())
+											.space(properties.getDefaultSpace())
+											.build();
+	}
+
+	@Bean
+	DefaultConnectionContext connectionContext() {
+		Optional<ProxyConfiguration> proxyConfiguration = Optional.empty();
+		String proxyHost = properties.getProxyHost();
+		int proxyPort = properties.getProxyPort();
+		if (proxyHost != null && proxyPort != 0) {
+			proxyConfiguration = Optional.of(
+				ProxyConfiguration.builder()
+								  .host(properties.getProxyHost())
+								  .port(properties.getApiPort())
+								  .build());
+		}
+		return DefaultConnectionContext.builder()
+									   .apiHost(properties.getApiHost())
+									   .port(properties.getApiPort())
+									   .proxyConfiguration(proxyConfiguration)
+									   .skipSslValidation(properties.isSkipSslValidation())
+									   .build();
+	}
+
+	@Bean
+	ReactorDopplerClient dopplerClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+		return ReactorDopplerClient.builder()
+								   .connectionContext(connectionContext)
+								   .tokenProvider(tokenProvider)
+								   .build();
+	}
+
+	@Bean
+	PasswordGrantTokenProvider tokenProvider() {
+		return PasswordGrantTokenProvider.builder()
+										 .password(properties.getPassword())
+										 .username(properties.getUsername())
+										 .build();
+	}
+
+	@Bean
+	ReactorUaaClient uaaClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+		return ReactorUaaClient.builder()
+							   .connectionContext(connectionContext)
+							   .tokenProvider(tokenProvider)
+							   .build();
 	}
 
 }

@@ -21,16 +21,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.appbroker.TestAppBrokerApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-// TODO This should be in the App Broker core subproject
 // NB: this can't be in the core subproject. the dependency graph for subprojects is:
 //           -deployer
 //           /      \
@@ -50,17 +50,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = TestAppBrokerApplication.class,
+	classes = {TestAppBrokerApplication.class,},
 	properties = {
 		/**
 		 * TODO we should get the jar remotely but see
 		 * {@link org.springframework.cloud.appbroker.deployer.cloudfoundry.AbstractCloudFoundryReactiveAppDeployer.getApplication}
 		 */
-		"spring.cloud.app.broker.deploy.path=src/test/resources/demo.jar",
+		"spring.cloud.app.broker.deploy.path=classpath:demo.jar",
 		"spring.cloud.app.broker.deploy.appName=helloworldapp",
-
 		// TODO not hardcode, we should be stubbing this with fake data
-		"spring.cloud.app.broker.cf.api=https://api.cf.somewhere.springapps.io/",
+		"spring.cloud.app.broker.cf.apiHost=https://localhost",
+		"spring.cloud.app.broker.cf.apiPort=8500",
 		"spring.cloud.app.broker.cf.username=admin",
 		"spring.cloud.app.broker.cf.password=adminpass",
 		"spring.cloud.app.broker.cf.defaultOrg=test",

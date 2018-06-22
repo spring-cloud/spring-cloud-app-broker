@@ -28,6 +28,7 @@ import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.UaaClient;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -43,9 +44,10 @@ public class CloudFoundryOperationsConfiguration {
 	@Bean
 	DefaultConnectionContext connectionContext() {
 		return DefaultConnectionContext.builder()
-			.apiHost(properties.getApi())
-			.skipSslValidation(properties.isSkipSslValidation())
-			.build();
+									   .apiHost(properties.getApiHost())
+									   .port(properties.getApiPort())
+									   .skipSslValidation(properties.isSkipSslValidation())
+									   .build();
 	}
 
 	@Bean

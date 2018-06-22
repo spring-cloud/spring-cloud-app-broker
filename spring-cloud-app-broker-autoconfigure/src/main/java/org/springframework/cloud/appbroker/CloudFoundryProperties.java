@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker;
 
 import java.net.URI;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = CloudFoundryProperties.PROPERTY_PREFIX)
@@ -24,7 +25,9 @@ public class CloudFoundryProperties {
 
 	static final String PROPERTY_PREFIX = "spring.cloud.app.broker.cf";
 
-	private String api;
+	private String apiHost;
+
+	private int apiPort;
 
 	private String username;
 
@@ -38,8 +41,16 @@ public class CloudFoundryProperties {
 
 	private int operationTimeoutSeconds = 60 * 60; // Timeout after 1 hour
 
-	public void setApi(String api) {
-		this.api = getApiHost(api);
+	public String getApiHost() {
+		return apiHost;
+	}
+
+	public void setApiHost(String apiHost) {
+		this.apiHost = getApiHost(apiHost);
+	}
+
+	public int getApiPort() {
+		return apiPort;
 	}
 
 	public static String getApiHost(String api) {
@@ -47,8 +58,8 @@ public class CloudFoundryProperties {
 		return uri.getHost() == null ? api : uri.getHost();
 	}
 
-	public String getApi() {
-		return api;
+	public void setApiPort(int apiPort) {
+		this.apiPort = apiPort;
 	}
 
 	public String getUsername() {

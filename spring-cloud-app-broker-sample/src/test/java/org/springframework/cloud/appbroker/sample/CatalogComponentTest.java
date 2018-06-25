@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker;
+package org.springframework.cloud.appbroker.sample;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;

@@ -14,6 +14,19 @@
  * limitations under the License.
  */
 
+buildscript {
+	ext {
+		springBootVersion = '2.0.2.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
 description = "Spring Cloud App Broker Sample"
 ext.restAssuredVersion = "3.1.0"
 
@@ -23,6 +36,8 @@ dependencyManagement {
 		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
 	}
 }
+
+apply plugin: 'org.springframework.boot'
 
 dependencies {
 	compile project(":spring-cloud-app-broker-autoconfigure")
@@ -39,4 +54,5 @@ dependencies {
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
 	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 	testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
+	testImplementation("io.specto:hoverfly-java-junit5:${hoverflyVersion}")
 }

@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.springframework.cloud.appbroker.autoconfigure.CloudFoundryClientAutoConfiguration,\
+org.springframework.cloud.appbroker.autoconfigure.AppDeployerAutoConfiguration,\
+org.springframework.cloud.appbroker.autoconfigure.AppBrokerAutoConfiguration

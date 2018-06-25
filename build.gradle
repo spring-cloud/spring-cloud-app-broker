@@ -42,6 +42,8 @@ configure(allprojects) {
 	apply plugin: "io.spring.dependency-management"
 
 	ext {
+		openServiceBrokerVersion = "2.0.0.RELEASE"
+
 		junitJupiterVersion = "5.2.0"
 		assertjVersion = "3.10.0"
 		mockitoVersion = "2.19.0"

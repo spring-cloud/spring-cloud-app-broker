@@ -1,0 +1,26 @@
+spring:
+  cloud:
+    openservicebroker:
+      catalog:
+        services:
+        - id: example-service
+          name: example
+          description: A simple example
+          bindable: true
+          tags:
+          - example
+          plans:
+          - id: simple-plan
+            bindable: true
+            name: standard
+            description: A simple plan
+            free: true
+    appbroker:
+      cf:
+        apiHost: api.cf.test
+        apiPort: 80
+        username: admin
+        password: adminpass
+        defaultOrg: test
+        defaultSpace: development
+        skipSslValidation: true

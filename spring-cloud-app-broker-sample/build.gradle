@@ -26,7 +26,9 @@ dependencyManagement {
 
 dependencies {
 	compile project(":spring-cloud-app-broker-autoconfigure")
+	
 	compile("org.springframework.boot:spring-boot-starter-web")
+	compile("org.springframework.cloud:spring-cloud-starter-open-service-broker-webmvc:${openServiceBrokerVersion}")
 
 	testImplementation("org.springframework:spring-test")
 	testImplementation('org.springframework.boot:spring-boot-starter-test')

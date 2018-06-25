@@ -29,8 +29,6 @@ dependencies {
 
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("org.springframework.boot:spring-boot-starter-actuator")
-	compile("org.springframework.cloud:spring-cloud-open-service-broker-autoconfigure:2.0.0.RC2")
-	compile("org.springframework.cloud:spring-cloud-starter-open-service-broker-webmvc:2.0.0.RC2")
 
 	compileOnly("org.springframework.boot:spring-boot-configuration-processor")
 

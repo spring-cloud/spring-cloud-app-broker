@@ -22,17 +22,13 @@ dependencyManagement {
 	}
 }
 
-ext {
-	springCloudOpenServiceBrokerVersion = "2.0.0.RC1"
-}
-
 dependencies {
 	compile project(":spring-cloud-app-broker-deployer")
 
 	compile("org.springframework:spring-core")
 	compile("org.springframework:spring-context")
 	compile("org.springframework.security:spring-security-core:${springVersion}")
-	compile("org.springframework.cloud:spring-cloud-open-service-broker-core:${springCloudOpenServiceBrokerVersion}")
+	compile("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
 
 	testImplementation("org.springframework:spring-test")
 

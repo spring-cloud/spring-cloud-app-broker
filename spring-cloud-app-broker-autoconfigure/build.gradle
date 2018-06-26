@@ -34,9 +34,7 @@ dependencies {
 
 	compileOnly("org.springframework.boot:spring-boot-configuration-processor")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test") {
-		exclude module: "junit"
-	}
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
@@ -45,7 +43,6 @@ dependencies {
 	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 	testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
 	testImplementation("io.specto:hoverfly-java:${hoverflyVersion}")
-	testImplementation("io.specto:hoverfly-java-junit5:${hoverflyVersion}")
 }
 
 compileJava.dependsOn(processResources)

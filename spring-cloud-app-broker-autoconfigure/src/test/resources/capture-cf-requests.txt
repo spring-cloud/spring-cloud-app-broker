@@ -1,4 +1,0 @@
-1. Install hoverfly: "brew install hoverfly"
-2. Hardcode proxy settings in `DefaultConnectionContext` using `.proxyConfiguration(ProxyConfiguration.builder().host("localhost").port(8500).build())`
-3. Start capture: "hoverfly -capture -db=boltdb"
-4. Export capture "hoverctl export cf-requests.json"

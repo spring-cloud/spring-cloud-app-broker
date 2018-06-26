@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.appbroker.autoconfigure;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
@@ -25,15 +25,16 @@ import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AppBrokerAutoConfigurationTest {
+class AppBrokerAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withConfiguration(AutoConfigurations.of(AppBrokerAutoConfiguration.class));
 
 	@Test
-	public void servicesAreNotCreatedWithoutDeployerConfiguration() {
+	void servicesAreNotCreatedWithoutDeployerConfiguration() {
 		this.contextRunner
 			.run((context) -> {
 				assertThat(context).doesNotHaveBean(BackingAppProperties.class);
@@ -42,7 +43,7 @@ public class AppBrokerAutoConfigurationTest {
 	}
 
 	@Test
-	public void servicesAreCreatedWithAppDeployerConfigured() {
+	void servicesAreCreatedWithAppDeployerConfigured() {
 		this.contextRunner
 			.withConfiguration(AutoConfigurations.of(AppDeployerAutoConfiguration.class,
 				CloudFoundryClientAutoConfiguration.class))

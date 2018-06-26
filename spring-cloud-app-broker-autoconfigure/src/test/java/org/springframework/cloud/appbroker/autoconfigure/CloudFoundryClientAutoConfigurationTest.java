@@ -24,18 +24,19 @@ import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CloudFoundryClientAutoConfigurationTest {
+class CloudFoundryClientAutoConfigurationTest {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withConfiguration(AutoConfigurations.of(CloudFoundryClientAutoConfiguration.class));
 
 	@Test
-	public void clientIsNotCreatedWithoutConfiguration() {
+	void clientIsNotCreatedWithoutConfiguration() {
 		this.contextRunner
 			.run((context) -> {
 				assertThat(context).doesNotHaveBean(CloudFoundryProperties.class);
@@ -49,7 +50,7 @@ public class CloudFoundryClientAutoConfigurationTest {
 	}
 
 	@Test
-	public void clientIsCreatedWithPasswordGrantConfiguration() {
+	void clientIsCreatedWithPasswordGrantConfiguration() {
 		this.contextRunner
 			.withPropertyValues(
 				"spring.cloud.appbroker.cf.apiHost=https://api.example.com",

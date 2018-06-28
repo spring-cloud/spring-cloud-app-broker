@@ -29,7 +29,7 @@ buildscript {
 configure(allprojects) {
 	group = "org.springframework.cloud.appbroker"
 
-	apply plugin: "java"
+	apply plugin: "java-library"
 	apply plugin: "maven"
 	apply plugin: "eclipse"
 	apply plugin: "idea"
@@ -42,16 +42,18 @@ configure(allprojects) {
 	apply plugin: "io.spring.dependency-management"
 
 	ext {
+		openServiceBrokerVersion = "2.0.0.RELEASE"
+
 		junitJupiterVersion = "5.2.0"
 		assertjVersion = "3.10.0"
-		mockitoVersion = "2.18.3"
+		mockitoVersion = "2.19.0"
 	}
 
 	if (!project.hasProperty("springVersion")) {
-		ext.springVersion = "5.0.5.RELEASE"
+		ext.springVersion = "5.0.7.RELEASE"
 	}
 	if (!project.hasProperty("springBootVersion")) {
-		ext.springBootVersion = "2.0.2.RELEASE"
+		ext.springBootVersion = "2.0.3.RELEASE"
 	}
 
     if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion")) {
@@ -126,6 +128,11 @@ configure(allprojects) {
 		"http://docs.oracle.com/javase/8/docs/api/",
 		"http://docs.spring.io/spring/docs/${springVersion}/javadoc-api/",
 	] as String[]
+
+	test {
+		// enable JUnit 5
+		useJUnitPlatform()
+	}
 }
 
 subprojects { subproject ->
@@ -163,6 +170,14 @@ subprojects { subproject ->
 		archives sourcesJar
 		archives javadocJar
 	}
+
+	configurations {
+		// exclude JUnit 4 globally, in favor of JUnit 5
+		testImplementation.exclude group: "junit", module: "junit"
+	}
+
+	task allDependencyInsight(type: DependencyInsightReportTask) {}
+	task allDependencies(type: DependencyReportTask) {}
 }
 
 configure(rootProject) {
@@ -247,7 +262,11 @@ task codeCoverageReport(type: JacocoReport) {
 	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 
 	subprojects.each {
-		sourceSets it.sourceSets.main
+		// Work-around for issue with jacoco and multiple-release jar files
+		// (like Log4J 2.10 and above)
+		// see https://github.com/jacoco/jacoco/issues/407
+		sourceDirectories = it.sourceSets.main.java
+		classDirectories = it.sourceSets.main.output.classesDirs
 	}
 
 	reports {

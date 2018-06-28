@@ -24,13 +24,20 @@ dependencyManagement {
 }
 
 dependencies {
-	compile project(":spring-cloud-app-broker-core")
+	api project(":spring-cloud-app-broker-core")
+	api project(":spring-cloud-app-broker-deployer-cloudfoundry")
 
-	testCompile("org.springframework:spring-test") {
-		exclude group: "commons-logging", module: "commons-logging"
-	}
-	testCompile('org.springframework.boot:spring-boot-starter-test')
-	testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-    testCompile("org.assertj:assertj-core:${assertjVersion}")
-    testCompile("org.mockito:mockito-core:${mockitoVersion}")
+	api("org.springframework.boot:spring-boot-starter-web")
+
+	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+	testImplementation("org.assertj:assertj-core:${assertjVersion}")
+	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 }
+
+compileJava.dependsOn(processResources)

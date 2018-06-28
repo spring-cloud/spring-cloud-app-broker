@@ -34,13 +34,14 @@ ext {
 }
 
 dependencies {
-	compile project(":spring-cloud-app-broker-deployer")
-	compile("org.springframework.cloud:spring-cloud-deployer-cloudfoundry:1.4.0.RELEASE")
+	api project(":spring-cloud-app-broker-deployer")
+	api("org.springframework.cloud:spring-cloud-deployer-cloudfoundry:1.4.0.RELEASE")
 
-	testCompile("org.springframework:spring-test") {
-		exclude group:"commons-logging", module:"commons-logging"
-	}
-    testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-	testCompile("org.assertj:assertj-core:${assertjVersion}")
-	testCompile("org.mockito:mockito-core:${mockitoVersion}")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+
+	testImplementation("org.springframework:spring-test")
+	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+	testImplementation("org.assertj:assertj-core:${assertjVersion}")
+	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 }

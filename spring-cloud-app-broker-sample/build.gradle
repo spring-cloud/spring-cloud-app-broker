@@ -1,0 +1,52 @@
+/*
+ * Copyright 2016-2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+buildscript {
+	repositories {
+		mavenCentral()
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+description = "Spring Cloud App Broker Sample"
+
+ext {
+	restAssuredVersion = "3.1.0"
+	wiremockVersion = "1.58"
+	hoverflyVersion = "0.9.3"
+}
+
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+	implementation project(":spring-cloud-app-broker-autoconfigure")
+
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.cloud:spring-cloud-starter-open-service-broker-webmvc:${openServiceBrokerVersion}")
+
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+	testImplementation("org.assertj:assertj-core:${assertjVersion}")
+	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+	testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
+	testImplementation("io.specto:hoverfly-java-junit5:${hoverflyVersion}")
+}

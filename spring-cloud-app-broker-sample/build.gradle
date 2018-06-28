@@ -14,27 +14,39 @@
  * limitations under the License.
  */
 
-description = "Spring Cloud App Broker Sample"
-ext.restAssuredVersion = "3.1.0"
-
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework:spring-framework-bom:${springVersion}"
-		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+buildscript {
+	repositories {
+		mavenCentral()
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 	}
 }
 
+description = "Spring Cloud App Broker Sample"
+
+ext {
+	restAssuredVersion = "3.1.0"
+	wiremockVersion = "1.58"
+	hoverflyVersion = "0.9.3"
+}
+
+apply plugin: 'org.springframework.boot'
+
 dependencies {
 	implementation project(":spring-cloud-app-broker-autoconfigure")
-	compile("org.springframework.boot:spring-boot-starter-web")
 
-	testImplementation("org.springframework:spring-test")
-	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.cloud:spring-cloud-starter-open-service-broker-webmvc:${openServiceBrokerVersion}")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
 	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 	testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
+	testImplementation("io.specto:hoverfly-java-junit5:${hoverflyVersion}")
 }

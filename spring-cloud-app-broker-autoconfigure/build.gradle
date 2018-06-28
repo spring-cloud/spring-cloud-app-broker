@@ -24,25 +24,20 @@ dependencyManagement {
 }
 
 dependencies {
-	compile project(":spring-cloud-app-broker-core")
-	compile project(":spring-cloud-app-broker-deployer-cloudfoundry")
+	api project(":spring-cloud-app-broker-core")
+	api project(":spring-cloud-app-broker-deployer-cloudfoundry")
 
-	compile("org.springframework.boot:spring-boot-starter-web")
-	compile("org.springframework.boot:spring-boot-starter-actuator")
-	compile("org.springframework.cloud:spring-cloud-open-service-broker-autoconfigure:2.0.0.RC2")
-	compile("org.springframework.cloud:spring-cloud-starter-open-service-broker-webmvc:2.0.0.RC2")
+	api("org.springframework.boot:spring-boot-starter-web")
 
-	compileOnly("org.springframework.boot:spring-boot-configuration-processor")
-
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
 	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
-	testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
-	testImplementation("io.specto:hoverfly-java:${hoverflyVersion}")
 }
 
 compileJava.dependsOn(processResources)

@@ -1,0 +1,59 @@
+```= Spring Cloud App Broker Sample Project
+
+== Running locally
+
+=== Compile the project
+
+    $ ./gradlew build
+
+=== Configure a Cloud Foundry target
+
+Set the following environment variables to specify a valid Cloud Foundry environment that service instance backing applications will be deployed to:
+
+* SPRING_CLOUD_APPBROKER_CF_APIHOST
+* SPRING_CLOUD_APPBROKER_CF_APIPORT
+* SPRING_CLOUD_APPBROKER_CF_USERNAME
+* SPRING_CLOUD_APPBROKER_CF_PASSWORD
+* SPRING_CLOUD_APPBROKER_CF_DEFAULTORG
+* SPRING_CLOUD_APPBROKER_CF_DEFAULTSPACE
+
+=== Run the application
+
+    $ java -jar build/libs/spring-cloud-app-broker-sample-1.0.0.BUILD-SNAPSHOT.jar
+
+=== Install an Open Service Broker API CLI
+
+See https://github.com/starkandwayne/eden[Eden Open Service Broker API CLI]
+
+=== Test the service broker```
+
+   $ eden catalog --url=http://localhost:8080 --client=test --client-secret=test
+   Service Name  Plan Name  Description
+   example       standard   A simple plan
+
+   1 services
+
+   $ eden provision --url=http://localhost:8080 --client=test --client-secret=test -i test-instance -s example-service -p simple-plan
+   provision:   example/standard - name: test-instance
+   provision:   done
+
+```Inspect the org and space to verify that an application named `broker-sample-app` was created.```
+
+== Capturing Hoverfly simulation from Cloud Foundry
+This is in order to run the automated component tests without needing a Cloud Foundry installation running
+
+1. Install hoverfly: "brew install hoverfly"
+2. Hardcode proxy settings in `DefaultConnectionContext` using `.proxyConfiguration(ProxyConfiguration.builder().host("localhost").port(8500).build())`
+3. Start capture: "hoverfly -capture -db=boltdb"
+4. Export capture "hoverctl export cf-requests.json"
+5. Change references from `{api|login}.cf.rgb.springapps.io` to `localhost:8500`
+6. Remove all 'destination' and 'scheme' matcher rules
+7. In `/v2/spaces` matcher, Change `query/q` matcher from "exact" to "json"
+8. Remove content length fields
+9. Change last "/apps" request to "RUNNING"
+
+== Running the demo
+Edit `spring-cloud-app-broker-sample/src/main/resources/application-local.yml` to use correct Cloud Foundry test environment
+Run application, in root of project `SPRING_PROFILES_ACTIVE=local ./gradlew bootRun`
+Run command curl `localhost:8080/v2/service_instances/123 -d '{"service_id": "example-service", "plan_id":"simple-plan", "organization_guid": "31312312", "space_guid": "312312"}' -X PUT -H 'Content-Type: application/json'`
+Verify app is deployed

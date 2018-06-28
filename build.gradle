@@ -29,7 +29,7 @@ buildscript {
 configure(allprojects) {
 	group = "org.springframework.cloud.appbroker"
 
-	apply plugin: "java"
+	apply plugin: "java-library"
 	apply plugin: "maven"
 	apply plugin: "eclipse"
 	apply plugin: "idea"
@@ -47,9 +47,6 @@ configure(allprojects) {
 		junitJupiterVersion = "5.2.0"
 		assertjVersion = "3.10.0"
 		mockitoVersion = "2.19.0"
-		restAssuredVersion = "3.1.0"
-		wiremockVersion = "1.58"
-		hoverflyVersion = "0.9.3"
 	}
 
 	if (!project.hasProperty("springVersion")) {
@@ -179,7 +176,7 @@ subprojects { subproject ->
 		testImplementation.exclude group: "junit", module: "junit"
 	}
 
-	task allDependencyInsight(type: DependencyInsightReportTask) << {}
+	task allDependencyInsight(type: DependencyInsightReportTask) {}
 	task allDependencies(type: DependencyReportTask) {}
 }
 

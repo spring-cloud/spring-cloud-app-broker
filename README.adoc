@@ -6,3 +6,4 @@ image:https://codecov.io/gh/spring-cloud-incubator/spring-cloud-app-broker/branc
 = Spring Cloud App Broker
 
 Spring Cloud App Broker is a project for implementing service broker functionality within a Spring Boot application.
+

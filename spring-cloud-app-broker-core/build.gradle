@@ -22,20 +22,16 @@ dependencyManagement {
 	}
 }
 
-ext {
-	springCloudOpenServiceBrokerVersion = "2.0.0.RELEASE"
-}
-
 dependencies {
-	compile project(":spring-cloud-app-broker-deployer")
+	api project(":spring-cloud-app-broker-deployer")
 
-	compile("org.springframework:spring-core")
-	compile("org.springframework:spring-context")
-	compile("org.springframework.cloud:spring-cloud-open-service-broker-core:${springCloudOpenServiceBrokerVersion}")
-
-	testImplementation("org.springframework:spring-test")
+	api("org.springframework:spring-core")
+	api("org.springframework:spring-context")
+	api("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+
+	testImplementation("org.springframework:spring-test")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")

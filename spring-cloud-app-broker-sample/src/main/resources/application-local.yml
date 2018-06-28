@@ -1,0 +1,29 @@
+spring:
+  cloud:
+    openservicebroker:
+      catalog:
+        services:
+        - id: ddi
+          name: example
+          description: A simple example
+          bindable: true
+          tags:
+          - example
+          plans:
+          - id: simple-plan
+            bindable: true
+            name: standard
+            description: A simple plan
+            free: true
+    appbroker:
+      deploy:
+        appName: broker-sample-app
+        path: classpath:demo.jar
+      cf:
+        apiHost: run.pivotal.io
+        apiPort: 443
+        username: admin
+        password: adminpass
+        defaultOrg: test
+        defaultSpace: development
+        skipSslValidation: true

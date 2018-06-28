@@ -30,11 +30,6 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 
-/**
- * This is a black box test to validate the end-to-end flow of retrieving a catalog from a service broker request.
- * The black box test validates the flow has been performed and external contracts are satisfied but does not
- * rely on external dependencies)
- */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,

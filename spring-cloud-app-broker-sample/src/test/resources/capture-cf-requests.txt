@@ -1,9 +1,0 @@
-1. Install hoverfly: "brew install hoverfly"
-2. Hardcode proxy settings in `DefaultConnectionContext` using `.proxyConfiguration(ProxyConfiguration.builder().host("localhost").port(8500).build())`
-3. Start capture: "hoverfly -capture -db=boltdb"
-4. Export capture "hoverctl export cf-requests.json"
-5. Change references from `{api|login}.cf.rgb.springapps.io` to `localhost:8500`
-6. Remove all 'destination' and 'scheme' matcher rules
-7. In `/v2/spaces` matcher, Change `query/q` matcher from "exact" to "json"
-8. Remove content length fields
-9. Change last "/apps" request to "RUNNING"

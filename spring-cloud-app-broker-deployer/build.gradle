@@ -28,12 +28,12 @@ ext {
 }
 
 dependencies {
-	compile("org.springframework.cloud:spring-cloud-deployer-spi:${deployerVersion}")
-	compile("io.projectreactor:reactor-core:${reactorVersion}")
-
-	testImplementation("org.springframework:spring-test")
+	api("org.springframework.cloud:spring-cloud-deployer-spi:${deployerVersion}")
+	api("io.projectreactor:reactor-core:${reactorVersion}")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+
+	testImplementation("org.springframework:spring-test")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")

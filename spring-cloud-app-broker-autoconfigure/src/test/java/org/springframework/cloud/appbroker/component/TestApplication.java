@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.config;
+package org.springframework.cloud.appbroker.component;
 
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeployerAutoConfiguration;
 
-@Configuration
-public class WorkflowConfiguration {
+@SpringBootApplication(exclude = CloudFoundryDeployerAutoConfiguration.class)
+public class TestApplication {
 
+	public static void main(String[] args) {
+		SpringApplication.run(TestApplication.class, args);
+	}
 }

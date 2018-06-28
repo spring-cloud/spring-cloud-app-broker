@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2018. the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.instance.app;
+package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
-import org.springframework.cloud.appbroker.instance.create.CreateServiceRequestContext;
-import reactor.core.publisher.Mono;
+import org.junit.jupiter.api.Test;
 
-public interface BackingAppDeployer {
-	Mono<String> deploy(BackingAppParameters backingAppParameters, CreateServiceRequestContext createServiceRequestContext);
+import org.springframework.cloud.deployer.spi.cloudfoundry.AppNameGenerator;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class NoOpAppNameGeneratorTest {
+
+	private AppNameGenerator appNameGenerator = new NoOpAppNameGenerator();
+
+	@Test
+	void shouldNoOp() {
+		assertThat(appNameGenerator.generateAppName("app-name")).isEqualTo("app-name");
+	}
 }

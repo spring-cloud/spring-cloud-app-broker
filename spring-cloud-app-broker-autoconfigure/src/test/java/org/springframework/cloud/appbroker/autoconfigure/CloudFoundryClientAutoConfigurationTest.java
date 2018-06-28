@@ -32,14 +32,14 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CloudFoundryClientAutoConfigurationTest {
+class CloudFoundryClientAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withConfiguration(AutoConfigurations.of(CloudFoundryClientAutoConfiguration.class));
 
 	@Test
 	@Disabled
-	public void clientIsCreatedWithPasswordGrantConfiguration() {
+	void clientIsCreatedWithPasswordGrantConfiguration() {
 		this.contextRunner
 			.withPropertyValues(
 				"spring.cloud.appbroker.cf.apiHost=https://api.example.com",
@@ -58,7 +58,7 @@ public class CloudFoundryClientAutoConfigurationTest {
 	}
 
 	@Test
-	public void clientIsNotCreatedWithoutConfiguration() {
+	void clientIsNotCreatedWithoutConfiguration() {
 		this.contextRunner
 			.run((context) -> {
 				assertThat(context).doesNotHaveBean(CloudFoundryProperties.class);

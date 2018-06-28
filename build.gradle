@@ -261,12 +261,16 @@ pmdTest {
 task codeCoverageReport(type: JacocoReport) {
 	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 
-	subprojects.each {
-		// Work-around for issue with jacoco and multiple-release jar files
-		// (like Log4J 2.10 and above)
-		// see https://github.com/jacoco/jacoco/issues/407
-		sourceDirectories = it.sourceSets.main.java
-		classDirectories = it.sourceSets.main.output.classesDirs
+	subprojects.each { subproject ->
+		if (subproject.name.endsWith("-sample")) {
+			// Work-around for issue with jacoco and multiple-release jar files
+			// (like Log4J 2.10 and above)
+			// see https://github.com/jacoco/jacoco/issues/407
+			sourceDirectories = subproject.sourceSets.main.java
+			classDirectories = subproject.sourceSets.main.output.classesDirs
+		} else {
+			 sourceSets subproject.sourceSets.main
+		}
 	}
 
 	reports {

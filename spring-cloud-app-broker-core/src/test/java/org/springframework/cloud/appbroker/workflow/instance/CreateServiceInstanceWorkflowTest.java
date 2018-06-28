@@ -32,14 +32,14 @@ class CreateServiceInstanceWorkflowTest {
 
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
-	private BackingAppProperties backingAppProperties;
-	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
 
 	@Test
 	void shouldProvisionDefaultServiceInstance() {
 		// given that properties contains app name
-		backingAppProperties = new BackingAppProperties("helloworldapp", "http://myfiles/app.jar");
-		createServiceInstanceWorkflow = new CreateServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
+		BackingAppProperties backingAppProperties =
+			new BackingAppProperties("helloworldapp", "http://myfiles/app.jar");
+		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
+			new CreateServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
 
 		// when
 		createServiceInstanceWorkflow.provision();

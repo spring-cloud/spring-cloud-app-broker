@@ -29,14 +29,14 @@ import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstan
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AppBrokerAutoConfigurationTest {
+class AppBrokerAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withConfiguration(AutoConfigurations.of(AppBrokerAutoConfiguration.class));
 
 	@Test
 	@Disabled
-	public void servicesAreCreatedWithAppDeployerConfigured() {
+	void servicesAreCreatedWithAppDeployerConfigured() {
 		this.contextRunner
 			.withConfiguration(AutoConfigurations.of(AppDeployerAutoConfiguration.class,
 				CloudFoundryClientAutoConfiguration.class))
@@ -57,7 +57,7 @@ public class AppBrokerAutoConfigurationTest {
 	}
 
 	@Test
-	public void servicesAreNotCreatedWithoutDeployerConfiguration() {
+	void servicesAreNotCreatedWithoutDeployerConfiguration() {
 		this.contextRunner
 			.run((context) -> {
 				assertThat(context).doesNotHaveBean(BackingAppProperties.class);

@@ -1,0 +1,7 @@
+spring.cloud.appbroker.cf.apiHost: api.cf.test
+spring.cloud.appbroker.cf.apiPort: 80
+spring.cloud.appbroker.cf.username: admin
+spring.cloud.appbroker.cf.password: adminpass
+spring.cloud.appbroker.cf.defaultOrg: test
+spring.cloud.appbroker.cf.defaultSpace: development
+spring.cloud.appbroker.cf.skipSslValidation: true

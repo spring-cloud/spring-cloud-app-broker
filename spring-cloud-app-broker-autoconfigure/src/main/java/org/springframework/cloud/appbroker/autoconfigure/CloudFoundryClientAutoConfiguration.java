@@ -33,12 +33,13 @@ import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.UaaClient;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(CloudFoundryProperties.PROPERTY_PREFIX + ".apiHost")
+@EnableConfigurationProperties(CloudFoundryProperties.class)
 public class CloudFoundryClientAutoConfiguration {
 
 	@Bean
@@ -59,12 +60,6 @@ public class CloudFoundryClientAutoConfiguration {
 											.organization(properties.getDefaultOrg())
 											.space(properties.getDefaultSpace())
 											.build();
-	}
-
-	@Bean
-	@ConfigurationProperties(prefix = CloudFoundryProperties.PROPERTY_PREFIX)
-	CloudFoundryProperties cloudFoundryProperties() {
-		return new CloudFoundryProperties();
 	}
 
 	@Bean

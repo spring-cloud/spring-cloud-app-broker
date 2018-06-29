@@ -3,7 +3,7 @@ spring:
     openservicebroker:
       catalog:
         services:
-        - id: ddi
+        - id: example-service
           name: example
           description: A simple example
           bindable: true

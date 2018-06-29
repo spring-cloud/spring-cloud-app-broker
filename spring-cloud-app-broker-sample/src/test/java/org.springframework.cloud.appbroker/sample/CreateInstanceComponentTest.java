@@ -12,11 +12,9 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *
  */
 
-package org.springframework.cloud.appbroker;
+package org.springframework.cloud.appbroker.sample;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +35,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -46,13 +43,13 @@ import static io.restassured.RestAssured.given;
 import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.springframework.cloud.appbroker.CreateInstanceComponentTest.ProvisionInstanceComponentTestConfig.SIMULATED_CF_HOST;
-import static org.springframework.cloud.appbroker.CreateInstanceComponentTest.ProvisionInstanceComponentTestConfig.SIMULATED_CF_PORT;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.SIMULATED_CF_HOST;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.SIMULATED_CF_PORT;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = {CreateInstanceComponentTest.ProvisionInstanceComponentTestConfig.class, AppBrokerSampleApplication.class},
+	classes = {AppBrokerSampleApplication.class},
 	properties = {
 		"spring.cloud.appbroker.deploy.path=classpath:demo.jar",
 		"spring.cloud.appbroker.deploy.appName=helloworldapp",
@@ -68,12 +65,14 @@ import static org.springframework.cloud.appbroker.CreateInstanceComponentTest.Pr
 @TestPropertySource({
 	"classpath:application-openservicebroker-catalog.yml",
 })
-public class CreateInstanceComponentTest {
+class CreateInstanceComponentTest {
+
+	final static String SIMULATED_CF_HOST = "http://localhost";
+	final static int SIMULATED_CF_PORT = 8500;
 
 	private static Hoverfly hoverfly;
 	private String baseCfUrl;
 	private String baseUrl = "";
-	private String localhost = "http://localhost";
 	@Value("${spring.cloud.openservicebroker.catalog.services[0].plans[0].id}")
 	private String planId;
 	@Value("${local.server.port}")
@@ -83,6 +82,7 @@ public class CreateInstanceComponentTest {
 
 	@BeforeEach
 	void setUp() {
+		String localhost = "http://localhost";
 		baseUrl = localhost + ":" + port;
 		baseCfUrl = localhost + ":" + SIMULATED_CF_PORT;
 	}
@@ -143,12 +143,5 @@ public class CreateInstanceComponentTest {
 			.put(format("http://%s:%d/api/v2/simulation", hoverflyHost, hoverflyAdminPort))
 			.then()
 			.statusCode(200);
-	}
-
-	@Configuration
-	static class ProvisionInstanceComponentTestConfig {
-
-		final static String SIMULATED_CF_HOST = "http://localhost";
-		final static int SIMULATED_CF_PORT = 8500;
 	}
 }

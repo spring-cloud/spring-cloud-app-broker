@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.appbroker.autoconfigure;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -35,7 +34,6 @@ class AppBrokerAutoConfigurationTest {
 		.withConfiguration(AutoConfigurations.of(AppBrokerAutoConfiguration.class));
 
 	@Test
-	@Disabled
 	void servicesAreCreatedWithAppDeployerConfigured() {
 		this.contextRunner
 			.withConfiguration(AutoConfigurations.of(AppDeployerAutoConfiguration.class,

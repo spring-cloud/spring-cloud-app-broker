@@ -19,14 +19,15 @@ Set the following environment variables to specify a valid Cloud Foundry environ
 
 === Run the application
 
-    $ java -jar build/libs/spring-cloud-app-broker-sample-1.0.0.BUILD-SNAPSHOT.jar
+    $ SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 
 === Install an Open Service Broker API CLI
 
 See https://github.com/starkandwayne/eden[Eden Open Service Broker API CLI]
 
-=== Test the service broker```
+=== Test the service broker
 
+```
    $ eden catalog --url=http://localhost:8080 --client=test --client-secret=test
    Service Name  Plan Name  Description
    example       standard   A simple plan
@@ -37,9 +38,12 @@ See https://github.com/starkandwayne/eden[Eden Open Service Broker API CLI]
    provision:   example/standard - name: test-instance
    provision:   done
 
-```Inspect the org and space to verify that an application named `broker-sample-app` was created.```
+```
+
+Inspect the org and space to verify that an application named `broker-sample-app` was created.
 
 == Capturing Hoverfly simulation from Cloud Foundry
+
 This is in order to run the automated component tests without needing a Cloud Foundry installation running
 
 1. Install hoverfly: "brew install hoverfly"
@@ -51,9 +55,3 @@ This is in order to run the automated component tests without needing a Cloud Fo
 7. In `/v2/spaces` matcher, Change `query/q` matcher from "exact" to "json"
 8. Remove content length fields
 9. Change last "/apps" request to "RUNNING"
-
-== Running the demo
-Edit `spring-cloud-app-broker-sample/src/main/resources/application-local.yml` to use correct Cloud Foundry test environment
-Run application, in root of project `SPRING_PROFILES_ACTIVE=local ./gradlew bootRun`
-Run command curl `localhost:8080/v2/service_instances/123 -d '{"service_id": "example-service", "plan_id":"simple-plan", "organization_guid": "31312312", "space_guid": "312312"}' -X PUT -H 'Content-Type: application/json'`
-Verify app is deployed

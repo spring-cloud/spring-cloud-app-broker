@@ -19,6 +19,7 @@
 package org.springframework.cloud.appbroker.service;
 
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
@@ -38,21 +39,26 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
+	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
-	public WorkflowServiceInstanceService(CreateServiceInstanceWorkflow createServiceInstanceWorkflow) {
+	public WorkflowServiceInstanceService(CreateServiceInstanceWorkflow createServiceInstanceWorkflow,
+										  DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow) {
 		this.createServiceInstanceWorkflow = createServiceInstanceWorkflow;
+		this.deleteServiceInstanceWorkflow = deleteServiceInstanceWorkflow;
 	}
 
 	@Override
 	public CreateServiceInstanceResponse createServiceInstance(CreateServiceInstanceRequest request) {
-		createServiceInstanceWorkflow.provision();
+		createServiceInstanceWorkflow.create();
 
 		return CreateServiceInstanceResponse.builder().build();
 	}
 
 	@Override
 	public DeleteServiceInstanceResponse deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		return null;
+		deleteServiceInstanceWorkflow.delete();
+		
+		return DeleteServiceInstanceResponse.builder().build();
 	}
 
 	@Override

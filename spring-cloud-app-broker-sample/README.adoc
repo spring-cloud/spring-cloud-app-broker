@@ -34,23 +34,30 @@ See https://github.com/starkandwayne/eden[Eden Open Service Broker API CLI]
 
    1 services
 
-   $ eden provision --url=http://localhost:8080 --client=test --client-secret=test -i test-instance -s example-service -p simple-plan
+   $ eden provision -i test-instance --url=http://localhost:8080 --client=test --client-secret=test -s example-service -p simple-plan
    provision:   example/standard - name: test-instance
    provision:   done
-
 ```
 
 Inspect the org and space to verify that an application named `broker-sample-app` was created.
+
+```
+   $ eden deprovision -i test-instance
+   deprovision: example/standard - guid: 95b12624-9128-4cad-91cc-1a19b08e8a64
+   deprovision: done
+```
+
+Inspect the org and space to verify that the application `broker-sample-app` was deleted.
 
 == Capturing Hoverfly simulation from Cloud Foundry
 
 This is in order to run the automated component tests without needing a Cloud Foundry installation running
 
-1. Install hoverfly: "brew install hoverfly"
+1. Install hoverfly: `brew install hoverfly`
 2. Hardcode proxy settings in `DefaultConnectionContext` using `.proxyConfiguration(ProxyConfiguration.builder().host("localhost").port(8500).build())`
-3. Start capture: "hoverfly -capture -db=boltdb"
-4. Export capture "hoverctl export cf-requests.json"
-5. Change references from `{api|login}.cf.rgb.springapps.io` to `localhost:8500`
+3. Start capture: `hoverfly -capture -db=boltdb`
+4. Export capture: `hoverctl export cf-requests.json`
+5. Change references from `{api|login}.cf.example.com` to `localhost:8500`
 6. Remove all 'destination' and 'scheme' matcher rules
 7. In `/v2/spaces` matcher, Change `query/q` matcher from "exact" to "json"
 8. Remove content length fields

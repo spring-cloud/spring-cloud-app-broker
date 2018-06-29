@@ -23,10 +23,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,22 +35,39 @@ class WorkflowServiceInstanceServiceTest {
 
 	@Mock
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
+	@Mock
+	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
+
 	private WorkflowServiceInstanceService workflowServiceInstanceService;
 
 	@BeforeEach
 	void setUp() {
-		workflowServiceInstanceService = new WorkflowServiceInstanceService(createServiceInstanceWorkflow);
+		workflowServiceInstanceService = new WorkflowServiceInstanceService(createServiceInstanceWorkflow,
+			deleteServiceInstanceWorkflow);
 	}
 
 	@Test
-	void shouldProvisionServiceInstance() {
-		// when we get a request to provision a service instance
-		CreateServiceInstanceResponse createServiceInstanceResponse = workflowServiceInstanceService.createServiceInstance(null);
+	void shouldCreateServiceInstance() {
+		// when a request to create a service instance is received
+		CreateServiceInstanceResponse createServiceInstanceResponse =
+			workflowServiceInstanceService.createServiceInstance(null);
 
-		// then we should delegate in the default workflow
-		verify(createServiceInstanceWorkflow, times(1)).provision();
+		// then delegate to the workflow
+		verify(createServiceInstanceWorkflow).create();
 
-		// and then it should return a valid response with the last status
+		// and return a valid response with the last status
 		assertThat(createServiceInstanceResponse).isNotNull();
+		assertThat(createServiceInstanceResponse.isAsync()).isFalse();
+	}
+
+	@Test
+	void shouldDeleteServiceInstance() {
+		DeleteServiceInstanceResponse deleteServiceInstanceResponse =
+			workflowServiceInstanceService.deleteServiceInstance(null);
+
+		verify(deleteServiceInstanceWorkflow).delete();
+
+		assertThat(deleteServiceInstanceResponse).isNotNull();
+		assertThat(deleteServiceInstanceResponse.isAsync()).isFalse();
 	}
 }

@@ -31,6 +31,7 @@ import org.springframework.core.io.ResourceLoader;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,31 +40,39 @@ class DeployerClientTest {
 
 	private static final String APP_NAME = "helloworld";
 	private static final String APP_PATH = "classpath:/jars/app.jar";
+
+	private DeployerClient deployerClient;
+
 	@Mock
 	private ReactiveAppDeployer appDeployer;
-	private DeployerClient deployerClient;
+
 	@Mock
 	private ResourceLoader resourceLoader;
 
 	@BeforeEach
 	void setUp() {
-		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
-
 		deployerClient = new DeployerClient(appDeployer, resourceLoader);
 	}
 
 	@Test
 	void shouldDeployAppByName() {
+		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
 		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
 
-		//when I call deploy an app with a given name
 		BackingAppProperties application = new BackingAppProperties(APP_NAME, APP_PATH);
 		Mono<String> lastState = deployerClient.deploy(application);
 
-		//then
 		assertThat(lastState.block()).isEqualTo("running");
 
 		verify(appDeployer).deploy(argThat(matchesRequest()));
+	}
+
+	@Test
+	void shouldUndeployAppByName() {
+		BackingAppProperties application = new BackingAppProperties(APP_NAME, APP_PATH);
+		deployerClient.undeploy(application);
+
+		verify(appDeployer).undeploy(eq(APP_NAME));
 	}
 
 	private ArgumentMatcher<AppDeploymentRequest> appDeploymentRequestMatcher() {

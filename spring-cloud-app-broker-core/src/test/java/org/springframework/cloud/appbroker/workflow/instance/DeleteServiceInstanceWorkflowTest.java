@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
 
@@ -28,24 +27,24 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class CreateServiceInstanceWorkflowTest {
+class DeleteServiceInstanceWorkflowTest {
 
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
 
 	@Test
-	void shouldCreateServiceInstance() {
+	void shouldDeleteDefaultServiceInstance() {
 		// given that properties contains app name
 		BackingAppProperties backingAppProperties =
 			new BackingAppProperties("helloworldapp", "http://myfiles/app.jar");
-		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
+		DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow =
+			new DeleteServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
 
 		// when
-		createServiceInstanceWorkflow.create();
+		deleteServiceInstanceWorkflow.delete();
 
 		//then deployer should be called with the application name
 		verify(backingAppDeploymentService, times(1))
-			.deploy(backingAppProperties);
+			.undeploy(backingAppProperties);
 	}
 }

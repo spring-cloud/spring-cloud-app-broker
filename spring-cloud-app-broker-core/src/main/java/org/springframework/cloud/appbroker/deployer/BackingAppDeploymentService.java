@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import reactor.core.publisher.Mono;
-
 public class BackingAppDeploymentService {
 
 	private final DeployerClient deployerClient;
@@ -26,8 +24,11 @@ public class BackingAppDeploymentService {
 		this.deployerClient = deployerClient;
 	}
 
-	public String execute(BackingAppProperties application) {
-		final Mono<String> result = deployerClient.deploy(application);
-		return result.block();
+	public String deploy(BackingAppProperties application) {
+		return deployerClient.deploy(application).block();
+	}
+
+	public void undeploy(BackingAppProperties application) {
+		deployerClient.undeploy(application).subscribe();
 	}
 }

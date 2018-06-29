@@ -25,6 +25,7 @@ import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnBean(ReactiveAppDeployer.class)
 public class AppBrokerAutoConfiguration {
 
-	static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deploy";
+	private static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deploy";
 
 	@Bean
 	public BackingAppDeploymentService backingAppDeploymentService(DeployerClient deployerClient) {
@@ -53,12 +54,19 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
+	public DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow(BackingAppProperties backingAppProperties,
+																	   BackingAppDeploymentService backingAppDeploymentService) {
+		return new DeleteServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
+	}
+
+	@Bean
 	public DeployerClient deployerClient(ReactiveAppDeployer appDeployer) {
 		return new DeployerClient(appDeployer);
 	}
 
 	@Bean
-	public WorkflowServiceInstanceService serviceInstanceService(CreateServiceInstanceWorkflow createWorkflow) {
-		return new WorkflowServiceInstanceService(createWorkflow);
+	public WorkflowServiceInstanceService serviceInstanceService(CreateServiceInstanceWorkflow createWorkflow,
+																 DeleteServiceInstanceWorkflow deleteWorkflow) {
+		return new WorkflowServiceInstanceService(createWorkflow, deleteWorkflow);
 	}
 }

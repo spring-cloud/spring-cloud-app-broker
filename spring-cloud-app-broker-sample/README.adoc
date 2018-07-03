@@ -1,4 +1,4 @@
-```= Spring Cloud App Broker Sample Project
+= Spring Cloud App Broker Sample Project
 
 == Running locally
 

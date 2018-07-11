@@ -1,0 +1,22 @@
+{
+  "id" : "e5e084ba-5062-42c1-b0d8-ca86850a8ecd",
+  "name" : "v2_spaces_ba339810-ca26-4004-b43b-ca859814900f_apps",
+  "request" : {
+    "url" : "/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/apps?q=name%3Ahelloworldapp&page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 0,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n\n  ]\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Thu, 12 Jul 2018 12:52:17 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "cb74cd7d-1f4c-47e4-6f32-534eaeb7f518::835cc4fb-4524-441a-9783-4a906b3d4eef"
+    }
+  },
+  "uuid" : "e5e084ba-5062-42c1-b0d8-ca86850a8ecd",
+  "persistent" : true,
+  "insertionIndex" : 43
+}

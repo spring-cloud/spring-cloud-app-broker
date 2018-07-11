@@ -49,16 +49,21 @@ Inspect the org and space to verify that an application named `broker-sample-app
 
 Inspect the org and space to verify that the application `broker-sample-app` was deleted.
 
-== Capturing Hoverfly simulation from Cloud Foundry
+== Recording a new scenario
 
-This is in order to run the automated component tests without needing a Cloud Foundry installation running
-
-1. Install hoverfly: `brew install hoverfly`
-2. Hardcode proxy settings in `DefaultConnectionContext` using `.proxyConfiguration(ProxyConfiguration.builder().host("localhost").port(8500).build())`
-3. Start capture: `hoverfly -capture -db=boltdb`
-4. Export capture: `hoverctl export cf-requests.json`
-5. Change references from `{api|login}.cf.example.com` to `localhost:8500`
-6. Remove all 'destination' and 'scheme' matcher rules
-7. In `/v2/spaces` matcher, Change `query/q` matcher from "exact" to "json"
-8. Remove content length fields
-9. Change last "/apps" request to "RUNNING"
+- Create a new recording folder in `/src/test/resources/recordings/{test_name}/mappings`
+- In `WiremockComponentTest` replace the `ACCESS_TOKEN` with a real one:
+```
+curl https://login.cf.{my_env}/oauth/token -X POST -k -d "client_id=cf&client_secret=&grant_type=password&password={my_admin_password}&username=admin" | jq .access_token
+```
+- In `WiremockComponentTest` in `startWiremock` add before `wiremockServer.start();`:
+```
+		wiremockServer.startRecording(
+			recordSpec()
+				.forTarget("https://api.cf.{my_env}")
+		);
+```
+- In `WiremockComponentTest` in `stopWiremock` add before `wiremockServer.stop();`:
+```
+		WireMock.stopRecording();
+```

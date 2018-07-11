@@ -19,8 +19,12 @@ buildscript {
 		mavenCentral()
 		maven { url "https://plugins.gradle.org/m2/" }
 	}
+	ext {
+		// The latest version of jetty-server is not compatible with the latest version of wiremock yet
+		springBootWiremockVersion = "2.0.0.RELEASE"
+	}
 	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootWiremockVersion}")
 	}
 }
 
@@ -28,8 +32,7 @@ description = "Spring Cloud App Broker Sample"
 
 ext {
 	restAssuredVersion = "3.1.0"
-	wiremockVersion = "1.58"
-	hoverflyVersion = "0.9.3"
+	wiremockVersion = "2.18.0"
 }
 
 apply plugin: 'org.springframework.boot'
@@ -48,5 +51,5 @@ dependencies {
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
 	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 	testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
-	testImplementation("io.specto:hoverfly-java-junit5:${hoverflyVersion}")
+	testImplementation("com.github.tomakehurst:wiremock:${wiremockVersion}")
 }

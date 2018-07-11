@@ -28,7 +28,7 @@ public class BackingAppDeploymentService {
 		return deployerClient.deploy(application).block();
 	}
 
-	public void undeploy(BackingAppProperties application) {
-		deployerClient.undeploy(application).subscribe();
+	public String undeploy(BackingAppProperties application) {
+		return deployerClient.undeploy(application).block();
 	}
 }

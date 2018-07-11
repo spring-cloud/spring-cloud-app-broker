@@ -24,11 +24,15 @@ dependencyManagement {
 
 ext {
 	reactorVersion = '3.1.7.RELEASE'
-	deployerVersion = '1.3.2.RELEASE'
+	deployerVersion = '1.3.3.RELEASE'
 }
 
 dependencies {
 	api("org.springframework.cloud:spring-cloud-deployer-spi:${deployerVersion}")
+	constraints {
+		// fix the Boot version to prevent 1.5.x and 2.0.x on the classpath
+		implementation("org.springframework.boot:spring-boot-starter-validation:${springBootVersion}")
+	}
 	api("io.projectreactor:reactor-core:${reactorVersion}")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")

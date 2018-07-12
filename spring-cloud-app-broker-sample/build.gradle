@@ -19,12 +19,9 @@ buildscript {
 		mavenCentral()
 		maven { url "https://plugins.gradle.org/m2/" }
 	}
-	ext {
-		// The latest version of jetty-server is not compatible with the latest version of wiremock yet
-		springBootWiremockVersion = "2.0.0.RELEASE"
-	}
+
 	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootWiremockVersion}")
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 	}
 }
 
@@ -34,6 +31,10 @@ ext {
 	restAssuredVersion = "3.1.0"
 	wiremockVersion = "2.18.0"
 }
+
+// The latest version of jetty-server is not compatible with the latest version of wiremock yet;
+// override the version managed by Spring Boot to a wiremock-compatible version
+ext['jetty.version'] = "9.4.8.v20171121"
 
 apply plugin: 'org.springframework.boot'
 

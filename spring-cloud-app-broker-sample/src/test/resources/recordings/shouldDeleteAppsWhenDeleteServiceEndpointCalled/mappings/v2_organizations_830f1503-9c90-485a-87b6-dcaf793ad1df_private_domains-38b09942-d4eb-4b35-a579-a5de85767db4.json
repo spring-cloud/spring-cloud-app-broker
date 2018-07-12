@@ -1,0 +1,22 @@
+{
+  "id" : "38b09942-d4eb-4b35-a579-a5de85767db4",
+  "name" : "v2_organizations_830f1503-9c90-485a-87b6-dcaf793ad1df_private_domains",
+  "request" : {
+    "url" : "/v2/organizations/830f1503-9c90-485a-87b6-dcaf793ad1df/private_domains?page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 0,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n\n  ]\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Thu, 12 Jul 2018 12:51:19 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "49634ea1-74ca-4d52-45cf-ca6ed885c925::1ccfea4b-23ff-4c0f-a863-e8e416b773f7"
+    }
+  },
+  "uuid" : "38b09942-d4eb-4b35-a579-a5de85767db4",
+  "persistent" : true,
+  "insertionIndex" : 7
+}

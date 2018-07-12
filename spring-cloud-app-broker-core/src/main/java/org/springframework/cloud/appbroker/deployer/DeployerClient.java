@@ -54,8 +54,10 @@ public class DeployerClient implements ResourceLoaderAware {
 		return Mono.just("running");
 	}
 
-	public Mono<Void> undeploy(BackingAppProperties backingApplication) {
-		return appDeployer.undeploy(backingApplication.getAppName());
+	Mono<String> undeploy(BackingAppProperties backingApplication) {
+		Mono<Void> undeploy = appDeployer.undeploy(backingApplication.getAppName());
+		undeploy.block();
+		return Mono.just("deleted");
 	}
 
 	private Resource getResource(String path) {

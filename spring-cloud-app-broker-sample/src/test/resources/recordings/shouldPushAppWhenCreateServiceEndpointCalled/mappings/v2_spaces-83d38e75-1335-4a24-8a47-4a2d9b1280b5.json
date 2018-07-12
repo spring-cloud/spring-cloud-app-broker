@@ -1,0 +1,22 @@
+{
+  "id" : "83d38e75-1335-4a24-8a47-4a2d9b1280b5",
+  "name" : "v2_spaces",
+  "request" : {
+    "url" : "/v2/spaces?q=name:development&q=organization_guid:830f1503-9c90-485a-87b6-dcaf793ad1df&page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 1,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n    {\n      \"metadata\": {\n        \"guid\": \"ba339810-ca26-4004-b43b-ca859814900f\",\n        \"url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f\",\n        \"created_at\": \"2018-03-14T19:46:01Z\",\n        \"updated_at\": \"2018-03-14T19:46:01Z\"\n      },\n      \"entity\": {\n        \"name\": \"development\",\n        \"organization_guid\": \"830f1503-9c90-485a-87b6-dcaf793ad1df\",\n        \"space_quota_definition_guid\": null,\n        \"isolation_segment_guid\": null,\n        \"allow_ssh\": true,\n        \"organization_url\": \"/v2/organizations/830f1503-9c90-485a-87b6-dcaf793ad1df\",\n        \"developers_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/developers\",\n        \"managers_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/managers\",\n        \"auditors_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/auditors\",\n        \"apps_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/apps\",\n        \"routes_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/routes\",\n        \"domains_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/domains\",\n        \"service_instances_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/service_instances\",\n        \"app_events_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/app_events\",\n        \"events_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/events\",\n        \"security_groups_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/security_groups\",\n        \"staging_security_groups_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/staging_security_groups\"\n      }\n    }\n  ]\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Thu, 12 Jul 2018 12:49:35 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "7fd287db-0927-4d6e-4c7b-3220fac8a302::911263d3-e477-4408-8fac-1d7b9d0652f7"
+    }
+  },
+  "uuid" : "83d38e75-1335-4a24-8a47-4a2d9b1280b5",
+  "persistent" : true,
+  "insertionIndex" : 5
+}

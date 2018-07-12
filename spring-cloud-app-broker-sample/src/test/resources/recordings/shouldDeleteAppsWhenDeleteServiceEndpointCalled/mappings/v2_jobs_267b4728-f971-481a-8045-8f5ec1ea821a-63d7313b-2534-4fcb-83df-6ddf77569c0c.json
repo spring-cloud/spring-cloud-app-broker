@@ -1,0 +1,25 @@
+{
+  "id" : "63d7313b-2534-4fcb-83df-6ddf77569c0c",
+  "name" : "v2_jobs_267b4728-f971-481a-8045-8f5ec1ea821a",
+  "request" : {
+    "url" : "/v2/jobs/267b4728-f971-481a-8045-8f5ec1ea821a",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"metadata\": {\n    \"guid\": \"267b4728-f971-481a-8045-8f5ec1ea821a\",\n    \"created_at\": \"2018-07-12T12:51:22Z\",\n    \"url\": \"/v2/jobs/267b4728-f971-481a-8045-8f5ec1ea821a\"\n  },\n  \"entity\": {\n    \"guid\": \"267b4728-f971-481a-8045-8f5ec1ea821a\",\n    \"status\": \"queued\"\n  }\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Thu, 12 Jul 2018 12:51:22 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "25449584-7344-404f-631c-6500f177cde0::77af75d5-235f-47d2-973b-3179243d25d5"
+    }
+  },
+  "uuid" : "63d7313b-2534-4fcb-83df-6ddf77569c0c",
+  "persistent" : true,
+  "scenarioName" : "scenario-jobs-267b4728-f971-481a-8045-8f5ec1ea821a",
+  "requiredScenarioState" : "Started",
+  "newScenarioState" : "scenario-jobs-267b4728-f971-481a-8045-8f5ec1ea821a-2",
+  "insertionIndex" : 14
+}

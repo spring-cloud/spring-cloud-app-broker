@@ -56,12 +56,16 @@ class DeployerClientTest {
 
 	@Test
 	void shouldDeployAppByName() {
+		// given
 		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
 		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
 
 		BackingAppProperties application = new BackingAppProperties(APP_NAME, APP_PATH);
+
+		// when
 		Mono<String> lastState = deployerClient.deploy(application);
 
+		// then
 		assertThat(lastState.block()).isEqualTo("running");
 
 		verify(appDeployer).deploy(argThat(matchesRequest()));
@@ -69,8 +73,16 @@ class DeployerClientTest {
 
 	@Test
 	void shouldUndeployAppByName() {
+		// given
+		when(appDeployer.undeploy(any())).thenReturn(Mono.empty());
+
 		BackingAppProperties application = new BackingAppProperties(APP_NAME, APP_PATH);
-		deployerClient.undeploy(application);
+
+		// when
+		Mono<String> lastState = deployerClient.undeploy(application);
+
+		// then
+		assertThat(lastState.block()).isEqualTo("deleted");
 
 		verify(appDeployer).undeploy(eq(APP_NAME));
 	}

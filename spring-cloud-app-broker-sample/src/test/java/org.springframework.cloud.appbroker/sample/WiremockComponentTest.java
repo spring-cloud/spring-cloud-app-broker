@@ -26,6 +26,7 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -57,6 +58,7 @@ import static org.springframework.cloud.appbroker.sample.WiremockComponentTest.S
 @TestPropertySource({
 	"classpath:application-openservicebroker-catalog.yml",
 })
+@DirtiesContext
 class WiremockComponentTest {
 
 	final static String SIMULATED_CF_HOST = "http://localhost";

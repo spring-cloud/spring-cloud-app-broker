@@ -45,8 +45,8 @@ public class DeployerClient implements ResourceLoaderAware {
 		this.resourceLoader = resourceLoader;
 	}
 
-	Mono<String> deploy(BackingAppProperties backingApplication) {
-		AppDefinition appDefinition = new AppDefinition(backingApplication.getAppName(), Collections.emptyMap());
+	Mono<String> deploy(BackingApplication backingApplication) {
+		AppDefinition appDefinition = new AppDefinition(backingApplication.getName(), Collections.emptyMap());
 		Resource resource = getResource(backingApplication.getPath());
 		AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(appDefinition, resource);
 		Mono<String> deployedApplicationId = appDeployer.deploy(appDeploymentRequest);
@@ -54,8 +54,8 @@ public class DeployerClient implements ResourceLoaderAware {
 		return Mono.just("running");
 	}
 
-	Mono<String> undeploy(BackingAppProperties backingApplication) {
-		Mono<Void> undeploy = appDeployer.undeploy(backingApplication.getAppName());
+	Mono<String> undeploy(BackingApplication backingApplication) {
+		Mono<Void> undeploy = appDeployer.undeploy(backingApplication.getName());
 		undeploy.block();
 		return Mono.just("deleted");
 	}

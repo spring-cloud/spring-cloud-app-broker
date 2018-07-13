@@ -16,25 +16,32 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import java.util.stream.Collectors;
+public class BackingApplication {
 
-public class BackingAppDeploymentService {
+	private String name;
+	private String path;
 
-	private final DeployerClient deployerClient;
-
-	public BackingAppDeploymentService(DeployerClient deployerClient) {
-		this.deployerClient = deployerClient;
+	public BackingApplication() {
 	}
 
-	public String deploy(BackingApplications backingApps) {
-		return backingApps.getBackingApplications().stream()
-			.map(backingApp -> deployerClient.deploy(backingApp).block())
-			.collect(Collectors.joining(","));
+	public BackingApplication(String name, String path) {
+		this.name = name;
+		this.path = path;
 	}
 
-	public String undeploy(BackingApplications backingApps) {
-		return backingApps.getBackingApplications().stream()
-			.map(backingApp -> deployerClient.undeploy(backingApp).block())
-			.collect(Collectors.joining(","));
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
 	}
 }

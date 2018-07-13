@@ -21,9 +21,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
 
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,17 +34,17 @@ class DeleteServiceInstanceWorkflowTest {
 
 	@Test
 	void shouldDeleteDefaultServiceInstance() {
-		// given that properties contains app name
-		BackingAppProperties backingAppProperties =
-			new BackingAppProperties("helloworldapp", "http://myfiles/app.jar");
+		// given that properties contains app details
+		BackingApplications backingApps = new BackingApplications(
+			new BackingApplication("helloworldapp", "http://myfiles/app.jar"));
 		DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow =
-			new DeleteServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
+			new DeleteServiceInstanceWorkflow(backingApps, backingAppDeploymentService);
 
 		// when
 		deleteServiceInstanceWorkflow.delete();
 
-		//then deployer should be called with the application name
-		verify(backingAppDeploymentService, times(1))
-			.undeploy(backingAppProperties);
+		// then deployer should be called with the application details
+		verify(backingAppDeploymentService)
+			.undeploy(backingApps);
 	}
 }

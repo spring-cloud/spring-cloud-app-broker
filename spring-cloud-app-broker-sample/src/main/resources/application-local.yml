@@ -16,14 +16,15 @@ spring:
             description: A simple plan
             free: true
     appbroker:
-      deploy:
-        appName: broker-sample-app
-        path: classpath:demo.jar
-      cf:
-        apiHost: run.pivotal.io
-        apiPort: 443
-        username: admin
-        password: adminpass
-        defaultOrg: test
-        defaultSpace: development
-        skipSslValidation: true
+      apps:
+        - name: broker-sample-app
+          path: classpath:demo.jar
+      deployer:
+        cloudfoundry:
+          apiHost: run.pivotal.io
+          apiPort: 443
+          username: admin
+          password: adminpass
+          defaultOrg: test
+          defaultSpace: development
+          skipSslValidation: true

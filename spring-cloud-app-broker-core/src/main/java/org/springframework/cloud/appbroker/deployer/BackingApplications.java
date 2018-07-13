@@ -16,32 +16,22 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-public class BackingAppProperties {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-	private String appName;
-	private String path;
+public class BackingApplications {
+	private List<BackingApplication> backingApps;
 
-	public BackingAppProperties() {
+	public BackingApplications(BackingApplication... backingApps) {
+		this.backingApps = new ArrayList<>(Arrays.asList(backingApps));
 	}
 
-	public BackingAppProperties(String appName, String path) {
-		this.appName = appName;
-		this.path = path;
+	public List<BackingApplication> getBackingApplications() {
+		return backingApps;
 	}
 
-	public String getAppName() {
-		return appName;
-	}
-
-	public void setAppName(String appName) {
-		this.appName = appName;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
+	public void setBackingApplications(List<BackingApplication> backingApps) {
+		this.backingApps = backingApps;
 	}
 }

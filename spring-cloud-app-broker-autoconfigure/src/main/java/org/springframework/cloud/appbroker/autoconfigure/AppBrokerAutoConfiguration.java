@@ -20,7 +20,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnBean(ReactiveAppDeployer.class)
 public class AppBrokerAutoConfiguration {
 
-	private static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deploy";
+	private static final String PROPERTY_PREFIX = "spring.cloud.appbroker";
 
 	@Bean
 	public BackingAppDeploymentService backingAppDeploymentService(DeployerClient deployerClient) {
@@ -42,26 +42,26 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	@ConfigurationProperties(PROPERTY_PREFIX)
-	public BackingAppProperties backingAppProperties() {
-		return new BackingAppProperties();
-	}
-
-	@Bean
-	public CreateServiceInstanceWorkflow createServiceInstanceWorkflow(BackingAppProperties backingAppProperties,
-																	   BackingAppDeploymentService backingAppDeploymentService) {
-		return new CreateServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
-	}
-
-	@Bean
-	public DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow(BackingAppProperties backingAppProperties,
-																	   BackingAppDeploymentService backingAppDeploymentService) {
-		return new DeleteServiceInstanceWorkflow(backingAppProperties, backingAppDeploymentService);
-	}
-
-	@Bean
 	public DeployerClient deployerClient(ReactiveAppDeployer appDeployer) {
 		return new DeployerClient(appDeployer);
+	}
+
+	@Bean
+	@ConfigurationProperties(PROPERTY_PREFIX + ".apps")
+	public BackingApplications backingApplications() {
+		return new BackingApplications();
+	}
+
+	@Bean
+	public CreateServiceInstanceWorkflow createServiceInstanceWorkflow(BackingApplications backingApplications,
+																	   BackingAppDeploymentService backingAppDeploymentService) {
+		return new CreateServiceInstanceWorkflow(backingApplications, backingAppDeploymentService);
+	}
+
+	@Bean
+	public DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow(BackingApplications backingApplications,
+																	   BackingAppDeploymentService backingAppDeploymentService) {
+		return new DeleteServiceInstanceWorkflow(backingApplications, backingAppDeploymentService);
 	}
 
 	@Bean

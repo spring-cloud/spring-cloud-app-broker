@@ -40,9 +40,9 @@ class CloudFoundryClientAutoConfigurationTest {
 	void clientIsCreatedWithPasswordGrantConfiguration() {
 		this.contextRunner
 			.withPropertyValues(
-				"spring.cloud.appbroker.cf.apiHost=https://api.example.com",
-				"spring.cloud.appbroker.cf.username=user",
-				"spring.cloud.appbroker.cf.password=secret"
+				"spring.cloud.appbroker.deployer.cloudfoundry.apiHost=https://api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
+				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
 			)
 			.run((context) -> {
 				assertThat(context).hasSingleBean(CloudFoundryProperties.class);

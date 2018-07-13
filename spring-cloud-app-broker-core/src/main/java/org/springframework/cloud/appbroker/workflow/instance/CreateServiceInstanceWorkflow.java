@@ -17,20 +17,20 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
 
 public class CreateServiceInstanceWorkflow {
 
-	private BackingAppProperties backingAppProperties;
+	private BackingApplications backingApps;
 	private BackingAppDeploymentService deploymentService;
 
-	public CreateServiceInstanceWorkflow(BackingAppProperties backingAppProperties,
+	public CreateServiceInstanceWorkflow(BackingApplications backingApps,
 										 BackingAppDeploymentService deploymentService) {
-		this.backingAppProperties = backingAppProperties;
+		this.backingApps = backingApps;
 		this.deploymentService = deploymentService;
 	}
 
 	public void create() {
-		deploymentService.deploy(backingAppProperties);
+		deploymentService.deploy(backingApps);
 	}
 }

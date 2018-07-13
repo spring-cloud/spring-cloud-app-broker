@@ -60,7 +60,7 @@ class DeployerClientTest {
 		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
 		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
 
-		BackingAppProperties application = new BackingAppProperties(APP_NAME, APP_PATH);
+		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH);
 
 		// when
 		Mono<String> lastState = deployerClient.deploy(application);
@@ -73,10 +73,9 @@ class DeployerClientTest {
 
 	@Test
 	void shouldUndeployAppByName() {
-		// given
 		when(appDeployer.undeploy(any())).thenReturn(Mono.empty());
 
-		BackingAppProperties application = new BackingAppProperties(APP_NAME, APP_PATH);
+		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH);
 
 		// when
 		Mono<String> lastState = deployerClient.undeploy(application);

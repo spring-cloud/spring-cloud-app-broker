@@ -27,7 +27,7 @@ import static org.springframework.cloud.appbroker.autoconfigure.CloudFoundryProp
 @ConfigurationProperties(PROPERTY_PREFIX)
 public class CloudFoundryProperties {
 
-	static final String PROPERTY_PREFIX = "spring.cloud.appbroker.cf";
+	static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry";
 
 	private String apiHost;
 

@@ -17,19 +17,19 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
 
 public class DeleteServiceInstanceWorkflow {
-	private BackingAppProperties backingAppProperties;
+	private BackingApplications backingApps;
 	private BackingAppDeploymentService deploymentService;
 
-	public DeleteServiceInstanceWorkflow(BackingAppProperties backingAppProperties,
+	public DeleteServiceInstanceWorkflow(BackingApplications backingApps,
 										 BackingAppDeploymentService deploymentService) {
-		this.backingAppProperties = backingAppProperties;
+		this.backingApps = backingApps;
 		this.deploymentService = deploymentService;
 	}
 
 	public void delete() {
-		deploymentService.undeploy(backingAppProperties);
+		deploymentService.undeploy(backingApps);
 	}
 }

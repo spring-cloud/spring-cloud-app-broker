@@ -17,15 +17,17 @@
 package org.springframework.cloud.appbroker.sample;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import io.restassured.http.Header;
-import org.eclipse.jetty.http.HttpHeader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.appbroker.sample.transformers.URLLocalhostStubResponseTransformer;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -36,7 +38,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.springframework.cloud.appbroker.sample.WiremockComponentTest.SIMULATED_CF_HOST;
 import static org.springframework.cloud.appbroker.sample.WiremockComponentTest.SIMULATED_CF_PORT;
 
@@ -45,15 +48,15 @@ import static org.springframework.cloud.appbroker.sample.WiremockComponentTest.S
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 	classes = {AppBrokerSampleApplication.class},
 	properties = {
-		"spring.cloud.appbroker.deploy.path=classpath:demo.jar",
-		"spring.cloud.appbroker.deploy.appName=helloworldapp",
-		"spring.cloud.appbroker.cf.apiHost=" + SIMULATED_CF_HOST,
-		"spring.cloud.appbroker.cf.apiPort=" + SIMULATED_CF_PORT,
-		"spring.cloud.appbroker.cf.username=admin",
-		"spring.cloud.appbroker.cf.password=adminpass",
-		"spring.cloud.appbroker.cf.defaultOrg=test",
-		"spring.cloud.appbroker.cf.defaultSpace=development",
-		"spring.cloud.appbroker.cf.secure=false"
+		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.apps[0].name=helloworldapp",
+		"spring.cloud.appbroker.deployer.cloudfoundry.apiHost=" + SIMULATED_CF_HOST,
+		"spring.cloud.appbroker.deployer.cloudfoundry.apiPort=" + SIMULATED_CF_PORT,
+		"spring.cloud.appbroker.deployer.cloudfoundry.username=admin",
+		"spring.cloud.appbroker.deployer.cloudfoundry.password=adminpass",
+		"spring.cloud.appbroker.deployer.cloudfoundry.defaultOrg=test",
+		"spring.cloud.appbroker.deployer.cloudfoundry.defaultSpace=development",
+		"spring.cloud.appbroker.deployer.cloudfoundry.secure=false"
 	})
 @TestPropertySource({
 	"classpath:application-openservicebroker-catalog.yml",
@@ -91,7 +94,7 @@ class WiremockComponentTest {
 		wiremockServer = new WireMockServer(wireMockConfig()
 			.port(SIMULATED_CF_PORT)
 			.usingFilesUnderDirectory(displayName)
-			.extensions("org.springframework.cloud.appbroker.sample.transformers.URLLocalhostStubResponseTransformer"));
+			.extensions(URLLocalhostStubResponseTransformer.class.getName()));
 
 		wiremockServer.start();
 
@@ -119,7 +122,7 @@ class WiremockComponentTest {
 
 		stubFor(any(urlPathEqualTo("/oauth/token"))
 			.willReturn(aResponse()
-				.withStatus(OK_200)
+				.withStatus(HttpStatus.OK.value())
 				.withHeaders(createResponseHeaders())
 				.withBody("{" +
 					"\"access_token\":\"" + ACCESS_TOKEN + "\"" +
@@ -138,11 +141,9 @@ class WiremockComponentTest {
 	}
 
 	private static HttpHeaders createResponseHeaders() {
-		HttpHeaders httpHeaders = HttpHeaders.noHeaders();
-		httpHeaders = httpHeaders.plus(
-			new com.github.tomakehurst.wiremock.http.HttpHeader(HttpHeader.CONTENT_TYPE.asString(), org.apache.http.entity.ContentType.APPLICATION_JSON.toString())
+		return HttpHeaders.noHeaders()
+			.plus(new HttpHeader(CONTENT_TYPE, APPLICATION_JSON.toString())
 		);
-		return httpHeaders;
 	}
 
 }

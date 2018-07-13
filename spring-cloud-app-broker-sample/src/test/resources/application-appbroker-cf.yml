@@ -1,7 +1,7 @@
-spring.cloud.appbroker.cf.apiHost: api.cf.test
-spring.cloud.appbroker.cf.apiPort: 80
-spring.cloud.appbroker.cf.username: admin
-spring.cloud.appbroker.cf.password: adminpass
-spring.cloud.appbroker.cf.defaultOrg: test
-spring.cloud.appbroker.cf.defaultSpace: development
-spring.cloud.appbroker.cf.skipSslValidation: true
+spring.cloud.appbroker.deployer.cloudfoundry.apiHost: api.cf.test
+spring.cloud.appbroker.deployer.cloudfoundry.apiPort: 80
+spring.cloud.appbroker.deployer.cloudfoundry.username: admin
+spring.cloud.appbroker.deployer.cloudfoundry.password: adminpass
+spring.cloud.appbroker.deployer.cloudfoundry.defaultOrg: test
+spring.cloud.appbroker.deployer.cloudfoundry.defaultSpace: development
+spring.cloud.appbroker.deployer.cloudfoundry.skipSslValidation: true

@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.deployer.BackingAppProperties;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
@@ -39,14 +39,14 @@ class AppBrokerAutoConfigurationTest {
 			.withConfiguration(AutoConfigurations.of(AppDeployerAutoConfiguration.class,
 				CloudFoundryClientAutoConfiguration.class))
 			.withPropertyValues(
-				"spring.cloud.appbroker.deploy.path=classpath:demo.jar",
-				"spring.cloud.appbroker.deploy.app-name=app",
-				"spring.cloud.appbroker.cf.apiHost=https://api.example.com",
-				"spring.cloud.appbroker.cf.username=user",
-				"spring.cloud.appbroker.cf.password=secret"
+				"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
+				"spring.cloud.appbroker.apps[0].name=app",
+				"spring.cloud.appbroker.deployer.cloudfoundry.apiHost=https://api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
+				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
 			)
 			.run((context) -> {
-				assertThat(context).hasSingleBean(BackingAppProperties.class);
+				assertThat(context).hasSingleBean(BackingApplications.class);
 				assertThat(context).hasSingleBean(DeployerClient.class);
 				assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
 				assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);
@@ -58,7 +58,7 @@ class AppBrokerAutoConfigurationTest {
 	void servicesAreNotCreatedWithoutDeployerConfiguration() {
 		this.contextRunner
 			.run((context) -> {
-				assertThat(context).doesNotHaveBean(BackingAppProperties.class);
+				assertThat(context).doesNotHaveBean(BackingApplications.class);
 				assertThat(context).doesNotHaveBean(DeployerClient.class);
 			});
 	}

@@ -50,6 +50,6 @@ public class URLLocalhostStubResponseTransformer extends ResponseTransformer {
 
 	@Override
 	public String getName() {
-		return "URLLocalhostStubResponseTransformer";
+		return this.getClass().getSimpleName();
 	}
 }

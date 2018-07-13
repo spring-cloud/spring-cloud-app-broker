@@ -6,13 +6,7 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
       - image: circleci/openjdk:8-jdk
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
 
     working_directory: ~/repo
 
@@ -24,22 +18,22 @@ jobs:
     steps:
       - checkout
 
-      # Download and cache dependencies
       - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "build.gradle" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+          key: sc-app-broker-{{ .Branch }}
 
-      - run: ./gradlew dependencies
+      - run:
+          name: "Download dependencies"
+          command: ./gradlew assemble
 
       - save_cache:
           paths:
             - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}
+          key: sc-app-broker-{{ .Branch }}
 
-      # run tests!
-      - run: ./gradlew codeCoverageReport --stacktrace --info --continue
+      - run:
+          name: "Run tests"
+          command: ./gradlew codeCoverageReport --stacktrace --info --continue
 
-      # upload test results
-      - run: bash <(curl -s https://codecov.io/bash)
+      - run:
+          name: "Upload tests results"
+          command: bash <(curl -s https://codecov.io/bash)

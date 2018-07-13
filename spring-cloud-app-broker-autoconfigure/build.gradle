@@ -18,7 +18,6 @@ description = "Spring Cloud App Broker Autoconfiguration"
 
 dependencyManagement {
 	imports {
-		mavenBom "org.springframework:spring-framework-bom:${springVersion}"
 		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
 	}
 }
@@ -32,13 +31,10 @@ dependencies {
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.springframework.boot:spring-boot-autoconfigure-processor")
 
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-	testImplementation("org.assertj:assertj-core:${assertjVersion}")
-	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
-	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+	testImplementation("org.junit.jupiter:junit-jupiter-api")
 }
 
 compileJava.dependsOn(processResources)

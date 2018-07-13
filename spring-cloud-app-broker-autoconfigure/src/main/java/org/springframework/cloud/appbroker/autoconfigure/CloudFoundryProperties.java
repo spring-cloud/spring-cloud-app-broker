@@ -34,10 +34,7 @@ public class CloudFoundryProperties {
 	private Integer apiPort;
 	private String defaultOrg;
 	private String defaultSpace;
-	private int operationTimeoutSeconds = 60 * 60; // Timeout after 1 hour
 	private String password;
-	private String proxyHost;
-	private int proxyPort;
 	private boolean secure = true;
 	private boolean skipSslValidation;
 	private String username;
@@ -74,14 +71,6 @@ public class CloudFoundryProperties {
 		this.defaultSpace = defaultSpace;
 	}
 
-	public int getOperationTimeoutSeconds() {
-		return operationTimeoutSeconds;
-	}
-
-	public void setOperationTimeoutSeconds(int operationTimeoutSeconds) {
-		this.operationTimeoutSeconds = operationTimeoutSeconds;
-	}
-
 	public String getPassword() {
 		return password;
 	}
@@ -92,22 +81,6 @@ public class CloudFoundryProperties {
 
 	public ProxyConfiguration getProxyConfiguration() {
 		return null;
-	}
-
-	public String getProxyHost() {
-		return proxyHost;
-	}
-
-	public void setProxyHost(String proxyHost) {
-		this.proxyHost = proxyHost;
-	}
-
-	public int getProxyPort() {
-		return proxyPort;
-	}
-
-	public void setProxyPort(int proxyPort) {
-		this.proxyPort = proxyPort;
 	}
 
 	public String getUsername() {

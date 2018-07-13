@@ -17,21 +17,18 @@
 package org.springframework.cloud.appbroker.autoconfigure;
 
 import java.util.Optional;
-
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.doppler.DopplerClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.ConnectionContext;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
-import org.cloudfoundry.reactor.ProxyConfiguration;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.UaaClient;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -64,20 +61,9 @@ public class CloudFoundryClientAutoConfiguration {
 
 	@Bean
 	DefaultConnectionContext connectionContext(CloudFoundryProperties properties) {
-		Optional<ProxyConfiguration> proxyConfiguration = Optional.empty();
-		String proxyHost = properties.getProxyHost();
-		int proxyPort = properties.getProxyPort();
-		if (proxyHost != null && proxyPort != 0) {
-			proxyConfiguration = Optional.of(
-				ProxyConfiguration.builder()
-								  .host(properties.getProxyHost())
-								  .port(properties.getApiPort())
-								  .build());
-		}
 		return DefaultConnectionContext.builder()
 									   .apiHost(properties.getApiHost())
 									   .port(Optional.ofNullable(properties.getApiPort()))
-									   .proxyConfiguration(proxyConfiguration)
 									   .skipSslValidation(properties.isSkipSslValidation())
 									   .secure(properties.isSecure())
 									   .build();

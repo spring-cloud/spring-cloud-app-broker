@@ -41,8 +41,13 @@ class AppBrokerAutoConfigurationTest {
 			.withPropertyValues(
 				"spring.cloud.appbroker.apps[0].path=classpath:app1.jar",
 				"spring.cloud.appbroker.apps[0].name=app1",
+				"spring.cloud.appbroker.apps[0].properties.memory=1G",
+
 				"spring.cloud.appbroker.apps[1].path=classpath:app2.jar",
 				"spring.cloud.appbroker.apps[1].name=app2",
+				"spring.cloud.appbroker.apps[1].properties.memory=2G",
+				"spring.cloud.appbroker.apps[1].properties.instances=2",
+				
 				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
 				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
 				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
@@ -51,12 +56,16 @@ class AppBrokerAutoConfigurationTest {
 				assertThat(context).hasSingleBean(BackingApplications.class);
 				BackingApplications backingApplications = context.getBean(BackingApplications.class);
 				assertThat(backingApplications).hasSize(2);
-				assertThat(backingApplications)
-					.extracting("name")
-					.contains("app1", "app2");
-				assertThat(backingApplications)
-					.extracting("path")
-					.contains("classpath:app1.jar", "classpath:app2.jar");
+
+				assertThat(backingApplications.get(0).getName()).isEqualTo("app1");
+				assertThat(backingApplications.get(0).getPath()).isEqualTo("classpath:app1.jar");
+				assertThat(backingApplications.get(0).getProperties().get("memory")).isEqualTo("1G");
+				assertThat(backingApplications.get(0).getProperties().get("instances")).isNull();
+
+				assertThat(backingApplications.get(1).getName()).isEqualTo("app2");
+				assertThat(backingApplications.get(1).getPath()).isEqualTo("classpath:app2.jar");
+				assertThat(backingApplications.get(1).getProperties().get("memory")).isEqualTo("2G");
+				assertThat(backingApplications.get(1).getProperties().get("instances")).isEqualTo("2");
 
 				assertThat(context).hasSingleBean(DeployerClient.class);
 				assertThat(context).hasSingleBean(BackingAppDeploymentService.class);

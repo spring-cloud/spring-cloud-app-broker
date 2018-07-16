@@ -28,6 +28,10 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -39,7 +43,8 @@ import static org.mockito.Mockito.when;
 class DeployerClientTest {
 
 	private static final String APP_NAME = "helloworld";
-	private static final String APP_PATH = "classpath:/jars/app.jar";
+	private static final String APP_ARCHIVE = "app.jar";
+	private static final String APP_PATH = "classpath:/jars/" + APP_ARCHIVE;
 
 	private DeployerClient deployerClient;
 
@@ -55,7 +60,7 @@ class DeployerClientTest {
 	}
 
 	@Test
-	void shouldDeployAppByName() {
+	void shouldDeployApp() {
 		// given
 		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
 		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
@@ -68,11 +73,33 @@ class DeployerClientTest {
 		// then
 		assertThat(lastState.block()).isEqualTo("running");
 
-		verify(appDeployer).deploy(argThat(matchesRequest()));
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, Collections.emptyMap())));
 	}
 
 	@Test
-	void shouldUndeployAppByName() {
+	@SuppressWarnings("serial")
+	void shouldDeployAppWithProperties() {
+		// given
+		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
+		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
+
+		Map<String, String> properties = new HashMap<String, String>() {{
+			put("memory", "1G");
+			put("instances", "2");
+		}};
+		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH, properties);
+
+		// when
+		Mono<String> lastState = deployerClient.deploy(application);
+
+		// then
+		assertThat(lastState.block()).isEqualTo("running");
+
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, properties)));
+	}
+
+	@Test
+	void shouldUndeployApp() {
 		when(appDeployer.undeploy(any())).thenReturn(Mono.empty());
 
 		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH);
@@ -86,13 +113,11 @@ class DeployerClientTest {
 		verify(appDeployer).undeploy(eq(APP_NAME));
 	}
 
-	private ArgumentMatcher<AppDeploymentRequest> appDeploymentRequestMatcher() {
+	private ArgumentMatcher<AppDeploymentRequest> matchesRequest(String appName, String appArchive,
+																 Map<String, String> properties) {
 		return request ->
-			request.getDefinition().getName().equals(APP_NAME) &&
-				request.getResource().getFilename().equals("app.jar");
-	}
-
-	private ArgumentMatcher<AppDeploymentRequest> matchesRequest() {
-		return appDeploymentRequestMatcher();
+			request.getDefinition().getName().equals(appName) &&
+				request.getResource().getFilename().equals(appArchive) &&
+				request.getDefinition().getProperties().equals(properties);
 	}
 }

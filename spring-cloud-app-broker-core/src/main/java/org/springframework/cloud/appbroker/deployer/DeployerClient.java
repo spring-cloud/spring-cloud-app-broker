@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import java.util.Collections;
-
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
@@ -46,7 +44,8 @@ public class DeployerClient implements ResourceLoaderAware {
 	}
 
 	Mono<String> deploy(BackingApplication backingApplication) {
-		AppDefinition appDefinition = new AppDefinition(backingApplication.getName(), Collections.emptyMap());
+		AppDefinition appDefinition = new AppDefinition(backingApplication.getName(),
+			backingApplication.getProperties());
 		Resource resource = getResource(backingApplication.getPath());
 		AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(appDefinition, resource);
 		Mono<String> deployedApplicationId = appDeployer.deploy(appDeploymentRequest);

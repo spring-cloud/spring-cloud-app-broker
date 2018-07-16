@@ -28,7 +28,6 @@ buildscript {
 description = "Spring Cloud App Broker Sample"
 
 ext {
-	restAssuredVersion = "3.1.0"
 	wiremockVersion = "2.18.0"
 }
 
@@ -41,16 +40,14 @@ apply plugin: 'org.springframework.boot'
 dependencies {
 	implementation project(":spring-cloud-app-broker-autoconfigure")
 
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.cloud:spring-cloud-starter-open-service-broker-webmvc:${openServiceBrokerVersion}")
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
+	implementation("org.springframework.cloud:spring-cloud-starter-open-service-broker-webflux:${openServiceBrokerVersion}")
 
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
-	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-	testImplementation("org.assertj:assertj-core:${assertjVersion}")
-	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+	testImplementation("org.junit.jupiter:junit-jupiter-api")
 	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
-	testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
+	testImplementation("io.rest-assured:rest-assured")
 	testImplementation("com.github.tomakehurst:wiremock:${wiremockVersion}")
 }

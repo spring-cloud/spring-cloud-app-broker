@@ -50,7 +50,8 @@ class WorkflowServiceInstanceServiceTest {
 	void shouldCreateServiceInstance() {
 		// when a request to create a service instance is received
 		CreateServiceInstanceResponse createServiceInstanceResponse =
-			workflowServiceInstanceService.createServiceInstance(null);
+			workflowServiceInstanceService.createServiceInstance(null)
+			.block();
 
 		// then delegate to the workflow
 		verify(createServiceInstanceWorkflow).create();
@@ -63,7 +64,8 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void shouldDeleteServiceInstance() {
 		DeleteServiceInstanceResponse deleteServiceInstanceResponse =
-			workflowServiceInstanceService.deleteServiceInstance(null);
+			workflowServiceInstanceService.deleteServiceInstance(null)
+			.block();
 
 		verify(deleteServiceInstanceWorkflow).delete();
 

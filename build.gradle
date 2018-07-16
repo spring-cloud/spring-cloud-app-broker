@@ -42,7 +42,7 @@ configure(allprojects) {
 	apply plugin: "io.spring.dependency-management"
 
 	ext {
-		openServiceBrokerVersion = "2.0.0.RELEASE"
+		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
 
 		junitJupiterVersion = "5.2.0"
 		assertjVersion = "3.10.0"
@@ -121,7 +121,7 @@ configure(allprojects) {
 	}
 
 	repositories {
-		maven { url "https://repo.spring.io/libs-milestone" }
+		maven { url "https://repo.spring.io/libs-snapshot" }
 	}
 
 	ext.javadocLinks = [

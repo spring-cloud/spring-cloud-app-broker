@@ -18,6 +18,8 @@
 
 package org.springframework.cloud.appbroker.service;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
@@ -48,31 +50,33 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	}
 
 	@Override
-	public CreateServiceInstanceResponse createServiceInstance(CreateServiceInstanceRequest request) {
+	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
 		createServiceInstanceWorkflow.create();
 
-		return CreateServiceInstanceResponse.builder().build();
+		return Mono.just(CreateServiceInstanceResponse.builder()
+			.build());
 	}
 
 	@Override
-	public DeleteServiceInstanceResponse deleteServiceInstance(DeleteServiceInstanceRequest request) {
+	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
 		deleteServiceInstanceWorkflow.delete();
 		
-		return DeleteServiceInstanceResponse.builder().build();
+		return Mono.just(DeleteServiceInstanceResponse.builder()
+			.build());
 	}
 
 	@Override
-	public GetLastServiceOperationResponse getLastOperation(GetLastServiceOperationRequest request) {
-		return null;
+	public Mono<GetLastServiceOperationResponse> getLastOperation(GetLastServiceOperationRequest request) {
+		return Mono.empty();
 	}
 
 	@Override
-	public GetServiceInstanceResponse getServiceInstance(GetServiceInstanceRequest request) {
-		return null;
+	public Mono<GetServiceInstanceResponse> getServiceInstance(GetServiceInstanceRequest request) {
+		return Mono.empty();
 	}
 
 	@Override
-	public UpdateServiceInstanceResponse updateServiceInstance(UpdateServiceInstanceRequest request) {
-		return null;
+	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
+		return Mono.empty();
 	}
 }

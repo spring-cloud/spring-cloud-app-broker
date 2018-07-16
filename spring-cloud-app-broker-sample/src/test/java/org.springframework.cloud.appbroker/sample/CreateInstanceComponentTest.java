@@ -37,17 +37,22 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 	void shouldPushAppWhenCreateServiceEndpointCalled() {
 		// when the provision is called
 		given()
+			.accept(ContentType.JSON)
 			.contentType(ContentType.JSON)
 			.body(createDefaultBody())
 			.put(baseUrl + "/v2/service_instances/{instance_id}", "instance-id")
 			.then()
+			.contentType(ContentType.JSON)
 			.statusCode(HttpStatus.CREATED.value());
 
 		// then an instance is created
 		given()
+			.accept(ContentType.JSON)
+			.contentType(ContentType.JSON)
 			.header(getAuthorizationHeader())
 			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:helloworldapp&page=1", getSpaceId())
 			.then()
+			.contentType(ContentType.JSON)
 			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace("helloworldapp")))
 			.statusCode(200);
 	}

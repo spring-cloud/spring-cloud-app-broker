@@ -27,13 +27,13 @@ public class BackingAppDeploymentService {
 	}
 
 	public String deploy(BackingApplications backingApps) {
-		return backingApps.getBackingApplications().stream()
+		return backingApps.stream()
 			.map(backingApp -> deployerClient.deploy(backingApp).block())
 			.collect(Collectors.joining(","));
 	}
 
 	public String undeploy(BackingApplications backingApps) {
-		return backingApps.getBackingApplications().stream()
+		return backingApps.stream()
 			.map(backingApp -> deployerClient.undeploy(backingApp).block())
 			.collect(Collectors.joining(","));
 	}

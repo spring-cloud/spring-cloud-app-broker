@@ -37,26 +37,33 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 	void shouldDeleteAppsWhenDeleteServiceEndpointCalled() {
 		// given an instance is created
 		given()
+			.accept(ContentType.JSON)
 			.contentType(ContentType.JSON)
 			.body(createDefaultBody())
 			.put(baseUrl + "/v2/service_instances/{instance_id}", "instance-id")
 			.then()
+			.contentType(ContentType.JSON)
 			.statusCode(HttpStatus.CREATED.value());
 
 		// when the deprovision is called
 		given()
+			.accept(ContentType.JSON)
 			.contentType(ContentType.JSON)
 			.body(createDefaultBody())
 			.delete(baseUrl + "/v2/service_instances/{instance_id}?service_id=" + serviceDefinitionId +
 				"&plan_id=" + planId, "instance-id")
 			.then()
+			.contentType(ContentType.JSON)
 			.statusCode(HttpStatus.OK.value());
 
 		// then the instance is deleted
 		given()
+			.accept(ContentType.JSON)
+			.contentType(ContentType.JSON)
 			.header(getAuthorizationHeader())
 			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:helloworldapp&page=1", getSpaceId())
 			.then()
+			.contentType(ContentType.JSON)
 			.body("resources.size", is(equalTo(0)))
 			.statusCode(200);
 	}

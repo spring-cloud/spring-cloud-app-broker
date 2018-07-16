@@ -34,9 +34,9 @@ class BackingAppDeploymentServiceTest {
 	@Test
 	void shouldDeployApplications() {
 		doReturn(Mono.just(STATUS_RUNNING))
-			.when(deployerClient).deploy(backingApps.getBackingApplications().get(0));
+			.when(deployerClient).deploy(backingApps.get(0));
 		doReturn(Mono.just(STATUS_RUNNING))
-			.when(deployerClient).deploy(backingApps.getBackingApplications().get(1));
+			.when(deployerClient).deploy(backingApps.get(1));
 
 		String deployStatus = backingAppDeploymentService.deploy(backingApps);
 
@@ -46,9 +46,9 @@ class BackingAppDeploymentServiceTest {
 	@Test
 	void shouldUndeployApplications() {
 		doReturn(Mono.just(STATUS_DELETED))
-			.when(deployerClient).undeploy(backingApps.getBackingApplications().get(0));
+			.when(deployerClient).undeploy(backingApps.get(0));
 		doReturn(Mono.just(STATUS_DELETED))
-			.when(deployerClient).undeploy(backingApps.getBackingApplications().get(1));
+			.when(deployerClient).undeploy(backingApps.get(1));
 
 		String undeployStatus = backingAppDeploymentService.undeploy(backingApps);
 

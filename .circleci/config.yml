@@ -11,8 +11,8 @@ jobs:
     working_directory: ~/repo
 
     environment:
-      # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
+      JAVA_TOOL_OPTIONS: "-Xms512m -Xmx2048m"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx512m -Xmx2048m" -Dorg.gradle.daemon=false'
       TERM: dumb
 
     steps:
@@ -31,8 +31,12 @@ jobs:
           key: sc-app-broker-{{ .Branch }}
 
       - run:
+          name: "Disabling Gradle daemon"
+          command: touch ~/.gradle/gradle.properties && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
+
+      - run:
           name: "Run tests"
-          command: ./gradlew codeCoverageReport --stacktrace --info --continue
+          command: ./gradlew clean codeCoverageReport --stacktrace --debug --continue
 
       - run:
           name: "Upload tests results"

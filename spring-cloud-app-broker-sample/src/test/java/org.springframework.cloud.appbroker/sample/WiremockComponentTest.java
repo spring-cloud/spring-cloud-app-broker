@@ -48,8 +48,8 @@ import static org.springframework.cloud.appbroker.sample.WiremockComponentTest.S
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 	classes = {AppBrokerSampleApplication.class},
 	properties = {
-		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.apps[0].name=helloworldapp",
+		"spring.cloud.appbroker.apps.backingApplications[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.apps.backingApplications[0].name=helloworldapp",
 		"spring.cloud.appbroker.deployer.cloudfoundry.apiHost=" + SIMULATED_CF_HOST,
 		"spring.cloud.appbroker.deployer.cloudfoundry.apiPort=" + SIMULATED_CF_PORT,
 		"spring.cloud.appbroker.deployer.cloudfoundry.username=admin",

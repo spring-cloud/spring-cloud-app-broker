@@ -39,14 +39,18 @@ class AppBrokerAutoConfigurationTest {
 			.withConfiguration(AutoConfigurations.of(AppDeployerAutoConfiguration.class,
 				CloudFoundryClientAutoConfiguration.class))
 			.withPropertyValues(
-				"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-				"spring.cloud.appbroker.apps[0].name=app",
+				"spring.cloud.appbroker.apps.backingApplications[0].path=classpath:demo.jar",
+				"spring.cloud.appbroker.apps.backingApplications[0].name=app",
+				"spring.cloud.appbroker.apps.backingApplications[1].path=classpath:demo.jar",
+				"spring.cloud.appbroker.apps.backingApplications[1].name=app2",
 				"spring.cloud.appbroker.deployer.cloudfoundry.apiHost=https://api.example.com",
 				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
 				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
 			)
 			.run((context) -> {
 				assertThat(context).hasSingleBean(BackingApplications.class);
+				BackingApplications backingApplications = context.getBean(BackingApplications.class);
+				assertThat(backingApplications.getBackingApplications()).hasSize(2);
 				assertThat(context).hasSingleBean(DeployerClient.class);
 				assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
 				assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);

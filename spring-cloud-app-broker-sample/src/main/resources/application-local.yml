@@ -21,10 +21,10 @@ spring:
           path: classpath:demo.jar
       deployer:
         cloudfoundry:
-          apiHost: run.pivotal.io
-          apiPort: 443
+          api-host: run.pivotal.io
+          api-port: 443
           username: admin
           password: adminpass
-          defaultOrg: test
-          defaultSpace: development
-          skipSslValidation: true
+          default-org: test
+          default-space: development
+          skip-ssl-validation: true

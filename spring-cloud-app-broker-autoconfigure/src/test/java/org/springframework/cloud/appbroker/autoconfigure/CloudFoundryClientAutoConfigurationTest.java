@@ -40,12 +40,21 @@ class CloudFoundryClientAutoConfigurationTest {
 	void clientIsCreatedWithPasswordGrantConfiguration() {
 		this.contextRunner
 			.withPropertyValues(
-				"spring.cloud.appbroker.deployer.cloudfoundry.apiHost=https://api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.api-port=443",
+				"spring.cloud.appbroker.deployer.cloudfoundry.default-org=example-org",
+				"spring.cloud.appbroker.deployer.cloudfoundry.default-space=example-space",
 				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
 				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
 			)
 			.run((context) -> {
 				assertThat(context).hasSingleBean(CloudFoundryProperties.class);
+				CloudFoundryProperties cloudFoundryProperties = context.getBean(CloudFoundryProperties.class);
+				assertThat(cloudFoundryProperties.getApiHost()).isEqualTo("api.example.com");
+				assertThat(cloudFoundryProperties.getApiPort()).isEqualTo(443);
+				assertThat(cloudFoundryProperties.getDefaultOrg()).isEqualTo("example-org");
+				assertThat(cloudFoundryProperties.getDefaultSpace()).isEqualTo("example-space");
+
 				assertThat(context).hasSingleBean(ReactorCloudFoundryClient.class);
 				assertThat(context).hasSingleBean(ReactorDopplerClient.class);
 				assertThat(context).hasSingleBean(ReactorUaaClient.class);

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static io.restassured.RestAssured.given;
@@ -34,10 +34,7 @@ import static org.hamcrest.CoreMatchers.is;
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 	classes = {AppBrokerSampleApplication.class})
-@TestPropertySource({
-	"classpath:application-openservicebroker-catalog.yml",
-	"classpath:application-appbroker-cf.yml"
-})
+@ActiveProfiles({"openservicebroker-catalog", "appbroker-cf"})
 class CatalogComponentTest {
 
 	private String baseUrl;

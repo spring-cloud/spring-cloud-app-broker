@@ -43,7 +43,7 @@ class AppBrokerAutoConfigurationTest {
 				"spring.cloud.appbroker.apps[0].name=app1",
 				"spring.cloud.appbroker.apps[1].path=classpath:app2.jar",
 				"spring.cloud.appbroker.apps[1].name=app2",
-				"spring.cloud.appbroker.deployer.cloudfoundry.apiHost=https://api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
 				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
 				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
 			)

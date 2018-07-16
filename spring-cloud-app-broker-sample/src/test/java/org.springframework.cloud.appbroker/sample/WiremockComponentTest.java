@@ -29,7 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.sample.transformers.URLLocalhostStubResponseTransformer;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 
@@ -58,9 +58,7 @@ import static org.springframework.cloud.appbroker.sample.WiremockComponentTest.S
 		"spring.cloud.appbroker.deployer.cloudfoundry.defaultSpace=development",
 		"spring.cloud.appbroker.deployer.cloudfoundry.secure=false"
 	})
-@TestPropertySource({
-	"classpath:application-openservicebroker-catalog.yml",
-})
+@ActiveProfiles("openservicebroker-catalog")
 @DirtiesContext
 class WiremockComponentTest {
 

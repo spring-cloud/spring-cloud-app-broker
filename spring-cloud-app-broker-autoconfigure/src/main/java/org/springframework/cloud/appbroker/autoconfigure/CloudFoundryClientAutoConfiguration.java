@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(CloudFoundryProperties.PROPERTY_PREFIX + ".apiHost")
+@ConditionalOnProperty(CloudFoundryProperties.PROPERTY_PREFIX + ".api-host")
 @EnableConfigurationProperties(CloudFoundryProperties.class)
 public class CloudFoundryClientAutoConfiguration {
 

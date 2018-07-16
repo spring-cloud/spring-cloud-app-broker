@@ -25,17 +25,14 @@ import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.servicebroker.controller.CatalogController;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {AppBrokerSampleApplication.class})
-@TestPropertySource({
-	"classpath:application-openservicebroker-catalog.yml",
-	"classpath:application-appbroker-cf.yml"
-})
+@ActiveProfiles({"openservicebroker-catalog", "appbroker-cf"})
 class ApplicationTest {
 	@Autowired(required = false)
 	private CatalogController catalogController;

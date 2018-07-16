@@ -30,7 +30,6 @@ public class CloudFoundryProperties {
 	static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry";
 
 	private String apiHost;
-
 	private Integer apiPort;
 	private String defaultOrg;
 	private String defaultSpace;

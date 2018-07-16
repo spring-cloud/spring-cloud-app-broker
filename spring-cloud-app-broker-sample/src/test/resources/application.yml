@@ -1,1 +1,3 @@
-logging.level.cloudfoundry-client: DEBUG
+logging:
+  level:
+    cloudfoundry-client: DEBUG

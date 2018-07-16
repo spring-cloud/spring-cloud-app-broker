@@ -1,11 +1,18 @@
-spring.cloud.openservicebroker.catalog.services[0].id: example-service
-spring.cloud.openservicebroker.catalog.services[0].name: example
-spring.cloud.openservicebroker.catalog.services[0].description: A simple example
-spring.cloud.openservicebroker.catalog.services[0].bindable: true
-spring.cloud.openservicebroker.catalog.services[0].tags[0]: example
-spring.cloud.openservicebroker.catalog.services[0].tags[1]: tags
-spring.cloud.openservicebroker.catalog.services[0].plans[0].id: simple-plan
-spring.cloud.openservicebroker.catalog.services[0].plans[0].bindable: true
-spring.cloud.openservicebroker.catalog.services[0].plans[0].name: standard
-spring.cloud.openservicebroker.catalog.services[0].plans[0].description: A simple plan
-spring.cloud.openservicebroker.catalog.services[0].plans[0].free: true
+spring:
+  cloud:
+    openservicebroker:
+      catalog:
+        services:
+        - id: example-service
+          name: example
+          description: A simple example
+          bindable: true
+          tags:
+          - example
+            tags
+          plans:
+          - id: simple-plan
+            bindable: true
+            name: standard
+            description: A simple plan
+            free: true

@@ -24,6 +24,8 @@ import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
+import java.util.Collections;
+
 public class DeployerClient implements ResourceLoaderAware {
 
 	private ReactiveAppDeployer appDeployer;
@@ -44,10 +46,10 @@ public class DeployerClient implements ResourceLoaderAware {
 	}
 
 	Mono<String> deploy(BackingApplication backingApplication) {
-		AppDefinition appDefinition = new AppDefinition(backingApplication.getName(),
-			backingApplication.getProperties());
+		AppDefinition appDefinition = new AppDefinition(backingApplication.getName(), Collections.emptyMap());
 		Resource resource = getResource(backingApplication.getPath());
-		AppDeploymentRequest appDeploymentRequest = new AppDeploymentRequest(appDefinition, resource);
+		AppDeploymentRequest appDeploymentRequest =
+			new AppDeploymentRequest(appDefinition, resource, backingApplication.getProperties());
 		Mono<String> deployedApplicationId = appDeployer.deploy(appDeploymentRequest);
 		deployedApplicationId.block();
 		return Mono.just("running");

@@ -118,6 +118,6 @@ class DeployerClientTest {
 		return request ->
 			request.getDefinition().getName().equals(appName) &&
 				request.getResource().getFilename().equals(appArchive) &&
-				request.getDefinition().getProperties().equals(properties);
+				request.getDeploymentProperties().equals(properties);
 	}
 }

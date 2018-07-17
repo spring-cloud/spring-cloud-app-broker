@@ -16,17 +16,20 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import reactor.core.publisher.Mono;
-
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-
-import java.util.Collections;
+import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
 public class DeployerClient implements ResourceLoaderAware {
+
+	private static final String SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES_KEY = "spring.cloud.deployer.cloudfoundry.services";
 
 	private ReactiveAppDeployer appDeployer;
 	private ResourceLoader resourceLoader;
@@ -46,10 +49,7 @@ public class DeployerClient implements ResourceLoaderAware {
 	}
 
 	Mono<String> deploy(BackingApplication backingApplication) {
-		AppDefinition appDefinition = new AppDefinition(backingApplication.getName(), Collections.emptyMap());
-		Resource resource = getResource(backingApplication.getPath());
-		AppDeploymentRequest appDeploymentRequest =
-			new AppDeploymentRequest(appDefinition, resource, backingApplication.getProperties());
+		AppDeploymentRequest appDeploymentRequest = createAppDeploymentRequest(backingApplication);
 		Mono<String> deployedApplicationId = appDeployer.deploy(appDeploymentRequest);
 		deployedApplicationId.block();
 		return Mono.just("running");
@@ -59,6 +59,24 @@ public class DeployerClient implements ResourceLoaderAware {
 		Mono<Void> undeploy = appDeployer.undeploy(backingApplication.getName());
 		undeploy.block();
 		return Mono.just("deleted");
+	}
+
+	private AppDeploymentRequest createAppDeploymentRequest(BackingApplication backingApplication) {
+		AppDefinition appDefinition = new AppDefinition(backingApplication.getName(), Collections.emptyMap());
+		Resource resource = getResource(backingApplication.getPath());
+
+		Map<String, String> deploymentProperties = new HashMap<>();
+		if (backingApplication.getProperties() != null) {
+			deploymentProperties.putAll(backingApplication.getProperties());
+		}
+
+		if (backingApplication.getServices() != null) {
+			Map<String, String> services = Collections.singletonMap(SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES_KEY,
+				StringUtils.collectionToCommaDelimitedString(backingApplication.getServices()));
+			deploymentProperties.putAll(services);
+		}
+
+		return new AppDeploymentRequest(appDefinition, resource, deploymentProperties);
 	}
 
 	private Resource getResource(String path) {

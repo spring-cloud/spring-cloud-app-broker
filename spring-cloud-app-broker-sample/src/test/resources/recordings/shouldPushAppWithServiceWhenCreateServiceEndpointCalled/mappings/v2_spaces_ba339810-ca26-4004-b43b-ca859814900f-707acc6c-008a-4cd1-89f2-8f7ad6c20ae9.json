@@ -1,0 +1,22 @@
+{
+  "id" : "707acc6c-008a-4cd1-89f2-8f7ad6c20ae9",
+  "name" : "v2_spaces_ba339810-ca26-4004-b43b-ca859814900f",
+  "request" : {
+    "url" : "/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"metadata\": {\n    \"guid\": \"ba339810-ca26-4004-b43b-ca859814900f\",\n    \"url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f\",\n    \"created_at\": \"2018-03-14T19:46:01Z\",\n    \"updated_at\": \"2018-03-14T19:46:01Z\"\n  },\n  \"entity\": {\n    \"name\": \"development\",\n    \"organization_guid\": \"830f1503-9c90-485a-87b6-dcaf793ad1df\",\n    \"space_quota_definition_guid\": null,\n    \"isolation_segment_guid\": null,\n    \"allow_ssh\": true,\n    \"organization_url\": \"/v2/organizations/830f1503-9c90-485a-87b6-dcaf793ad1df\",\n    \"developers_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/developers\",\n    \"managers_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/managers\",\n    \"auditors_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/auditors\",\n    \"apps_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/apps\",\n    \"routes_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/routes\",\n    \"domains_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/domains\",\n    \"service_instances_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/service_instances\",\n    \"app_events_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/app_events\",\n    \"events_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/events\",\n    \"security_groups_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/security_groups\",\n    \"staging_security_groups_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/staging_security_groups\"\n  }\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Tue, 17 Jul 2018 10:27:39 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "1dbbd392-3e65-4b7f-6c56-63d672ee5ced::8cb57f39-34f8-4e4b-828e-484e3815f2b9"
+    }
+  },
+  "uuid" : "707acc6c-008a-4cd1-89f2-8f7ad6c20ae9",
+  "persistent" : true,
+  "insertionIndex" : 6
+}

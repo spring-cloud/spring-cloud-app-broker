@@ -18,20 +18,19 @@ package org.springframework.cloud.appbroker.sample;
 
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.TestPropertySource;
 
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
 
+@TestPropertySource(properties = {
+	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
+	"spring.cloud.appbroker.apps[0].name=helloworldapp",
+})
 class CreateInstanceComponentTest extends WiremockComponentTest {
-
-	@Value("${spring.cloud.openservicebroker.catalog.services[0].plans[0].id}")
-	private String planId;
-	@Value("${spring.cloud.openservicebroker.catalog.services[0].id}")
-	private String serviceDefinitionId;
 
 	@Test
 	void shouldPushAppWhenCreateServiceEndpointCalled() {
@@ -50,20 +49,11 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 			.accept(ContentType.JSON)
 			.contentType(ContentType.JSON)
 			.header(getAuthorizationHeader())
-			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:helloworldapp&page=1", getSpaceId())
+			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:helloworldapp&page=1", SPACE_ID)
 			.then()
 			.contentType(ContentType.JSON)
 			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace("helloworldapp")))
 			.statusCode(200);
-	}
-
-	private String createDefaultBody() {
-		return "{\n" +
-			"  \"service_id\": \"" + serviceDefinitionId + "\",\n" +
-			"  \"plan_id\": \"" + planId + "\",\n" +
-			"  \"organization_guid\": \"org-guid-here\",\n" +
-			"  \"space_guid\": \"" + getSpaceId() + "\"\n" +
-			"}\n";
 	}
 
 }

@@ -48,8 +48,6 @@ import static org.springframework.cloud.appbroker.sample.WiremockComponentTest.S
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 	classes = {AppBrokerSampleApplication.class},
 	properties = {
-		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.apps[0].name=helloworldapp",
 		"spring.cloud.appbroker.deployer.cloudfoundry.apiHost=" + SIMULATED_CF_HOST,
 		"spring.cloud.appbroker.deployer.cloudfoundry.apiPort=" + SIMULATED_CF_PORT,
 		"spring.cloud.appbroker.deployer.cloudfoundry.username=admin",
@@ -65,8 +63,13 @@ class WiremockComponentTest {
 	final static String SIMULATED_CF_HOST = "http://localhost";
 	final static int SIMULATED_CF_PORT = 8080;
 
-	private static final String SPACE_ID = "ba339810-ca26-4004-b43b-ca859814900f";
+	static final String SPACE_ID = "ba339810-ca26-4004-b43b-ca859814900f";
 	private static final String ACCESS_TOKEN = "an.access.token";
+
+	@Value("${spring.cloud.openservicebroker.catalog.services[0].plans[0].id}")
+	String planId;
+	@Value("${spring.cloud.openservicebroker.catalog.services[0].id}")
+	String serviceDefinitionId;
 
 	@Value("${local.server.port}")
 	private String port;
@@ -107,10 +110,6 @@ class WiremockComponentTest {
 		return new Header("Authorization", "bearer " + ACCESS_TOKEN);
 	}
 
-	String getSpaceId() {
-		return SPACE_ID;
-	}
-
 	private static String getTestMappings(TestInfo testInfo) {
 		return "src/test/resources/recordings/" + testInfo.getDisplayName().replace("()", "") + "/";
 	}
@@ -144,4 +143,12 @@ class WiremockComponentTest {
 		);
 	}
 
+	String createDefaultBody() {
+		return "{\n" +
+			"  \"service_id\": \"" + serviceDefinitionId + "\",\n" +
+			"  \"plan_id\": \"" + planId + "\",\n" +
+			"  \"organization_guid\": \"org-guid-here\",\n" +
+			"  \"space_guid\": \"" + SPACE_ID + "\"\n" +
+			"}\n";
+	}
 }

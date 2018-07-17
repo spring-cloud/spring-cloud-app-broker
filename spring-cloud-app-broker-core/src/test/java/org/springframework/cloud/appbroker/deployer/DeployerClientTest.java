@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,10 +62,12 @@ class DeployerClientTest {
 	@Test
 	void shouldDeployApp() {
 		// given
-		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
-		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
+		setupAppDeployer();
 
-		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH);
+		BackingApplication application = BackingApplication.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.build();
 
 		// when
 		Mono<String> lastState = deployerClient.deploy(application);
@@ -74,21 +75,25 @@ class DeployerClientTest {
 		// then
 		assertThat(lastState.block()).isEqualTo("running");
 
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, Collections.emptyMap())));
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE,
+			Collections.emptyMap(), Collections.emptyMap())));
 	}
 
 	@Test
 	@SuppressWarnings("serial")
 	void shouldDeployAppWithProperties() {
 		// given
-		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
-		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
+		setupAppDeployer();
 
 		Map<String, String> properties = new HashMap<String, String>() {{
 			put("memory", "1G");
 			put("instances", "2");
 		}};
-		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH, properties);
+		BackingApplication application = BackingApplication.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.properties(properties)
+			.build();
 
 		// when
 		Mono<String> lastState = deployerClient.deploy(application);
@@ -96,17 +101,20 @@ class DeployerClientTest {
 		// then
 		assertThat(lastState.block()).isEqualTo("running");
 
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, properties)));
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, properties, Collections.emptyMap())));
 	}
 
 	@Test
 	@SuppressWarnings("serial")
 	void shouldDeployAppWithService() {
 		// given
-		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
-		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
+		setupAppDeployer();
 
-		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH, Collections.singletonList("my-db-service"));
+		BackingApplication application = BackingApplication.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.service("my-db-service")
+			.build();
 
 		// when
 		Mono<String> lastState = deployerClient.deploy(application);
@@ -117,7 +125,32 @@ class DeployerClientTest {
 		Map<String, String> properties = new HashMap<String, String>() {{
 			put("spring.cloud.deployer.cloudfoundry.services", "my-db-service");
 		}};
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, properties)));
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, properties, Collections.emptyMap())));
+	}
+
+	@Test
+	@SuppressWarnings("serial")
+	void shouldDeployAppWithEnvironmentVariables() {
+		// given
+		setupAppDeployer();
+
+		Map<String, String> environment = new HashMap<String, String>() {{
+			put("ENV_VAR_1", "value1");
+			put("ENV_VAR_2", "value2");
+		}};
+		BackingApplication application = BackingApplication.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.environment(environment)
+			.build();
+
+		// when
+		Mono<String> lastState = deployerClient.deploy(application);
+
+		// then
+		assertThat(lastState.block()).isEqualTo("running");
+
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, Collections.emptyMap(), environment)));
 	}
 
 	@Test
@@ -125,7 +158,10 @@ class DeployerClientTest {
 		// given
 		when(appDeployer.undeploy(any())).thenReturn(Mono.empty());
 
-		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH);
+		BackingApplication application = BackingApplication.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.build();
 
 		// when
 		Mono<String> lastState = deployerClient.undeploy(application);
@@ -137,10 +173,17 @@ class DeployerClientTest {
 	}
 
 	private ArgumentMatcher<AppDeploymentRequest> matchesRequest(String appName, String appArchive,
-																 Map<String, String> properties) {
+																 Map<String, String> properties,
+																 Map<String, String> environment) {
 		return request ->
 			request.getDefinition().getName().equals(appName) &&
+				request.getDefinition().getProperties().equals(environment) &&
 				request.getResource().getFilename().equals(appArchive) &&
 				request.getDeploymentProperties().equals(properties);
+	}
+
+	private void setupAppDeployer() {
+		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
+		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
 	}
 }

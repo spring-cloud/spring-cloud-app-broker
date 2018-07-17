@@ -36,8 +36,12 @@ class CreateServiceInstanceWorkflowTest {
 	@Test
 	void shouldCreateServiceInstance() {
 		// given that properties contains app details
-		BackingApplications backingApps = new BackingApplications(
-			new BackingApplication("helloworldapp", "http://myfiles/app.jar"));
+		BackingApplications backingApps = BackingApplications.builder()
+			.backingApplication(BackingApplication.builder()
+				.name("helloworldapp")
+				.path("http://myfiles/app.jar")
+				.build())
+			.build();
 		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
 			new CreateServiceInstanceWorkflow(backingApps, backingAppDeploymentService);
 

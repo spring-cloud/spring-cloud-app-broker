@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,27 +26,18 @@ public class BackingApplication {
 	private String name;
 	private String path;
 	private Map<String, String> properties;
+	private Map<String, String> environment;
 	private List<String> services;
 
-	BackingApplication() {
+	private BackingApplication() {
 	}
 
-	public BackingApplication(String name, String path) {
-		this(name, path, null, null);
-	}
-
-	BackingApplication(String name, String path, Map<String, String> properties) {
-		this(name, path, properties, null);
-	}
-
-	BackingApplication(String name, String path, List<String> services) {
-		this(name, path, null, services);
-	}
-
-	private BackingApplication(String name, String path, Map<String, String> properties, List<String> services) {
+	private BackingApplication(String name, String path, Map<String, String> properties,
+							   Map<String, String> environment, List<String> services) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
+		this.environment = environment;
 		this.services = services;
 	}
 
@@ -72,11 +65,96 @@ public class BackingApplication {
 		this.properties = properties;
 	}
 
+	public Map<String, String> getEnvironment() {
+		return environment;
+	}
+
+	public void setEnvironment(Map<String, String> environment) {
+		this.environment = environment;
+	}
+
 	public List<String> getServices() {
 		return services;
 	}
 
 	public void setServices(List<String> services) {
 		this.services = services;
+	}
+
+	public static BackingApplicationBuilder builder() {
+		return new BackingApplicationBuilder();
+	}
+
+	public static class BackingApplicationBuilder {
+		private String name;
+		private String path;
+		private Map<String, String> properties;
+		private Map<String, String> environment;
+		private List<String> services;
+
+		BackingApplicationBuilder() {
+		}
+
+		public BackingApplicationBuilder name(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public BackingApplicationBuilder path(String path) {
+			this.path = path;
+			return this;
+		}
+
+		public BackingApplicationBuilder property(String key, String value) {
+			if (this.properties == null) {
+				this.properties = new HashMap<>();
+			}
+			this.properties.put(key, value);
+			return this;
+		}
+
+		public BackingApplicationBuilder properties(Map<String, String> properties) {
+			if (this.properties == null) {
+				this.properties = new HashMap<>();
+			}
+			this.properties.putAll(properties);
+			return this;
+		}
+
+		public BackingApplicationBuilder environment(String key, String value) {
+			if (this.environment == null) {
+				this.environment = new HashMap<>();
+			}
+			this.environment.put(key, value);
+			return this;
+		}
+
+		public BackingApplicationBuilder environment(Map<String, String> environment) {
+			if (this.environment == null) {
+				this.environment = new HashMap<>();
+			}
+			this.environment.putAll(environment);
+			return this;
+		}
+
+		public BackingApplicationBuilder service(String service) {
+			if (this.services == null) {
+				this.services = new ArrayList<>();
+			}
+			this.services.add(service);
+			return this;
+		}
+
+		public BackingApplicationBuilder services(List<String> services) {
+			if (this.services == null) {
+				this.services = new ArrayList<>();
+			}
+			this.services.addAll(services);
+			return this;
+		}
+
+		public BackingApplication build() {
+			return new BackingApplication(name, path, properties, environment, services);
+		}
 	}
 }

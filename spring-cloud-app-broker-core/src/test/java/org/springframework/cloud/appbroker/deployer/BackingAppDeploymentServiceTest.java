@@ -25,10 +25,16 @@ class BackingAppDeploymentServiceTest {
 	@BeforeEach
 	void setUp() {
 		backingAppDeploymentService = new BackingAppDeploymentService(deployerClient);
-		backingApps = new BackingApplications(
-			new BackingApplication("testApp1", "http://myfiles/app1.jar"),
-			new BackingApplication("testApp2", "http://myfiles/app2.jar")
-		);
+		backingApps = BackingApplications.builder()
+			.backingApplication(BackingApplication.builder()
+				.name("testApp1")
+				.path("http://myfiles/app1.jar")
+				.build())
+			.backingApplication(BackingApplication.builder()
+				.name("testApp2")
+				.path("http://myfiles/app2.jar")
+				.build())
+			.build();
 	}
 
 	@Test

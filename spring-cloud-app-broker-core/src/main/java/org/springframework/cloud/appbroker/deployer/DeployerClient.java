@@ -62,9 +62,17 @@ public class DeployerClient implements ResourceLoaderAware {
 	}
 
 	private AppDeploymentRequest createAppDeploymentRequest(BackingApplication backingApplication) {
-		AppDefinition appDefinition = new AppDefinition(backingApplication.getName(), Collections.emptyMap());
+		AppDefinition appDefinition =
+			new AppDefinition(backingApplication.getName(), backingApplication.getEnvironment());
+		
 		Resource resource = getResource(backingApplication.getPath());
 
+		Map<String, String> deploymentProperties = createDeploymentProperties(backingApplication);
+
+		return new AppDeploymentRequest(appDefinition, resource, deploymentProperties);
+	}
+
+	private Map<String, String> createDeploymentProperties(BackingApplication backingApplication) {
 		Map<String, String> deploymentProperties = new HashMap<>();
 		if (backingApplication.getProperties() != null) {
 			deploymentProperties.putAll(backingApplication.getProperties());
@@ -75,8 +83,7 @@ public class DeployerClient implements ResourceLoaderAware {
 				StringUtils.collectionToCommaDelimitedString(backingApplication.getServices()));
 			deploymentProperties.putAll(services);
 		}
-
-		return new AppDeploymentRequest(appDefinition, resource, deploymentProperties);
+		return deploymentProperties;
 	}
 
 	private Resource getResource(String path) {

@@ -17,8 +17,17 @@ spring:
             free: true
     appbroker:
       apps:
-        - name: broker-sample-app
+        - name: broker-sample-app1
           path: classpath:demo.jar
+        - name: broker-sample-app2
+          path: classpath:demo.jar
+          properties:
+            spring.cloud.deployer.memory: 2G
+            spring.cloud.deployer.count: 2
+            spring.cloud.cloudfoundry.no-route: true
+          environment:
+            ENV_VAR_1: value1
+            ENV_VAR_2: value2
       deployer:
         cloudfoundry:
           api-host: run.pivotal.io

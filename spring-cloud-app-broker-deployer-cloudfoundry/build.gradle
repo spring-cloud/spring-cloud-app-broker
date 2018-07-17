@@ -23,7 +23,6 @@ dependencyManagement {
 }
 
 ext {
-	reactorVersion = '3.1.5.RELEASE'
 	reactorNettyVersion = '0.7.5.RELEASE'
 
 //	webflux defaults; must be overridden for org.cloudfoundry:cloudfoundry-client-reactor:3.9.0.RELEASE

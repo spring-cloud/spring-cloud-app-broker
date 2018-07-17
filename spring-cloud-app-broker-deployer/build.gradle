@@ -23,7 +23,6 @@ dependencyManagement {
 }
 
 ext {
-	reactorVersion = '3.1.7.RELEASE'
 	deployerVersion = '1.3.3.RELEASE'
 }
 

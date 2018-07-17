@@ -45,7 +45,7 @@ dependencies {
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
-	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.junit.jupiter:junit-jupiter-api")
 	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 	testImplementation("io.rest-assured:rest-assured")

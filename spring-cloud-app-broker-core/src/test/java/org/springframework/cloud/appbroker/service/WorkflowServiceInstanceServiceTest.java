@@ -21,11 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.test.StepVerifier;
 
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
-import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
-import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -35,6 +34,7 @@ class WorkflowServiceInstanceServiceTest {
 
 	@Mock
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
+
 	@Mock
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
@@ -48,28 +48,23 @@ class WorkflowServiceInstanceServiceTest {
 
 	@Test
 	void shouldCreateServiceInstance() {
-		// when a request to create a service instance is received
-		CreateServiceInstanceResponse createServiceInstanceResponse =
-			workflowServiceInstanceService.createServiceInstance(null)
-			.block();
-
-		// then delegate to the workflow
-		verify(createServiceInstanceWorkflow).create();
-
-		// and return a valid response with the last status
-		assertThat(createServiceInstanceResponse).isNotNull();
-		assertThat(createServiceInstanceResponse.isAsync()).isFalse();
+		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(null))
+			.consumeNextWith(createServiceInstanceResponse -> {
+				verify(createServiceInstanceWorkflow).create();
+				assertThat(createServiceInstanceResponse).isNotNull();
+				assertThat(createServiceInstanceResponse.isAsync()).isFalse();
+			})
+			.verifyComplete();
 	}
 
 	@Test
 	void shouldDeleteServiceInstance() {
-		DeleteServiceInstanceResponse deleteServiceInstanceResponse =
-			workflowServiceInstanceService.deleteServiceInstance(null)
-			.block();
-
-		verify(deleteServiceInstanceWorkflow).delete();
-
-		assertThat(deleteServiceInstanceResponse).isNotNull();
-		assertThat(deleteServiceInstanceResponse.isAsync()).isFalse();
+		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(null))
+			.consumeNextWith(deleteServiceInstanceResponse -> {
+				verify(deleteServiceInstanceWorkflow).delete();
+				assertThat(deleteServiceInstanceResponse).isNotNull();
+				assertThat(deleteServiceInstanceResponse.isAsync()).isFalse();
+			})
+			.verifyComplete();
 	}
 }

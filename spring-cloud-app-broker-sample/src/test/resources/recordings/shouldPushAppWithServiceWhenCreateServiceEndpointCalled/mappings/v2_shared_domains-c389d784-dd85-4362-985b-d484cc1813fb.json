@@ -1,0 +1,22 @@
+{
+  "id" : "c389d784-dd85-4362-985b-d484cc1813fb",
+  "name" : "v2_shared_domains",
+  "request" : {
+    "url" : "/v2/shared_domains?page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 1,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n    {\n      \"metadata\": {\n        \"guid\": \"979b3fef-275c-4230-a57b-101fba94997e\",\n        \"url\": \"/v2/shared_domains/979b3fef-275c-4230-a57b-101fba94997e\",\n        \"created_at\": \"2018-01-26T06:52:05Z\",\n        \"updated_at\": \"2018-06-21T02:50:42Z\"\n      },\n      \"entity\": {\n        \"name\": \"localhost\",\n        \"router_group_guid\": null,\n        \"router_group_type\": null\n      }\n    }\n  ]\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Tue, 17 Jul 2018 10:27:39 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "bc0f8663-45cb-4f7b-5de1-d07e68504d64::36afab4c-eab1-4817-b26e-0cb2113372aa"
+    }
+  },
+  "uuid" : "c389d784-dd85-4362-985b-d484cc1813fb",
+  "persistent" : true,
+  "insertionIndex" : 7
+}

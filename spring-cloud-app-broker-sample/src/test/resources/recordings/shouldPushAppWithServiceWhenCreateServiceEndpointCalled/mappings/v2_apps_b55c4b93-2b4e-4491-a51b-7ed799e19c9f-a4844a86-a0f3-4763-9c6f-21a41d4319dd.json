@@ -1,0 +1,25 @@
+{
+  "id" : "a4844a86-a0f3-4763-9c6f-21a41d4319dd",
+  "name" : "v2_apps_b55c4b93-2b4e-4491-a51b-7ed799e19c9f",
+  "request" : {
+    "url" : "/v2/apps/b55c4b93-2b4e-4491-a51b-7ed799e19c9f",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"metadata\": {\n    \"guid\": \"b55c4b93-2b4e-4491-a51b-7ed799e19c9f\",\n    \"url\": \"/v2/apps/b55c4b93-2b4e-4491-a51b-7ed799e19c9f\",\n    \"created_at\": \"2018-07-17T09:42:48Z\",\n    \"updated_at\": \"2018-07-17T10:27:47Z\"\n  },\n  \"entity\": {\n    \"name\": \"appwithservices\",\n    \"production\": false,\n    \"space_guid\": \"ba339810-ca26-4004-b43b-ca859814900f\",\n    \"stack_guid\": \"7c467284-9371-48ca-a599-9752d2c7763c\",\n    \"buildpack\": \"https://github.com/cloudfoundry/java-buildpack.git#v4.7.1\",\n    \"detected_buildpack\": null,\n    \"detected_buildpack_guid\": null,\n    \"environment_json\": {\n      \"SPRING_APPLICATION_INDEX\": \"${vcap.application.instance_index}\",\n      \"SPRING_APPLICATION_JSON\": \"{}\",\n      \"SPRING_CLOUD_APPLICATION_GUID\": \"${vcap.application.name}:${vcap.application.instance_index}\"\n    },\n    \"memory\": 1024,\n    \"instances\": 1,\n    \"disk_quota\": 1024,\n    \"state\": \"STARTED\",\n    \"version\": \"3392e8ff-9412-4367-9a04-aac5e888e03e\",\n    \"command\": null,\n    \"console\": false,\n    \"debug\": null,\n    \"staging_task_id\": \"dc8f1973-4010-4a5a-8b3a-a6a13089be9c\",\n    \"package_state\": \"PENDING\",\n    \"health_check_type\": \"port\",\n    \"health_check_timeout\": 120,\n    \"health_check_http_endpoint\": \"/health\",\n    \"staging_failed_reason\": null,\n    \"staging_failed_description\": null,\n    \"diego\": true,\n    \"docker_image\": null,\n    \"docker_credentials\": {\n      \"username\": null,\n      \"password\": null\n    },\n    \"package_updated_at\": \"2018-07-17T10:27:43Z\",\n    \"detected_start_command\": \"\",\n    \"enable_ssh\": true,\n    \"ports\": [\n      8080\n    ],\n    \"space_url\": \"/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f\",\n    \"stack_url\": \"/v2/stacks/7c467284-9371-48ca-a599-9752d2c7763c\",\n    \"routes_url\": \"/v2/apps/b55c4b93-2b4e-4491-a51b-7ed799e19c9f/routes\",\n    \"events_url\": \"/v2/apps/b55c4b93-2b4e-4491-a51b-7ed799e19c9f/events\",\n    \"service_bindings_url\": \"/v2/apps/b55c4b93-2b4e-4491-a51b-7ed799e19c9f/service_bindings\",\n    \"route_mappings_url\": \"/v2/apps/b55c4b93-2b4e-4491-a51b-7ed799e19c9f/route_mappings\"\n  }\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Tue, 17 Jul 2018 10:27:55 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "aefdb835-a582-498c-656b-2195bf6c9bda::f7411e35-2441-4485-a56b-6ebc3a6f606b"
+    }
+  },
+  "uuid" : "a4844a86-a0f3-4763-9c6f-21a41d4319dd",
+  "persistent" : true,
+  "scenarioName" : "scenario-apps-b55c4b93-2b4e-4491-a51b-7ed799e19c9f",
+  "requiredScenarioState" : "scenario-apps-b55c4b93-2b4e-4491-a51b-7ed799e19c9f-4",
+  "newScenarioState" : "scenario-apps-b55c4b93-2b4e-4491-a51b-7ed799e19c9f-5",
+  "insertionIndex" : 24
+}

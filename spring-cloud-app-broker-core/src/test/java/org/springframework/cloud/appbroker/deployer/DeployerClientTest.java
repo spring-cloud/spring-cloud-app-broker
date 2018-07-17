@@ -16,17 +16,18 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
+import reactor.core.publisher.Mono;
+
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -99,7 +100,29 @@ class DeployerClientTest {
 	}
 
 	@Test
+	@SuppressWarnings("serial")
+	void shouldDeployAppWithService() {
+		// given
+		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
+		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
+
+		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH, Collections.singletonList("my-db-service"));
+
+		// when
+		Mono<String> lastState = deployerClient.deploy(application);
+
+		// then
+		assertThat(lastState.block()).isEqualTo("running");
+
+		Map<String, String> properties = new HashMap<String, String>() {{
+			put("spring.cloud.deployer.cloudfoundry.services", "my-db-service");
+		}};
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, properties)));
+	}
+
+	@Test
 	void shouldUndeployApp() {
+		// given
 		when(appDeployer.undeploy(any())).thenReturn(Mono.empty());
 
 		BackingApplication application = new BackingApplication(APP_NAME, APP_PATH);

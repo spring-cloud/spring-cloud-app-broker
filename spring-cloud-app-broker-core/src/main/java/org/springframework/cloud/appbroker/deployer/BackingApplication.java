@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.List;
 import java.util.Map;
 
 public class BackingApplication {
@@ -23,18 +24,28 @@ public class BackingApplication {
 	private String name;
 	private String path;
 	private Map<String, String> properties;
+	private List<String> services;
 
-	public BackingApplication() {
+	BackingApplication() {
 	}
 
 	public BackingApplication(String name, String path) {
-		this(name, path, null);
+		this(name, path, null, null);
 	}
 
-	public BackingApplication(String name, String path, Map<String, String> properties) {
+	BackingApplication(String name, String path, Map<String, String> properties) {
+		this(name, path, properties, null);
+	}
+
+	BackingApplication(String name, String path, List<String> services) {
+		this(name, path, null, services);
+	}
+
+	private BackingApplication(String name, String path, Map<String, String> properties, List<String> services) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
+		this.services = services;
 	}
 
 	public String getName() {
@@ -59,5 +70,13 @@ public class BackingApplication {
 
 	public void setProperties(Map<String, String> properties) {
 		this.properties = properties;
+	}
+
+	public List<String> getServices() {
+		return services;
+	}
+
+	public void setServices(List<String> services) {
+		this.services = services;
 	}
 }

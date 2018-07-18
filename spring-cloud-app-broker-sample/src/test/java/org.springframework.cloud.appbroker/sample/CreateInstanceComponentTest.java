@@ -18,6 +18,8 @@ package org.springframework.cloud.appbroker.sample;
 
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
@@ -25,35 +27,37 @@ import org.springframework.test.context.TestPropertySource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=helloworldapp",
+	"spring.cloud.appbroker.apps[0].name=" + APP_NAME
 })
 class CreateInstanceComponentTest extends WiremockComponentTest {
+	static final String APP_NAME = "helloworldapp";
+
+	@Autowired
+	private OpenServiceBrokerApiFixture brokerFixture;
 
 	@Test
 	void shouldPushAppWhenCreateServiceEndpointCalled() {
-		// when the provision is called
-		given()
-			.accept(ContentType.JSON)
-			.contentType(ContentType.JSON)
-			.body(createDefaultBody())
-			.put(baseUrl + "/v2/service_instances/{instance_id}", "instance-id")
+		// when a service instance is created
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
-			.contentType(ContentType.JSON)
 			.statusCode(HttpStatus.CREATED.value());
 
-		// then an instance is created
+		// then a backing application is deployed
 		given()
 			.accept(ContentType.JSON)
 			.contentType(ContentType.JSON)
 			.header(getAuthorizationHeader())
-			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:helloworldapp&page=1", SPACE_ID)
+			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:" + APP_NAME + "&page=1", SPACE_ID)
 			.then()
 			.contentType(ContentType.JSON)
-			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace("helloworldapp")))
-			.statusCode(200);
+			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)))
+			.statusCode(HttpStatus.OK.value());
 	}
 
 }

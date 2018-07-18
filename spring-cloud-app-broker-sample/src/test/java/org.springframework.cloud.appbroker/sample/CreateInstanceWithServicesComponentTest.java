@@ -16,8 +16,9 @@
 
 package org.springframework.cloud.appbroker.sample;
 
-import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
@@ -25,14 +26,19 @@ import org.springframework.test.context.TestPropertySource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceWithServicesComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=appwithservices",
+	"spring.cloud.appbroker.apps[0].name=" + APP_NAME,
 	"spring.cloud.appbroker.apps[0].services[0]=my-db-service",
 	"spring.cloud.appbroker.apps[0].services[1]=my-rabbit-service"
 })
 class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
+	static final String APP_NAME = "appwithservices";
+
+	@Autowired
+	private OpenServiceBrokerApiFixture brokerFixture;
 
 	@Test
 	void shouldPushAppWithServiceWhenCreateServiceEndpointCalled() {
@@ -41,24 +47,23 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 		// cf cs p.mysql db-small my-db-service
 		// cf cs p-rabbitmq standard my-rabbit-service
 
-		// when the provision is called with the service property
-		given()
-			.contentType(ContentType.JSON)
-			.body(createDefaultBody())
-			.put(baseUrl + "/v2/service_instances/{instance_id}", "instance-id")
+		// when a service instance is created
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
 			.statusCode(HttpStatus.CREATED.value());
 
-		// then an instance is created
+		// then a backing application is deployed
 		String appsUrl = given()
 			.header(getAuthorizationHeader())
-			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:appwithservices&page=1", SPACE_ID)
+			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:" + APP_NAME + "&page=1", SPACE_ID)
 			.then()
-			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace("appwithservices")))
-			.statusCode(200)
+			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)))
+			.statusCode(HttpStatus.OK.value())
 			.extract().body().jsonPath().getString("resources[0].metadata.url");
 
-		// and it has the services bind to it
+		// and the backing application has the services bound to it
 		given()
 			.header(getAuthorizationHeader())
 			.get(baseCfUrl + appsUrl + "/env")
@@ -67,7 +72,7 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 				is(equalToIgnoringWhiteSpace("my-db-service")))
 			.body("system_env_json.VCAP_SERVICES.'p-rabbitmq'[0].name",
 				is(equalToIgnoringWhiteSpace("my-rabbit-service")))
-			.statusCode(200);
+			.statusCode(HttpStatus.OK.value());
 	}
 
 }

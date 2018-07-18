@@ -18,6 +18,8 @@ package org.springframework.cloud.appbroker.sample;
 
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
@@ -25,46 +27,44 @@ import org.springframework.test.context.TestPropertySource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.cloud.appbroker.sample.DeleteInstanceComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=helloworldapp",
+	"spring.cloud.appbroker.apps[0].name=" + APP_NAME,
 })
 class DeleteInstanceComponentTest extends WiremockComponentTest {
+	static final String APP_NAME = "helloworldapp";
+
+	@Autowired
+	private OpenServiceBrokerApiFixture brokerFixture;
 
 	@Test
 	void shouldDeleteAppsWhenDeleteServiceEndpointCalled() {
-		// given an instance is created
-		given()
-			.accept(ContentType.JSON)
-			.contentType(ContentType.JSON)
-			.body(createDefaultBody())
-			.put(baseUrl + "/v2/service_instances/{instance_id}", "instance-id")
+		// when a service instance is created
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
-			.contentType(ContentType.JSON)
 			.statusCode(HttpStatus.CREATED.value());
 
-		// when the deprovision is called
-		given()
-			.accept(ContentType.JSON)
-			.contentType(ContentType.JSON)
-			.body(createDefaultBody())
-			.delete(baseUrl + "/v2/service_instances/{instance_id}?service_id=" + serviceDefinitionId +
-				"&plan_id=" + planId, "instance-id")
+		// when the service instance is deleted
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.delete(brokerFixture.deleteServiceInstanceUrl(), "instance-id")
 			.then()
-			.contentType(ContentType.JSON)
 			.statusCode(HttpStatus.OK.value());
 
-		// then the instance is deleted
+		// then the backing application is deleted
 		given()
 			.accept(ContentType.JSON)
 			.contentType(ContentType.JSON)
 			.header(getAuthorizationHeader())
-			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:helloworldapp&page=1", SPACE_ID)
+			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:" + APP_NAME + "&page=1", SPACE_ID)
 			.then()
 			.contentType(ContentType.JSON)
 			.body("resources.size", is(equalTo(0)))
-			.statusCode(200);
+			.statusCode(HttpStatus.OK.value());
 	}
 
 }

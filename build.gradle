@@ -133,6 +133,24 @@ configure(allprojects) {
 	test {
 		// enable JUnit 5
 		useJUnitPlatform()
+
+		testLogging {
+			// display all the events
+			events 'PASSED', 'FAILED', 'SKIPPED'
+			// display stdout and stderr
+			showStandardStreams = true
+		}
+
+		// create a summary after the execution
+		afterSuite { desc, result ->
+			if (!desc.parent) {
+				println "\nTest result: ${result.resultType}"
+				println "Test summary: ${result.testCount} tests, " +
+					"${result.successfulTestCount} succeeded, " +
+					"${result.failedTestCount} failed, " +
+					"${result.skippedTestCount} skipped"
+			}
+		}
 	}
 }
 

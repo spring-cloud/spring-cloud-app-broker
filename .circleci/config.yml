@@ -31,13 +31,28 @@ jobs:
           key: sc-app-broker-{{ .Branch }}
 
       - run:
-          name: "Disabling Gradle daemon"
+          name: "Disable Gradle daemon"
           command: touch ~/.gradle/gradle.properties && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
 
       - run:
           name: "Run tests"
-          command: ./gradlew clean codeCoverageReport --stacktrace --debug --continue
+          command: ./gradlew clean codeCoverageReport --stacktrace --info --continue
 
       - run:
-          name: "Upload tests results"
+          name: "Aggregate test results"
+          when: always
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/build/test-results/.*" -exec cp {} ~/junit/ \;
+
+      - run:
+          name: "Upload tests coverage"
           command: bash <(curl -s https://codecov.io/bash)
+
+      - store_artifacts:
+          path: ~/junit/
+          destination: artifacts
+
+      - store_test_results:
+          path: ~/junit/
+          destination: testartifacts

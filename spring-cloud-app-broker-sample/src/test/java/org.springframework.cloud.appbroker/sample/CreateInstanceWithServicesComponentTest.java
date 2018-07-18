@@ -29,7 +29,8 @@ import static org.hamcrest.Matchers.is;
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.apps[0].name=appwithservices",
-	"spring.cloud.appbroker.apps[0].services[0]=my-db-service"
+	"spring.cloud.appbroker.apps[0].services[0]=my-db-service",
+	"spring.cloud.appbroker.apps[0].services[1]=my-rabbit-service"
 })
 class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 
@@ -38,6 +39,7 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 		// given that a service exists
 		// TODO automate creation or stub bindings
 		// cf cs p.mysql db-small my-db-service
+		// cf cs p-rabbitmq standard my-rabbit-service
 
 		// when the provision is called with the service property
 		given()
@@ -56,13 +58,15 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 			.statusCode(200)
 			.extract().body().jsonPath().getString("resources[0].metadata.url");
 
-		// and it has the service bind to it
+		// and it has the services bind to it
 		given()
 			.header(getAuthorizationHeader())
 			.get(baseCfUrl + appsUrl + "/env")
 			.then()
 			.body("system_env_json.VCAP_SERVICES.'p.mysql'[0].name",
 				is(equalToIgnoringWhiteSpace("my-db-service")))
+			.body("system_env_json.VCAP_SERVICES.'p-rabbitmq'[0].name",
+				is(equalToIgnoringWhiteSpace("my-rabbit-service")))
 			.statusCode(200);
 	}
 

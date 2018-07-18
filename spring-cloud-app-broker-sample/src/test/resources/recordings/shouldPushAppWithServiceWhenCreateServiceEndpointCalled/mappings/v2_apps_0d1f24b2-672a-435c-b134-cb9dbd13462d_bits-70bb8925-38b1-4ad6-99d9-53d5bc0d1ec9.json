@@ -1,0 +1,25 @@
+{
+  "id" : "70bb8925-38b1-4ad6-99d9-53d5bc0d1ec9",
+  "name" : "v2_apps_0d1f24b2-672a-435c-b134-cb9dbd13462d_bits",
+  "request" : {
+    "url" : "/v2/apps/0d1f24b2-672a-435c-b134-cb9dbd13462d/bits?async=true",
+    "method" : "PUT",
+    "bodyPatterns" : [ {
+      "anything" : "anything"
+    } ]
+  },
+  "response" : {
+    "status" : 201,
+    "body" : "{\n  \"metadata\": {\n    \"guid\": \"800dbcb1-7db0-41b2-8cd3-0e8371a46d4f\",\n    \"created_at\": \"2018-07-18T07:57:07Z\",\n    \"url\": \"/v2/jobs/800dbcb1-7db0-41b2-8cd3-0e8371a46d4f\"\n  },\n  \"entity\": {\n    \"guid\": \"800dbcb1-7db0-41b2-8cd3-0e8371a46d4f\",\n    \"status\": \"queued\"\n  }\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Wed, 18 Jul 2018 07:57:07 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "205c8f7e-b19a-4a45-4e6a-83496eb7447a::3f878a96-82f3-4e5b-9944-74fa9564b01c"
+    }
+  },
+  "uuid" : "70bb8925-38b1-4ad6-99d9-53d5bc0d1ec9",
+  "persistent" : true,
+  "insertionIndex" : 20
+}

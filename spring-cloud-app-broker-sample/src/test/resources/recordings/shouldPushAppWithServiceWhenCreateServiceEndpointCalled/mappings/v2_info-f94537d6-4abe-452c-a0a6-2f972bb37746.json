@@ -1,0 +1,22 @@
+{
+  "id" : "f94537d6-4abe-452c-a0a6-2f972bb37746",
+  "name" : "v2_info",
+  "request" : {
+    "url" : "/v2/info",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"name\":\"\",\"build\":\"\",\"support\":\"https://support.pivotal.io\",\"version\":0,\"description\":\"\",\"authorization_endpoint\":\"http://localhost\"}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Wed, 18 Jul 2018 07:57:01 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "293aad4d-ded0-4231-5341-79d1ecb177ca::b4a76700-8d0d-4bdb-9f7d-55604a23ce6a"
+    }
+  },
+  "uuid" : "f94537d6-4abe-452c-a0a6-2f972bb37746",
+  "persistent" : true,
+  "insertionIndex" : 3
+}

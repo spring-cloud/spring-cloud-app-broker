@@ -1,0 +1,22 @@
+{
+  "id" : "70f18f4a-294b-404e-86ed-eb36d9ae790a",
+  "name" : "v2_apps_0d1f24b2-672a-435c-b134-cb9dbd13462d_routes",
+  "request" : {
+    "url" : "/v2/apps/0d1f24b2-672a-435c-b134-cb9dbd13462d/routes?page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 0,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n\n  ]\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Wed, 18 Jul 2018 07:57:04 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "51cc0c73-54b7-410d-469f-a576b6556464::ffee5903-d48f-4491-ba5e-f1aaaaf492fd"
+    }
+  },
+  "uuid" : "70f18f4a-294b-404e-86ed-eb36d9ae790a",
+  "persistent" : true,
+  "insertionIndex" : 11
+}

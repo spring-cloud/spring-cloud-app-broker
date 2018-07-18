@@ -1,0 +1,22 @@
+{
+  "id" : "17d5c04a-7c40-4322-8121-29384cb4aa4d",
+  "name" : "v2_spaces_ba339810-ca26-4004-b43b-ca859814900f_apps",
+  "request" : {
+    "url" : "/v2/spaces/ba339810-ca26-4004-b43b-ca859814900f/apps?q=name:appwithservices&page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 0,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n\n  ]\n}",
+    "headers" : {
+      "Content-Type" : "application/json;charset=utf-8",
+      "Date" : "Wed, 18 Jul 2018 07:57:03 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "f43e14c6-efd8-4984-4264-dc10daf4ec0f::9e3de855-1d2a-4210-a0fe-62e9adb248f6"
+    }
+  },
+  "uuid" : "17d5c04a-7c40-4322-8121-29384cb4aa4d",
+  "persistent" : true,
+  "insertionIndex" : 9
+}

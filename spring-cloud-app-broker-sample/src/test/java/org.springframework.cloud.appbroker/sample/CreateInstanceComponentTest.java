@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.appbroker.sample;
 
-import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
@@ -39,6 +39,9 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
 
+	@Autowired
+	private CloudFoundryApiFixture cloudFoundryFixture;
+
 	@Test
 	void shouldPushAppWhenCreateServiceEndpointCalled() {
 		// when a service instance is created
@@ -49,15 +52,11 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 			.statusCode(HttpStatus.CREATED.value());
 
 		// then a backing application is deployed
-		given()
-			.accept(ContentType.JSON)
-			.contentType(ContentType.JSON)
-			.header(getAuthorizationHeader())
-			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:" + APP_NAME + "&page=1", SPACE_ID)
+		given(cloudFoundryFixture.request())
+			.when()
+			.get(cloudFoundryFixture.getApplicationUrl(SPACE_ID, APP_NAME))
 			.then()
-			.contentType(ContentType.JSON)
-			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)))
-			.statusCode(HttpStatus.OK.value());
+			.statusCode(HttpStatus.OK.value())
+			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)));
 	}
-
 }

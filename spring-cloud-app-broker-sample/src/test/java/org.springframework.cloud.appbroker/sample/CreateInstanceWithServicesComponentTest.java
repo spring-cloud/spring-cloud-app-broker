@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.sample;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
@@ -40,6 +41,9 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
 
+	@Autowired
+	private CloudFoundryApiFixture cloudFoundryFixture;
+
 	@Test
 	void shouldPushAppWithServiceWhenCreateServiceEndpointCalled() {
 		// given that a service exists
@@ -55,24 +59,24 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 			.statusCode(HttpStatus.CREATED.value());
 
 		// then a backing application is deployed
-		String appsUrl = given()
-			.header(getAuthorizationHeader())
-			.get(baseCfUrl + "/v2/spaces/{spaceId}/apps?q=name:" + APP_NAME + "&page=1", SPACE_ID)
+		String appsUrl = given(cloudFoundryFixture.request())
+			.when()
+			.get(cloudFoundryFixture.getApplicationUrl(SPACE_ID, APP_NAME))
 			.then()
-			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)))
 			.statusCode(HttpStatus.OK.value())
+			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)))
 			.extract().body().jsonPath().getString("resources[0].metadata.url");
 
 		// and the backing application has the services bound to it
-		given()
-			.header(getAuthorizationHeader())
-			.get(baseCfUrl + appsUrl + "/env")
+		given(cloudFoundryFixture.request())
+			.when()
+			.get(appsUrl + "/env")
 			.then()
+			.statusCode(HttpStatus.OK.value())
 			.body("system_env_json.VCAP_SERVICES.'p.mysql'[0].name",
 				is(equalToIgnoringWhiteSpace("my-db-service")))
 			.body("system_env_json.VCAP_SERVICES.'p-rabbitmq'[0].name",
-				is(equalToIgnoringWhiteSpace("my-rabbit-service")))
-			.statusCode(HttpStatus.OK.value());
+				is(equalToIgnoringWhiteSpace("my-rabbit-service")));
 	}
 
 }

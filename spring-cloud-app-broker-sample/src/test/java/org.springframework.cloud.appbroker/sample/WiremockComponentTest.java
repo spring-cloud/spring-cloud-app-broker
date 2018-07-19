@@ -17,13 +17,13 @@
 package org.springframework.cloud.appbroker.sample;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import io.restassured.http.Header;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.cloud.appbroker.sample.transformers.URLLocalhostStubResponseTransformer;
 import org.springframework.http.HttpStatus;
@@ -44,7 +44,8 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 	classes = {AppBrokerSampleApplication.class,
-		OpenServiceBrokerApiFixture.class},
+		OpenServiceBrokerApiFixture.class,
+		CloudFoundryApiFixture.class},
 	properties = {
 		"spring.cloud.appbroker.deployer.cloudfoundry.api-host=localhost",
 		"spring.cloud.appbroker.deployer.cloudfoundry.api-port=8080",
@@ -71,14 +72,10 @@ class WiremockComponentTest {
 	@Value("${wiremock.cloudfoundry.access-token}")
 	private String accessToken;
 
-	String baseCfUrl;
-
 	private WireMockServer wiremockServer;
 
 	@BeforeEach
 	void setUp(TestInfo testInfo) {
-		baseCfUrl = "http://" + cfApiHost + ":" + cfApiPort;
-
 		startWiremock(getTestMappings(testInfo));
 	}
 
@@ -100,10 +97,6 @@ class WiremockComponentTest {
 
 	private void stopWiremock() {
 		wiremockServer.stop();
-	}
-
-	Header getAuthorizationHeader() {
-		return new Header("Authorization", "bearer " + accessToken);
 	}
 
 	private static String getTestMappings(TestInfo testInfo) {

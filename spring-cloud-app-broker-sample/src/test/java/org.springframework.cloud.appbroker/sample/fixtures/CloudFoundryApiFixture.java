@@ -21,7 +21,9 @@ import io.restassured.http.Header;
 import io.restassured.specification.RequestSpecification;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestComponent;
+import org.springframework.http.HttpStatus;
 
+import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 
 @TestComponent
@@ -32,11 +34,35 @@ public class CloudFoundryApiFixture {
 	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.api-port}")
 	private int cfApiPort;
 
+	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.default-org}")
+	private String cfDefaultOrg;
+
+	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.default-space}")
+	private String cfDefaultSpace;
+
 	@Value("${wiremock.cloudfoundry.access-token:an.access.token}")
 	private String accessToken;
 
-	public String getApplicationUrl(String spaceGuid, String appName) {
-		return "/v2/spaces/" + spaceGuid + "/apps?q=name:" + appName + "&page=1";
+	private String defaultSpaceGuid;
+
+	public void init() {
+		String orgGuid = given(request())
+			.when()
+			.get("/v2/organizations?q=name:{orgName}", cfDefaultOrg)
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.extract().body().jsonPath().getString("resources[0].metadata.guid");
+
+		defaultSpaceGuid = given(request())
+			.when()
+			.get("/v2/spaces?q=name:{spaceName}&q=organization_guid:{orgGuid}", cfDefaultSpace, orgGuid)
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.extract().body().jsonPath().getString("resources[0].metadata.guid");
+	}
+
+	public String findApplicationUrl(String appName) {
+		return "/v2/spaces/" + defaultSpaceGuid + "/apps?q=name:" + appName + "&page=1";
 	}
 
 	public RequestSpecification request() {

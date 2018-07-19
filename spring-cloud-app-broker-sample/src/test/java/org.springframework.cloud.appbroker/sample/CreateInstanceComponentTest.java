@@ -54,7 +54,7 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 		// then a backing application is deployed
 		given(cloudFoundryFixture.request())
 			.when()
-			.get(cloudFoundryFixture.getApplicationUrl(SPACE_ID, APP_NAME))
+			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME))
 			.then()
 			.statusCode(HttpStatus.OK.value())
 			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)));

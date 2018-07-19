@@ -1,0 +1,24 @@
+{
+  "id" : "9ddc965e-3002-43f3-ab9e-b12feca30df4",
+  "name" : "v2_routes",
+  "request" : {
+    "url" : "/v2/routes?q=domain_guid:28e83b6f-3cb4-4df4-a056-4e4ae5d0efad&q=host:helloworldapp&page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 0,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n\n  ]\n}",
+    "headers" : {
+      "Date" : "Thu, 19 Jul 2018 23:27:31 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "2be0955f-9a9c-4741-7439-102a5930dbc7::5e850336-25d3-4472-99c3-0c2610cd48a2",
+      "Keep-Alive" : "timeout=5, max=94",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "9ddc965e-3002-43f3-ab9e-b12feca30df4",
+  "persistent" : true,
+  "insertionIndex" : 16
+}

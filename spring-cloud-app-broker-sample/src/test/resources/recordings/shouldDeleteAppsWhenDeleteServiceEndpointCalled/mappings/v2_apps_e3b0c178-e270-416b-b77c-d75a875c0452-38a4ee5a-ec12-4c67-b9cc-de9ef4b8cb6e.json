@@ -1,0 +1,22 @@
+{
+  "id" : "38a4ee5a-ec12-4c67-b9cc-de9ef4b8cb6e",
+  "name" : "v2_apps_e3b0c178-e270-416b-b77c-d75a875c0452",
+  "request" : {
+    "url" : "/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452",
+    "method" : "DELETE"
+  },
+  "response" : {
+    "status" : 204,
+    "headers" : {
+      "Date" : "Thu, 19 Jul 2018 23:30:49 GMT",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "aa1eb970-bdbe-457c-6d54-f5692d77b5e5::087f7c08-0cf3-49c9-802b-83227d084e7c",
+      "Keep-Alive" : "timeout=5, max=91",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "38a4ee5a-ec12-4c67-b9cc-de9ef4b8cb6e",
+  "persistent" : true,
+  "insertionIndex" : 43
+}

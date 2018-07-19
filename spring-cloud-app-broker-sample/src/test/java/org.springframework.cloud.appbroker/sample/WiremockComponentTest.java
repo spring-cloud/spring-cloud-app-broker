@@ -21,6 +21,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
@@ -60,8 +61,8 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 @ActiveProfiles("openservicebroker-catalog")
 @DirtiesContext
 class WiremockComponentTest {
-
-	static final String SPACE_ID = "ba339810-ca26-4004-b43b-ca859814900f";
+	@Autowired
+	private CloudFoundryApiFixture cloudFoundryFixture;
 
 	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.api-host}")
 	private String cfApiHost;
@@ -83,6 +84,7 @@ class WiremockComponentTest {
 	@BeforeEach
 	void setUp(TestInfo testInfo) {
 		startWiremock(getTestMappings(testInfo));
+		cloudFoundryFixture.init();
 	}
 
 	@AfterEach

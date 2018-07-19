@@ -25,6 +25,7 @@ import org.springframework.test.context.TestPropertySource;
 
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceWithServicesComponentTest.APP_NAME;
@@ -48,8 +49,8 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 	void shouldPushAppWithServiceWhenCreateServiceEndpointCalled() {
 		// given that a service exists
 		// TODO automate creation or stub bindings
-		// cf cs p.mysql db-small my-db-service
-		// cf cs p-rabbitmq standard my-rabbit-service
+		// cf cups my-db-service -p '{}'
+		// cf cups my-rabbit-service -p '{}'
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())
@@ -61,7 +62,7 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 		// then a backing application is deployed
 		String appsUrl = given(cloudFoundryFixture.request())
 			.when()
-			.get(cloudFoundryFixture.getApplicationUrl(SPACE_ID, APP_NAME))
+			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME))
 			.then()
 			.statusCode(HttpStatus.OK.value())
 			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)))
@@ -73,10 +74,8 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 			.get(appsUrl + "/env")
 			.then()
 			.statusCode(HttpStatus.OK.value())
-			.body("system_env_json.VCAP_SERVICES.'p.mysql'[0].name",
-				is(equalToIgnoringWhiteSpace("my-db-service")))
-			.body("system_env_json.VCAP_SERVICES.'p-rabbitmq'[0].name",
-				is(equalToIgnoringWhiteSpace("my-rabbit-service")));
+			.body("system_env_json.VCAP_SERVICES.user-provided.name",
+				containsInAnyOrder("my-db-service", "my-rabbit-service"));
 	}
 
 }

@@ -1,0 +1,29 @@
+{
+  "id" : "a817f6fb-4cf0-4fc2-b405-b91d06cfe3a5",
+  "name" : "v2_apps_e3b0c178-e270-416b-b77c-d75a875c0452",
+  "request" : {
+    "url" : "/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452",
+    "method" : "PUT",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"state\":\"STOPPED\"}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 201,
+    "body" : "{\n  \"metadata\": {\n    \"guid\": \"e3b0c178-e270-416b-b77c-d75a875c0452\",\n    \"url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452\",\n    \"created_at\": \"2018-07-19T23:27:31Z\",\n    \"updated_at\": \"2018-07-19T23:27:40Z\"\n  },\n  \"entity\": {\n    \"name\": \"helloworldapp\",\n    \"production\": false,\n    \"space_guid\": \"c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n    \"stack_guid\": \"8e0c91f4-1144-41d7-828b-6da5f66cf24f\",\n    \"buildpack\": \"https://github.com/cloudfoundry/java-buildpack.git#v4.7.1\",\n    \"detected_buildpack\": null,\n    \"detected_buildpack_guid\": null,\n    \"environment_json\": {\n      \"SPRING_APPLICATION_INDEX\": \"${vcap.application.instance_index}\",\n      \"SPRING_CLOUD_APPLICATION_GUID\": \"${vcap.application.name}:${vcap.application.instance_index}\",\n      \"SPRING_APPLICATION_JSON\": \"{}\"\n    },\n    \"memory\": 1024,\n    \"instances\": 1,\n    \"disk_quota\": 1024,\n    \"state\": \"STOPPED\",\n    \"version\": \"03af76cf-cd37-4b63-bf6f-b05e4ecb529f\",\n    \"command\": null,\n    \"console\": false,\n    \"debug\": null,\n    \"staging_task_id\": null,\n    \"package_state\": \"PENDING\",\n    \"health_check_type\": \"port\",\n    \"health_check_timeout\": 120,\n    \"health_check_http_endpoint\": \"/health\",\n    \"staging_failed_reason\": null,\n    \"staging_failed_description\": null,\n    \"diego\": true,\n    \"docker_image\": null,\n    \"docker_credentials\": {\n      \"username\": null,\n      \"password\": null\n    },\n    \"package_updated_at\": \"2018-07-19T23:27:32Z\",\n    \"detected_start_command\": \"\",\n    \"enable_ssh\": true,\n    \"ports\": [\n      8080\n    ],\n    \"space_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n    \"stack_url\": \"/v2/stacks/8e0c91f4-1144-41d7-828b-6da5f66cf24f\",\n    \"routes_url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/routes\",\n    \"events_url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/events\",\n    \"service_bindings_url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/service_bindings\",\n    \"route_mappings_url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/route_mappings\"\n  }\n}",
+    "headers" : {
+      "Date" : "Thu, 19 Jul 2018 23:27:40 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "25a6ddb4-832a-4a70-6584-f3024145b3b3::62ce11af-8cd2-48cc-bda5-78a2d5707e45",
+      "Keep-Alive" : "timeout=5, max=86",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "a817f6fb-4cf0-4fc2-b405-b91d06cfe3a5",
+  "persistent" : true,
+  "insertionIndex" : 24
+}

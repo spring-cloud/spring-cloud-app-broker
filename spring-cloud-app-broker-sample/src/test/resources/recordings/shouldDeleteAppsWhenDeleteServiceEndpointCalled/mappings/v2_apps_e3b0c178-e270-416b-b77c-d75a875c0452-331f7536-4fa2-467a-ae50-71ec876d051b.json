@@ -1,0 +1,29 @@
+{
+  "id" : "331f7536-4fa2-467a-ae50-71ec876d051b",
+  "name" : "v2_apps_e3b0c178-e270-416b-b77c-d75a875c0452",
+  "request" : {
+    "url" : "/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452",
+    "method" : "PUT",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"buildpack\":\"https://github.com/cloudfoundry/java-buildpack.git#v4.7.1\",\"disk_quota\":1024,\"environment_json\":{\"SPRING_APPLICATION_INDEX\":\"${vcap.application.instance_index}\",\"SPRING_APPLICATION_JSON\":\"{}\",\"SPRING_CLOUD_APPLICATION_GUID\":\"${vcap.application.name}:${vcap.application.instance_index}\"},\"health_check_http_endpoint\":\"/health\",\"health_check_timeout\":120,\"health_check_type\":\"port\",\"instances\":1,\"memory\":1024,\"name\":\"helloworldapp\"}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 201,
+    "body" : "{\n  \"metadata\": {\n    \"guid\": \"e3b0c178-e270-416b-b77c-d75a875c0452\",\n    \"url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452\",\n    \"created_at\": \"2018-07-19T23:27:31Z\",\n    \"updated_at\": \"2018-07-19T23:29:52Z\"\n  },\n  \"entity\": {\n    \"name\": \"helloworldapp\",\n    \"production\": false,\n    \"space_guid\": \"c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n    \"stack_guid\": \"8e0c91f4-1144-41d7-828b-6da5f66cf24f\",\n    \"buildpack\": \"https://github.com/cloudfoundry/java-buildpack.git#v4.7.1\",\n    \"detected_buildpack\": \"\",\n    \"detected_buildpack_guid\": null,\n    \"environment_json\": {\n      \"SPRING_APPLICATION_INDEX\": \"${vcap.application.instance_index}\",\n      \"SPRING_APPLICATION_JSON\": \"{}\",\n      \"SPRING_CLOUD_APPLICATION_GUID\": \"${vcap.application.name}:${vcap.application.instance_index}\"\n    },\n    \"memory\": 1024,\n    \"instances\": 1,\n    \"disk_quota\": 1024,\n    \"state\": \"STARTED\",\n    \"version\": \"a8ab0797-0744-4e1f-8cb1-abde36604429\",\n    \"command\": null,\n    \"console\": false,\n    \"debug\": null,\n    \"staging_task_id\": \"610ebd90-fb60-47bc-8a6e-bbce8d0ef4d1\",\n    \"package_state\": \"STAGED\",\n    \"health_check_type\": \"port\",\n    \"health_check_timeout\": 120,\n    \"health_check_http_endpoint\": \"/health\",\n    \"staging_failed_reason\": null,\n    \"staging_failed_description\": null,\n    \"diego\": true,\n    \"docker_image\": null,\n    \"docker_credentials\": {\n      \"username\": null,\n      \"password\": null\n    },\n    \"package_updated_at\": \"2018-07-19T23:27:32Z\",\n    \"detected_start_command\": \"JAVA_OPTS=\\\"-agentpath:$PWD/.java-buildpack/open_jdk_jre/bin/jvmkill-1.12.0_RELEASE=printHeapHistogram=1 -Djava.io.tmpdir=$TMPDIR -Djava.ext.dirs=$PWD/.java-buildpack/container_security_provider:$PWD/.java-buildpack/open_jdk_jre/lib/ext -Djava.security.properties=$PWD/.java-buildpack/java_security/java.security $JAVA_OPTS\\\" && CALCULATED_MEMORY=$($PWD/.java-buildpack/open_jdk_jre/bin/java-buildpack-memory-calculator-3.10.0_RELEASE -totMemory=$MEMORY_LIMIT -stackThreads=300 -loadedClasses=14289 -poolType=metaspace -vmOptions=\\\"$JAVA_OPTS\\\") && echo JVM Memory Configuration: $CALCULATED_MEMORY && JAVA_OPTS=\\\"$JAVA_OPTS $CALCULATED_MEMORY\\\" && SERVER_PORT=$PORT eval exec $PWD/.java-buildpack/open_jdk_jre/bin/java $JAVA_OPTS -cp $PWD/. org.springframework.boot.loader.JarLauncher\",\n    \"enable_ssh\": true,\n    \"ports\": [\n      8080\n    ],\n    \"space_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n    \"stack_url\": \"/v2/stacks/8e0c91f4-1144-41d7-828b-6da5f66cf24f\",\n    \"routes_url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/routes\",\n    \"events_url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/events\",\n    \"service_bindings_url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/service_bindings\",\n    \"route_mappings_url\": \"/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/route_mappings\"\n  }\n}",
+    "headers" : {
+      "Date" : "Thu, 19 Jul 2018 23:29:52 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "1d64f31b-f322-4bb5-7595-9aaeb38fa4c1::4984eb2d-8c47-4173-9ca1-1264de6aee4e",
+      "Keep-Alive" : "timeout=5, max=98",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "331f7536-4fa2-467a-ae50-71ec876d051b",
+  "persistent" : true,
+  "insertionIndex" : 12
+}

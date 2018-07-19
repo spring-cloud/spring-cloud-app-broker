@@ -1,0 +1,24 @@
+{
+  "id" : "1a5f74ac-9ada-446a-8847-b2b63b9c3b2b",
+  "name" : "v2_stacks_8e0c91f4-1144-41d7-828b-6da5f66cf24f",
+  "request" : {
+    "url" : "/v2/stacks/8e0c91f4-1144-41d7-828b-6da5f66cf24f",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"metadata\": {\n    \"guid\": \"8e0c91f4-1144-41d7-828b-6da5f66cf24f\",\n    \"url\": \"/v2/stacks/8e0c91f4-1144-41d7-828b-6da5f66cf24f\",\n    \"created_at\": \"2018-03-28T22:15:03Z\",\n    \"updated_at\": \"2018-03-28T22:15:03Z\"\n  },\n  \"entity\": {\n    \"name\": \"cflinuxfs2\",\n    \"description\": \"Cloud Foundry Linux-based filesystem\"\n  }\n}",
+    "headers" : {
+      "Date" : "Thu, 19 Jul 2018 23:30:45 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "2a475dce-4c00-4046-4a91-6ad26c3f9a27::e3793561-c18d-46ba-b483-313efab7608b",
+      "Keep-Alive" : "timeout=5, max=99",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "1a5f74ac-9ada-446a-8847-b2b63b9c3b2b",
+  "persistent" : true,
+  "insertionIndex" : 35
+}

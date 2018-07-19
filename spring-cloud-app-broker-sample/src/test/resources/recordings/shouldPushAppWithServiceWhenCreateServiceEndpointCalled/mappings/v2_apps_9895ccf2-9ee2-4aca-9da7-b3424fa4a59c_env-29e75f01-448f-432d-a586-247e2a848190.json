@@ -1,0 +1,24 @@
+{
+  "id" : "29e75f01-448f-432d-a586-247e2a848190",
+  "name" : "v2_apps_9895ccf2-9ee2-4aca-9da7-b3424fa4a59c_env",
+  "request" : {
+    "url" : "/v2/apps/9895ccf2-9ee2-4aca-9da7-b3424fa4a59c/env",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"staging_env_json\": {\n\n  },\n  \"running_env_json\": {\n\n  },\n  \"environment_json\": {\n    \"SPRING_APPLICATION_INDEX\": \"${vcap.application.instance_index}\",\n    \"SPRING_APPLICATION_JSON\": \"{}\",\n    \"SPRING_CLOUD_APPLICATION_GUID\": \"${vcap.application.name}:${vcap.application.instance_index}\"\n  },\n  \"system_env_json\": {\n    \"VCAP_SERVICES\": {\n      \"user-provided\": [\n        {\n  \"name\": \"my-rabbit-service\",\n  \"instance_name\": \"my-rabbit-service\",\n  \"binding_name\": null,\n  \"credentials\": {\n\n  },\n  \"syslog_drain_url\": \"\",\n  \"volume_mounts\": [\n\n  ],\n  \"label\": \"user-provided\",\n  \"tags\": [\n\n  ]\n},\n        {\n  \"name\": \"my-db-service\",\n  \"instance_name\": \"my-db-service\",\n  \"binding_name\": null,\n  \"credentials\": {\n\n  },\n  \"syslog_drain_url\": \"\",\n  \"volume_mounts\": [\n\n  ],\n  \"label\": \"user-provided\",\n  \"tags\": [\n\n  ]\n}\n      ]\n    }\n  },\n  \"application_env_json\": {\n    \"VCAP_APPLICATION\": {\n      \"cf_api\": \"http://localhost\",\n      \"limits\": {\n        \"fds\": 16384,\n        \"mem\": 1024,\n        \"disk\": 1024\n      },\n      \"application_name\": \"appwithservices\",\n      \"application_uris\": [\n        \"appwithservices.apps.scottfrederick.io\"\n      ],\n      \"name\": \"appwithservices\",\n      \"space_name\": \"development\",\n      \"space_id\": \"c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n      \"uris\": [\n        \"appwithservices.apps.scottfrederick.io\"\n      ],\n      \"users\": null,\n      \"application_id\": \"9895ccf2-9ee2-4aca-9da7-b3424fa4a59c\",\n      \"version\": \"1f60129a-0515-45bd-9dec-ebf534fb19a5\",\n      \"application_version\": \"1f60129a-0515-45bd-9dec-ebf534fb19a5\"\n    }\n  }\n}",
+    "headers" : {
+      "Date" : "Thu, 19 Jul 2018 23:29:48 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "381131f8-0cb2-4bcb-4c6c-6eb6c73d7f91::01361f19-80d7-4daa-a77e-f0909fc59b17",
+      "Keep-Alive" : "timeout=5, max=94",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "29e75f01-448f-432d-a586-247e2a848190",
+  "persistent" : true,
+  "insertionIndex" : 37
+}

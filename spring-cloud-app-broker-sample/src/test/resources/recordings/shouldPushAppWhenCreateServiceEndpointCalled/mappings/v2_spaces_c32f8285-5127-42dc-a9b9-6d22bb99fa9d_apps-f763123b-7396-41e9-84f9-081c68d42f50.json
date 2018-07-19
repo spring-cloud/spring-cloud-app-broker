@@ -1,0 +1,24 @@
+{
+  "id" : "f763123b-7396-41e9-84f9-081c68d42f50",
+  "name" : "v2_spaces_c32f8285-5127-42dc-a9b9-6d22bb99fa9d_apps",
+  "request" : {
+    "url" : "/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/apps?q=name:helloworldapp&page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 0,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n\n  ]\n}",
+    "headers" : {
+      "Date" : "Thu, 19 Jul 2018 23:27:30 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "ad4405d2-e02a-4a1e-78c4-e2c61ef34ec6::faba528a-2079-4f1d-af4d-006d6cdaa99a",
+      "Keep-Alive" : "timeout=5, max=99",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "f763123b-7396-41e9-84f9-081c68d42f50",
+  "persistent" : true,
+  "insertionIndex" : 11
+}

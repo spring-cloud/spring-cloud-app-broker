@@ -61,7 +61,7 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 		// then the backing application is deleted
 		given(cloudFoundryFixture.request())
 			.when()
-			.get(cloudFoundryFixture.getApplicationUrl(SPACE_ID, APP_NAME))
+			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME))
 			.then()
 			.statusCode(HttpStatus.OK.value())
 			.body("resources.size", is(equalTo(0)));

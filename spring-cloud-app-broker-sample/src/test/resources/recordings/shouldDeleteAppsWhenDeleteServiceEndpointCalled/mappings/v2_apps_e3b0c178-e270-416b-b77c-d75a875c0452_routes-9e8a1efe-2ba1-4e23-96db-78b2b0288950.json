@@ -1,0 +1,24 @@
+{
+  "id" : "9e8a1efe-2ba1-4e23-96db-78b2b0288950",
+  "name" : "v2_apps_e3b0c178-e270-416b-b77c-d75a875c0452_routes",
+  "request" : {
+    "url" : "/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/routes?page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 1,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n    {\n      \"metadata\": {\n        \"guid\": \"d80f7cdd-876d-4b54-8ca4-4acdfa9247bf\",\n        \"url\": \"/v2/routes/d80f7cdd-876d-4b54-8ca4-4acdfa9247bf\",\n        \"created_at\": \"2018-07-19T23:27:31Z\",\n        \"updated_at\": \"2018-07-19T23:27:31Z\"\n      },\n      \"entity\": {\n        \"host\": \"helloworldapp\",\n        \"path\": \"\",\n        \"domain_guid\": \"28e83b6f-3cb4-4df4-a056-4e4ae5d0efad\",\n        \"space_guid\": \"c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n        \"service_instance_guid\": null,\n        \"port\": null,\n        \"domain_url\": \"/v2/shared_domains/28e83b6f-3cb4-4df4-a056-4e4ae5d0efad\",\n        \"space_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n        \"apps_url\": \"/v2/routes/d80f7cdd-876d-4b54-8ca4-4acdfa9247bf/apps\",\n        \"route_mappings_url\": \"/v2/routes/d80f7cdd-876d-4b54-8ca4-4acdfa9247bf/route_mappings\"\n      }\n    }\n  ]\n}",
+    "headers" : {
+      "Date" : "Thu, 19 Jul 2018 23:29:53 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "b178b377-d000-4b4f-4ce2-05fa7da8eba7::27f5628c-5555-4a8f-be35-bd7d384cbac9",
+      "Keep-Alive" : "timeout=5, max=97",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "9e8a1efe-2ba1-4e23-96db-78b2b0288950",
+  "persistent" : true,
+  "insertionIndex" : 13
+}

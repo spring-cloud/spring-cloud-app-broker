@@ -1,0 +1,24 @@
+{
+  "id" : "19c59b3f-2d4e-4db3-9154-4f0c0f51cda0",
+  "name" : "v2_apps_e3b0c178-e270-416b-b77c-d75a875c0452_service_bindings",
+  "request" : {
+    "url" : "/v2/apps/e3b0c178-e270-416b-b77c-d75a875c0452/service_bindings?page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 0,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n\n  ]\n}",
+    "headers" : {
+      "Date" : "Thu, 19 Jul 2018 23:30:48 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "df820c0f-bd70-4f3e-7eaa-2e39a6043c77::a00c0a2d-5557-4d5e-8227-436a59cfa122",
+      "Keep-Alive" : "timeout=5, max=92",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "19c59b3f-2d4e-4db3-9154-4f0c0f51cda0",
+  "persistent" : true,
+  "insertionIndex" : 42
+}

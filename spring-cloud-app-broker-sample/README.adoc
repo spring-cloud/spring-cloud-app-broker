@@ -51,19 +51,18 @@ Inspect the org and space to verify that the application `broker-sample-app` was
 
 == Recording a new scenario
 
-- Create a new recording folder in `/src/test/resources/recordings/{test_name}/mappings`
-- In `WiremockComponentTest` replace the `ACCESS_TOKEN` with a real one:
-```
-curl https://login.cf.{my_env}/oauth/token -X POST -k -d "client_id=cf&client_secret=&grant_type=password&password={my_admin_password}&username=admin" | jq .access_token
-```
-- In `WiremockComponentTest` in `startWiremock` add before `wiremockServer.start();`:
-```
-		wiremockServer.startRecording(
-			recordSpec()
-				.forTarget("https://api.cf.{my_env}")
-		);
-```
-- In `WiremockComponentTest` in `stopWiremock` add before `wiremockServer.stop();`:
-```
-		WireMock.stopRecording();
-```
+- Ensure the live Cloud Foundry environment has an organization named `test` that contains a space named `development`
+- Create a new test case with a test method
+- Create a new recording folder in `/src/test/resources/recordings/{test_name}/mappings` using the name of the
+test method
+- Set the following environment variables
+
+* WIREMOCK_RECORD=true
+* WIREMOCK_CLOUDFOUNDRY_APIURL=https://api.example.com
+* WIREMOCK_CLOUDFOUNDRY_ACCESSTOKEN={access token value}
+
+where `{access token value}` is a valid UAA access token that can be used to authenticate to the Cloud Foundry API;
+this can easily be retrieved using `cf oauth-token` with a user that has access to the `test` organization and `development` space
+
+- Run the test method
+

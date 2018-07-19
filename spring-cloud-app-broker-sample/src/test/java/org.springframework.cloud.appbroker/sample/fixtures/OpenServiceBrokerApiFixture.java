@@ -28,7 +28,7 @@ import static io.restassured.RestAssured.with;
 @TestComponent
 public class OpenServiceBrokerApiFixture implements ApplicationListener<ApplicationStartedEvent> {
 	private static final String ORG_ID = "org-id";
-	private static final String SPACE_ID = "ba339810-ca26-4004-b43b-ca859814900f";
+	private static final String SPACE_ID = "space-id";
 
 	@Value("${spring.cloud.openservicebroker.catalog.services[0].plans[0].id}")
 	String planId;

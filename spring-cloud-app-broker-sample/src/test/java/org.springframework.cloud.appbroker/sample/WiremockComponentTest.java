@@ -34,6 +34,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.recordSpec;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -53,8 +54,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 		"spring.cloud.appbroker.deployer.cloudfoundry.password=adminpass",
 		"spring.cloud.appbroker.deployer.cloudfoundry.default-org=test",
 		"spring.cloud.appbroker.deployer.cloudfoundry.default-space=development",
-		"spring.cloud.appbroker.deployer.cloudfoundry.secure=false",
-		"wiremock.cloudfoundry.access-token=an.access.token"
+		"spring.cloud.appbroker.deployer.cloudfoundry.secure=false"
 	}
 )
 @ActiveProfiles("openservicebroker-catalog")
@@ -69,7 +69,13 @@ class WiremockComponentTest {
 	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.api-port}")
 	private int cfApiPort;
 
-	@Value("${wiremock.cloudfoundry.access-token}")
+	@Value("${wiremock.record:false}")
+	private boolean wiremockRecord;
+
+	@Value("${wiremock.cloudfoundry.api-url:}")
+	private String cfApiUrl;
+
+	@Value("${wiremock.cloudfoundry.access-token:an.access.token}")
 	private String accessToken;
 
 	private WireMockServer wiremockServer;
@@ -90,12 +96,23 @@ class WiremockComponentTest {
 			.usingFilesUnderDirectory(displayName)
 			.extensions(URLLocalhostStubResponseTransformer.class.getName()));
 
+		if (wiremockRecord) {
+			wiremockServer.startRecording(
+				recordSpec()
+					.forTarget(cfApiUrl)
+			);
+		}
+
 		wiremockServer.start();
 
 		stubUAA();
 	}
 
 	private void stopWiremock() {
+		if (wiremockRecord) {
+			wiremockServer.stopRecording();
+		}
+		
 		wiremockServer.stop();
 	}
 

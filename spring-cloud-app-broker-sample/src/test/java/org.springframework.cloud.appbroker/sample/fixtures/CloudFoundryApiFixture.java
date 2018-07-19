@@ -32,7 +32,7 @@ public class CloudFoundryApiFixture {
 	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.api-port}")
 	private int cfApiPort;
 
-	@Value("${wiremock.cloudfoundry.access-token}")
+	@Value("${wiremock.cloudfoundry.access-token:an.access.token}")
 	private String accessToken;
 
 	public String getApplicationUrl(String spaceGuid, String appName) {

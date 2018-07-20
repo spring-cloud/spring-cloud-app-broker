@@ -16,36 +16,24 @@
 
 package org.springframework.cloud.appbroker.sample;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
-import org.springframework.cloud.appbroker.sample.transformers.URLLocalhostStubResponseTransformer;
-import org.springframework.http.HttpStatus;
+import org.springframework.cloud.appbroker.sample.fixtures.WiremockServerFixture;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.recordSpec;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 	classes = {AppBrokerSampleApplication.class,
+		WiremockServerFixture.class,
 		OpenServiceBrokerApiFixture.class,
 		CloudFoundryApiFixture.class},
 	properties = {
@@ -62,86 +50,23 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 @DirtiesContext
 class WiremockComponentTest {
 	@Autowired
+	private WiremockServerFixture wiremockFixture;
+
+	@Autowired
 	private CloudFoundryApiFixture cloudFoundryFixture;
-
-	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.api-host}")
-	private String cfApiHost;
-
-	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.api-port}")
-	private int cfApiPort;
-
-	@Value("${wiremock.record:false}")
-	private boolean wiremockRecord;
-
-	@Value("${wiremock.cloudfoundry.api-url:}")
-	private String cfApiUrl;
-
-	@Value("${wiremock.cloudfoundry.access-token:an.access.token}")
-	private String accessToken;
-
-	private WireMockServer wiremockServer;
 
 	@BeforeEach
 	void setUp(TestInfo testInfo) {
-		startWiremock(getTestMappings(testInfo));
+		wiremockFixture.startWiremock(getTestMappings(testInfo));
 		cloudFoundryFixture.init();
 	}
 
 	@AfterEach
 	void tearDown() {
-		stopWiremock();
-	}
-
-	private void startWiremock(String displayName) {
-		wiremockServer = new WireMockServer(wireMockConfig()
-			.port(cfApiPort)
-			.usingFilesUnderDirectory(displayName)
-			.extensions(URLLocalhostStubResponseTransformer.class.getName()));
-
-		if (wiremockRecord) {
-			wiremockServer.startRecording(
-				recordSpec()
-					.forTarget(cfApiUrl)
-			);
-		}
-
-		wiremockServer.start();
-
-		stubUAA();
-	}
-
-	private void stopWiremock() {
-		if (wiremockRecord) {
-			wiremockServer.stopRecording();
-		}
-		
-		wiremockServer.stop();
+		wiremockFixture.stopWiremock();
 	}
 
 	private static String getTestMappings(TestInfo testInfo) {
 		return "src/test/resources/recordings/" + testInfo.getDisplayName().replace("()", "") + "/";
-	}
-
-	private void stubUAA() {
-		String refreshToken = "a.refresh.token";
-
-		stubFor(any(urlPathEqualTo("/oauth/token"))
-			.willReturn(aResponse()
-				.withStatus(HttpStatus.OK.value())
-				.withHeader(CONTENT_TYPE, APPLICATION_JSON.toString())
-				.withBody("{" +
-					"\"access_token\":\"" + accessToken + "\"" +
-					",\"token_type\":\"bearer\"" +
-					",\"refresh_token\":\"" + refreshToken + "\"" +
-					",\"expires_in\":7199" +
-					",\"scope\":\"network.write cloud_controller.admin " +
-					"routing.router_groups.read cloud_controller.write " +
-					"network.admin doppler.firehose openid routing.router_groups.write " +
-					"scim.read uaa.user cloud_controller.read password.write scim.write\"" +
-					",\"authorization_endpoint\":\"http://localhost\"" +
-					",\"jti\":\"287353917d704131a78967c13623a705\"" +
-					"}")
-			)
-		);
 	}
 }

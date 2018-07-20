@@ -1,0 +1,24 @@
+{
+  "id" : "15e4eac6-db86-4a1f-8c8a-a258306d5178",
+  "name" : "v2_organizations",
+  "request" : {
+    "url" : "/v2/organizations?q=name:test&page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 1,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n    {\n      \"metadata\": {\n        \"guid\": \"b3e001e9-4956-40e3-9695-79325199355f\",\n        \"url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f\",\n        \"created_at\": \"2018-07-19T20:33:45Z\",\n        \"updated_at\": \"2018-07-19T20:33:45Z\"\n      },\n      \"entity\": {\n        \"name\": \"test\",\n        \"billing_enabled\": false,\n        \"quota_definition_guid\": \"7885d305-f247-4d9c-b070-9c65536f09f3\",\n        \"status\": \"active\",\n        \"default_isolation_segment_guid\": null,\n        \"quota_definition_url\": \"/v2/quota_definitions/7885d305-f247-4d9c-b070-9c65536f09f3\",\n        \"spaces_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f/spaces\",\n        \"domains_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f/domains\",\n        \"private_domains_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f/private_domains\",\n        \"users_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f/users\",\n        \"managers_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f/managers\",\n        \"billing_managers_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f/billing_managers\",\n        \"auditors_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f/auditors\",\n        \"app_events_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f/app_events\",\n        \"space_quota_definitions_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f/space_quota_definitions\"\n      }\n    }\n  ]\n}",
+    "headers" : {
+      "Date" : "Fri, 20 Jul 2018 19:47:54 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "71788d70-f0ee-4504-4afa-4842a2726026::e60405f9-e759-4df4-b4c1-a345d918f8f6",
+      "Keep-Alive" : "timeout=5, max=96",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "15e4eac6-db86-4a1f-8c8a-a258306d5178",
+  "persistent" : true,
+  "insertionIndex" : 6
+}

@@ -1,0 +1,24 @@
+{
+  "id" : "5edb8e0b-4c95-4cdd-ba62-f594fe857ad8",
+  "name" : "v2_spaces",
+  "request" : {
+    "url" : "/v2/spaces?q=name:development&q=organization_guid:b3e001e9-4956-40e3-9695-79325199355f&page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 1,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n    {\n      \"metadata\": {\n        \"guid\": \"c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n        \"url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n        \"created_at\": \"2018-07-19T20:34:16Z\",\n        \"updated_at\": \"2018-07-19T20:34:16Z\"\n      },\n      \"entity\": {\n        \"name\": \"development\",\n        \"organization_guid\": \"b3e001e9-4956-40e3-9695-79325199355f\",\n        \"space_quota_definition_guid\": null,\n        \"isolation_segment_guid\": null,\n        \"allow_ssh\": true,\n        \"organization_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f\",\n        \"developers_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/developers\",\n        \"managers_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/managers\",\n        \"auditors_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/auditors\",\n        \"apps_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/apps\",\n        \"routes_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/routes\",\n        \"domains_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/domains\",\n        \"service_instances_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/service_instances\",\n        \"app_events_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/app_events\",\n        \"events_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/events\",\n        \"security_groups_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/security_groups\",\n        \"staging_security_groups_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/staging_security_groups\"\n      }\n    }\n  ]\n}",
+    "headers" : {
+      "Date" : "Fri, 20 Jul 2018 19:47:55 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "0dc5f2c6-1fca-4113-49ed-a3b5c6c9596b::501f974c-f840-4fa1-902e-c59cebdc2c15",
+      "Keep-Alive" : "timeout=5, max=95",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "5edb8e0b-4c95-4cdd-ba62-f594fe857ad8",
+  "persistent" : true,
+  "insertionIndex" : 7
+}

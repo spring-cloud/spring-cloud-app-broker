@@ -1,0 +1,24 @@
+{
+  "id" : "fedb95cd-c766-48c3-b08b-6e3dba29c6ed",
+  "name" : "",
+  "request" : {
+    "url" : "/",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"links\": {\n    \"self\": {\n      \"href\": \"http://localhost\"\n    },\n    \"cloud_controller_v2\": {\n      \"href\": \"http://localhost\",\n      \"meta\": {\n        \"version\": \"2.103.0\"\n      }\n    },\n    \"cloud_controller_v3\": {\n      \"href\": \"http://localhost\",\n      \"meta\": {\n        \"version\": \"3.38.0\"\n      }\n    },\n    \"network_policy_v0\": {\n      \"href\": \"http://localhost\"\n    },\n    \"network_policy_v1\": {\n      \"href\": \"http://localhost\"\n    },\n    \"uaa\": {\n      \"href\": \"http://localhost\"\n    },\n    \"credhub\": null,\n    \"routing\": {\n      \"href\": \"http://localhost\"\n    },\n    \"logging\": {\n      \"href\": \"wss://localhost\"\n    },\n    \"app_ssh\": {\n      \"href\": \"localhost\",\n      \"meta\": {\n        \"host_key_fingerprint\": \"8c:db:69:39:90:e1:93:6a:f8:56:e9:a7:68:fc:52:d2\",\n        \"oauth_client\": \"ssh-proxy\"\n      }\n    }\n  }\n}",
+    "headers" : {
+      "Date" : "Fri, 20 Jul 2018 19:47:54 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "f319134a-a9b3-4ffc-6075-5428b2de7be2::06c9ea42-351a-4e4e-a6cb-335d3fa38962",
+      "Keep-Alive" : "timeout=5, max=98",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "fedb95cd-c766-48c3-b08b-6e3dba29c6ed",
+  "persistent" : true,
+  "insertionIndex" : 4
+}

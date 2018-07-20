@@ -1,0 +1,24 @@
+{
+  "id" : "58ff816a-d715-4a57-a380-047ca4d74a1e",
+  "name" : "v2_routes",
+  "request" : {
+    "url" : "/v2/routes?q=domain_guid:28e83b6f-3cb4-4df4-a056-4e4ae5d0efad&q=host:app-with-properties&page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 0,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n\n  ]\n}",
+    "headers" : {
+      "Date" : "Fri, 20 Jul 2018 19:05:37 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "2598e2a9-7f37-42a6-5833-c32134dd00b4::66a5a148-7898-48d2-b7b3-fe652d9c5bb1",
+      "Keep-Alive" : "timeout=5, max=94",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "58ff816a-d715-4a57-a380-047ca4d74a1e",
+  "persistent" : true,
+  "insertionIndex" : 16
+}

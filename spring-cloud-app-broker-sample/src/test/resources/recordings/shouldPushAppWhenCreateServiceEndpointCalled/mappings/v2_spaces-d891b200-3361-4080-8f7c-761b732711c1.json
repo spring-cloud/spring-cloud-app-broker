@@ -1,0 +1,24 @@
+{
+  "id" : "d891b200-3361-4080-8f7c-761b732711c1",
+  "name" : "v2_spaces",
+  "request" : {
+    "url" : "/v2/spaces?q=name%3Adevelopment&q=organization_guid%3Ab3e001e9-4956-40e3-9695-79325199355f",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 1,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n    {\n      \"metadata\": {\n        \"guid\": \"c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n        \"url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n        \"created_at\": \"2018-07-19T20:34:16Z\",\n        \"updated_at\": \"2018-07-19T20:34:16Z\"\n      },\n      \"entity\": {\n        \"name\": \"development\",\n        \"organization_guid\": \"b3e001e9-4956-40e3-9695-79325199355f\",\n        \"space_quota_definition_guid\": null,\n        \"isolation_segment_guid\": null,\n        \"allow_ssh\": true,\n        \"organization_url\": \"/v2/organizations/b3e001e9-4956-40e3-9695-79325199355f\",\n        \"developers_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/developers\",\n        \"managers_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/managers\",\n        \"auditors_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/auditors\",\n        \"apps_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/apps\",\n        \"routes_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/routes\",\n        \"domains_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/domains\",\n        \"service_instances_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/service_instances\",\n        \"app_events_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/app_events\",\n        \"events_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/events\",\n        \"security_groups_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/security_groups\",\n        \"staging_security_groups_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/staging_security_groups\"\n      }\n    }\n  ]\n}",
+    "headers" : {
+      "Date" : "Fri, 20 Jul 2018 18:39:24 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "b352b5d2-5b12-495f-57d4-3de44841418d::ff42be3b-a5bd-4b4e-b16b-59dfbb0e1360",
+      "Keep-Alive" : "timeout=5, max=99",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "d891b200-3361-4080-8f7c-761b732711c1",
+  "persistent" : true,
+  "insertionIndex" : 3
+}

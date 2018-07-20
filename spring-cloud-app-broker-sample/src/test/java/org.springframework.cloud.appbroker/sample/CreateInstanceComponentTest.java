@@ -27,14 +27,18 @@ import org.springframework.test.context.TestPropertySource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.APP_NAME_1;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.APP_NAME_2;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME
+	"spring.cloud.appbroker.apps[0].name=" + APP_NAME_1,
+	"spring.cloud.appbroker.apps[1].path=classpath:demo.jar",
+	"spring.cloud.appbroker.apps[1].name=" + APP_NAME_2
 })
 class CreateInstanceComponentTest extends WiremockComponentTest {
-	static final String APP_NAME = "helloworldapp";
+	static final String APP_NAME_1 = "first-app";
+	static final String APP_NAME_2 = "second-app";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -54,9 +58,17 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 		// then a backing application is deployed
 		given(cloudFoundryFixture.request())
 			.when()
-			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME))
+			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME_1))
 			.then()
 			.statusCode(HttpStatus.OK.value())
-			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)));
+			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME_1)));
+
+		// then a backing application is deployed
+		given(cloudFoundryFixture.request())
+			.when()
+			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME_2))
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME_2)));
 	}
 }

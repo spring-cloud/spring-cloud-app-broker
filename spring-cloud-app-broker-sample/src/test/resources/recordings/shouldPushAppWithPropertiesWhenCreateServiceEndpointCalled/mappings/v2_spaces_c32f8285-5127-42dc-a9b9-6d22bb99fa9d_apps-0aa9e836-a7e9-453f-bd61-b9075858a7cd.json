@@ -1,0 +1,24 @@
+{
+  "id" : "0aa9e836-a7e9-453f-bd61-b9075858a7cd",
+  "name" : "v2_spaces_c32f8285-5127-42dc-a9b9-6d22bb99fa9d_apps",
+  "request" : {
+    "url" : "/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d/apps?q=name:app-with-properties&page=1",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"total_results\": 0,\n  \"total_pages\": 1,\n  \"prev_url\": null,\n  \"next_url\": null,\n  \"resources\": [\n\n  ]\n}",
+    "headers" : {
+      "Date" : "Fri, 20 Jul 2018 19:05:36 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "e7fe5c7e-fb93-4a68-7b03-b8d3d083cc14::da6ad5cd-45f0-4a3e-9e51-459a104e89f4",
+      "Keep-Alive" : "timeout=5, max=99",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "0aa9e836-a7e9-453f-bd61-b9075858a7cd",
+  "persistent" : true,
+  "insertionIndex" : 11
+}

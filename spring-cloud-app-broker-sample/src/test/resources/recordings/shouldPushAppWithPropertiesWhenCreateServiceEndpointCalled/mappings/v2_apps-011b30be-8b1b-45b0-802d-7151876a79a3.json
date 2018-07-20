@@ -1,0 +1,30 @@
+{
+  "id" : "011b30be-8b1b-45b0-802d-7151876a79a3",
+  "name" : "v2_apps",
+  "request" : {
+    "url" : "/v2/apps",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"buildpack\":\"https://github.com/cloudfoundry/java-buildpack.git#v4.7.1\",\"disk_quota\":1024,\"environment_json\":{\"SPRING_APPLICATION_INDEX\":\"${vcap.application.instance_index}\",\"SPRING_CLOUD_APPLICATION_GUID\":\"${vcap.application.name}:${vcap.application.instance_index}\",\"SPRING_APPLICATION_JSON\":\"{}\"},\"health_check_http_endpoint\":\"/health\",\"health_check_timeout\":180,\"health_check_type\":\"port\",\"instances\":2,\"memory\":2048,\"name\":\"app-with-properties\",\"space_guid\":\"c32f8285-5127-42dc-a9b9-6d22bb99fa9d\"}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 201,
+    "body" : "{\n  \"metadata\": {\n    \"guid\": \"47e53fcc-9094-40bd-99eb-154b30aad829\",\n    \"url\": \"/v2/apps/47e53fcc-9094-40bd-99eb-154b30aad829\",\n    \"created_at\": \"2018-07-20T19:05:36Z\",\n    \"updated_at\": \"2018-07-20T19:05:36Z\"\n  },\n  \"entity\": {\n    \"name\": \"app-with-properties\",\n    \"production\": false,\n    \"space_guid\": \"c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n    \"stack_guid\": \"8e0c91f4-1144-41d7-828b-6da5f66cf24f\",\n    \"buildpack\": \"https://github.com/cloudfoundry/java-buildpack.git#v4.7.1\",\n    \"detected_buildpack\": null,\n    \"detected_buildpack_guid\": null,\n    \"environment_json\": {\n      \"SPRING_APPLICATION_INDEX\": \"${vcap.application.instance_index}\",\n      \"SPRING_CLOUD_APPLICATION_GUID\": \"${vcap.application.name}:${vcap.application.instance_index}\",\n      \"SPRING_APPLICATION_JSON\": \"{}\"\n    },\n    \"memory\": 2048,\n    \"instances\": 2,\n    \"disk_quota\": 1024,\n    \"state\": \"STOPPED\",\n    \"version\": \"40d2d9b8-9756-4250-88df-4609dac3c905\",\n    \"command\": null,\n    \"console\": false,\n    \"debug\": null,\n    \"staging_task_id\": null,\n    \"package_state\": \"PENDING\",\n    \"health_check_type\": \"port\",\n    \"health_check_timeout\": 180,\n    \"health_check_http_endpoint\": \"/health\",\n    \"staging_failed_reason\": null,\n    \"staging_failed_description\": null,\n    \"diego\": true,\n    \"docker_image\": null,\n    \"docker_credentials\": {\n      \"username\": null,\n      \"password\": null\n    },\n    \"package_updated_at\": null,\n    \"detected_start_command\": \"\",\n    \"enable_ssh\": true,\n    \"ports\": [\n      8080\n    ],\n    \"space_url\": \"/v2/spaces/c32f8285-5127-42dc-a9b9-6d22bb99fa9d\",\n    \"stack_url\": \"/v2/stacks/8e0c91f4-1144-41d7-828b-6da5f66cf24f\",\n    \"routes_url\": \"/v2/apps/47e53fcc-9094-40bd-99eb-154b30aad829/routes\",\n    \"events_url\": \"/v2/apps/47e53fcc-9094-40bd-99eb-154b30aad829/events\",\n    \"service_bindings_url\": \"/v2/apps/47e53fcc-9094-40bd-99eb-154b30aad829/service_bindings\",\n    \"route_mappings_url\": \"/v2/apps/47e53fcc-9094-40bd-99eb-154b30aad829/route_mappings\"\n  }\n}",
+    "headers" : {
+      "Date" : "Fri, 20 Jul 2018 19:05:36 GMT",
+      "Server" : "nginx",
+      "Content-Type" : "application/json;charset=utf-8",
+      "Location" : "/v2/apps/47e53fcc-9094-40bd-99eb-154b30aad829",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Vcap-Request-Id" : "7691fe94-4eb6-4d9f-5aba-7271902a4bba::89a3cd50-be43-46cf-a456-3ae24b35d486",
+      "Keep-Alive" : "timeout=5, max=98",
+      "Connection" : "Keep-Alive"
+    }
+  },
+  "uuid" : "011b30be-8b1b-45b0-802d-7151876a79a3",
+  "persistent" : true,
+  "insertionIndex" : 12
+}

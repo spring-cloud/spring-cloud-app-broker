@@ -1,0 +1,11 @@
+= Spring Cloud App Broker Acceptance Tests
+
+== Running locally
+
+=== Compile the project
+
+    $ ./gradlew build
+
+=== Running the tests
+
+    $ ./gradlew clean check -PacceptanceTests

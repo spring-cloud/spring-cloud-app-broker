@@ -16,19 +16,54 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
+import java.util.Optional;
+import org.cloudfoundry.operations.applications.ApplicationEnvironments;
+import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.util.Lists.newArrayList;
+import static reactor.util.function.Tuples.of;
 
 class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	@Test
-	void shouldFail() {
-		Executable executable = () -> {
-			throw new RuntimeException("message");
-		};
-		assertThrows(IllegalArgumentException.class, executable);
+	private static final String BROKER_SAMPLE_APP_CREATE = "broker-sample-app-create";
+
+	@BeforeEach
+	void setUp() {
+		initializeBroker(newArrayList(
+			of("spring.cloud.appbroker.apps[0].name", BROKER_SAMPLE_APP_CREATE),
+			of("spring.cloud.appbroker.apps[0].path", "classpath:demo.jar"),
+			of("spring.cloud.appbroker.apps[0].environment.ENV_VAR_1", "value1"),
+			of("spring.cloud.appbroker.apps[0].environment.ENV_VAR_2", "value2"),
+			of("spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.memory", "2G"),
+			of("spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.count", "2")
+			)
+		);
 	}
+
+	@Test
+	void shouldPushAppWhenCreateServiceCalled() {
+		// when a service instance is created
+		createServiceInstance();
+
+		// then a backing application is deployed
+		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
+		assertThat(backingApplication).isNotEmpty();
+
+		// and has the properties
+		ApplicationSummary applicationSummary = backingApplication.orElseThrow(RuntimeException::new);
+		assertThat(applicationSummary.getMemoryLimit()).isEqualTo(2048);
+		assertThat(applicationSummary.getInstances()).isEqualTo(2);
+
+		// and has the environment variables
+		ApplicationEnvironments applicationEnvironments = getApplicationEnvironmentByName(BROKER_SAMPLE_APP_CREATE);
+		assertThat(applicationEnvironments.getUserProvided().get("SPRING_APPLICATION_JSON")).asString()
+			.contains("\"ENV_VAR_1\":\"value1\"");
+		assertThat(applicationEnvironments.getUserProvided().get("SPRING_APPLICATION_JSON")).asString()
+			.contains("\"ENV_VAR_2\":\"value2\"");
+	}
+
 }

@@ -21,16 +21,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import org.springframework.cloud.appbroker.event.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class WorkflowServiceInstanceServiceTest {
+
+	@Mock
+	private ServiceInstanceStateRepository serviceInstanceStateRepository;
 
 	@Mock
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
@@ -42,13 +50,18 @@ class WorkflowServiceInstanceServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		workflowServiceInstanceService = new WorkflowServiceInstanceService(createServiceInstanceWorkflow,
-			deleteServiceInstanceWorkflow);
+		workflowServiceInstanceService = new WorkflowServiceInstanceService(serviceInstanceStateRepository,
+			createServiceInstanceWorkflow, deleteServiceInstanceWorkflow);
 	}
 
 	@Test
 	void shouldCreateServiceInstance() {
-		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(null))
+		given(createServiceInstanceWorkflow.create())
+			.willReturn(Mono.empty());
+
+		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(CreateServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build()))
 			.consumeNextWith(createServiceInstanceResponse -> {
 				verify(createServiceInstanceWorkflow).create();
 				assertThat(createServiceInstanceResponse).isNotNull();
@@ -59,7 +72,12 @@ class WorkflowServiceInstanceServiceTest {
 
 	@Test
 	void shouldDeleteServiceInstance() {
-		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(null))
+		given(deleteServiceInstanceWorkflow.delete())
+			.willReturn(Mono.empty());
+
+		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(DeleteServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build()))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
 				verify(deleteServiceInstanceWorkflow).delete();
 				assertThat(deleteServiceInstanceResponse).isNotNull();

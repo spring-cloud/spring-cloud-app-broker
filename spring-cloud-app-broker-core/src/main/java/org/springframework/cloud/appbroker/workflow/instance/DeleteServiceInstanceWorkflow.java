@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 
@@ -29,7 +31,7 @@ public class DeleteServiceInstanceWorkflow {
 		this.deploymentService = deploymentService;
 	}
 
-	public void delete() {
-		deploymentService.undeploy(backingApps);
+	public Mono<String> delete() {
+		return deploymentService.undeploy(backingApps);
 	}
 }

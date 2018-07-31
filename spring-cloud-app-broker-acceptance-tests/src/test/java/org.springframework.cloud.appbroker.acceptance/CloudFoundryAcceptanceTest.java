@@ -23,6 +23,7 @@ import java.util.Optional;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +35,13 @@ import reactor.util.function.Tuple2;
 
 @SpringBootTest(classes = {CloudFoundryClientConfiguration.class, CloudFoundryService.class})
 @ExtendWith(SpringExtension.class)
+@ExtendWith(BrokerPropertiesParameterResolver.class)
 class CloudFoundryAcceptanceTest {
+
+	@BeforeEach
+	void setUp(BrokerProperties brokerProperties) {
+		initializeBroker(brokerProperties.getProperties());
+	}
 
 	private static final String SAMPLE_BROKER_APP_NAME = "sample-broker";
 	private static final String BROKER_NAME = "sample-broker-name";

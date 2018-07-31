@@ -19,7 +19,6 @@ package org.springframework.cloud.appbroker.acceptance;
 import java.util.Optional;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
@@ -31,18 +30,14 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	private static final String BROKER_SAMPLE_APP_CREATE = "broker-sample-app-create";
 
-	@BeforeEach
-	void setUp() {
-		initializeBroker(newArrayList(
+	private static final BrokerProperties properties = new BrokerProperties(newArrayList(
 			of("spring.cloud.appbroker.apps[0].name", BROKER_SAMPLE_APP_CREATE),
 			of("spring.cloud.appbroker.apps[0].path", "classpath:demo.jar"),
 			of("spring.cloud.appbroker.apps[0].environment.ENV_VAR_1", "value1"),
 			of("spring.cloud.appbroker.apps[0].environment.ENV_VAR_2", "value2"),
 			of("spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.memory", "2G"),
 			of("spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.count", "2")
-			)
-		);
-	}
+		));
 
 	@Test
 	void shouldPushAppWhenCreateServiceCalled() {

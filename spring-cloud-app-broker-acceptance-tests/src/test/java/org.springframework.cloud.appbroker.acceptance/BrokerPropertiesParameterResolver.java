@@ -16,14 +16,12 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
-import org.springframework.util.ReflectionUtils;
-
 
 class BrokerPropertiesParameterResolver implements ParameterResolver {
 
@@ -34,11 +32,15 @@ class BrokerPropertiesParameterResolver implements ParameterResolver {
 
 	@Override
 	public BrokerProperties resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-		Optional<Object> testInstance = extensionContext.getTestInstance();
-		Field field = ReflectionUtils.findField(testInstance.get().getClass(), "properties");
-		ReflectionUtils.makeAccessible(field);
-		BrokerProperties brokerProperties = (BrokerProperties)ReflectionUtils.getField(field, testInstance.get());
-		return brokerProperties;
+		String[] properties = getValueHolderProperties(extensionContext);
+		return new BrokerProperties(properties);
+	}
+
+	private static String[] getValueHolderProperties(ExtensionContext extensionContext) {
+		Optional<Method> testInstance = extensionContext.getTestMethod();
+		return testInstance
+			.map(method -> method.getAnnotation(AppBrokerTestProperties.class).value())
+			.orElseGet(() -> new String[]{});
 	}
 
 }

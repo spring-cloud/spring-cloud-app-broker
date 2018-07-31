@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.acceptance.fixtures.cf;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.cloudfoundry.operations.CloudFoundryOperations;
@@ -39,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 @Service
 public class CloudFoundryService {
@@ -162,12 +162,13 @@ public class CloudFoundryService {
 			.block();
 	}
 
-	public void setBrokerAppEnvironment(List<Tuple2<String, String>> properties) {
+	public void setBrokerAppEnvironment(String[] properties) {
 		Flux<Void> catalogPublishers = getCatalogPublishers();
 		Flux<Void> appBrokerCFPublishers = getAppBrokerCFPublishers();
-		Flux<Void> appBrokerApplicationPublishers = Flux.concat(properties
-			.stream()
-			.map(tuple -> setEnvRequest(tuple.getT1(), tuple.getT2()))
+		Flux<Void> appBrokerApplicationPublishers = Flux.concat(Arrays.stream(properties)
+			.filter(property -> property.contains("="))
+			.map(property -> property.split("="))
+			.map(property -> setEnvRequest(property[0], property[1]))
 			.collect(Collectors.toList()));
 
 		Flux.concat(catalogPublishers, appBrokerCFPublishers, appBrokerApplicationPublishers).blockLast();

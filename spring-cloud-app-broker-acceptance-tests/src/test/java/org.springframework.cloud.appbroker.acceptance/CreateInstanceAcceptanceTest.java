@@ -23,23 +23,21 @@ import org.junit.jupiter.api.Test;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.util.Lists.newArrayList;
-import static reactor.util.function.Tuples.of;
 
 class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	private static final String BROKER_SAMPLE_APP_CREATE = "broker-sample-app-create";
 
-	private static final BrokerProperties properties = new BrokerProperties(newArrayList(
-			of("spring.cloud.appbroker.apps[0].name", BROKER_SAMPLE_APP_CREATE),
-			of("spring.cloud.appbroker.apps[0].path", "classpath:demo.jar"),
-			of("spring.cloud.appbroker.apps[0].environment.ENV_VAR_1", "value1"),
-			of("spring.cloud.appbroker.apps[0].environment.ENV_VAR_2", "value2"),
-			of("spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.memory", "2G"),
-			of("spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.count", "2")
-		));
-
 	@Test
+	@AppBrokerTestProperties({
+		"spring.cloud.appbroker.apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
+		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.apps[0].environment.ENV_VAR_1=value1",
+		"spring.cloud.appbroker.apps[0].environment.ENV_VAR_2=value2",
+		"spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.memory=2G",
+		"spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.count=2"
+	})
 	void shouldPushAppWhenCreateServiceCalled() {
 		// when a service instance is created
 		createServiceInstance();

@@ -20,6 +20,7 @@ package org.springframework.cloud.appbroker.service;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.appbroker.event.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
@@ -30,6 +31,7 @@ import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOper
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationResponse;
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
@@ -41,42 +43,109 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
+
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
-	public WorkflowServiceInstanceService(CreateServiceInstanceWorkflow createServiceInstanceWorkflow,
+	private ServiceInstanceStateRepository stateRepository;
+
+	public WorkflowServiceInstanceService(ServiceInstanceStateRepository serviceInstanceStateRepository,
+										  CreateServiceInstanceWorkflow createServiceInstanceWorkflow,
 										  DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow) {
+		this.stateRepository = serviceInstanceStateRepository;
 		this.createServiceInstanceWorkflow = createServiceInstanceWorkflow;
 		this.deleteServiceInstanceWorkflow = deleteServiceInstanceWorkflow;
 	}
 
 	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
-		createServiceInstanceWorkflow.create();
-
-		return Mono.just(CreateServiceInstanceResponse.builder()
-			.build());
+		//TODO add functionality
+		return createServiceInstanceWorkflow.create()
+			.thenReturn(CreateServiceInstanceResponse.builder()
+				.build());
 	}
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		deleteServiceInstanceWorkflow.delete();
-		
-		return Mono.just(DeleteServiceInstanceResponse.builder()
-			.build());
+		//TODO add functionality
+		return deleteServiceInstanceWorkflow.delete()
+			.thenReturn(DeleteServiceInstanceResponse.builder()
+				.build());
 	}
 
 	@Override
 	public Mono<GetLastServiceOperationResponse> getLastOperation(GetLastServiceOperationRequest request) {
-		return Mono.empty();
+		return stateRepository.getState(request.getServiceInstanceId())
+			.map(serviceInstanceState -> GetLastServiceOperationResponse.builder()
+				.operationState(serviceInstanceState.getOperationState())
+				.description(serviceInstanceState.getDescription())
+				.build());
 	}
 
 	@Override
 	public Mono<GetServiceInstanceResponse> getServiceInstance(GetServiceInstanceRequest request) {
+		//TODO add functionality
 		return Mono.empty();
 	}
 
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
+		//TODO add functionality
 		return Mono.empty();
+	}
+
+	@Override
+	public Mono<Void> getBeforeCreateFlow(CreateServiceInstanceRequest request) {
+		return stateRepository.saveState(request.getServiceInstanceId(), OperationState.IN_PROGRESS, "create service instance")
+			.then();
+	}
+
+	@Override
+	public Mono<Void> getAfterCreateFlow(CreateServiceInstanceRequest request,
+										 CreateServiceInstanceResponse response) {
+		return stateRepository.saveState(request.getServiceInstanceId(), OperationState.SUCCEEDED, response.toString())
+			.then();
+	}
+
+	@Override
+	public Mono<Void> getErrorCreateFlow(CreateServiceInstanceRequest request,
+										 Throwable error) {
+		return stateRepository.saveState(request.getServiceInstanceId(), OperationState.FAILED, error.getMessage())
+			.then();
+	}
+
+	@Override
+	public Mono<Void> getBeforeDeleteFlow(DeleteServiceInstanceRequest request) {
+		return stateRepository.saveState(request.getServiceInstanceId(), OperationState.IN_PROGRESS, "delete service instance")
+			.then();
+	}
+
+	@Override
+	public Mono<Void> getAfterDeleteFlow(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
+		return stateRepository.saveState(request.getServiceInstanceId(), OperationState.SUCCEEDED, response.toString())
+			.then();
+	}
+
+	@Override
+	public Mono<Void> getErrorDeleteFlow(DeleteServiceInstanceRequest request, Throwable error) {
+		return stateRepository.saveState(request.getServiceInstanceId(), OperationState.FAILED, error.getMessage())
+			.then();
+	}
+
+	@Override
+	public Mono<Void> getBeforeUpdateFlow(UpdateServiceInstanceRequest request) {
+		return stateRepository.saveState(request.getServiceInstanceId(), OperationState.IN_PROGRESS, "update service instance")
+			.then();
+	}
+
+	@Override
+	public Mono<Void> getAfterUpdateFlow(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
+		return stateRepository.saveState(request.getServiceInstanceId(), OperationState.SUCCEEDED, response.toString())
+			.then();
+	}
+
+	@Override
+	public Mono<Void> getErrorUpdateFlow(UpdateServiceInstanceRequest request, Throwable error) {
+		return stateRepository.saveState(request.getServiceInstanceId(), OperationState.FAILED, error.getMessage())
+			.then();
 	}
 }

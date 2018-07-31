@@ -47,7 +47,6 @@ configure(allprojects) {
 	ext {
 		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
 		reactorVersion = "3.1.8.RELEASE"
-		
 		junitJupiterVersion = "5.2.0"
 		assertjVersion = "3.10.0"
 		mockitoVersion = "2.19.0"

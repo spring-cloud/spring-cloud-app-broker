@@ -23,6 +23,8 @@ import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
+import org.springframework.cloud.appbroker.event.LiteServiceInstanceStateRepository;
+import org.springframework.cloud.appbroker.event.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
@@ -53,6 +55,11 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
+	public ServiceInstanceStateRepository serviceInstanceStateRepository() {
+		return new LiteServiceInstanceStateRepository();
+	}
+
+	@Bean
 	public CreateServiceInstanceWorkflow createServiceInstanceWorkflow(BackingApplications backingApplications,
 																	   BackingAppDeploymentService backingAppDeploymentService) {
 		return new CreateServiceInstanceWorkflow(backingApplications, backingAppDeploymentService);
@@ -65,8 +72,9 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	public WorkflowServiceInstanceService serviceInstanceService(CreateServiceInstanceWorkflow createWorkflow,
+	public WorkflowServiceInstanceService serviceInstanceService(ServiceInstanceStateRepository stateRepository,
+																 CreateServiceInstanceWorkflow createWorkflow,
 																 DeleteServiceInstanceWorkflow deleteWorkflow) {
-		return new WorkflowServiceInstanceService(createWorkflow, deleteWorkflow);
+		return new WorkflowServiceInstanceService(stateRepository,createWorkflow, deleteWorkflow);
 	}
 }

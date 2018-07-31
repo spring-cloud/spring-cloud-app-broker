@@ -19,13 +19,15 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.StringUtils;
-import reactor.core.publisher.Mono;
 
 public class DeployerClient implements ResourceLoaderAware {
 
@@ -49,15 +51,16 @@ public class DeployerClient implements ResourceLoaderAware {
 	}
 
 	Mono<String> deploy(BackingApplication backingApplication) {
-		AppDeploymentRequest appDeploymentRequest = createAppDeploymentRequest(backingApplication);
-		Mono<String> deployedApplicationId = appDeployer.deploy(appDeploymentRequest);
-		deployedApplicationId.block();
+		//TODO remove blocking call
+		appDeployer.deploy(createAppDeploymentRequest(backingApplication))
+			.block();
 		return Mono.just("running");
 	}
 
 	Mono<String> undeploy(BackingApplication backingApplication) {
-		Mono<Void> undeploy = appDeployer.undeploy(backingApplication.getName());
-		undeploy.block();
+		//TODO remove blocking call
+		appDeployer.undeploy(backingApplication.getName())
+			.block();
 		return Mono.just("deleted");
 	}
 

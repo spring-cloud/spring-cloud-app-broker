@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 
@@ -30,7 +32,7 @@ public class CreateServiceInstanceWorkflow {
 		this.deploymentService = deploymentService;
 	}
 
-	public void create() {
-		deploymentService.deploy(backingApps);
+	public Mono<String> create() {
+		return deploymentService.deploy(backingApps);
 	}
 }

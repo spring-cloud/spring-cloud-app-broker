@@ -16,16 +16,15 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
-class BrokerProperties {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-	private String[] properties;
+@Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface AppBrokerTestProperties {
 
-	BrokerProperties(String[] properties) {
-		this.properties = properties;
-	}
-
-	String[] getProperties() {
-		return properties;
-	}
+	String[] value();
 
 }

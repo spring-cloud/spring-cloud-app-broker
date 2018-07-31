@@ -31,7 +31,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import reactor.util.function.Tuple2;
 
 @SpringBootTest(classes = {CloudFoundryClientConfiguration.class, CloudFoundryService.class})
 @ExtendWith(SpringExtension.class)
@@ -60,7 +59,7 @@ class CloudFoundryAcceptanceTest {
 		cleanup();
 	}
 
-	void initializeBroker(List<Tuple2<String, String>> properties) {
+	void initializeBroker(String[] properties) {
 		cleanup();
 
 		cloudFoundryService.pushAppNoStart(SAMPLE_BROKER_APP_NAME, getSampleAppPath());

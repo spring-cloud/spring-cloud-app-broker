@@ -18,28 +18,20 @@ package org.springframework.cloud.appbroker.acceptance;
 
 import java.util.Optional;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.util.Lists.newArrayList;
-import static reactor.util.function.Tuples.of;
 
 class DeleteInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	private static final String BROKER_SAMPLE_APP_DELETE = "broker-sample-app-delete";
 
-	@BeforeEach
-	void setUp() {
-		initializeBroker(newArrayList(
-			of("spring.cloud.appbroker.apps[0].name", BROKER_SAMPLE_APP_DELETE),
-			of("spring.cloud.appbroker.apps[0].path", "classpath:demo.jar")
-			)
-		);
-	}
-
 	@Test
+	@AppBrokerTestProperties({
+		"spring.cloud.appbroker.apps[0].name=" + BROKER_SAMPLE_APP_DELETE,
+		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar"
+	})
 	void shouldDeleteAppsWhenDeleteServiceCalled() {
 		// given a service instance is created
 		createServiceInstance();

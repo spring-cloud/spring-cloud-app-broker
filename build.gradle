@@ -306,11 +306,11 @@ configure(rootProject) {
 }
 
 pmd {
-	ruleSetFiles = files("${project.rootDir}/config/pmdRuleSet.xml")
+	ruleSetFiles = files("${project.rootDir}/ci/config/pmdRuleSet.xml")
 }
 
 pmdTest {
-	ruleSetFiles = files("${project.rootDir}/config/pmdTestRuleSet.xml")
+	ruleSetFiles = files("${project.rootDir}/ci/config/pmdTestRuleSet.xml")
 }
 
 task codeCoverageReport(type: JacocoReport) {

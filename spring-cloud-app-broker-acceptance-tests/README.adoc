@@ -12,14 +12,14 @@
 
 The tests require the following properties to be set:
 
-* `tests.sampleAppPath` - The path to the sample broker jar (eg. /spring-cloud-app-broker-sample/build/libs/spring-cloud-app-broker-sample.jar).
-* `spring.cloud.appbroker.deployer.cloudfoundry.api-host` - The CF API host where the tests are going to run.
-* `spring.cloud.appbroker.deployer.cloudfoundry.api-port` - The CF API port where the tests are going to run.
-* `spring.cloud.appbroker.deployer.cloudfoundry.username` - The CF API username where the tests are going to run.
-* `spring.cloud.appbroker.deployer.cloudfoundry.password` - The CF API password where the tests are going to run.
-* `spring.cloud.appbroker.deployer.cloudfoundry.default-org` - The CF organization where the tests are going to run.
-* `spring.cloud.appbroker.deployer.cloudfoundry.default-space` - The CF space where the tests are going to run.
-* `spring.cloud.appbroker.deployer.cloudfoundry.skip-ssl-validation` - If SSL validation should be skipped.
+* `tests.sampleBrokerAppPath` - The path to the sample broker jar (eg. /spring-cloud-app-broker-sample/build/libs/spring-cloud-app-broker-sample.jar).
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.api-host` - The CF API host where the tests are going to run.
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.api-port` - The CF API port where the tests are going to run.
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.username` - The CF API username where the tests are going to run.
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.password` - The CF API password where the tests are going to run.
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.default-org` - The CF organization where the tests are going to run.
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.default-space` - The CF space where the tests are going to run.
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.skip-ssl-validation` - If SSL validation should be skipped.
 
 These properties can be set with `-D` system properties on the gradle command line.
 
@@ -28,11 +28,11 @@ Also, the flag acceptanceTests must be provided as `-PacceptanceTests`.
 [source,bash]
 ----
 $ ./gradlew test -PacceptanceTests \
- -Dtests.sampleAppPath=/path/to/broker.jar \
- -Dspring.cloud.appbroker.deployer.cloudfoundry.api-host=api.cf.my.cf.io  \
- -Dspring.cloud.appbroker.deployer.cloudfoundry.api-port=443 \
- -Dspring.cloud.appbroker.deployer.cloudfoundry.username=admin \
- -Dspring.cloud.appbroker.deployer.cloudfoundry.password=password \
- -Dspring.cloud.appbroker.deployer.cloudfoundry.default-org=test \
- -Dspring.cloud.appbroker.deployer.cloudfoundry.default-space=development \
- -Dspring.cloud.appbroker.deployer.cloudfoundry.skip-ssl-validation=true
+ -Dtests.sampleBrokerAppPath=/path/to/broker.jar \
+ -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.api-host=api.cf.my.cf.io  \
+ -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.api-port=443 \
+ -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.username=admin \
+ -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.password=password \
+ -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.default-org=test \
+ -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.default-space=development \
+ -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.skip-ssl-validation=true

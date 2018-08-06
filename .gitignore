@@ -12,3 +12,9 @@ target
 bin
 .idea
 out
+.envrc
+bbl-state.json
+director-vars-store.yml
+jumpbox-vars-store.yml
+director-vars-file.yml
+bbl-env.sh

@@ -18,15 +18,19 @@ package org.springframework.cloud.appbroker.acceptance;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
@@ -35,6 +39,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(classes = {CloudFoundryClientConfiguration.class, CloudFoundryService.class})
 @ExtendWith(SpringExtension.class)
 @ExtendWith(BrokerPropertiesParameterResolver.class)
+@EnableConfigurationProperties(AcceptanceTestProperties.class)
 class CloudFoundryAcceptanceTest {
 
 	@BeforeEach
@@ -43,7 +48,7 @@ class CloudFoundryAcceptanceTest {
 	}
 
 	private static final String SAMPLE_BROKER_APP_NAME = "sample-broker";
-	private static final String BROKER_NAME = "sample-broker-name";
+	private static final String SERVICE_BROKER_NAME = "sample-broker-name";
 	private static final String SERVICE_NAME = "example";
 	private static final String PLAN_NAME = "standard";
 	private static final String SERVICE_INSTANCE_NAME = "my-service";
@@ -51,53 +56,68 @@ class CloudFoundryAcceptanceTest {
 	@Autowired
 	private CloudFoundryService cloudFoundryService;
 
-	@Value("${tests.sampleAppPath}")
-	private String sampleAppPath;
+	@Autowired
+	private AcceptanceTestProperties acceptanceTestProperties;
 
 	@AfterEach
 	void tearDown() {
-		cleanup();
+		blockingSubscribe(cleanup());
 	}
 
-	void initializeBroker(String[] properties) {
-		cleanup();
+	void initializeBroker(String[] backingAppProperties) {
 
-		cloudFoundryService.pushAppNoStart(SAMPLE_BROKER_APP_NAME, getSampleAppPath());
-		cloudFoundryService.setBrokerAppEnvironment(properties);
-		cloudFoundryService.startApplication(SAMPLE_BROKER_APP_NAME);
-
-		String backingAppURL = cloudFoundryService.getApplicationRoute(SAMPLE_BROKER_APP_NAME);
-		cloudFoundryService.createServiceBroker(BROKER_NAME, backingAppURL);
-		cloudFoundryService.enableServiceBrokerAccess(SERVICE_NAME);
+		blockingSubscribe(cloudFoundryService
+			.getOrCreateDefaultOrganization()
+			.then(cloudFoundryService.getOrCreateDefaultSpace())
+			.then(cloudFoundryService.pushAppBroker(SAMPLE_BROKER_APP_NAME, getSampleBrokerAppPath(), backingAppProperties))
+			.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, SAMPLE_BROKER_APP_NAME))
+			.then(cloudFoundryService.enableServiceBrokerAccess(SERVICE_NAME)));
 	}
 
-	private void cleanup() {
-		cloudFoundryService.deleteServiceInstance(SERVICE_INSTANCE_NAME);
-		cloudFoundryService.deleteServiceBroker(BROKER_NAME);
-		cloudFoundryService.deleteBackingApp(SAMPLE_BROKER_APP_NAME);
+	private Mono<Void> cleanup() {
+		return cloudFoundryService
+			.deleteServiceInstance(SERVICE_INSTANCE_NAME)
+			.then(cloudFoundryService.deleteServiceBroker(SERVICE_BROKER_NAME))
+			.then(cloudFoundryService.deleteBackingApp(SAMPLE_BROKER_APP_NAME));
 	}
 
 	void createServiceInstance() {
-		cloudFoundryService.createServiceInstance(PLAN_NAME, SERVICE_NAME, SERVICE_INSTANCE_NAME);
+		blockingSubscribe(cloudFoundryService.createServiceInstance(PLAN_NAME, SERVICE_NAME, SERVICE_INSTANCE_NAME));
 	}
 
 	void deleteServiceInstance() {
-		cloudFoundryService.deleteServiceInstance(SERVICE_INSTANCE_NAME);
+		blockingSubscribe(cloudFoundryService.deleteServiceInstance(SERVICE_INSTANCE_NAME));
 	}
 
 	Optional<ApplicationSummary> getApplicationSummaryByName(String appName) {
-		List<ApplicationSummary> applicationsAfterDeletion = cloudFoundryService.getApplications();
-
-		return applicationsAfterDeletion.stream()
+		return cloudFoundryService
+			.getApplications()
+			.flatMapMany(Flux::fromIterable)
 			.filter(applicationSummary -> appName.equals(applicationSummary.getName()))
-			.findFirst();
+			.next()
+			.blockOptional();
 	}
 
 	ApplicationEnvironments getApplicationEnvironmentByName(String appName) {
-		return cloudFoundryService.getApplicationEnvironmentByAppName(appName);
+		return cloudFoundryService.getApplicationEnvironmentByAppName(appName).block();
 	}
 
-	private Path getSampleAppPath() {
-		return Paths.get(sampleAppPath, "");
+	private Path getSampleBrokerAppPath() {
+		return Paths.get(acceptanceTestProperties.getSampleBrokerAppPath(), "");
 	}
+
+	private <T> void blockingSubscribe(Mono<? super T> publisher){
+		CountDownLatch latch = new CountDownLatch(1);
+		publisher.subscribe(System.out::println, t -> {
+			t.printStackTrace();
+			latch.countDown();
+		}, latch::countDown);
+		try {
+			latch.await();
+		}
+		catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 }

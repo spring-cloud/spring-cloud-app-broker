@@ -1,0 +1,13 @@
+admin_password: <%= directorAdminPassword %>
+credhub_admin_client_secret: <%= credhubAdminClientSecret %>
+credhub_ca:
+  certificate: |
+    <%= credhubCA %>
+
+uaa_ssl:
+  certificate: |
+    <%= uaaCert %>
+
+jumpbox_ssh:
+  private_key: |
+    <%= directorJumpboxSshPrivateKey %>

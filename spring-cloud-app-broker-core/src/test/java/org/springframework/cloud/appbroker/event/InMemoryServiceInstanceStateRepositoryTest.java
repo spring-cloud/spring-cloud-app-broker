@@ -16,23 +16,22 @@
 
 package org.springframework.cloud.appbroker.event;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
-class LiteServiceInstanceStateRepositoryTest {
+class InMemoryServiceInstanceStateRepositoryTest {
 
-	private LiteServiceInstanceStateRepository stateRepository;
+	private InMemoryServiceInstanceStateRepository stateRepository;
 
 	@BeforeEach
 	void setUp() {
-		this.stateRepository = new LiteServiceInstanceStateRepository();
+		this.stateRepository = new InMemoryServiceInstanceStateRepository();
 	}
 
 	@Test

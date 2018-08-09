@@ -18,9 +18,10 @@
 
 package org.springframework.cloud.appbroker.service;
 
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.appbroker.event.ServiceInstanceStateRepository;
+import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
@@ -31,16 +32,18 @@ import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOper
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationResponse;
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceResponse;
-import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 /**
  * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects for each service broker
  * operation.
  */
 public class WorkflowServiceInstanceService implements ServiceInstanceService {
+	private final Logger log = Loggers.getLogger(WorkflowServiceInstanceService.class);
 
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
 
@@ -60,8 +63,15 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
 		//TODO add functionality
 		return createServiceInstanceWorkflow.create()
+			.doOnRequest(l -> log.info("Creating service instance {}", request))
+			.doOnSuccess(d -> log.info("Finished creating service instance {}", request))
+			.doOnError(e -> log.info("Error creating service instance {} with error {}", request, e))
 			.thenReturn(CreateServiceInstanceResponse.builder()
-				.build());
+				.async(true)
+				.build())
+			.doOnRequest(l -> log.info("Responding from create service instance {}", request))
+			.doOnSuccess(d -> log.info("Finished responding from create service instance {}", request))
+			.doOnError(e -> log.info("Error responding from create service instance {} with error {}", request, e));
 	}
 
 	@Override
@@ -69,6 +79,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 		//TODO add functionality
 		return deleteServiceInstanceWorkflow.delete()
 			.thenReturn(DeleteServiceInstanceResponse.builder()
+				.async(true)
 				.build());
 	}
 

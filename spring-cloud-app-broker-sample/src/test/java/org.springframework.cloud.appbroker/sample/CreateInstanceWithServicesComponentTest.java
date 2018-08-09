@@ -57,7 +57,7 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 			.when()
 			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
-			.statusCode(HttpStatus.CREATED.value());
+			.statusCode(HttpStatus.ACCEPTED.value());
 
 		// then a backing application is deployed
 		String appsUrl = given(cloudFoundryFixture.request())

@@ -51,7 +51,7 @@ class CreateInstanceWithPropertiesComponentTest extends WiremockComponentTest {
 			.when()
 			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
-			.statusCode(HttpStatus.CREATED.value());
+			.statusCode(HttpStatus.ACCEPTED.value());
 
 		// then a backing application is deployed with the specified properties
 		given(cloudFoundryFixture.request())

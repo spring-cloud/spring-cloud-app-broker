@@ -32,9 +32,9 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceComponent
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME_1,
-	"spring.cloud.appbroker.apps[1].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[1].name=" + APP_NAME_2
+	"spring.cloud.appbroker.apps[0].name=" + APP_NAME_1
+//	"spring.cloud.appbroker.apps[1].path=classpath:demo.jar",
+//	"spring.cloud.appbroker.apps[1].name=" + APP_NAME_2
 })
 class CreateInstanceComponentTest extends WiremockComponentTest {
 	static final String APP_NAME_1 = "first-app";
@@ -53,7 +53,7 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 			.when()
 			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
-			.statusCode(HttpStatus.CREATED.value());
+			.statusCode(HttpStatus.ACCEPTED.value());
 
 		// then a backing application is deployed
 		given(cloudFoundryFixture.request())

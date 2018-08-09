@@ -28,10 +28,14 @@ import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.StringUtils;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 public class DeployerClient implements ResourceLoaderAware {
 
 	private static final String SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES_KEY = "spring.cloud.deployer.cloudfoundry.services";
+
+	private final Logger log = Loggers.getLogger(DeployerClient.class);
 
 	private ReactiveAppDeployer appDeployer;
 	private ResourceLoader resourceLoader;
@@ -51,17 +55,19 @@ public class DeployerClient implements ResourceLoaderAware {
 	}
 
 	Mono<String> deploy(BackingApplication backingApplication) {
-		//TODO remove blocking call
-		appDeployer.deploy(createAppDeploymentRequest(backingApplication))
-			.block();
-		return Mono.just("running");
+		return appDeployer.deploy(createAppDeploymentRequest(backingApplication))
+			.doOnRequest(l -> log.info("Deploying application {}", backingApplication.getName()))
+			.doOnSuccess(d -> log.info("Finished deploying application {}", backingApplication.getName()))
+			.doOnError(e -> log.info("Error deploying application {} with error {}", backingApplication.getName(), e))
+			.then(Mono.just("running"))
+			.doOnRequest(l -> log.info("Mocking return from deploying application {}", backingApplication.getName()))
+			.doOnSuccess(d -> log.info("Finished mocking return from deploying application {}", backingApplication.getName()))
+			.doOnError(e -> log.info("Error when returning from deploying application {} with error {}", backingApplication.getName(), e));
 	}
 
 	Mono<String> undeploy(BackingApplication backingApplication) {
-		//TODO remove blocking call
-		appDeployer.undeploy(backingApplication.getName())
-			.block();
-		return Mono.just("deleted");
+		return appDeployer.undeploy(backingApplication.getName())
+			.then(Mono.just("deleted"));
 	}
 
 	private AppDeploymentRequest createAppDeploymentRequest(BackingApplication backingApplication) {

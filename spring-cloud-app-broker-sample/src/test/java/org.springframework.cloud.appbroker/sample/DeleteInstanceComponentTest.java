@@ -49,7 +49,7 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 			.when()
 			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
-			.statusCode(HttpStatus.CREATED.value());
+			.statusCode(HttpStatus.ACCEPTED.value());
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())

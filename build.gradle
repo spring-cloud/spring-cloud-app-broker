@@ -23,6 +23,7 @@ buildscript {
 		classpath("io.spring.gradle:dependency-management-plugin:1.0.5.RELEASE")
 		classpath("io.spring.gradle:spring-io-plugin:0.0.8.RELEASE")
 		classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.5.3")
+		classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.7.5")
 	}
 }
 
@@ -40,6 +41,8 @@ configure(allprojects) {
 	apply plugin: "propdeps-idea"
 	apply plugin: "propdeps-eclipse"
 	apply plugin: "io.spring.dependency-management"
+	apply plugin: 'maven-publish'
+	apply plugin: "com.jfrog.artifactory"
 
 	ext {
 		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
@@ -152,6 +155,20 @@ configure(allprojects) {
 			}
 		}
 	}
+
+	artifactory {
+		contextUrl = 'https://repo.spring.io'
+		publish {
+			repository {
+				repoKey = 'libs-snapshot-local'
+				username = System.getenv()['USERNAME']
+				password = System.getenv()['PASSWORD']
+			}
+			defaults {
+				publications ('mavenJava')
+			}
+		}
+	}
 }
 
 subprojects { subproject ->
@@ -162,6 +179,13 @@ subprojects { subproject ->
 				"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
 		manifest.attributes["Implementation-Title"] = subproject.name
 		manifest.attributes["Implementation-Version"] = subproject.version
+
+		from("${rootProject.projectDir}/src/dist") {
+			include "license.txt"
+			include "notice.txt"
+			into "META-INF"
+			expand(copyright: new Date().format("yyyy"), version: subproject.version)
+		}
 	}
 
 	javadoc {
@@ -188,6 +212,17 @@ subprojects { subproject ->
 	artifacts {
 		archives sourcesJar
 		archives javadocJar
+	}
+
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				from components.java
+
+				artifact sourcesJar
+				artifact javadocJar
+			}
+		}
 	}
 
 	configurations {
@@ -305,5 +340,5 @@ codeCoverageReport.dependsOn {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = "4.7"
+	gradleVersion = "4.9"
 }

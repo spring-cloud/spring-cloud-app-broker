@@ -33,4 +33,8 @@ public interface ServiceInstanceStateRepository {
 		return Mono.empty();
 	}
 
+	default Mono<ServiceInstanceState> removeState(String serviceInstanceId) {
+		return Mono.empty();
+	}
+
 }

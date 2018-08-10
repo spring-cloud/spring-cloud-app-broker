@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -31,6 +32,8 @@ import org.springframework.cloud.servicebroker.model.instance.CreateServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -55,7 +58,7 @@ class WorkflowServiceInstanceServiceTest {
 	}
 
 	@Test
-	void shouldCreateServiceInstance() {
+	void createServiceInstance() {
 		given(createServiceInstanceWorkflow.create())
 			.willReturn(Mono.empty());
 
@@ -64,14 +67,16 @@ class WorkflowServiceInstanceServiceTest {
 			.build()))
 			.consumeNextWith(createServiceInstanceResponse -> {
 				verify(createServiceInstanceWorkflow).create();
+				verify(serviceInstanceStateRepository)
+					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), contains("create"));
 				assertThat(createServiceInstanceResponse).isNotNull();
-				assertThat(createServiceInstanceResponse.isAsync()).isFalse();
+				assertThat(createServiceInstanceResponse.isAsync()).isTrue();
 			})
 			.verifyComplete();
 	}
 
 	@Test
-	void shouldDeleteServiceInstance() {
+	void deleteServiceInstance() {
 		given(deleteServiceInstanceWorkflow.delete())
 			.willReturn(Mono.empty());
 
@@ -80,8 +85,10 @@ class WorkflowServiceInstanceServiceTest {
 			.build()))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
 				verify(deleteServiceInstanceWorkflow).delete();
+				verify(serviceInstanceStateRepository)
+					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), contains("delete"));
 				assertThat(deleteServiceInstanceResponse).isNotNull();
-				assertThat(deleteServiceInstanceResponse.isAsync()).isFalse();
+				assertThat(deleteServiceInstanceResponse.isAsync()).isTrue();
 			})
 			.verifyComplete();
 	}

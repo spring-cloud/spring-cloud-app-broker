@@ -37,18 +37,52 @@ class InMemoryServiceInstanceStateRepositoryTest {
 	@Test
 	void saveAndGet() {
 		StepVerifier.create(stateRepository.saveState("foo", OperationState.IN_PROGRESS, "bar"))
-			.consumeNextWith(serviceInstanceState -> {
+			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 			})
 			.verifyComplete();
 
 		StepVerifier.create(stateRepository.getState("foo"))
-			.consumeNextWith(serviceInstanceState -> {
+			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 			})
 			.verifyComplete();
 	}
 
+	@Test
+	void saveAndRemove() {
+		StepVerifier.create(stateRepository.saveState("foo", OperationState.IN_PROGRESS, "bar"))
+			.assertNext(serviceInstanceState -> {
+				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
+				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+			})
+			.verifyComplete();
+
+		StepVerifier.create(stateRepository.removeState("foo"))
+			.assertNext(serviceInstanceState -> {
+				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
+				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+			})
+			.verifyComplete();
+
+		StepVerifier.create(stateRepository.getState("foo"))
+			.expectError(IllegalArgumentException.class)
+			.verify();
+	}
+
+	@Test
+	void getWithUnknownServiceInstanceId() {
+		StepVerifier.create(stateRepository.getState("foo"))
+			.expectError(IllegalArgumentException.class)
+			.verify();
+	}
+
+	@Test
+	void removeWithUnknownServiceInstanceId() {
+		StepVerifier.create(stateRepository.removeState("foo"))
+			.expectError(IllegalArgumentException.class)
+			.verify();
+	}
 }

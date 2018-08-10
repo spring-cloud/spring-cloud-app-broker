@@ -29,12 +29,26 @@ public class InMemoryServiceInstanceStateRepository implements ServiceInstanceSt
 
 	@Override
 	public Mono<ServiceInstanceState> saveState(String serviceInstanceId, OperationState state, String description) {
-		return Mono.just(new ServiceInstanceState(state, description))
-			.doOnNext(s -> this.states.put(serviceInstanceId, s));
+		ServiceInstanceState s = new ServiceInstanceState(state, description);
+		this.states.put(serviceInstanceId, s);
+		return Mono.just(s);
 	}
 
 	@Override
 	public Mono<ServiceInstanceState> getState(String serviceInstanceId) {
-		return Mono.just(this.states.get(serviceInstanceId));
+		return containsState(serviceInstanceId) ?
+			Mono.just(this.states.get(serviceInstanceId)) :
+			Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
+	}
+
+	@Override
+	public Mono<ServiceInstanceState> removeState(String serviceInstanceId) {
+		return containsState(serviceInstanceId) ?
+			Mono.just(this.states.remove(serviceInstanceId)) :
+			Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
+	}
+
+	private boolean containsState(String serviceInstanceId) {
+		return this.states.containsKey(serviceInstanceId);
 	}
 }

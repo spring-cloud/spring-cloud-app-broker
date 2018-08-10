@@ -42,6 +42,10 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 		return "/service_instances/{instance_id}";
 	}
 
+	public String getLastInstanceOperationUrl() {
+		return "/service_instances/{instance_id}/last_operation";
+	}
+
 	public String deleteServiceInstanceUrl() {
 		return "/service_instances/{instance_id}" +
 			"?service_id=" + serviceDefinitionId +

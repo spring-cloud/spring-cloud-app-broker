@@ -20,11 +20,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.APP_NAME_1;
@@ -54,6 +56,14 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
 			.statusCode(HttpStatus.ACCEPTED.value());
+
+		// when the "last_operation" API is polled
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.body("state", is(equalTo(OperationState.SUCCEEDED.toString())));
 
 		// then a backing application is deployed
 		given(cloudFoundryFixture.request())

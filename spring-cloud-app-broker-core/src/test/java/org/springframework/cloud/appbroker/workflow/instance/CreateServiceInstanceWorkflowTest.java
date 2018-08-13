@@ -20,11 +20,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +38,9 @@ class CreateServiceInstanceWorkflowTest {
 
 	@Test
 	void shouldCreateServiceInstance() {
+		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
+			.willReturn(Mono.just("hello"));
+
 		// given that properties contains app details
 		BackingApplications backingApps = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()

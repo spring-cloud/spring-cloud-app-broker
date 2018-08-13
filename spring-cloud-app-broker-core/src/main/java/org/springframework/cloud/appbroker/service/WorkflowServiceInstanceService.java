@@ -18,13 +18,15 @@
 
 package org.springframework.cloud.appbroker.service;
 
-import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
-import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
@@ -33,11 +35,10 @@ import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOper
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationResponse;
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
-import reactor.util.Logger;
-import reactor.util.Loggers;
 
 /**
  * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects for each service broker
@@ -62,13 +63,29 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
-		//TODO add functionality
-		return createServiceInstanceWorkflow.create()
+//		return create(request)
+//			.thenReturn(CreateServiceInstanceResponse.builder()
+//				.async(true)
+//				.build());
+//			.doOnRequest(l -> log.info("Responding from create service instance {}", request))
+//			.doOnSuccess(d -> log.info("Finished responding from create service instance {}", request))
+//			.doOnError(e -> log.info("Error responding from create service instance {} with error {}", request, e));
+
+		return Mono.just(CreateServiceInstanceResponse.builder()
+			.async(true)
+			.build())
+			.publishOn(Schedulers.parallel())
+			.doOnNext(response -> create(request));
+
+	}
+
+	private Mono<String> create(CreateServiceInstanceRequest request) {
+		return stateRepository.saveState(request.getServiceInstanceId(),
+			OperationState.IN_PROGRESS,
+			"create service instance started")
+			.then(createServiceInstanceWorkflow.create())
 			.doOnRequest(l -> {
 				log.info("Creating service instance {}", request);
-				stateRepository.saveState(request.getServiceInstanceId(),
-					OperationState.IN_PROGRESS,
-					"create service instance started");
 			})
 			.doOnSuccess(d -> {
 				log.info("Finished creating service instance {}", request);
@@ -81,13 +98,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 				stateRepository.saveState(request.getServiceInstanceId(),
 					OperationState.FAILED,
 					e.getMessage());
-			})
-			.thenReturn(CreateServiceInstanceResponse.builder()
-				.async(true)
-				.build())
-			.doOnRequest(l -> log.info("Responding from create service instance {}", request))
-			.doOnSuccess(d -> log.info("Finished responding from create service instance {}", request))
-			.doOnError(e -> log.info("Error responding from create service instance {} with error {}", request, e));
+			});
 	}
 
 	@Override

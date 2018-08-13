@@ -16,27 +16,19 @@
 
 description = "Spring Cloud App Broker Deployer"
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework:spring-framework-bom:${springVersion}"
-	}
-}
-
 ext {
 	deployerVersion = '1.3.3.RELEASE'
 }
 
 dependencies {
 	api("org.springframework.cloud:spring-cloud-deployer-spi:${deployerVersion}")
-	constraints {
-		// fix the Boot version to prevent 1.5.x and 2.0.x on the classpath
-		implementation("org.springframework.boot:spring-boot-starter-validation:${springBootVersion}")
-	}
+	// fix the Boot version to prevent 1.5.x and 2.0.x on the classpath
+	implementation("org.springframework.boot:spring-boot-starter-validation:${springBootVersion}")
 	api("io.projectreactor:reactor-core:${reactorVersion}")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
 
-	testImplementation("org.springframework:spring-test")
+	testImplementation("org.springframework:spring-test:${springVersion}")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")

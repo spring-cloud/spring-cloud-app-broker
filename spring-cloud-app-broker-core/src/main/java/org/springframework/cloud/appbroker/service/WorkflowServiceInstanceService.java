@@ -63,29 +63,20 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
-//		return create(request)
-//			.thenReturn(CreateServiceInstanceResponse.builder()
-//				.async(true)
-//				.build());
-//			.doOnRequest(l -> log.info("Responding from create service instance {}", request))
-//			.doOnSuccess(d -> log.info("Finished responding from create service instance {}", request))
-//			.doOnError(e -> log.info("Error responding from create service instance {} with error {}", request, e));
-
 		return Mono.just(CreateServiceInstanceResponse.builder()
 			.async(true)
 			.build())
 			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> create(request));
-
+			.doOnNext(response -> create(request).subscribe());
 	}
 
-	private Mono<String> create(CreateServiceInstanceRequest request) {
-		return stateRepository.saveState(request.getServiceInstanceId(),
-			OperationState.IN_PROGRESS,
-			"create service instance started")
-			.then(createServiceInstanceWorkflow.create())
+	private Mono<Void> create(CreateServiceInstanceRequest request) {
+		return createServiceInstanceWorkflow.create()
 			.doOnRequest(l -> {
 				log.info("Creating service instance {}", request);
+				stateRepository.saveState(request.getServiceInstanceId(),
+					OperationState.IN_PROGRESS,
+					"create service instance started");
 			})
 			.doOnSuccess(d -> {
 				log.info("Finished creating service instance {}", request);
@@ -98,7 +89,8 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 				stateRepository.saveState(request.getServiceInstanceId(),
 					OperationState.FAILED,
 					e.getMessage());
-			});
+			})
+			.then();
 	}
 
 	@Override

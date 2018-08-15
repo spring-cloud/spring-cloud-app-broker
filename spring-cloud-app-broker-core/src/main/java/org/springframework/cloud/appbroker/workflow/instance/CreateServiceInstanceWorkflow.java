@@ -16,10 +16,15 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 public class CreateServiceInstanceWorkflow {
+	private final Logger log = Loggers.getLogger(CreateServiceInstanceWorkflow.class);
 
 	private BackingApplications backingApps;
 	private BackingAppDeploymentService deploymentService;
@@ -30,7 +35,10 @@ public class CreateServiceInstanceWorkflow {
 		this.deploymentService = deploymentService;
 	}
 
-	public void create() {
-		deploymentService.deploy(backingApps);
+	public Mono<String> create() {
+		return deploymentService.deploy(backingApps)
+			.doOnRequest(l -> log.info("Deploying applications {}", backingApps))
+			.doOnSuccess(d -> log.info("Finished deploying applications {}", backingApps))
+			.doOnError(e -> log.info("Error deploying applications {} with error {}", backingApps, e));
 	}
 }

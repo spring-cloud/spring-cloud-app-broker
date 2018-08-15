@@ -18,7 +18,13 @@ package org.springframework.cloud.appbroker.deployer;
 
 import java.util.stream.Collectors;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.Logger;
+import reactor.util.Loggers;
+
 public class BackingAppDeploymentService {
+	private final Logger log = Loggers.getLogger(BackingAppDeploymentService.class);
 
 	private final DeployerClient deployerClient;
 
@@ -26,15 +32,18 @@ public class BackingAppDeploymentService {
 		this.deployerClient = deployerClient;
 	}
 
-	public String deploy(BackingApplications backingApps) {
-		return backingApps.stream()
-			.map(backingApp -> deployerClient.deploy(backingApp).block())
+	public Mono<String> deploy(BackingApplications backingApps) {
+		return Flux.fromIterable(backingApps)
+			.flatMap(deployerClient::deploy)
+			.doOnRequest(l -> log.info("Deploying applications {}", backingApps))
+			.doOnEach(d -> log.info("Finished deploying applications {}", backingApps))
+			.doOnError(e -> log.info("Error deploying applications {} with error {}", backingApps, e))
 			.collect(Collectors.joining(","));
 	}
 
-	public String undeploy(BackingApplications backingApps) {
-		return backingApps.stream()
-			.map(backingApp -> deployerClient.undeploy(backingApp).block())
+	public Mono<String> undeploy(BackingApplications backingApps) {
+		return Flux.fromIterable(backingApps)
+			.flatMap(deployerClient::undeploy)
 			.collect(Collectors.joining(","));
 	}
 }

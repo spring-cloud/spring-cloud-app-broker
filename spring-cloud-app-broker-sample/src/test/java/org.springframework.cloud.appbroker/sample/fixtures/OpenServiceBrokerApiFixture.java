@@ -21,8 +21,13 @@ import io.restassured.specification.RequestSpecification;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.test.context.TestComponent;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.context.ApplicationListener;
+import org.springframework.http.HttpStatus;
 
+import java.util.concurrent.TimeUnit;
+
+import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 
 @TestComponent
@@ -40,6 +45,10 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 
 	public String createServiceInstanceUrl() {
 		return "/service_instances/{instance_id}";
+	}
+
+	public String getLastInstanceOperationUrl() {
+		return "/service_instances/{instance_id}/last_operation";
 	}
 
 	public String deleteServiceInstanceUrl() {
@@ -67,6 +76,24 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 			"  \"organization_guid\": \"" + ORG_ID + "\",\n" +
 			"  \"space_guid\": \"" + SPACE_ID + "\"\n" +
 			"}\n";
+	}
+
+	public String waitForAsyncOperationComplete(String serviceInstanceId) {
+		try {
+			String state;
+			do {
+				Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+				state = given(serviceInstanceRequest())
+					.when()
+					.get(getLastInstanceOperationUrl(), serviceInstanceId)
+					.then()
+					.statusCode(HttpStatus.OK.value())
+					.extract().body().jsonPath().getString("state");
+			} while (state.equals(OperationState.IN_PROGRESS.toString()));
+			return state;
+		} catch (InterruptedException ie) {
+			throw new RuntimeException(ie);
+		}
 	}
 
 	@Override

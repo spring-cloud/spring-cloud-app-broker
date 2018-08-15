@@ -20,21 +20,23 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.APP_NAME_1;
-import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.APP_NAME_2;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME_1,
-	"spring.cloud.appbroker.apps[1].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[1].name=" + APP_NAME_2
+	"spring.cloud.appbroker.apps[0].name=" + APP_NAME_1
+//	"spring.cloud.appbroker.apps[1].path=classpath:demo.jar",
+//	"spring.cloud.appbroker.apps[1].name=" + APP_NAME_2
 })
 class CreateInstanceComponentTest extends WiremockComponentTest {
 	static final String APP_NAME_1 = "first-app";
@@ -53,7 +55,18 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 			.when()
 			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
-			.statusCode(HttpStatus.CREATED.value());
+			.statusCode(HttpStatus.ACCEPTED.value());
+
+		// when the "last_operation" API is polled
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
+
+		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
 
 		// then a backing application is deployed
 		given(cloudFoundryFixture.request())
@@ -71,4 +84,5 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 			.statusCode(HttpStatus.OK.value())
 			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME_2)));
 	}
+
 }

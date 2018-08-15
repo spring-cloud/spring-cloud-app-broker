@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow.instance;
+package org.springframework.cloud.appbroker.state;
 
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
-public class DeleteServiceInstanceWorkflow {
-	private BackingApplications backingApps;
-	private BackingAppDeploymentService deploymentService;
+/**
+ * @author Roy Clarkson
+ */
+public interface ServiceInstanceStateRepository {
 
-	public DeleteServiceInstanceWorkflow(BackingApplications backingApps,
-										 BackingAppDeploymentService deploymentService) {
-		this.backingApps = backingApps;
-		this.deploymentService = deploymentService;
+	default Mono<ServiceInstanceState> saveState(String serviceInstanceId, OperationState state, String description) {
+		return Mono.empty();
 	}
 
-	public Mono<String> delete() {
-		return deploymentService.undeploy(backingApps);
+	default Mono<ServiceInstanceState> getState(String serviceInstanceId) {
+		return Mono.empty();
 	}
+
+	default Mono<ServiceInstanceState> removeState(String serviceInstanceId) {
+		return Mono.empty();
+	}
+
 }

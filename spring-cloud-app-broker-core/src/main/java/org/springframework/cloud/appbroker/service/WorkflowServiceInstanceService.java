@@ -67,48 +67,49 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			.async(true)
 			.build())
 			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> create(request).subscribe());
+			.doOnNext(response -> create(request)
+				.subscribe());
 	}
 
 	private Mono<Void> create(CreateServiceInstanceRequest request) {
-		return createServiceInstanceWorkflow.create()
-			.doOnRequest(l -> {
-				log.info("Creating service instance {}", request);
-				stateRepository.saveState(request.getServiceInstanceId(),
-					OperationState.IN_PROGRESS,
-					"create service instance started");
-			})
-			.doOnSuccess(d -> {
-				log.info("Finished creating service instance {}", request);
-				stateRepository.saveState(request.getServiceInstanceId(),
-					OperationState.SUCCEEDED,
-					"create service instance completed");
-			})
-			.doOnError(e -> {
-				log.info("Error creating service instance {} with error {}", request, e);
-				stateRepository.saveState(request.getServiceInstanceId(),
-					OperationState.FAILED,
-					e.getMessage());
-			})
-			.then();
+		return stateRepository.saveState(request.getServiceInstanceId(),
+			OperationState.IN_PROGRESS,
+			"create service instance started")
+			.then(createServiceInstanceWorkflow.create()
+				.doOnRequest(l -> log.info("Creating service instance {}", request))
+				.doOnSuccess(d -> log.info("Finished creating service instance {}", request))
+				.doOnError(e -> log.info("Error creating service instance {} with error {}", request, e)))
+			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.SUCCEEDED, "create service instance completed")
+				.then())
+			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.FAILED, e.getMessage())
+				.then());
 	}
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		//TODO add functionality
-		return deleteServiceInstanceWorkflow.delete()
-			.doOnRequest(l -> stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.IN_PROGRESS,
-				"delete service instance started"))
-			.doOnSuccess(d -> stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.SUCCEEDED,
-				"delete service instance completed"))
-			.doOnError(e -> stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.FAILED,
-				e.getMessage()))
-			.thenReturn(DeleteServiceInstanceResponse.builder()
-				.async(true)
-				.build());
+		return Mono.just(DeleteServiceInstanceResponse.builder()
+			.async(true)
+			.build())
+			.publishOn(Schedulers.parallel())
+			.doOnNext(response -> delete(request)
+				.subscribe());
+	}
+
+	private Mono<Void> delete(DeleteServiceInstanceRequest request) {
+		return stateRepository.saveState(request.getServiceInstanceId(),
+			OperationState.IN_PROGRESS, "delete service instance started")
+			.then(deleteServiceInstanceWorkflow.delete()
+				.doOnRequest(l -> log.info("Deleting service instance {}", request))
+				.doOnSuccess(d -> log.info("Finished deleting service instance {}", request))
+				.doOnError(e -> log.info("Error deleting service instance {} with error {}", request, e)))
+			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.SUCCEEDED, "delete service instance completed")
+				.then())
+			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.FAILED, e.getMessage())
+				.then());
 	}
 
 	@Override

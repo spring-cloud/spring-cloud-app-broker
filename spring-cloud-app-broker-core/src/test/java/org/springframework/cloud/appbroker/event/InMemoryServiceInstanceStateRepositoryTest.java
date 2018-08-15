@@ -18,9 +18,9 @@ package org.springframework.cloud.appbroker.event;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import reactor.test.StepVerifier;
 
+import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
 import static org.assertj.core.api.Assertions.assertThat;

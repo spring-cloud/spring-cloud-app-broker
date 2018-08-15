@@ -77,7 +77,10 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
 			.then()
 			.statusCode(HttpStatus.OK.value())
-			.body("state", is(equalTo(OperationState.SUCCEEDED.toString())));
+			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
+
+		state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
 
 		// then the backing application is deleted
 		given(cloudFoundryFixture.request())

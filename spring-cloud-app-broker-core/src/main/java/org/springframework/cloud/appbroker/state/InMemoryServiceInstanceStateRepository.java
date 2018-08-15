@@ -29,26 +29,38 @@ public class InMemoryServiceInstanceStateRepository implements ServiceInstanceSt
 
 	@Override
 	public Mono<ServiceInstanceState> saveState(String serviceInstanceId, OperationState state, String description) {
-		ServiceInstanceState s = new ServiceInstanceState(state, description);
-		this.states.put(serviceInstanceId, s);
-		return Mono.just(s);
+		return Mono.just(new ServiceInstanceState(state, description))
+			.flatMap(serviceInstanceState -> Mono.fromCallable(() -> this.states.put(serviceInstanceId, serviceInstanceState))
+				.thenReturn(serviceInstanceState));
 	}
 
 	@Override
 	public Mono<ServiceInstanceState> getState(String serviceInstanceId) {
-		return containsState(serviceInstanceId) ?
-			Mono.just(this.states.get(serviceInstanceId)) :
-			Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
+		return containsState(serviceInstanceId)
+			.flatMap(contains -> Mono.defer(() -> {
+				if (contains) {
+					return Mono.fromCallable(() -> this.states.get(serviceInstanceId));
+				}
+				else {
+					return Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
+				}
+			}));
 	}
 
 	@Override
 	public Mono<ServiceInstanceState> removeState(String serviceInstanceId) {
-		return containsState(serviceInstanceId) ?
-			Mono.just(this.states.remove(serviceInstanceId)) :
-			Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
+		return containsState(serviceInstanceId)
+			.flatMap(contains -> Mono.defer(() -> {
+				if (contains) {
+					return Mono.fromCallable(() -> this.states.remove(serviceInstanceId));
+				}
+				else {
+					return Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
+				}
+			}));
 	}
 
-	private boolean containsState(String serviceInstanceId) {
-		return this.states.containsKey(serviceInstanceId);
+	private Mono<Boolean> containsState(String serviceInstanceId) {
+		return Mono.fromCallable(() -> this.states.containsKey(serviceInstanceId));
 	}
 }

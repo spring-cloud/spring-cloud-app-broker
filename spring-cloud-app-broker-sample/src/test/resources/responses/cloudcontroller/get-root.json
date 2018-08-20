@@ -1,0 +1,42 @@
+{
+	"links": {
+		"self": {
+			"href": "http://localhost"
+		},
+		"cloud_controller_v2": {
+			"href": "http://localhost",
+			"meta": {
+				"version": "2.103.0"
+			}
+		},
+		"cloud_controller_v3": {
+			"href": "http://localhost",
+			"meta": {
+				"version": "3.38.0"
+			}
+		},
+		"network_policy_v0": {
+			"href": "http://localhost"
+		},
+		"network_policy_v1": {
+			"href": "http://localhost"
+		},
+		"uaa": {
+			"href": "http://localhost"
+		},
+		"credhub": null,
+		"routing": {
+			"href": "http://localhost"
+		},
+		"logging": {
+			"href": "wss://localhost"
+		},
+		"app_ssh": {
+			"href": "localhost",
+			"meta": {
+				"host_key_fingerprint": "8c:db:69:39:90:e1:93:6a:f8:56:e9:a7:68:fc:52:d2",
+				"oauth_client": "ssh-proxy"
+			}
+		}
+	}
+}

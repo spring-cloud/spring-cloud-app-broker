@@ -1,0 +1,24 @@
+{
+	"0": {
+		"state": "RUNNING",
+		"isolation_segment": null,
+		"stats": {
+			"name": "@name",
+			"uris": [
+				"@name.apps.example.com"
+			],
+			"host": "192.168.1.107",
+			"port": 61008,
+			"uptime": 183684,
+			"mem_quota": 1073741824,
+			"disk_quota": 1073741824,
+			"fds_quota": 16384,
+			"usage": {
+				"time": "2018-08-17T22:36:11+00:00",
+				"cpu": 0.0025520205697755153,
+				"mem": 338087936,
+				"disk": 147185664
+			}
+		}
+	}
+}

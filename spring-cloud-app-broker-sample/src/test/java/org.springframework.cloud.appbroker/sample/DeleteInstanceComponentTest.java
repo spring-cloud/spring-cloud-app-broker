@@ -18,7 +18,7 @@ package org.springframework.cloud.appbroker.sample;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
+import org.springframework.cloud.appbroker.sample.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
@@ -29,40 +29,35 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.sample.DeleteInstanceComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.sample.DeleteInstanceComponentTest.APP_NAME_1;
+import static org.springframework.cloud.appbroker.sample.DeleteInstanceComponentTest.APP_NAME_2;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.apps[0].name=" + APP_NAME_1,
+	"spring.cloud.appbroker.apps[1].path=classpath:demo.jar",
+	"spring.cloud.appbroker.apps[1].name=" + APP_NAME_2
 })
 class DeleteInstanceComponentTest extends WiremockComponentTest {
-	static final String APP_NAME = "helloworldapp";
+	static final String APP_NAME_1 = "first-app";
+	static final String APP_NAME_2 = "second-app";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
 
 	@Autowired
-	private CloudFoundryApiFixture cloudFoundryFixture;
+	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
 	void shouldDeleteAppsWhenDeleteServiceEndpointCalled() {
-		// when a service instance is created
-		given(brokerFixture.serviceInstanceRequest())
-			.when()
-			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
-			.then()
-			.statusCode(HttpStatus.ACCEPTED.value());
+		cloudControllerFixture.stubAppExists(APP_NAME_1);
+		cloudControllerFixture.stubAppExists(APP_NAME_2);
 
-		// when the "last_operation" API is polled
-		given(brokerFixture.serviceInstanceRequest())
-			.when()
-			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
-			.then()
-			.statusCode(HttpStatus.OK.value())
-			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
+		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME_1);
+		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME_2);
 
-		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
-		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
+		cloudControllerFixture.stubDeleteApp(APP_NAME_1);
+		cloudControllerFixture.stubDeleteApp(APP_NAME_2);
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())
@@ -79,16 +74,8 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 			.statusCode(HttpStatus.OK.value())
 			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
 
-		state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
-
-		// then the backing application is deleted
-		given(cloudFoundryFixture.request())
-			.when()
-			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME))
-			.then()
-			.statusCode(HttpStatus.OK.value())
-			.body("resources.size", is(equalTo(0)));
 	}
 
 }

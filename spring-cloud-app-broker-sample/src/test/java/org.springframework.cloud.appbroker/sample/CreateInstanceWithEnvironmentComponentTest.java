@@ -16,19 +16,18 @@
 
 package org.springframework.cloud.appbroker.sample;
 
-import io.restassured.path.json.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
+import org.springframework.cloud.appbroker.sample.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceWithEnvironmentComponentTest.APP_NAME;
 
@@ -45,10 +44,15 @@ class CreateInstanceWithEnvironmentComponentTest extends WiremockComponentTest {
 	private OpenServiceBrokerApiFixture brokerFixture;
 
 	@Autowired
-	private CloudFoundryApiFixture cloudFoundryFixture;
+	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
 	void shouldPushAppWithEnvironmentWhenCreateServiceEndpointCalled() {
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
+		cloudControllerFixture.stubPushApp(APP_NAME,
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*ENV_VAR_1.*:.*value1.*/)]"),
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*ENV_VAR_2.*:.*true.*/)]"));
+
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
@@ -66,26 +70,5 @@ class CreateInstanceWithEnvironmentComponentTest extends WiremockComponentTest {
 
 		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
-
-		// then a backing application is deployed
-		String appsUrl = given(cloudFoundryFixture.request())
-			.when()
-			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME))
-			.then()
-			.statusCode(HttpStatus.OK.value())
-			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME)))
-			.extract().body().jsonPath().getString("resources[0].metadata.url");
-
-		// and the backing application has the services bound to it
-		String springAppJson = given(cloudFoundryFixture.request())
-			.when()
-			.get(appsUrl + "/env")
-			.then()
-			.statusCode(HttpStatus.OK.value())
-			.extract().body().jsonPath().getString("environment_json.SPRING_APPLICATION_JSON");
-
-		assertThat(JsonPath.given(springAppJson).getString("ENV_VAR_1")).isEqualTo("value1");
-		assertThat(JsonPath.given(springAppJson).getBoolean("ENV_VAR_2")).isEqualTo(true);
 	}
-
 }

@@ -18,12 +18,12 @@ package org.springframework.cloud.appbroker.sample;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
+import org.springframework.cloud.appbroker.sample.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
+import org.springframework.cloud.appbroker.sample.fixtures.UaaStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.WiremockServerFixture;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -35,7 +35,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 	classes = {AppBrokerSampleApplication.class,
 		WiremockServerFixture.class,
 		OpenServiceBrokerApiFixture.class,
-		CloudFoundryApiFixture.class},
+		CloudControllerStubFixture.class,
+		UaaStubFixture.class},
 	properties = {
 		"spring.cloud.appbroker.deployer.cloudfoundry.api-host=localhost",
 		"spring.cloud.appbroker.deployer.cloudfoundry.api-port=8080",
@@ -49,24 +50,28 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ActiveProfiles("openservicebroker-catalog")
 @DirtiesContext
 class WiremockComponentTest {
+
 	@Autowired
 	private WiremockServerFixture wiremockFixture;
 
 	@Autowired
-	private CloudFoundryApiFixture cloudFoundryFixture;
+	private CloudControllerStubFixture cloudFoundryFixture;
+
+	@Autowired
+	private UaaStubFixture uaaFixture;
 
 	@BeforeEach
-	void setUp(TestInfo testInfo) {
-		wiremockFixture.startWiremock(getTestMappings(testInfo));
-		cloudFoundryFixture.init();
+	void setUp() {
+		wiremockFixture.startWiremock();
+
+		uaaFixture.stubCommonUaaRequests();
+		cloudFoundryFixture.stubCommonCloudControllerRequests();
 	}
 
 	@AfterEach
 	void tearDown() {
-		wiremockFixture.stopWiremock();
-	}
+		wiremockFixture.verifyAllRequiredStubsUsed();
 
-	private static String getTestMappings(TestInfo testInfo) {
-		return "src/test/resources/recordings/" + testInfo.getDisplayName().replace("()", "") + "/";
+		wiremockFixture.stopWiremock();
 	}
 }

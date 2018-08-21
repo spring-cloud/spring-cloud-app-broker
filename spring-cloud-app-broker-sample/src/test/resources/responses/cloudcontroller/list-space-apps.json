@@ -1,0 +1,63 @@
+{
+	"total_results": 1,
+	"total_pages": 1,
+	"prev_url": null,
+	"next_url": null,
+	"resources": [
+		{
+			"metadata": {
+				"guid": "@guid",
+				"url": "/v2/apps/@guid",
+				"created_at": "2018-07-20T18:39:26Z",
+				"updated_at": "2018-07-20T18:39:30Z"
+			},
+			"entity": {
+				"name": "@name",
+				"production": false,
+				"space_guid": "@space-guid",
+				"stack_guid": "@stack-guid",
+				"buildpack": "https://github.com/cloudfoundry/java-buildpack.git#v4.7.1",
+				"detected_buildpack": null,
+				"detected_buildpack_guid": null,
+				"environment_json": {
+					"SPRING_APPLICATION_INDEX": "${vcap.application.instance_index}",
+					"SPRING_CLOUD_APPLICATION_GUID": "${vcap.application.name}:${vcap.application.instance_index}",
+					"SPRING_APPLICATION_JSON": "{}"
+				},
+				"memory": 1024,
+				"instances": 1,
+				"disk_quota": 1024,
+				"state": "STARTED",
+				"version": "05833bef-5aea-425f-98e8-7ea3a598fe8e",
+				"command": null,
+				"console": false,
+				"debug": null,
+				"staging_task_id": "5d9a895b-b428-4f2c-bd5c-6b7f5ec45f98",
+				"package_state": "PENDING",
+				"health_check_type": "port",
+				"health_check_timeout": 120,
+				"health_check_http_endpoint": "/health",
+				"staging_failed_reason": null,
+				"staging_failed_description": null,
+				"diego": true,
+				"docker_image": null,
+				"docker_credentials": {
+					"username": null,
+					"password": null
+				},
+				"package_updated_at": "2018-07-20T18:39:27Z",
+				"detected_start_command": "",
+				"enable_ssh": true,
+				"ports": [
+					8080
+				],
+				"space_url": "/v2/spaces/@space-guid",
+				"stack_url": "/v2/stacks/@stack-guid",
+				"routes_url": "/v2/apps/cae5e4ca-d856-4473-80fd-6f58f9099401/routes",
+				"events_url": "/v2/apps/cae5e4ca-d856-4473-80fd-6f58f9099401/events",
+				"service_bindings_url": "/v2/apps/cae5e4ca-d856-4473-80fd-6f58f9099401/service_bindings",
+				"route_mappings_url": "/v2/apps/cae5e4ca-d856-4473-80fd-6f58f9099401/route_mappings"
+			}
+		}
+	]
+}

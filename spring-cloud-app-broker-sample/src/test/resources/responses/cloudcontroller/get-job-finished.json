@@ -1,0 +1,11 @@
+{
+	"metadata": {
+		"guid": "0",
+		"created_at": "1970-01-01T00:00:00Z",
+		"url": "/v2/jobs/0"
+	},
+	"entity": {
+		"guid": "0",
+		"status": "finished"
+	}
+}

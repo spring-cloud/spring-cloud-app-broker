@@ -18,25 +18,24 @@ package org.springframework.cloud.appbroker.sample;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.appbroker.sample.fixtures.CloudFoundryApiFixture;
+import org.springframework.cloud.appbroker.sample.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
-
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.APP_NAME_1;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceComponentTest.APP_NAME_2;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME_1
-//	"spring.cloud.appbroker.apps[1].path=classpath:demo.jar",
-//	"spring.cloud.appbroker.apps[1].name=" + APP_NAME_2
+	"spring.cloud.appbroker.apps[0].name=" + APP_NAME_1,
+	"spring.cloud.appbroker.apps[1].path=classpath:demo.jar",
+	"spring.cloud.appbroker.apps[1].name=" + APP_NAME_2
 })
 class CreateInstanceComponentTest extends WiremockComponentTest {
 	static final String APP_NAME_1 = "first-app";
@@ -46,10 +45,15 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 	private OpenServiceBrokerApiFixture brokerFixture;
 
 	@Autowired
-	private CloudFoundryApiFixture cloudFoundryFixture;
+	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
 	void shouldPushAppWhenCreateServiceEndpointCalled() {
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
+		cloudControllerFixture.stubPushApp(APP_NAME_1);
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
+		cloudControllerFixture.stubPushApp(APP_NAME_2);
+
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
@@ -67,22 +71,5 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 
 		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
-
-		// then a backing application is deployed
-		given(cloudFoundryFixture.request())
-			.when()
-			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME_1))
-			.then()
-			.statusCode(HttpStatus.OK.value())
-			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME_1)));
-
-		// then a backing application is deployed
-		given(cloudFoundryFixture.request())
-			.when()
-			.get(cloudFoundryFixture.findApplicationUrl(APP_NAME_2))
-			.then()
-			.statusCode(HttpStatus.OK.value())
-			.body("resources[0].entity.name", is(equalToIgnoringWhiteSpace(APP_NAME_2)));
 	}
-
 }

@@ -17,19 +17,18 @@
 package org.springframework.cloud.appbroker.sample.fixtures;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestComponent;
-import org.springframework.cloud.appbroker.sample.transformers.URLLocalhostStubResponseTransformer;
-import org.springframework.http.HttpStatus;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.recordSpec;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @TestComponent
 public class WiremockServerFixture {
@@ -47,11 +46,10 @@ public class WiremockServerFixture {
 
 	private WireMockServer wiremockServer;
 
-	public void startWiremock(String recordingDirectoryName) {
+	public void startWiremock() {
 		wiremockServer = new WireMockServer(wireMockConfig()
 			.port(cfApiPort)
-			.usingFilesUnderDirectory(recordingDirectoryName)
-			.extensions(URLLocalhostStubResponseTransformer.class.getName()));
+			.usingFilesUnderClasspath("recordings"));
 
 		if (wiremockRecord) {
 			wiremockServer.startRecording(
@@ -61,8 +59,6 @@ public class WiremockServerFixture {
 		}
 
 		wiremockServer.start();
-
-		stubUAA();
 	}
 
 	public void stopWiremock() {
@@ -73,26 +69,26 @@ public class WiremockServerFixture {
 		wiremockServer.stop();
 	}
 
-	private void stubUAA() {
-		String refreshToken = "a.refresh.token";
+	public void verifyAllRequiredStubsUsed() {
+		Set<UUID> servedStubIds = wiremockServer.getServeEvents().getRequests().stream()
+			.filter(event -> event.getStubMapping() != null)
+			.map(event -> event.getStubMapping().getId())
+			.collect(Collectors.toSet());
 
-		stubFor(any(urlPathEqualTo("/oauth/token"))
-			.willReturn(aResponse()
-				.withStatus(HttpStatus.OK.value())
-				.withHeader(CONTENT_TYPE, APPLICATION_JSON.toString())
-				.withBody("{" +
-					"\"access_token\":\"" + accessToken + "\"" +
-					",\"token_type\":\"bearer\"" +
-					",\"refresh_token\":\"" + refreshToken + "\"" +
-					",\"expires_in\":7199" +
-					",\"scope\":\"network.write cloud_controller.admin " +
-					"routing.router_groups.read cloud_controller.write " +
-					"network.admin doppler.firehose openid routing.router_groups.write " +
-					"scim.read uaa.user cloud_controller.read password.write scim.write\"" +
-					",\"authorization_endpoint\":\"http://localhost\"" +
-					",\"jti\":\"287353917d704131a78967c13623a705\"" +
-					"}")
-			)
-		);
+		List<StubMapping> unusedStubs = wiremockServer.listAllStubMappings().getMappings().stream()
+			.filter(stub -> !servedStubIds.contains(stub.getId()))
+			.filter(this::stubIsOptional)
+			.collect(Collectors.toList());
+
+		assertThat(unusedStubs.size())
+			.as("%d wiremock stubs were unused. Unused stubs are: %s", unusedStubs.size(), unusedStubs)
+			.isEqualTo(0);
+	}
+
+	private boolean stubIsOptional(StubMapping stub) {
+		if (stub.getMetadata() != null) {
+			return !stub.getMetadata().getBoolean("optional");
+		}
+		return false;
 	}
 }

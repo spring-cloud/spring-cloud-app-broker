@@ -100,48 +100,53 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubAppExists(final String appName) {
-		String appGuid = appName + "-GUID";
-		String stackGuid = appName + "-STACK-GUID";
-		String routeGuid = appName + "-ROUTE-GUID";
-
 		stubFor(get(urlEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/apps?q=name:" + appName + "&page=1"))
 			.willReturn(ok()
 				.withBody(cc("list-space-apps",
-					replace("@guid", appGuid),
+					replace("@guid", appGuid(appName)),
 					replace("@space-guid", TEST_SPACE_GUID),
-					replace("@stack-guid", stackGuid)))));
+					replace("@stack-guid", stackGuid(appName))))));
 
-		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid + "/instances"))
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/instances"))
 			.willReturn(ok()
 				.withBody(cc("get-app-instances"))));
 
-		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid + "/summary"))
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/summary"))
 			.willReturn(ok()
 				.withBody(cc("get-app-summary",
 					replace("@name", appName),
-					replace("@guid", appGuid),
-					replace("@stack-guid", stackGuid),
-					replace("@route-guid", routeGuid)))));
+					replace("@guid", appGuid(appName)),
+					replace("@stack-guid", stackGuid(appName)),
+					replace("@route-guid", routeGuid(appName))))));
 
-		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid + "/stats"))
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/stats"))
 			.willReturn(ok()
 				.withBody(cc("get-app-stats",
 					replace("@name", appName)))));
 
-		stubFor(get(urlPathEqualTo("/v2/stacks/" + stackGuid))
+		stubFor(get(urlPathEqualTo("/v2/stacks/" + stackGuid(appName)))
 			.willReturn(ok()
 				.withBody(cc("get-stack",
-					replace("@guid", stackGuid)))));
+					replace("@guid", stackGuid(appName))))));
 	}
 
 	public void stubPushApp(final String appName, ContentPattern<?>... appMetadataPatterns) {
-		String appGuid = appName + "-GUID";
-		String routeGuid = appName + "-ROUTE-GUID";
-		String uploadBitsJogGuid = appName + "-JOB-GUID";
+		stubCreateAppMetadata(appName, appMetadataPatterns);
+		stubMapRouteToApp(appName);
+		stubUploadAppBits(appName);
+		stubInitializeAppState(appName);
+		stubCheckAppState(appName);
+	}
 
-		//
-		// create app metadata
-		//
+	public void stubUpdateApp(final String appName, ContentPattern<?>... appMetadataPatterns) {
+		stubUpdateAppMetadata(appName, appMetadataPatterns);
+		stubMapRouteToApp(appName);
+		stubUploadAppBits(appName);
+		stubInitializeAppState(appName);
+		stubCheckAppState(appName);
+	}
+
+	private void stubCreateAppMetadata(String appName, ContentPattern<?>[] appMetadataPatterns) {
 		MappingBuilder mappingBuilder = post(urlEqualTo("/v2/apps"))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + appName + "')]"));
 		for (ContentPattern<?> appMetadataPattern : appMetadataPatterns) {
@@ -151,12 +156,24 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(ok()
 				.withBody(cc("get-app-STOPPED",
 					replace("@name", appName),
-					replace("@guid", appGuid)))));
+					replace("@guid", appGuid(appName))))));
+	}
 
-		//
-		// map route to app
-		//
-		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid + "/routes"))
+	private void stubUpdateAppMetadata(String appName, ContentPattern<?>[] appMetadataPatterns) {
+		MappingBuilder mappingBuilder = put(urlEqualTo("/v2/apps/" + appGuid(appName)))
+			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + appName + "')]"));
+		for (ContentPattern<?> appMetadataPattern : appMetadataPatterns) {
+			mappingBuilder.withRequestBody(appMetadataPattern);
+		}
+		stubFor(mappingBuilder
+			.willReturn(ok()
+				.withBody(cc("get-app-STARTED",
+					replace("@name", appName),
+					replace("@guid", appGuid(appName))))));
+	}
+
+	private void stubMapRouteToApp(String appName) {
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/routes"))
 			.willReturn(ok()
 				.withBody(cc("empty-query-results"))));
 
@@ -169,69 +186,60 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(created()
 				.withBody(cc("list-routes",
 					replace("@name", appName),
-					replace("@guid", routeGuid)))));
+					replace("@guid", routeGuid(appName))))));
 
-		stubFor(put(urlEqualTo("/v2/apps/" + appGuid + "/routes/" + routeGuid))
+		stubFor(put(urlEqualTo("/v2/apps/" + appGuid(appName) + "/routes/" + routeGuid(appName)))
 			.willReturn(created()
 				.withBody(cc("get-app-STOPPED",
 					replace("@name", appName),
-					replace("@guid", appGuid)))));
+					replace("@guid", appGuid(appName))))));
+	}
 
-		//
-		// perform pre-upload resource matching
-		//
+	private void stubUploadAppBits(String appName) {
 		stubFor(put(urlEqualTo("/v2/resource_match"))
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody("[]")));
 
-		//
-		// upload app bits
-		//
-		stubFor(put(urlEqualTo("/v2/apps/" + appGuid + "/bits?async=true"))
+		stubFor(put(urlEqualTo("/v2/apps/" + appGuid(appName) + "/bits?async=true"))
 			.willReturn(created()
 				.withBody(cc("put-app-bits",
-					replace("@guid", uploadBitsJogGuid)))));
+					replace("@guid", appName + "-JOB-GUID")))));
+	}
 
-		//
-		// initialize app state
-		//
-		stubFor(put(urlEqualTo("/v2/apps/" + appGuid))
+	private void stubInitializeAppState(String appName) {
+		stubFor(put(urlEqualTo("/v2/apps/" + appGuid(appName)))
 			.withRequestBody(matchingJsonPath("$.[?(@.state == 'STOPPED')]"))
 			.willReturn(created()
 				.withBody(cc("get-app-STOPPED",
 					replace("@name", appName),
-					replace("@guid", appGuid)))));
+					replace("@guid", appGuid(appName))))));
 
-		stubFor(put(urlEqualTo("/v2/apps/" + appGuid))
+		stubFor(put(urlEqualTo("/v2/apps/" + appGuid(appName)))
 			.withRequestBody(matchingJsonPath("$.[?(@.state == 'STARTED')]"))
 			.willReturn(created()
 				.withBody(cc("get-app-STARTED",
 					replace("@name", appName),
-					replace("@guid", appGuid)))));
+					replace("@guid", appGuid(appName))))));
+	}
 
-		//
-		// poll for app ready
-		//
-		stubFor(get(urlEqualTo("/v2/apps/" + appGuid))
+	private void stubCheckAppState(String appName) {
+		stubFor(get(urlEqualTo("/v2/apps/" + appGuid(appName)))
 			.willReturn(ok()
 				.withBody(cc("get-app-STAGED"))));
 
-		stubFor(get(urlEqualTo("/v2/apps/" + appGuid + "/instances"))
+		stubFor(get(urlEqualTo("/v2/apps/" + appGuid(appName) + "/instances"))
 			.willReturn(ok()
 				.withBody(cc("get-app-instances"))));
 	}
 
 	public void stubDeleteApp(String appName) {
-		String appGuid = appName + "-GUID";
-		String routeGuid = appName + "-ROUTE-GUID";
-
 		stubFor(delete(urlPathEqualTo("/v2/routes/" + appName + "-ROUTE-GUID"))
 			.willReturn(ok()
 				.withBody(cc("get-route",
-					replace("@guid", routeGuid)))));
+					replace("@guid", routeGuid(appName))))));
 
-		stubFor(delete(urlPathEqualTo("/v2/apps/" + appGuid))
+		stubFor(delete(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
 			.willReturn(noContent()));
 	}
 
@@ -248,24 +256,21 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubCreateServiceBinding(String appName, String serviceInstanceName) {
-		String appGuid = appName + "-GUID";
 		String serviceInstanceGuid = serviceInstanceName + "-GUID";
-		String serviceBindingGuid = appGuid + "-" + serviceInstanceGuid;
+		String serviceBindingGuid = appGuid(appName) + "-" + serviceInstanceGuid;
 
 		stubFor(post(urlEqualTo("/v2/service_bindings"))
-			.withRequestBody(matchingJsonPath("$.[?(@.app_guid == '" + appGuid + "')]"))
+			.withRequestBody(matchingJsonPath("$.[?(@.app_guid == '" + appGuid(appName) + "')]"))
 			.withRequestBody(matchingJsonPath("$.[?(@.service_instance_guid == '" + serviceInstanceGuid + "')]"))
 			.willReturn(created()
 				.withBody(cc("list-service-bindings",
 					replace("@guid", serviceBindingGuid),
-					replace("@app-guid", appGuid),
+					replace("@app-guid", appGuid(appName)),
 					replace("@service-instance-guid", serviceInstanceGuid)))));
 	}
 
 	public void stubServiceBindingDoesNotExist(String appName) {
-		String appGuid = appName + "-GUID";
-
-		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid + "/service_bindings"))
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/service_bindings"))
 			.willReturn(ok()
 				.withBody(cc("empty-query-results"))));
 	}
@@ -276,5 +281,17 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			response = response.replaceAll(pair.getRegex(), pair.getReplacement());
 		}
 		return response;
+	}
+
+	private String appGuid(String appName) {
+		return appName + "-GUID";
+	}
+
+	private String routeGuid(String appName) {
+		return appName + "-ROUTE-GUID";
+	}
+
+	private String stackGuid(String appName) {
+		return appName + "-STACK-GUID";
 	}
 }

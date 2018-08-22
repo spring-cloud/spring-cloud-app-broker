@@ -172,6 +172,25 @@ class DeployerClientTest {
 		verify(appDeployer).undeploy(eq(APP_NAME));
 	}
 
+	@Test
+	void shouldNotUndeployAppThatDoesNotExist() {
+		// given
+		when(appDeployer.undeploy(any())).thenReturn(Mono.error(new IllegalStateException("app does not exist")));
+
+		BackingApplication application = BackingApplication.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.build();
+
+		// when
+		Mono<String> lastState = deployerClient.undeploy(application);
+
+		// then
+		assertThat(lastState.block()).isEqualTo("deleted");
+
+		verify(appDeployer).undeploy(eq(APP_NAME));
+	}
+
 	private ArgumentMatcher<AppDeploymentRequest> matchesRequest(String appName, String appArchive,
 																 Map<String, String> properties,
 																 Map<String, String> environment) {

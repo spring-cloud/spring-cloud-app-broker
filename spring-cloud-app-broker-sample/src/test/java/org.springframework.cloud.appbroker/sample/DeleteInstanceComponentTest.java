@@ -49,7 +49,7 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void shouldDeleteAppsWhenDeleteServiceEndpointCalled() {
+	void deleteAppsWhenTheyExist() {
 		cloudControllerFixture.stubAppExists(APP_NAME_1);
 		cloudControllerFixture.stubAppExists(APP_NAME_2);
 
@@ -78,4 +78,27 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
 	}
 
+	@Test
+	void deleteAppsWhenTheyDoNotExist() {
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
+
+		// when the service instance is deleted
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.delete(brokerFixture.deleteServiceInstanceUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.ACCEPTED.value());
+
+		// when the "last_operation" API is polled
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
+
+		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
+	}
 }

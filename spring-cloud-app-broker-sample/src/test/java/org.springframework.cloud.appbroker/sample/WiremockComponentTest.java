@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.appbroker.sample;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +28,6 @@ import org.springframework.cloud.appbroker.sample.fixtures.CloudControllerStubFi
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.UaaStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.WiremockServerFixture;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -48,7 +50,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 	}
 )
 @ActiveProfiles("openservicebroker-catalog")
-@DirtiesContext
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WiremockComponentTest {
 
 	@Autowired
@@ -60,18 +62,26 @@ class WiremockComponentTest {
 	@Autowired
 	private UaaStubFixture uaaFixture;
 
-	@BeforeEach
+	@BeforeAll
 	void setUp() {
 		wiremockFixture.startWiremock();
+	}
+
+	@AfterAll
+	void tearDown() {
+		wiremockFixture.stopWiremock();
+	}
+
+	@BeforeEach
+	void resetWiremock() {
+		wiremockFixture.resetWiremock();
 
 		uaaFixture.stubCommonUaaRequests();
 		cloudFoundryFixture.stubCommonCloudControllerRequests();
 	}
 
 	@AfterEach
-	void tearDown() {
+	void verifyStubs() {
 		wiremockFixture.verifyAllRequiredStubsUsed();
-
-		wiremockFixture.stopWiremock();
 	}
 }

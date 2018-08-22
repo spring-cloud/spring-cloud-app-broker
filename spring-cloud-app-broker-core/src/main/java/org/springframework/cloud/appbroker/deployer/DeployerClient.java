@@ -67,6 +67,7 @@ public class DeployerClient implements ResourceLoaderAware {
 
 	Mono<String> undeploy(BackingApplication backingApplication) {
 		return appDeployer.undeploy(backingApplication.getName())
+			.onErrorResume(IllegalStateException.class, e -> Mono.empty())
 			.then(Mono.just("deleted"));
 	}
 

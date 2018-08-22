@@ -48,11 +48,37 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void shouldPushAppWhenCreateServiceEndpointCalled() {
+	void pushAppsWhenTheyDoNotExist() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
 		cloudControllerFixture.stubPushApp(APP_NAME_1);
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
 		cloudControllerFixture.stubPushApp(APP_NAME_2);
+
+		// when a service instance is created
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.ACCEPTED.value());
+
+		// when the "last_operation" API is polled
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
+
+		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
+	}
+
+	@Test
+	void updateAppsWhenTheyExist() {
+		cloudControllerFixture.stubAppExists(APP_NAME_1);
+		cloudControllerFixture.stubUpdateApp(APP_NAME_1);
+		cloudControllerFixture.stubAppExists(APP_NAME_2);
+		cloudControllerFixture.stubUpdateApp(APP_NAME_2);
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

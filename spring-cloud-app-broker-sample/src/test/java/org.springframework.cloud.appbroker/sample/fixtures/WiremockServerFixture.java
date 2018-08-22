@@ -69,6 +69,10 @@ public class WiremockServerFixture {
 		wiremockServer.stop();
 	}
 
+	public void resetWiremock() {
+		wiremockServer.resetAll();
+	}
+
 	public void verifyAllRequiredStubsUsed() {
 		Set<UUID> servedStubIds = wiremockServer.getServeEvents().getRequests().stream()
 			.filter(event -> event.getStubMapping() != null)

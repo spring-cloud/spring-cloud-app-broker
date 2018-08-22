@@ -52,7 +52,7 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void shouldPushAppWithServiceWhenCreateServiceEndpointCalled() {
+	void pushAppWithServicesWhenServicesExist() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME);
 

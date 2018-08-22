@@ -18,6 +18,9 @@ package org.springframework.cloud.appbroker.sample.fixtures;
 
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.test.context.TestComponent;
@@ -25,7 +28,6 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.HttpStatus;
 
-import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
@@ -60,6 +62,18 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 	public RequestSpecification serviceInstanceRequest() {
 		return serviceBrokerSpecification()
 			.body(buildServiceInstanceRequestBody());
+	}
+
+	public RequestSpecification serviceInstanceRequest(Map<String, Object> params) {
+		String stringParams = new JSONObject(params).toString();
+		return serviceBrokerSpecification()
+			.body("{" +
+				"  \"service_id\": \"" + serviceDefinitionId + "\"," +
+				"  \"plan_id\": \"" + planId + "\"," +
+				"  \"organization_guid\": \"" + ORG_ID + "\"," +
+				"  \"space_guid\": \"" + SPACE_ID + "\"," +
+				"  \"parameters\": " + stringParams +
+				"}");
 	}
 
 	private RequestSpecification serviceBrokerSpecification() {

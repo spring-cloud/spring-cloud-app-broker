@@ -16,10 +16,11 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import reactor.core.publisher.Mono;
-
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -35,7 +36,19 @@ public class CreateServiceInstanceWorkflow {
 		this.deploymentService = deploymentService;
 	}
 
-	public Mono<String> create() {
+	public Mono<String> create(Map<String, Object> parameters) {
+		backingApps.forEach(backingApplication -> {
+			final Map<String, String> environment = new HashMap<>();
+			final Map<String, String> backingAppEnvironment = backingApplication.getEnvironment();
+			if (backingAppEnvironment != null) {
+				environment.putAll(backingAppEnvironment);
+			}
+			if (parameters != null) {
+				parameters.forEach((key, value) -> environment.put(key, value.toString()));
+			}
+			backingApplication.setEnvironment(environment);
+		});
+
 		return deploymentService.deploy(backingApps)
 			.doOnRequest(l -> log.info("Deploying applications {}", backingApps))
 			.doOnSuccess(d -> log.info("Finished deploying applications {}", backingApps))

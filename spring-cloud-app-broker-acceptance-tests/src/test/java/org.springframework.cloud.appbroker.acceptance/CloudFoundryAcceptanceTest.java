@@ -18,6 +18,8 @@ package org.springframework.cloud.appbroker.acceptance;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
@@ -82,7 +84,11 @@ class CloudFoundryAcceptanceTest {
 	}
 
 	void createServiceInstance() {
-		blockingSubscribe(cloudFoundryService.createServiceInstance(PLAN_NAME, SERVICE_NAME, SERVICE_INSTANCE_NAME));
+		createServiceInstanceWithParameters(Collections.emptyMap());
+	}
+
+	void createServiceInstanceWithParameters(Map<String, Object> parameters) {
+		blockingSubscribe(cloudFoundryService.createServiceInstance(PLAN_NAME, SERVICE_NAME, SERVICE_INSTANCE_NAME, parameters));
 	}
 
 	void deleteServiceInstance() {

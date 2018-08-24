@@ -16,34 +16,38 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import java.util.Map;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import reactor.core.publisher.Mono;
+import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
+
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
-public class CreateServiceInstanceWorkflow {
+public class CreateServiceInstanceWorkflow extends ServiceInstanceWorkflow {
 	private final Logger log = Loggers.getLogger(CreateServiceInstanceWorkflow.class);
 
-	private BackingApplications backingApps;
 	private BackingAppDeploymentService deploymentService;
 	private ParametersTransformer parametersTransformer;
 
-	public CreateServiceInstanceWorkflow(BackingApplications backingApps,
+	public CreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 										 BackingAppDeploymentService deploymentService,
 										 ParametersTransformer parametersTransformer) {
-		this.backingApps = backingApps;
+		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.parametersTransformer = parametersTransformer;
 	}
 
-	public Mono<String> create(Map<String, Object> parameters) {
-		parametersTransformer.transform(backingApps, parameters);
-
-		return deploymentService.deploy(backingApps)
-			.doOnRequest(l -> log.info("Deploying applications {}", backingApps))
-			.doOnSuccess(d -> log.info("Finished deploying applications {}", backingApps))
-			.doOnError(e -> log.info("Error deploying applications {} with error {}", backingApps, e));
+	public Mono<String> create(CreateServiceInstanceRequest request) {
+		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+			.flatMap(backingApps ->
+				Mono.fromCallable(() -> {
+					parametersTransformer.transform(backingApps, request.getParameters());
+					return backingApps;
+				}))
+			.flatMap(deploymentService::deploy)
+			.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
+			.doOnSuccess(d -> log.info("Finished deploying applications {}", brokeredServices))
+			.doOnError(e -> log.info("Error deploying applications {} with error {}", brokeredServices, e));
 	}
 }

@@ -43,8 +43,10 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCustomCreationParametersComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME
+	"spring.cloud.appbroker.services[0].service-name=example",
+	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME
 })
 @ContextConfiguration(classes = CreateInstanceWithCustomCreationParametersComponentTest.CustomConfig.class)
 class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockComponentTest {
@@ -57,7 +59,7 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void shouldPushAppWithEnvironmentWhenCreateServiceEndpointCalledWithCreationParameters() {
+	void pushAppWithParametersTransformedUsingCustomTransformer() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME,
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*otherNestedKey.*:.*otherKey.*:.*keyValue.*/)]"),
@@ -115,7 +117,6 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 		}
 
 		static class CustomInputParameters {
-
 			private CustomInputParameters() {
 			}
 

@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.acceptance;
 import java.util.Optional;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.junit.jupiter.api.Test;
 
 
@@ -30,16 +31,21 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	@Test
 	@AppBrokerTestProperties({
-		"spring.cloud.appbroker.apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
-		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.apps[0].environment.ENV_VAR_1=value1",
-		"spring.cloud.appbroker.apps[0].environment.ENV_VAR_2=value2",
-		"spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.memory=2G",
-		"spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.count=2"
+		"spring.cloud.appbroker.services[0].service-name=example",
+		"spring.cloud.appbroker.services[0].plan-name=standard",
+		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
+		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
+		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=value2",
+		"spring.cloud.appbroker.services[0].apps[0].properties.spring.cloud.deployer.memory=2G",
+		"spring.cloud.appbroker.services[0].apps[0].properties.spring.cloud.deployer.count=2"
 	})
 	void shouldPushAppWhenCreateServiceCalled() {
 		// when a service instance is created
 		createServiceInstance();
+
+		Optional<ServiceInstance> serviceInstance = getServiceInstance();
+		assertThat(serviceInstance).isNotEmpty();
 
 		// then a backing application is deployed
 		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);

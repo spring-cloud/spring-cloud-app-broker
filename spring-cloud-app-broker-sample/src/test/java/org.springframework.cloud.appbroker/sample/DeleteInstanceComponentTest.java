@@ -33,10 +33,12 @@ import static org.springframework.cloud.appbroker.sample.DeleteInstanceComponent
 import static org.springframework.cloud.appbroker.sample.DeleteInstanceComponentTest.APP_NAME_2;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME_1,
-	"spring.cloud.appbroker.apps[1].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[1].name=" + APP_NAME_2
+	"spring.cloud.appbroker.services[0].service-name=example",
+	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
+	"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[1].name=" + APP_NAME_2
 })
 class DeleteInstanceComponentTest extends WiremockComponentTest {
 	static final String APP_NAME_1 = "first-app";

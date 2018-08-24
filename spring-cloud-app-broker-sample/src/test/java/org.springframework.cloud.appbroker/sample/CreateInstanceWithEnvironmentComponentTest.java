@@ -32,10 +32,12 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceWithEnvironmentComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME,
-	"spring.cloud.appbroker.apps[0].environment.ENV_VAR_1=value1",
-	"spring.cloud.appbroker.apps[0].environment.ENV_VAR_2=true",
+	"spring.cloud.appbroker.services[0].service-name=example",
+	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
+	"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=true",
 })
 class CreateInstanceWithEnvironmentComponentTest extends WiremockComponentTest {
 	static final String APP_NAME = "app-with-env";

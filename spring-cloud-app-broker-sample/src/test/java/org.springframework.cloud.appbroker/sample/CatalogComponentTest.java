@@ -59,7 +59,7 @@ class CatalogComponentTest {
 			.body("services[0].metadata.size()", is(0))
 			.body("services[0].plan_updateable", equalTo(false))
 			.body("services[0].instances_retrievable", equalTo(false))
-			.body("services[0].plans[0].id", equalTo("simple-plan"))
+			.body("services[0].plans[0].id", equalTo("standard-plan-id"))
 			.body("services[0].plans[0].name", equalTo("standard"))
 			.body("services[0].plans[0].metadata.size()", is(0))
 			.body("services[0].plans[0].bindable", equalTo(true))

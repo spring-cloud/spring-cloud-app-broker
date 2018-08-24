@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,6 +94,10 @@ class CloudFoundryAcceptanceTest {
 
 	void deleteServiceInstance() {
 		blockingSubscribe(cloudFoundryService.deleteServiceInstance(SERVICE_INSTANCE_NAME));
+	}
+
+	Optional<ServiceInstance> getServiceInstance() {
+		return cloudFoundryService.getServiceInstance(SERVICE_INSTANCE_NAME).blockOptional();
 	}
 
 	Optional<ApplicationSummary> getApplicationSummaryByName(String appName) {

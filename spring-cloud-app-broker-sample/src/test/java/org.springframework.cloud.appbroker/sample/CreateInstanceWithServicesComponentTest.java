@@ -34,10 +34,12 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithServi
 import static org.springframework.cloud.appbroker.sample.CreateInstanceWithServicesComponentTest.SERVICE_INSTANCE_2_NAME;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME,
-	"spring.cloud.appbroker.apps[0].services[0]=" + SERVICE_INSTANCE_1_NAME,
-	"spring.cloud.appbroker.apps[0].services[1]=" + SERVICE_INSTANCE_2_NAME
+	"spring.cloud.appbroker.services[0].service-name=example",
+	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].services[0]=" + SERVICE_INSTANCE_1_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].services[1]=" + SERVICE_INSTANCE_2_NAME
 })
 class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 	static final String APP_NAME = "app-with-services";

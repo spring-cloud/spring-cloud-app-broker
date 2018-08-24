@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 
-public class DefaultParametersTransformer implements ParametersTransformer {
+public class SimpleMappingParametersTransformer implements ParametersTransformer {
 
 	public void transform(BackingApplications backingApps, Map<String, Object> parameters) {
 		backingApps.forEach(backingApplication -> {

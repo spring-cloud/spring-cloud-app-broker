@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.workflow.instance;
 
 import java.util.Collections;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +41,12 @@ class CreateServiceInstanceWorkflowTest {
 
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
+	private ParametersTransformer parametersTransformer;
+
+	@BeforeEach
+	void setUp() {
+		parametersTransformer = new DefaultParametersTransformer();
+	}
 
 	@Test
 	void shouldCreateServiceInstance() {
@@ -47,8 +54,11 @@ class CreateServiceInstanceWorkflowTest {
 			.willReturn(Mono.just("deployment-id-app1"));
 
 		// given that properties contains app details
+		parametersTransformer = new DefaultParametersTransformer();
 		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(createBackingApplications(), backingAppDeploymentService);
+			new CreateServiceInstanceWorkflow(createBackingApplications(),
+				backingAppDeploymentService,
+				parametersTransformer);
 
 		// when
 		createServiceInstanceWorkflow.create(Collections.emptyMap());
@@ -71,7 +81,9 @@ class CreateServiceInstanceWorkflowTest {
 		// given that properties contains app details and environment variables
 		Map<String, String> environment = singletonMap("ENV_VAR_1", "value from environment");
 		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(createBackingApplicationWithEnvironment(environment), backingAppDeploymentService);
+			new CreateServiceInstanceWorkflow(createBackingApplicationWithEnvironment(environment),
+				backingAppDeploymentService,
+				parametersTransformer);
 
 		// when
 		createServiceInstanceWorkflow.create(Collections.emptyMap());
@@ -93,7 +105,9 @@ class CreateServiceInstanceWorkflowTest {
 
 		// given that properties contains app details
 		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(createBackingApplications(), backingAppDeploymentService);
+			new CreateServiceInstanceWorkflow(createBackingApplications(),
+				backingAppDeploymentService,
+				parametersTransformer);
 
 		// when create is called with parameters
 		Map<String, Object> parameters = singletonMap("ENV_VAR_1", "value from parameters");
@@ -117,7 +131,9 @@ class CreateServiceInstanceWorkflowTest {
 		// given that properties contains app details and environment variables
 		Map<String, String> environment = singletonMap("ENV_VAR_1", "value from environment");
 		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(createBackingApplicationWithEnvironment(environment), backingAppDeploymentService);
+			new CreateServiceInstanceWorkflow(createBackingApplicationWithEnvironment(environment),
+				backingAppDeploymentService,
+				parametersTransformer);
 
 		// when create is called with parameters
 		Map<String, Object> parameters = singletonMap("ENV_VAR_1", "value from parameters");
@@ -151,7 +167,9 @@ class CreateServiceInstanceWorkflowTest {
 			.build();
 
 		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(backingApplications, backingAppDeploymentService);
+			new CreateServiceInstanceWorkflow(backingApplications,
+				backingAppDeploymentService,
+				parametersTransformer);
 
 		// when create is called with parameters
 		Map<String, Object> parameters = singletonMap("ENV_VAR_1", "value from parameters");

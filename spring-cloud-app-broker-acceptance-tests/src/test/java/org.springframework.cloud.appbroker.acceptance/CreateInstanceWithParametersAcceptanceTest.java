@@ -31,8 +31,10 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 
 	@Test
 	@AppBrokerTestProperties({
-		"spring.cloud.appbroker.apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
-		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.services[0].service-name=example",
+		"spring.cloud.appbroker.services[0].plan-name=standard",
+		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
+		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	})
 	void shouldPushAppWhenCreateServiceCalled() {
 		// when a service instance is created

@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
@@ -45,12 +44,12 @@ import org.cloudfoundry.operations.spaces.DefaultSpaces;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.acceptance.AcceptanceTestProperties;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 
 import static java.lang.String.format;
 
@@ -65,8 +64,10 @@ public class CloudFoundryService {
 	private AcceptanceTestProperties acceptanceTestProperties;
 
 	@Autowired
-	public CloudFoundryService(CloudFoundryOperations cloudFoundryOperations, CloudFoundryProperties cloudFoundryProperties,
-							   CloudFoundryClient cloudFoundryClient, AcceptanceTestProperties acceptanceTestProperties) {
+	public CloudFoundryService(CloudFoundryOperations cloudFoundryOperations,
+							   CloudFoundryProperties cloudFoundryProperties,
+							   CloudFoundryClient cloudFoundryClient,
+							   AcceptanceTestProperties acceptanceTestProperties) {
 		this.cloudFoundryOperations = cloudFoundryOperations;
 		this.cloudFoundryProperties = cloudFoundryProperties;
 		this.cloudFoundryClient = cloudFoundryClient;
@@ -150,7 +151,10 @@ public class CloudFoundryService {
 						.deleteInstance(DeleteServiceInstanceRequest.builder().name(si.getName()).build())));
 	}
 
-	public Mono<Void> createServiceInstance(String planName, String serviceName, String serviceInstanceName) {
+	public Mono<Void> createServiceInstance(String planName,
+											String serviceName,
+											String serviceInstanceName,
+											Map<String, Object> parameters) {
 		return loggingMono(
 			cloudFoundryOperations
 				.services()
@@ -159,6 +163,7 @@ public class CloudFoundryService {
 					.planName(planName)
 					.serviceName(serviceName)
 					.serviceInstanceName(serviceInstanceName)
+					.parameters(parameters)
 					.build()));
 	}
 

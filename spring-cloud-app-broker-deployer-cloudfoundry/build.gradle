@@ -35,6 +35,7 @@ dependencies {
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
 
 	testImplementation("org.springframework:spring-test:${springVersion}")
+	testImplementation("io.projectreactor:reactor-test:${reactorVersion}")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")

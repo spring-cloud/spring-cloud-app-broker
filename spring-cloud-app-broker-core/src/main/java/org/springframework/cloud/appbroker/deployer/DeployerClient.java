@@ -16,87 +16,39 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import reactor.core.publisher.Mono;
-
-import org.springframework.cloud.deployer.spi.core.AppDefinition;
-import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.util.StringUtils;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
-public class DeployerClient implements ResourceLoaderAware {
-
-	private static final String SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES_KEY = "spring.cloud.deployer.cloudfoundry.services";
+public class DeployerClient {
 
 	private final Logger log = Loggers.getLogger(DeployerClient.class);
 
-	private ReactiveAppDeployer appDeployer;
-	private ResourceLoader resourceLoader;
+	private AppDeployer appDeployer;
 
-	public DeployerClient(ReactiveAppDeployer appDeployer) {
+	public DeployerClient(AppDeployer appDeployer) {
 		this.appDeployer = appDeployer;
-	}
-
-	DeployerClient(ReactiveAppDeployer appDeployer, ResourceLoader resourceLoader) {
-		this.appDeployer = appDeployer;
-		this.resourceLoader = resourceLoader;
-	}
-
-	@Override
-	public void setResourceLoader(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
 	}
 
 	Mono<String> deploy(BackingApplication backingApplication) {
-		return appDeployer.deploy(createAppDeploymentRequest(backingApplication))
+		return appDeployer.deploy(DeployApplicationRequest.builder()
+			.name(backingApplication.getName())
+			.path(backingApplication.getPath())
+			.properties(backingApplication.getProperties())
+			.environment(backingApplication.getEnvironment())
+			.services(backingApplication.getServices())
+			.build())
 			.doOnRequest(l -> log.info("Deploying application {}", backingApplication.getName()))
 			.doOnSuccess(d -> log.info("Finished deploying application {}", backingApplication.getName()))
 			.doOnError(e -> log.info("Error deploying application {} with error {}", backingApplication.getName(), e))
-			.then(Mono.just("running"))
-			.doOnRequest(l -> log.info("Mocking return from deploying application {}", backingApplication.getName()))
-			.doOnSuccess(d -> log.info("Finished mocking return from deploying application {}", backingApplication.getName()))
-			.doOnError(e -> log.info("Error when returning from deploying application {} with error {}", backingApplication.getName(), e));
+			.map(DeployApplicationResponse::getName);
 	}
 
 	Mono<String> undeploy(BackingApplication backingApplication) {
-		return appDeployer.undeploy(backingApplication.getName())
-			.onErrorResume(IllegalStateException.class, e -> Mono.empty())
-			.then(Mono.just("deleted"));
+		return appDeployer.undeploy(UndeployApplicationRequest.builder()
+			.name(backingApplication.getName())
+			.build())
+			.map(UndeployApplicationResponse::getStatus);
 	}
 
-	private AppDeploymentRequest createAppDeploymentRequest(BackingApplication backingApplication) {
-		AppDefinition appDefinition =
-			new AppDefinition(backingApplication.getName(), backingApplication.getEnvironment());
-		
-		Resource resource = getResource(backingApplication.getPath());
-
-		Map<String, String> deploymentProperties = createDeploymentProperties(backingApplication);
-
-		return new AppDeploymentRequest(appDefinition, resource, deploymentProperties);
-	}
-
-	private Map<String, String> createDeploymentProperties(BackingApplication backingApplication) {
-		Map<String, String> deploymentProperties = new HashMap<>();
-		if (backingApplication.getProperties() != null) {
-			deploymentProperties.putAll(backingApplication.getProperties());
-		}
-
-		if (backingApplication.getServices() != null) {
-			Map<String, String> services = Collections.singletonMap(SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES_KEY,
-				StringUtils.collectionToCommaDelimitedString(backingApplication.getServices()));
-			deploymentProperties.putAll(services);
-		}
-		return deploymentProperties;
-	}
-
-	private Resource getResource(String path) {
-		return resourceLoader.getResource(path);
-	}
 }

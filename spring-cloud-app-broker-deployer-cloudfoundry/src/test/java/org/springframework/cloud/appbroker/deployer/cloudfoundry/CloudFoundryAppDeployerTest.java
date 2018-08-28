@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
-import java.net.MalformedURLException;
 import java.util.Collections;
 
 import org.cloudfoundry.operations.CloudFoundryOperations;
@@ -30,31 +29,38 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
+import org.springframework.cloud.appbroker.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
 import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties;
-import org.springframework.cloud.deployer.spi.core.AppDefinition;
-import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.core.io.FileUrlResource;
-import org.springframework.core.io.Resource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.ResourceLoader;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CloudFoundryReactiveAppDeployerTest {
+class CloudFoundryAppDeployerTest {
 
 	private static final int APP_MEMORY = 1024;
 	private static final String APP_MEMORY_STRING = "1024M";
 	private static final String APP_NAME = "test-app";
 	private static final String APP_PATH = "test.jar";
-	private ReactiveAppDeployer appDeployer;
+
+	private AppDeployer appDeployer;
+
 	@Mock
 	private Applications applications;
+
 	@Mock
 	private CloudFoundryOperations cloudFoundryOperations;
+
+	@Mock
+	private ResourceLoader resourceLoader;
 
 	@BeforeEach
 	void setUp() {
@@ -64,17 +70,21 @@ class CloudFoundryReactiveAppDeployerTest {
 
 		when(applications.pushManifest(any())).thenReturn(Mono.empty());
 		when(cloudFoundryOperations.applications()).thenReturn(applications);
+		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
 
-		appDeployer = new CloudFoundryReactiveAppDeployer(applicationNameGenerator,
-			deploymentProperties, cloudFoundryOperations, null);
+		appDeployer = new CloudFoundryAppDeployer(applicationNameGenerator,
+			deploymentProperties, cloudFoundryOperations, null, resourceLoader);
 	}
 
 	@Test
-	void shouldDeployAppWithNameAndPath() throws MalformedURLException {
-		AppDefinition appDefinition = new AppDefinition(APP_NAME, Collections.emptyMap());
-		Resource resource = new FileUrlResource(APP_PATH);
-		AppDeploymentRequest request = new AppDeploymentRequest(appDefinition, resource);
-		appDeployer.deploy(request);
+	void shouldDeployAppWithNameAndPath() {
+		StepVerifier.create(appDeployer.deploy(DeployApplicationRequest.builder()
+			.name(APP_NAME)
+			.properties(Collections.emptyMap())
+			.path(APP_PATH)
+			.build()))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
 
 		verify(applications).pushManifest(argThat(matchesExpectedManifest()));
 	}

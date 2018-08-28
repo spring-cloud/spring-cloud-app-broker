@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,71 +21,51 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BackingApplication {
+public class DeployApplicationRequest {
 
 	private String name;
+
 	private String path;
+
 	private Map<String, String> properties;
+
 	private Map<String, String> environment;
+
 	private List<String> services;
 
-	private BackingApplication() {
-	}
-
-	private BackingApplication(String name, String path, Map<String, String> properties,
-							   Map<String, String> environment, List<String> services) {
+	DeployApplicationRequest(String name, String path, Map<String, String> properties, Map<String, String> environment, List<String> services) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
 		this.environment = environment;
 		this.services = services;
+	}
+
+	public static DeployApplicationRequestBuilder builder() {
+		return new DeployApplicationRequestBuilder();
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public String getPath() {
 		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
 	}
 
 	public Map<String, String> getProperties() {
 		return properties;
 	}
 
-	public void setProperties(Map<String, String> properties) {
-		this.properties = properties;
-	}
-
 	public Map<String, String> getEnvironment() {
 		return environment;
-	}
-
-	public void setEnvironment(Map<String, String> environment) {
-		this.environment = environment;
 	}
 
 	public List<String> getServices() {
 		return services;
 	}
 
-	public void setServices(List<String> services) {
-		this.services = services;
-	}
-
-	public static BackingApplicationBuilder builder() {
-		return new BackingApplicationBuilder();
-	}
-
-	public static class BackingApplicationBuilder {
+	public static class DeployApplicationRequestBuilder {
 
 		private String name;
 
@@ -97,51 +77,62 @@ public class BackingApplication {
 
 		private List<String> services = new ArrayList<>();
 
-		BackingApplicationBuilder() {
+		DeployApplicationRequestBuilder() {
+
 		}
 
-		public BackingApplicationBuilder name(String name) {
+		public DeployApplicationRequestBuilder name(String name) {
 			this.name = name;
 			return this;
 		}
 
-		public BackingApplicationBuilder path(String path) {
+		public DeployApplicationRequestBuilder path(String path) {
 			this.path = path;
 			return this;
 		}
 
-		public BackingApplicationBuilder property(String key, String value) {
+		public DeployApplicationRequestBuilder property(String key, String value) {
 			this.properties.put(key, value);
 			return this;
 		}
 
-		public BackingApplicationBuilder properties(Map<String, String> properties) {
+		public DeployApplicationRequestBuilder properties(Map<String, String> properties) {
+			if (properties == null) {
+				return this;
+			}
 			this.properties.putAll(properties);
 			return this;
 		}
 
-		public BackingApplicationBuilder environment(String key, String value) {
+		public DeployApplicationRequestBuilder environment(String key, String value) {
 			this.environment.put(key, value);
 			return this;
 		}
 
-		public BackingApplicationBuilder environment(Map<String, String> environment) {
+		public DeployApplicationRequestBuilder environment(Map<String, String> environment) {
+			if (environment == null) {
+				return this;
+			}
 			this.environment.putAll(environment);
 			return this;
 		}
 
-		public BackingApplicationBuilder service(String service) {
+		public DeployApplicationRequestBuilder service(String service) {
 			this.services.add(service);
 			return this;
 		}
 
-		public BackingApplicationBuilder services(List<String> services) {
+		public DeployApplicationRequestBuilder services(List<String> services) {
+			if (services == null) {
+				return this;
+			}
 			this.services.addAll(services);
 			return this;
 		}
 
-		public BackingApplication build() {
-			return new BackingApplication(name, path, properties, environment, services);
+		public DeployApplicationRequest build() {
+			return new DeployApplicationRequest(name, path, properties, environment, services);
 		}
 	}
+
 }

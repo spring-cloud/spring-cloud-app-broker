@@ -22,7 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
+import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.servicebroker.controller.CatalogController;
 import org.springframework.test.context.ActiveProfiles;
@@ -41,7 +41,7 @@ class ApplicationTest {
 	private CloudFoundryOperations cloudFoundryOperations;
 
 	@Autowired(required = false)
-	private ReactiveAppDeployer appDeployer;
+	private AppDeployer appDeployer;
 
 	@Autowired(required = false)
 	private BackingAppDeploymentService deploymentService;

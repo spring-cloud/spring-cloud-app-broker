@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -34,16 +35,25 @@ public class BackingAppDeploymentService {
 
 	public Mono<String> deploy(BackingApplications backingApps) {
 		return Flux.fromIterable(backingApps)
+			.parallel()
+			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::deploy)
 			.doOnRequest(l -> log.info("Deploying applications {}", backingApps))
 			.doOnEach(d -> log.info("Finished deploying applications {}", backingApps))
 			.doOnError(e -> log.info("Error deploying applications {} with error {}", backingApps, e))
+			.sequential()
 			.collect(Collectors.joining(","));
 	}
 
 	public Mono<String> undeploy(BackingApplications backingApps) {
 		return Flux.fromIterable(backingApps)
+			.parallel()
+			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::undeploy)
+			.doOnRequest(l -> log.info("Undeploying applications {}", backingApps))
+			.doOnEach(d -> log.info("Finished undeploying applications {}", backingApps))
+			.doOnError(e -> log.info("Error undeploying applications {} with error {}", backingApps, e))
+			.sequential()
 			.collect(Collectors.joining(","));
 	}
 }

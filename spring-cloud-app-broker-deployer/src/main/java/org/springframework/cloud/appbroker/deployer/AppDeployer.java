@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
-description = "Spring Cloud App Broker Deployer"
+package org.springframework.cloud.appbroker.deployer;
 
-dependencies {
-	api("io.projectreactor:reactor-core:${reactorVersion}")
+import reactor.core.publisher.Mono;
+
+public interface AppDeployer {
+
+	default Mono<DeployApplicationResponse> deploy(DeployApplicationRequest request) {
+		return Mono.empty();
+	}
+
+	default Mono<UndeployApplicationResponse> undeploy(UndeployApplicationRequest request) {
+		return Mono.empty();
+	}
+
+	default Mono<GetApplicationStatusResponse> status(GetApplicationStatusRequest request) {
+		return Mono.empty();
+	}
 }

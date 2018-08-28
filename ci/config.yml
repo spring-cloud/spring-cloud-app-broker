@@ -63,46 +63,46 @@ jobs:
           path: ~/junit/
           destination: testartifacts
 
-      - run:
-          name: "Populate Secrets from Environment"
-          command: |
-            if [[ ${CIRCLE_BUILD_NUM} = "" ]]; then
-                echo "populating from .envrc"
-                [[ -f "ci/.envrc" ]] || (printf "Download .envrc from LastPass using \"lpass show --notes 7083089362665788436\" in directory ${CI_DIR} before running script"; exit 1)
-                cd ~/repo/ci/
-                cat .envrc >> $BASH_ENV
-                ./scripts/populate-secrets-from-environment.sh
-                ./scripts/fix-bbl-state-json-line-breaks.py
-                cd bbl-bosh-lite-environment/bbl-state
-                bbl print-env >> $BASH_ENV
-            else
-                echo "populating from bbl env"
-                cd ~/repo/ci/scripts
-                ./populate-secrets-from-environment.sh
-                cd ~/repo/ci/bbl-bosh-lite-environment/bbl-state
-                bbl print-env >> $BASH_ENV
-            fi
+#      - run:
+#          name: "Populate Secrets from Environment"
+#          command: |
+#            if [[ ${CIRCLE_BUILD_NUM} = "" ]]; then
+#                echo "populating from .envrc"
+#                [[ -f "ci/.envrc" ]] || (printf "Download .envrc from LastPass using \"lpass show --notes 7083089362665788436\" in directory ${CI_DIR} before running script"; exit 1)
+#                cd ~/repo/ci/
+#                cat .envrc >> $BASH_ENV
+#                ./scripts/populate-secrets-from-environment.sh
+#                ./scripts/fix-bbl-state-json-line-breaks.py
+#                cd bbl-bosh-lite-environment/bbl-state
+#                bbl print-env >> $BASH_ENV
+#            else
+#                echo "populating from bbl env"
+#                cd ~/repo/ci/scripts
+#                ./populate-secrets-from-environment.sh
+#                cd ~/repo/ci/bbl-bosh-lite-environment/bbl-state
+#                bbl print-env >> $BASH_ENV
+#            fi
 
-      - run:
-          name: "Start BOSH Lite"
-          command: |
-            cd ~/repo/ci
-            ./scripts/wait-for-bosh-locks-to-be-released.sh 30
-            bosh -n -d cf start
+#      - run:
+#          name: "Start BOSH Lite"
+#          command: |
+#            cd ~/repo/ci
+#            ./scripts/wait-for-bosh-locks-to-be-released.sh 30
+#            bosh -n -d cf start
 
-      - run:
-          name: "Run acceptance tests"
-          command: |
-            ./gradlew -b spring-cloud-app-broker-sample/build.gradle assemble
-            ./gradlew clean assemble check -PacceptanceTests --stacktrace --continue -b spring-cloud-app-broker-acceptance-tests/build.gradle
+#      - run:
+#          name: "Run acceptance tests"
+#          command: |
+#            ./gradlew -b spring-cloud-app-broker-sample/build.gradle assemble
+#            ./gradlew clean assemble check -PacceptanceTests --stacktrace --continue -b spring-cloud-app-broker-acceptance-tests/build.gradle
 
-      - store_test_results:
-          path: ~/repo/spring-cloud-app-broker-acceptance-tests/build/test-results
-          destination: acceptancetestartifacts
+#      - store_test_results:
+#          path: ~/repo/spring-cloud-app-broker-acceptance-tests/build/test-results
+#          destination: acceptancetestartifacts
 
-      - run:
-          name: "Stop BOSH Lite"
-          command: |
-            cd ~/repo/ci/bbl-bosh-lite-environment/bbl-state
-            bosh -n -d cf stop
-          when: always
+#      - run:
+#          name: "Stop BOSH Lite"
+#          command: |
+#            cd ~/repo/ci/bbl-bosh-lite-environment/bbl-state
+#            bosh -n -d cf stop
+#          when: always

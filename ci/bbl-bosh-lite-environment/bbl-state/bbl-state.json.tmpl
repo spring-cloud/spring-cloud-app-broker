@@ -1,0 +1,42 @@
+{
+	"version": 14,
+	"bblVersion": "6.8.4",
+	"iaas": "gcp",
+	"id": "<%= bblEnvId %>",
+	"envID": "appbroker-env",
+	"noDirector": false,
+	"aws": {},
+	"azure": {},
+	"gcp": {
+		"zone": "europe-west2-a",
+		"region": "europe-west2",
+		"zones": [
+			"europe-west2-a",
+			"europe-west2-b",
+			"europe-west2-c"
+		]
+	},
+	"vsphere": {},
+	"openstack": {},
+	"jumpbox": {
+		"url": "<%= jumpboxUrl %>"
+	},
+	"bosh": {
+		"directorName": "bosh-appbroker-env",
+		"directorUsername": "<%= directorUsername %>",
+		"directorPassword": "<%= directorPassword %>",
+		"directorAddress": "https://<%= directorInternalIp %>:<%= directorPort %>",
+		"directorSSLCA": <%= directorSSLCA %>,
+		"directorSSLCertificate": <%= directorSSLCertificate %>,
+		"directorSSLPrivateKey": <%= directorSSLPrivateKey %>
+	},
+	"tfState": "",
+	"lb": {
+		"type": "cf",
+		"cert": <%= lbCert %>,
+		"key": <%= lbKey %>,
+		"chain": "",
+		"domain": "<%= lbDomain %>"
+	},
+	"latestTFOutput": ""
+}

@@ -18,11 +18,18 @@ package org.springframework.cloud.appbroker.sample.fixtures;
 
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.test.context.TestComponent;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.context.ApplicationListener;
+import org.springframework.http.HttpStatus;
 
+
+import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 
 @TestComponent
@@ -42,6 +49,10 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 		return "/service_instances/{instance_id}";
 	}
 
+	public String getLastInstanceOperationUrl() {
+		return "/service_instances/{instance_id}/last_operation";
+	}
+
 	public String deleteServiceInstanceUrl() {
 		return "/service_instances/{instance_id}" +
 			"?service_id=" + serviceDefinitionId +
@@ -51,6 +62,18 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 	public RequestSpecification serviceInstanceRequest() {
 		return serviceBrokerSpecification()
 			.body(buildServiceInstanceRequestBody());
+	}
+
+	public RequestSpecification serviceInstanceRequest(Map<String, Object> params) {
+		String stringParams = new JSONObject(params).toString();
+		return serviceBrokerSpecification()
+			.body("{" +
+				"  \"service_id\": \"" + serviceDefinitionId + "\"," +
+				"  \"plan_id\": \"" + planId + "\"," +
+				"  \"organization_guid\": \"" + ORG_ID + "\"," +
+				"  \"space_guid\": \"" + SPACE_ID + "\"," +
+				"  \"parameters\": " + stringParams +
+				"}");
 	}
 
 	private RequestSpecification serviceBrokerSpecification() {
@@ -67,6 +90,24 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 			"  \"organization_guid\": \"" + ORG_ID + "\",\n" +
 			"  \"space_guid\": \"" + SPACE_ID + "\"\n" +
 			"}\n";
+	}
+
+	public String waitForAsyncOperationComplete(String serviceInstanceId) {
+		try {
+			String state;
+			do {
+				Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+				state = given(serviceInstanceRequest())
+					.when()
+					.get(getLastInstanceOperationUrl(), serviceInstanceId)
+					.then()
+					.statusCode(HttpStatus.OK.value())
+					.extract().body().jsonPath().getString("state");
+			} while (state.equals(OperationState.IN_PROGRESS.toString()));
+			return state;
+		} catch (InterruptedException ie) {
+			throw new RuntimeException(ie);
+		}
 	}
 
 	@Override

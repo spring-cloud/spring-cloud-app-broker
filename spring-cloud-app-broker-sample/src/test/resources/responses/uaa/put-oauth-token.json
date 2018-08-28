@@ -1,0 +1,9 @@
+{
+	"access_token": "accessToken",
+	"token_type": "bearer",
+	"refresh_token": "refreshToken",
+	"expires_in": 7199,
+	"scope": "network.write cloud_controller.admin routing.router_groups.read cloud_controller.write network.admin doppler.firehose openid routing.router_groups.write scim.read uaa.user cloud_controller.read password.write scim.write",
+	"authorization_endpoint": "http://localhost",
+	"jti": "287353917d704131a78967c13623a705"
+}

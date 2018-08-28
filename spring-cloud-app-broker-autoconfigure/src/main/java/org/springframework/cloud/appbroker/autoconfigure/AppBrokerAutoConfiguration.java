@@ -18,14 +18,19 @@ package org.springframework.cloud.appbroker.autoconfigure;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
+import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
+import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.DefaultParametersTransformer;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.ParametersTransformer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -53,9 +58,21 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
+	public ServiceInstanceStateRepository serviceInstanceStateRepository() {
+		return new InMemoryServiceInstanceStateRepository();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(ParametersTransformer.class)
+	public ParametersTransformer parametersTransformer() {
+		return new DefaultParametersTransformer();
+	}
+
+	@Bean
 	public CreateServiceInstanceWorkflow createServiceInstanceWorkflow(BackingApplications backingApplications,
-																	   BackingAppDeploymentService backingAppDeploymentService) {
-		return new CreateServiceInstanceWorkflow(backingApplications, backingAppDeploymentService);
+																	   BackingAppDeploymentService backingAppDeploymentService,
+																	   ParametersTransformer parametersTransformer) {
+		return new CreateServiceInstanceWorkflow(backingApplications, backingAppDeploymentService, parametersTransformer);
 	}
 
 	@Bean
@@ -65,8 +82,9 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	public WorkflowServiceInstanceService serviceInstanceService(CreateServiceInstanceWorkflow createWorkflow,
+	public WorkflowServiceInstanceService serviceInstanceService(ServiceInstanceStateRepository stateRepository,
+																 CreateServiceInstanceWorkflow createWorkflow,
 																 DeleteServiceInstanceWorkflow deleteWorkflow) {
-		return new WorkflowServiceInstanceService(createWorkflow, deleteWorkflow);
+		return new WorkflowServiceInstanceService(stateRepository, createWorkflow, deleteWorkflow);
 	}
 }

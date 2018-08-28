@@ -18,10 +18,10 @@
 
 package org.springframework.cloud.appbroker.service;
 
-import reactor.core.publisher.Mono;
-
+import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
@@ -30,53 +30,106 @@ import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOper
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationResponse;
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 /**
  * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects for each service broker
  * operation.
  */
 public class WorkflowServiceInstanceService implements ServiceInstanceService {
+	private final Logger log = Loggers.getLogger(WorkflowServiceInstanceService.class);
 
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
+
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
-	public WorkflowServiceInstanceService(CreateServiceInstanceWorkflow createServiceInstanceWorkflow,
+	private ServiceInstanceStateRepository stateRepository;
+
+	public WorkflowServiceInstanceService(ServiceInstanceStateRepository serviceInstanceStateRepository,
+										  CreateServiceInstanceWorkflow createServiceInstanceWorkflow,
 										  DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow) {
+		this.stateRepository = serviceInstanceStateRepository;
 		this.createServiceInstanceWorkflow = createServiceInstanceWorkflow;
 		this.deleteServiceInstanceWorkflow = deleteServiceInstanceWorkflow;
 	}
 
 	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
-		createServiceInstanceWorkflow.create();
-
 		return Mono.just(CreateServiceInstanceResponse.builder()
-			.build());
+			.async(true)
+			.build())
+			.publishOn(Schedulers.parallel())
+			.doOnNext(response -> create(request)
+				.subscribe());
+	}
+
+	private Mono<Void> create(CreateServiceInstanceRequest request) {
+		return stateRepository.saveState(request.getServiceInstanceId(),
+			OperationState.IN_PROGRESS,
+			"create service instance started")
+			.then(createServiceInstanceWorkflow.create(request.getParameters())
+				.doOnRequest(l -> log.info("Creating service instance {}", request))
+				.doOnSuccess(d -> log.info("Finished creating service instance {}", request))
+				.doOnError(e -> log.info("Error creating service instance {} with error {}", request, e)))
+			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.SUCCEEDED, "create service instance completed")
+				.then())
+			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.FAILED, e.getMessage())
+				.then());
 	}
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		deleteServiceInstanceWorkflow.delete();
-		
 		return Mono.just(DeleteServiceInstanceResponse.builder()
-			.build());
+			.async(true)
+			.build())
+			.publishOn(Schedulers.parallel())
+			.doOnNext(response -> delete(request)
+				.subscribe());
+	}
+
+	private Mono<Void> delete(DeleteServiceInstanceRequest request) {
+		return stateRepository.saveState(request.getServiceInstanceId(),
+			OperationState.IN_PROGRESS, "delete service instance started")
+			.then(deleteServiceInstanceWorkflow.delete()
+				.doOnRequest(l -> log.info("Deleting service instance {}", request))
+				.doOnSuccess(d -> log.info("Finished deleting service instance {}", request))
+				.doOnError(e -> log.info("Error deleting service instance {} with error {}", request, e)))
+			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.SUCCEEDED, "delete service instance completed")
+				.then())
+			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.FAILED, e.getMessage())
+				.then());
 	}
 
 	@Override
 	public Mono<GetLastServiceOperationResponse> getLastOperation(GetLastServiceOperationRequest request) {
-		return Mono.empty();
+		return stateRepository.getState(request.getServiceInstanceId())
+			.doOnError(e -> Mono.error(new ServiceInstanceDoesNotExistException(request.getServiceInstanceId())))
+			.map(serviceInstanceState -> GetLastServiceOperationResponse.builder()
+				.operationState(serviceInstanceState.getOperationState())
+				.description(serviceInstanceState.getDescription())
+				.build());
 	}
 
 	@Override
 	public Mono<GetServiceInstanceResponse> getServiceInstance(GetServiceInstanceRequest request) {
+		//TODO add functionality
 		return Mono.empty();
 	}
 
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
+		//TODO add functionality
 		return Mono.empty();
 	}
 }

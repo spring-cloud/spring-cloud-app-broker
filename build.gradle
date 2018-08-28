@@ -23,6 +23,7 @@ buildscript {
 		classpath("io.spring.gradle:dependency-management-plugin:1.0.5.RELEASE")
 		classpath("io.spring.gradle:spring-io-plugin:0.0.8.RELEASE")
 		classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.5.3")
+		classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.7.5")
 	}
 }
 
@@ -40,14 +41,21 @@ configure(allprojects) {
 	apply plugin: "propdeps-idea"
 	apply plugin: "propdeps-eclipse"
 	apply plugin: "io.spring.dependency-management"
+	apply plugin: 'maven-publish'
+	apply plugin: "com.jfrog.artifactory"
 
 	ext {
 		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
 		reactorVersion = "3.1.8.RELEASE"
-		
 		junitJupiterVersion = "5.2.0"
 		assertjVersion = "3.10.0"
 		mockitoVersion = "2.19.0"
+	}
+
+	repositories {
+//		mavenLocal()
+		mavenCentral()
+		maven { url "https://repo.spring.io/libs-snapshot" }
 	}
 
 	if (!project.hasProperty("springVersion")) {
@@ -57,7 +65,7 @@ configure(allprojects) {
 		ext.springBootVersion = "2.0.3.RELEASE"
 	}
 
-    if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion")) {
+	if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion")) {
 		repositories {
 			maven { url "https://repo.spring.io/libs-snapshot" }
 		}
@@ -121,10 +129,6 @@ configure(allprojects) {
 		systemProperty("java.awt.headless", "true")
 	}
 
-	repositories {
-		maven { url "https://repo.spring.io/libs-snapshot" }
-	}
-
 	ext.javadocLinks = [
 		"http://docs.oracle.com/javase/8/docs/api/",
 		"http://docs.spring.io/spring/docs/${springVersion}/javadoc-api/",
@@ -152,6 +156,20 @@ configure(allprojects) {
 			}
 		}
 	}
+
+	artifactory {
+		contextUrl = 'https://repo.spring.io'
+		publish {
+			repository {
+				repoKey = 'libs-snapshot-local'
+				username = System.getenv()['USERNAME']
+				password = System.getenv()['PASSWORD']
+			}
+			defaults {
+				publications ('mavenJava')
+			}
+		}
+	}
 }
 
 subprojects { subproject ->
@@ -162,6 +180,13 @@ subprojects { subproject ->
 				"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
 		manifest.attributes["Implementation-Title"] = subproject.name
 		manifest.attributes["Implementation-Version"] = subproject.version
+
+		from("${rootProject.projectDir}/src/dist") {
+			include "license.txt"
+			include "notice.txt"
+			into "META-INF"
+			expand(copyright: new Date().format("yyyy"), version: subproject.version)
+		}
 	}
 
 	javadoc {
@@ -188,6 +213,17 @@ subprojects { subproject ->
 	artifacts {
 		archives sourcesJar
 		archives javadocJar
+	}
+
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				from components.java
+
+				artifact sourcesJar
+				artifact javadocJar
+			}
+		}
 	}
 
 	configurations {
@@ -270,11 +306,11 @@ configure(rootProject) {
 }
 
 pmd {
-	ruleSetFiles = files("${project.rootDir}/config/pmdRuleSet.xml")
+	ruleSetFiles = files("${project.rootDir}/ci/config/pmdRuleSet.xml")
 }
 
 pmdTest {
-	ruleSetFiles = files("${project.rootDir}/config/pmdTestRuleSet.xml")
+	ruleSetFiles = files("${project.rootDir}/ci/config/pmdTestRuleSet.xml")
 }
 
 task codeCoverageReport(type: JacocoReport) {
@@ -305,5 +341,5 @@ codeCoverageReport.dependsOn {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = "4.7"
+	gradleVersion = "4.9"
 }

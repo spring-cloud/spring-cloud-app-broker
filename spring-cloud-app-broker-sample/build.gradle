@@ -51,3 +51,8 @@ dependencies {
 	testImplementation("io.rest-assured:rest-assured")
 	testImplementation("com.github.tomakehurst:wiremock:${wiremockVersion}")
 }
+
+test {
+	// force a new fork for every test to eliminate issues with wiremock state
+	forkEvery = 1
+}

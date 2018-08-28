@@ -1,0 +1,11 @@
+{
+	"metadata": {
+		"guid": "@guid",
+		"created_at": "2018-07-19T23:30:45Z",
+		"url": "/v2/jobs/4369e78e-7c95-4822-af0f-431f70ca38d2"
+	},
+	"entity": {
+		"guid": "@guid",
+		"status": "finished"
+	}
+}

@@ -17,16 +17,17 @@
 package org.springframework.cloud.appbroker.acceptance.fixtures.cf;
 
 import java.net.URI;
-import org.cloudfoundry.reactor.ProxyConfiguration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import org.cloudfoundry.reactor.ProxyConfiguration;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryProperties.PROPERTY_PREFIX;
 
 @ConfigurationProperties(PROPERTY_PREFIX)
 public class CloudFoundryProperties {
 
-	static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry";
+	static final String PROPERTY_PREFIX = "spring.cloud.appbroker.acceptancetest.cloudfoundry";
 
 	private String apiHost;
 	private Integer apiPort;

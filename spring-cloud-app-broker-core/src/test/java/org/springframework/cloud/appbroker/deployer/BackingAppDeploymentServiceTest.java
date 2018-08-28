@@ -6,8 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,9 +44,9 @@ class BackingAppDeploymentServiceTest {
 		doReturn(Mono.just(STATUS_RUNNING))
 			.when(deployerClient).deploy(backingApps.get(1));
 
-		String deployStatus = backingAppDeploymentService.deploy(backingApps);
-
-		assertThat(deployStatus).isEqualTo(STATUS_RUNNING + "," + STATUS_RUNNING);
+		StepVerifier.create(backingAppDeploymentService.deploy(backingApps))
+			.expectNext(STATUS_RUNNING + "," + STATUS_RUNNING)
+			.verifyComplete();
 	}
 
 	@Test
@@ -56,8 +56,8 @@ class BackingAppDeploymentServiceTest {
 		doReturn(Mono.just(STATUS_DELETED))
 			.when(deployerClient).undeploy(backingApps.get(1));
 
-		String undeployStatus = backingAppDeploymentService.undeploy(backingApps);
-
-		assertThat(undeployStatus).isEqualTo(STATUS_DELETED + "," + STATUS_DELETED);
+		StepVerifier.create(backingAppDeploymentService.undeploy(backingApps))
+			.expectNext(STATUS_DELETED + "," + STATUS_DELETED)
+			.verifyComplete();
 	}
 }

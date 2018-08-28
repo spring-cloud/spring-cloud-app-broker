@@ -32,7 +32,6 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
 		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
 		"spring.cloud.appbroker.apps[0].environment.ENV_VAR_1=value1",
 		"spring.cloud.appbroker.apps[0].environment.ENV_VAR_2=value2",
 		"spring.cloud.appbroker.apps[0].properties.spring.cloud.deployer.memory=2G",

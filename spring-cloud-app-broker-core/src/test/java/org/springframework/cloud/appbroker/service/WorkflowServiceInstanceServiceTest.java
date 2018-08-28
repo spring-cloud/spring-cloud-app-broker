@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.appbroker.service;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,53 +67,26 @@ class WorkflowServiceInstanceServiceTest {
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed")));
 
-		given(createServiceInstanceWorkflow.create(Collections.emptyMap()))
+		CreateServiceInstanceRequest request = CreateServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build();
+
+		given(createServiceInstanceWorkflow.create(request))
 			.willReturn(Mono.empty());
 
-		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(CreateServiceInstanceRequest.builder()
-			.serviceInstanceId("foo")
-			.build()))
+		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
 			.assertNext(createServiceInstanceResponse -> {
 				verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("create service instance started"));
-				verify(createServiceInstanceWorkflow).create(Collections.emptyMap());
-				verify(serviceInstanceStateRepository)
+				verify(createServiceInstanceWorkflow).create(request);
+					verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("create service instance completed"));
 				verifyNoMoreInteractions(serviceInstanceStateRepository, createServiceInstanceWorkflow);
 				assertThat(createServiceInstanceResponse).isNotNull();
 				assertThat(createServiceInstanceResponse.isAsync()).isTrue();
 			})
 			.verifyComplete();
-	}
 
-	@Test
-	void createServiceInstanceWithParameters() {
-		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed")));
-
-		Map<String, Object> params = new HashMap<>();
-		params.put("ENV_VAR_1", "value1");
-		params.put("ENV_VAR_2", true);
-
-		given(createServiceInstanceWorkflow.create(params))
-			.willReturn(Mono.empty());
-
-		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(CreateServiceInstanceRequest.builder()
-			.serviceInstanceId("foo")
-			.parameters(params)
-			.build()))
-			.assertNext(createServiceInstanceResponse -> {
-				verify(serviceInstanceStateRepository)
-					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("create service instance started"));
-				verify(createServiceInstanceWorkflow).create(params);
-				verify(serviceInstanceStateRepository)
-					.saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("create service instance completed"));
-				verifyNoMoreInteractions(serviceInstanceStateRepository, createServiceInstanceWorkflow);
-				assertThat(createServiceInstanceResponse).isNotNull();
-				assertThat(createServiceInstanceResponse.isAsync()).isTrue();
-			})
-			.verifyComplete();
 	}
 
 	@Test
@@ -125,16 +95,18 @@ class WorkflowServiceInstanceServiceTest {
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance failed")));
 
-		given(createServiceInstanceWorkflow.create(Collections.emptyMap()))
+		CreateServiceInstanceRequest request = CreateServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build();
+
+		given(createServiceInstanceWorkflow.create(request))
 			.willReturn(Mono.error(new RuntimeException("create foo error")));
 
-		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(CreateServiceInstanceRequest.builder()
-			.serviceInstanceId("foo")
-			.build()))
+		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
 			.assertNext(error -> {
 				verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("create service instance started"));
-				verify(createServiceInstanceWorkflow).create(Collections.emptyMap());
+				verify(createServiceInstanceWorkflow).create(request);
 				verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.FAILED), eq("create foo error"));
 				verifyNoMoreInteractions(serviceInstanceStateRepository, createServiceInstanceWorkflow);
@@ -148,16 +120,18 @@ class WorkflowServiceInstanceServiceTest {
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance completed")));
 
-		given(deleteServiceInstanceWorkflow.delete())
+		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build();
+
+		given(deleteServiceInstanceWorkflow.delete(request))
 			.willReturn(Mono.empty());
 
-		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(DeleteServiceInstanceRequest.builder()
-			.serviceInstanceId("foo")
-			.build()))
+		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
 				verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("delete service instance started"));
-				verify(deleteServiceInstanceWorkflow).delete();
+				verify(deleteServiceInstanceWorkflow).delete(request);
 				verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("delete service instance completed"));
 				verifyNoMoreInteractions(serviceInstanceStateRepository, deleteServiceInstanceWorkflow);
@@ -173,16 +147,18 @@ class WorkflowServiceInstanceServiceTest {
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "delete service instance failed")));
 
-		given(deleteServiceInstanceWorkflow.delete())
+		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build();
+		
+		given(deleteServiceInstanceWorkflow.delete(request))
 			.willReturn(Mono.error(new RuntimeException("delete foo error")));
 
-		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(DeleteServiceInstanceRequest.builder()
-			.serviceInstanceId("foo")
-			.build()))
+		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
 				verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("delete service instance started"));
-				verify(deleteServiceInstanceWorkflow).delete();
+				verify(deleteServiceInstanceWorkflow).delete(request);
 				verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.FAILED), eq("delete foo error"));
 				verifyNoMoreInteractions(serviceInstanceStateRepository, deleteServiceInstanceWorkflow);

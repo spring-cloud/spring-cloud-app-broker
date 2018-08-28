@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -23,8 +24,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BrokeredService;
+import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.model.catalog.Plan;
+import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteServiceInstanceWorkflowTest {
@@ -32,23 +43,69 @@ class DeleteServiceInstanceWorkflowTest {
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
 
-	@Test
-	void shouldDeleteDefaultServiceInstance() {
-		// given that properties contains app details
+	private BrokeredServices brokeredServices;
+
+	@BeforeEach
+	void setUp() {
 		BackingApplications backingApps = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()
-				.name("helloworldapp")
+				.name("app1")
 				.path("http://myfiles/app.jar")
 				.build())
 			.build();
+
+		brokeredServices = BrokeredServices.builder()
+			.service(BrokeredService.builder()
+				.serviceName("service1")
+				.planName("plan1")
+				.apps(backingApps)
+				.build())
+			.build();
+	}
+
+	@Test
+	void deleteServiceInstanceSucceeds() {
+		given(this.backingAppDeploymentService.undeploy(any(BackingApplications.class)))
+			.willReturn(Mono.just("undeployed"));
+
 		DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow =
-			new DeleteServiceInstanceWorkflow(backingApps, backingAppDeploymentService);
+			new DeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
 
 		// when
-		deleteServiceInstanceWorkflow.delete();
+		StepVerifier
+			.create(deleteServiceInstanceWorkflow.delete(buildRequest("service1", "plan1")))
+			.expectNext("undeployed")
+			.verifyComplete();
 
-		// then deployer should be called with the application details
-		verify(backingAppDeploymentService)
-			.undeploy(backingApps);
+		verifyNoMoreInteractions(this.backingAppDeploymentService);
+	}
+
+	@Test
+	void deleteServiceInstanceFailsWithMisconfigurationFails() {
+		DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow =
+			new DeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
+
+		// when
+		StepVerifier
+			.create(deleteServiceInstanceWorkflow.delete(buildRequest("unsupported-service", "plan1")))
+			.expectError(ServiceBrokerException.class)
+			.verify();
+
+		verifyNoMoreInteractions(this.backingAppDeploymentService);
+	}
+
+	private DeleteServiceInstanceRequest buildRequest(String serviceName, String planName) {
+		return DeleteServiceInstanceRequest.builder()
+			.serviceDefinitionId(serviceName + "-id")
+			.planId(planName + "-id")
+			.serviceDefinition(ServiceDefinition.builder()
+				.id(serviceName + "-id")
+				.name(serviceName)
+				.plans(Plan.builder()
+					.id(planName + "-id")
+					.name(planName)
+					.build())
+				.build())
+			.build();
 	}
 }

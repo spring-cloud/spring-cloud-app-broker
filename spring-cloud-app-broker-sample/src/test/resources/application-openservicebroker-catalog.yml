@@ -3,7 +3,7 @@ spring:
     openservicebroker:
       catalog:
         services:
-        - id: example-service
+        - id: example-service-id
           name: example
           description: A simple example
           bindable: true
@@ -11,7 +11,7 @@ spring:
           - example
             tags
           plans:
-          - id: simple-plan
+          - id: standard-plan-id
             bindable: true
             name: standard
             description: A simple plan

@@ -39,13 +39,14 @@ import org.cloudfoundry.operations.serviceadmin.DeleteServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.EnableServiceAccessRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
+import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.DefaultSpaces;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.appbroker.acceptance.AcceptanceTestProperties;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -61,17 +62,14 @@ public class CloudFoundryService {
 	private CloudFoundryOperations cloudFoundryOperations;
 	private CloudFoundryProperties cloudFoundryProperties;
 	private CloudFoundryClient cloudFoundryClient;
-	private AcceptanceTestProperties acceptanceTestProperties;
 
 	@Autowired
 	public CloudFoundryService(CloudFoundryOperations cloudFoundryOperations,
 							   CloudFoundryProperties cloudFoundryProperties,
-							   CloudFoundryClient cloudFoundryClient,
-							   AcceptanceTestProperties acceptanceTestProperties) {
+							   CloudFoundryClient cloudFoundryClient) {
 		this.cloudFoundryOperations = cloudFoundryOperations;
 		this.cloudFoundryProperties = cloudFoundryProperties;
 		this.cloudFoundryClient = cloudFoundryClient;
-		this.acceptanceTestProperties = acceptanceTestProperties;
 	}
 
 	public Mono<Void> enableServiceBrokerAccess(String serviceName) {
@@ -167,6 +165,15 @@ public class CloudFoundryService {
 					.build()));
 	}
 
+	public Mono<ServiceInstance> getServiceInstance(String serviceInstanceName) {
+		return loggingMono(
+			cloudFoundryOperations
+				.services()
+				.getInstance(GetServiceInstanceRequest.builder()
+					.name(serviceInstanceName)
+					.build()));
+	}
+
 	public Mono<List<ApplicationSummary>> getApplications() {
 		return loggingMono(
 			cloudFoundryOperations.applications().list().collectList());
@@ -250,12 +257,12 @@ public class CloudFoundryService {
 
 	private Map<String, String> appBrokerCatalogEnvironmentVariables() {
 		Map<String, String> catalogVariables = new HashMap<>();
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].id", "example-service");
+		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].id", "example-service-id");
 		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].name", "example");
 		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].description", "A simple example");
 		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].bindable", "true");
 		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].tags[0]", "example");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].id", "simple-plan");
+		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].id", "standard-plan-id");
 		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].bindable", "true");
 		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].name", "standard");
 		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].description", "A simple plan");
@@ -269,8 +276,7 @@ public class CloudFoundryService {
 			final String[] appPropertyKeyValue = appProperty.split("=");
 			if (appPropertyKeyValue.length != 2) {
 				throw new RuntimeException(format("Backing app property '%s' is incorrectly formatted", Arrays.toString(appPropertyKeyValue)));
-			}
-			else backingAppVariables.put(appPropertyKeyValue[0], appPropertyKeyValue[1]);
+			} else backingAppVariables.put(appPropertyKeyValue[0], appPropertyKeyValue[1]);
 		}
 		return backingAppVariables;
 	}
@@ -278,8 +284,7 @@ public class CloudFoundryService {
 	private <T> Mono<T> loggingMono(Mono<T> publisher) {
 		if (LOGGER.isDebugEnabled()) {
 			return publisher.log();
-		}
-		else return publisher;
+		} else return publisher;
 	}
 
 }

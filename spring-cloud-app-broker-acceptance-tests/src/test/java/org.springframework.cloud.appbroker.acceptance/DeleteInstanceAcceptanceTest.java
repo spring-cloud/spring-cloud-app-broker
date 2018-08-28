@@ -29,8 +29,10 @@ class DeleteInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	@Test
 	@AppBrokerTestProperties({
-		"spring.cloud.appbroker.apps[0].name=" + BROKER_SAMPLE_APP_DELETE,
-		"spring.cloud.appbroker.apps[0].path=classpath:demo.jar"
+		"spring.cloud.appbroker.services[0].service-name=example",
+		"spring.cloud.appbroker.services[0].plan-name=standard",
+		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_DELETE,
+		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar"
 	})
 	void shouldDeleteAppsWhenDeleteServiceCalled() {
 		// given a service instance is created

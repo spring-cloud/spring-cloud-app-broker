@@ -16,193 +16,134 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import java.util.Collections;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cloud.appbroker.deployer.BrokeredService;
+import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.model.catalog.Plan;
+import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
-import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.Collections.singletonMap;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class CreateServiceInstanceWorkflowTest {
 
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
+
+	@Mock
 	private ParametersTransformer parametersTransformer;
+
+	private BrokeredServices brokeredServices;
 
 	@BeforeEach
 	void setUp() {
-		parametersTransformer = new DefaultParametersTransformer();
-	}
-
-	@Test
-	void shouldCreateServiceInstance() {
-		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
-			.willReturn(Mono.just("deployment-id-app1"));
-
-		// given that properties contains app details
-		parametersTransformer = new DefaultParametersTransformer();
-		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(createBackingApplications(),
-				backingAppDeploymentService,
-				parametersTransformer);
-
-		// when
-		createServiceInstanceWorkflow.create(Collections.emptyMap());
-
-		// then deployer should be called with the application details
-		ArgumentCaptor<BackingApplications> argumentCaptor = ArgumentCaptor.forClass(BackingApplications.class);
-		verify(backingAppDeploymentService).deploy(argumentCaptor.capture());
-
-		BackingApplication backingApplication = argumentCaptor.getValue().get(0);
-		assertThat(backingApplication.getName()).isEqualTo("helloworldapp");
-		assertThat(backingApplication.getPath()).isEqualTo("http://myfiles/app.jar");
-		assertThat(backingApplication.getEnvironment()).isEqualTo(Collections.emptyMap());
-	}
-
-	@Test
-	void shouldCreateServiceInstanceWithEnvironment() {
-		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
-			.willReturn(Mono.just("deployment-id-app1"));
-
-		// given that properties contains app details and environment variables
-		Map<String, String> environment = singletonMap("ENV_VAR_1", "value from environment");
-		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(createBackingApplicationWithEnvironment(environment),
-				backingAppDeploymentService,
-				parametersTransformer);
-
-		// when
-		createServiceInstanceWorkflow.create(Collections.emptyMap());
-
-		// then deployer should be called with the application details and the environment variables
-		ArgumentCaptor<BackingApplications> argumentCaptor = ArgumentCaptor.forClass(BackingApplications.class);
-		verify(backingAppDeploymentService).deploy(argumentCaptor.capture());
-
-		BackingApplication backingApplication = argumentCaptor.getValue().get(0);
-		assertThat(backingApplication.getName()).isEqualTo("helloworldapp");
-		assertThat(backingApplication.getPath()).isEqualTo("http://myfiles/app.jar");
-		assertThat(backingApplication.getEnvironment()).isEqualTo(singletonMap("ENV_VAR_1", "value from environment"));
-	}
-
-	@Test
-	void shouldCreateServiceInstanceWithParameters() {
-		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
-			.willReturn(Mono.just("deployment-id-app1"));
-
-		// given that properties contains app details
-		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(createBackingApplications(),
-				backingAppDeploymentService,
-				parametersTransformer);
-
-		// when create is called with parameters
-		Map<String, Object> parameters = singletonMap("ENV_VAR_1", "value from parameters");
-		createServiceInstanceWorkflow.create(parameters);
-
-		// then deployer should be called with the application details and environment variables
-		ArgumentCaptor<BackingApplications> argumentCaptor = ArgumentCaptor.forClass(BackingApplications.class);
-		verify(backingAppDeploymentService).deploy(argumentCaptor.capture());
-
-		BackingApplication backingApplication = argumentCaptor.getValue().get(0);
-		assertThat(backingApplication.getName()).isEqualTo("helloworldapp");
-		assertThat(backingApplication.getPath()).isEqualTo("http://myfiles/app.jar");
-		assertThat(backingApplication.getEnvironment()).isEqualTo(singletonMap("ENV_VAR_1", "value from parameters"));
-	}
-
-	@Test
-	void shouldCreateServiceInstanceOverwritingEnvironmentPropertiesWithParameters() {
-		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
-			.willReturn(Mono.just("deployment-id-app1"));
-
-		// given that properties contains app details and environment variables
-		Map<String, String> environment = singletonMap("ENV_VAR_1", "value from environment");
-		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(createBackingApplicationWithEnvironment(environment),
-				backingAppDeploymentService,
-				parametersTransformer);
-
-		// when create is called with parameters
-		Map<String, Object> parameters = singletonMap("ENV_VAR_1", "value from parameters");
-		createServiceInstanceWorkflow.create(parameters);
-
-		// then deployer should contain the environment with the value from the parameters
-		ArgumentCaptor<BackingApplications> argumentCaptor = ArgumentCaptor.forClass(BackingApplications.class);
-		verify(backingAppDeploymentService).deploy(argumentCaptor.capture());
-
-		BackingApplication backingApplication = argumentCaptor.getValue().get(0);
-		assertThat(backingApplication.getName()).isEqualTo("helloworldapp");
-		assertThat(backingApplication.getPath()).isEqualTo("http://myfiles/app.jar");
-		assertThat(backingApplication.getEnvironment()).isEqualTo(singletonMap("ENV_VAR_1", "value from parameters"));
-	}
-
-	@Test
-	void shouldCreateServiceInstanceWithMultipleApplicationsAndProperties() {
-		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
-			.willReturn(Mono.just("deployment-id-app1"));
-
-		// given that properties contains two apps
-		BackingApplications backingApplications = BackingApplications.builder()
+		BackingApplications backingApps = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()
-				.name("helloworldapp1")
-				.path("http://myfiles/app.jar")
-				.build())
-			.backingApplication(BackingApplication.builder()
-				.name("helloworldapp2")
+				.name("helloworldapp")
 				.path("http://myfiles/app.jar")
 				.build())
 			.build();
 
+		brokeredServices = BrokeredServices.builder()
+			.service(BrokeredService.builder()
+				.serviceName("service1")
+				.planName("plan1")
+				.apps(backingApps)
+				.build())
+			.build();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void createServiceInstanceSucceeds() {
+		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
+			.willReturn(Mono.just("deployed"));
+
 		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(backingApplications,
+			new CreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformer);
+
+		StepVerifier
+			.create(createServiceInstanceWorkflow.create(buildRequest("service1", "plan1")))
+			.expectNext("deployed")
+			.verifyComplete();
+
+		verifyNoMoreInteractions(this.backingAppDeploymentService);
+		verify(this.parametersTransformer).transform(any(BackingApplications.class), eq(Collections.EMPTY_MAP));
+	}
+
+	@Test
+	void createServiceInstanceWithParametersSucceeds() {
+		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
+			.willReturn(Mono.just("deployment-id-app1"));
+
+		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
+			new CreateServiceInstanceWorkflow(brokeredServices,
 				backingAppDeploymentService,
 				parametersTransformer);
 
-		// when create is called with parameters
-		Map<String, Object> parameters = singletonMap("ENV_VAR_1", "value from parameters");
-		createServiceInstanceWorkflow.create(parameters);
+		StepVerifier
+			.create(createServiceInstanceWorkflow.create(buildRequest("service1", "plan1",
+				singletonMap("ENV_VAR_1", "value from parameters"))))
+			.expectNext("deployment-id-app1")
+			.verifyComplete();
 
-		// then deployer should contain the environment with the value from the parameters
-		ArgumentCaptor<BackingApplications> argumentCaptor = ArgumentCaptor.forClass(BackingApplications.class);
-		verify(backingAppDeploymentService).deploy(argumentCaptor.capture());
-
-		BackingApplication backingApplication1 = argumentCaptor.getValue().get(0);
-		assertThat(backingApplication1.getName()).isEqualTo("helloworldapp1");
-		assertThat(backingApplication1.getPath()).isEqualTo("http://myfiles/app.jar");
-		assertThat(backingApplication1.getEnvironment()).isEqualTo(singletonMap("ENV_VAR_1", "value from parameters"));
-
-		BackingApplication backingApplication2 = argumentCaptor.getValue().get(1);
-		assertThat(backingApplication2.getName()).isEqualTo("helloworldapp2");
-		assertThat(backingApplication2.getPath()).isEqualTo("http://myfiles/app.jar");
-		assertThat(backingApplication2.getEnvironment()).isEqualTo(singletonMap("ENV_VAR_1", "value from parameters"));
+		verifyNoMoreInteractions(this.backingAppDeploymentService);
+		verify(this.parametersTransformer).transform(any(BackingApplications.class),
+			eq(Collections.singletonMap("ENV_VAR_1", "value from parameters")));
 	}
 
-	private BackingApplications createBackingApplications() {
-		return createBackingApplicationWithEnvironment(null);
+	@Test
+	void createServiceInstanceFailsWithMisconfigurationFails() {
+		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
+			new CreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformer);
+
+		StepVerifier
+			.create(createServiceInstanceWorkflow.create(buildRequest("unsupported-service", "plan1")))
+			.expectError(ServiceBrokerException.class)
+			.verify();
+
+		verifyNoMoreInteractions(this.backingAppDeploymentService);
 	}
 
-	private BackingApplications createBackingApplicationWithEnvironment(Map<String, String> parameters) {
-		BackingApplication.BackingApplicationBuilder backingApplicationBuilder = BackingApplication.builder()
-			.name("helloworldapp")
-			.path("http://myfiles/app.jar");
-		if (parameters != null) {
-			backingApplicationBuilder.environment(parameters);
-		}
-		return BackingApplications.builder()
-			.backingApplication(backingApplicationBuilder.build())
+	private CreateServiceInstanceRequest buildRequest(String serviceName, String planName) {
+		return buildRequest(serviceName, planName, null);
+	}
+
+	private CreateServiceInstanceRequest buildRequest(String serviceName, String planName,
+													  Map<String, Object> parameters) {
+		return CreateServiceInstanceRequest.builder()
+			.serviceDefinitionId(serviceName + "-id")
+			.planId(planName + "-id")
+			.serviceDefinition(ServiceDefinition.builder()
+				.id(serviceName + "-id")
+				.name(serviceName)
+				.plans(Plan.builder()
+					.id(planName + "-id")
+					.name(planName)
+					.build())
+				.build())
+			.parameters(parameters != null ? parameters : new HashMap<>())
 			.build();
 	}
 }

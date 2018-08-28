@@ -20,23 +20,23 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
-import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.workflow.instance.SimpleMappingParametersTransformer;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.ParametersTransformer;
+import org.springframework.cloud.appbroker.workflow.instance.SimpleMappingParametersTransformer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @AutoConfigureAfter(AppDeployerAutoConfiguration.class)
-@ConditionalOnBean(ReactiveAppDeployer.class)
+@ConditionalOnBean(AppDeployer.class)
 public class AppBrokerAutoConfiguration {
 
 	private static final String PROPERTY_PREFIX = "spring.cloud.appbroker";
@@ -47,7 +47,7 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	public DeployerClient deployerClient(ReactiveAppDeployer appDeployer) {
+	public DeployerClient deployerClient(AppDeployer appDeployer) {
 		return new DeployerClient(appDeployer);
 	}
 

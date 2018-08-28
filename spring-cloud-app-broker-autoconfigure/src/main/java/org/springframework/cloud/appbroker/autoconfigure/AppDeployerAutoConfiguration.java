@@ -20,13 +20,14 @@ import org.cloudfoundry.operations.CloudFoundryOperations;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
-import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryReactiveAppDeployer;
+import org.springframework.cloud.appbroker.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryAppDeployer;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.NoOpAppNameGenerator;
 import org.springframework.cloud.deployer.spi.cloudfoundry.AppNameGenerator;
 import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ResourceLoader;
 
 @Configuration
 @AutoConfigureAfter(CloudFoundryClientAutoConfiguration.class)
@@ -34,11 +35,12 @@ public class AppDeployerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(CloudFoundryOperations.class)
-	public ReactiveAppDeployer cloudFoundryReactiveAppDeployer(AppNameGenerator noOpApplicationNameGenerator,
-															   CloudFoundryOperations cloudFoundryOperations) {
+	public AppDeployer cloudFoundryReactiveAppDeployer(AppNameGenerator noOpApplicationNameGenerator,
+													   CloudFoundryOperations cloudFoundryOperations,
+													   ResourceLoader resourceLoader) {
 		CloudFoundryDeploymentProperties cloudFoundryDeploymentProperties = new CloudFoundryDeploymentProperties();
-		return new CloudFoundryReactiveAppDeployer(noOpApplicationNameGenerator, cloudFoundryDeploymentProperties,
-			cloudFoundryOperations, null);
+		return new CloudFoundryAppDeployer(noOpApplicationNameGenerator, cloudFoundryDeploymentProperties,
+			cloudFoundryOperations, null, resourceLoader);
 	}
 
 	@Bean

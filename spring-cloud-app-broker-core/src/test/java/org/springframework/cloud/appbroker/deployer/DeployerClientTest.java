@@ -16,26 +16,23 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.ResourceLoader;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,14 +46,11 @@ class DeployerClientTest {
 	private DeployerClient deployerClient;
 
 	@Mock
-	private ReactiveAppDeployer appDeployer;
-
-	@Mock
-	private ResourceLoader resourceLoader;
+	private AppDeployer appDeployer;
 
 	@BeforeEach
 	void setUp() {
-		deployerClient = new DeployerClient(appDeployer, resourceLoader);
+		deployerClient = new DeployerClient(appDeployer);
 	}
 
 	@Test
@@ -70,13 +64,13 @@ class DeployerClientTest {
 			.build();
 
 		// when
-		Mono<String> lastState = deployerClient.deploy(application);
+		StepVerifier.create(deployerClient.deploy(application))
+			// then
+			.expectNext(APP_NAME)
+			.verifyComplete();
 
-		// then
-		assertThat(lastState.block()).isEqualTo("running");
-
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE,
-			Collections.emptyMap(), Collections.emptyMap())));
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
+			Collections.emptyMap(), Collections.emptyList())));
 	}
 
 	@Test
@@ -96,12 +90,13 @@ class DeployerClientTest {
 			.build();
 
 		// when
-		Mono<String> lastState = deployerClient.deploy(application);
+		StepVerifier.create(deployerClient.deploy(application))
+			// then
+			.expectNext(APP_NAME)
+			.verifyComplete();
 
-		// then
-		assertThat(lastState.block()).isEqualTo("running");
-
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, properties, Collections.emptyMap())));
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_PATH, properties,
+			Collections.emptyMap(), Collections.emptyList())));
 	}
 
 	@Test
@@ -117,15 +112,13 @@ class DeployerClientTest {
 			.build();
 
 		// when
-		Mono<String> lastState = deployerClient.deploy(application);
+		StepVerifier.create(deployerClient.deploy(application))
+			// then
+			.expectNext(APP_NAME)
+			.verifyComplete();
 
-		// then
-		assertThat(lastState.block()).isEqualTo("running");
-
-		Map<String, String> properties = new HashMap<String, String>() {{
-			put("spring.cloud.deployer.cloudfoundry.services", "my-db-service");
-		}};
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, properties, Collections.emptyMap())));
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
+			Collections.emptyMap(), Arrays.asList("my-db-service"))));
 	}
 
 	@Test
@@ -145,18 +138,22 @@ class DeployerClientTest {
 			.build();
 
 		// when
-		Mono<String> lastState = deployerClient.deploy(application);
+		StepVerifier.create(deployerClient.deploy(application))
+			// then
+			.expectNext(APP_NAME)
+			.verifyComplete();
 
-		// then
-		assertThat(lastState.block()).isEqualTo("running");
-
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_ARCHIVE, Collections.emptyMap(), environment)));
+		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
+			environment, Collections.emptyList())));
 	}
 
 	@Test
 	void shouldUndeployApp() {
 		// given
-		when(appDeployer.undeploy(any())).thenReturn(Mono.empty());
+		when(appDeployer.undeploy(any()))
+			.thenReturn(Mono.just(UndeployApplicationResponse.builder()
+				.status("undeployed")
+				.build()));
 
 		BackingApplication application = BackingApplication.builder()
 			.name(APP_NAME)
@@ -164,12 +161,12 @@ class DeployerClientTest {
 			.build();
 
 		// when
-		Mono<String> lastState = deployerClient.undeploy(application);
+		StepVerifier.create(deployerClient.undeploy(application))
+			// then
+			.expectNext("undeployed")
+			.verifyComplete();
 
-		// then
-		assertThat(lastState.block()).isEqualTo("deleted");
-
-		verify(appDeployer).undeploy(eq(APP_NAME));
+		verify(appDeployer).undeploy(argThat(request -> APP_NAME.equals(request.getName())));
 	}
 
 	@Test
@@ -183,26 +180,30 @@ class DeployerClientTest {
 			.build();
 
 		// when
-		Mono<String> lastState = deployerClient.undeploy(application);
+		StepVerifier.create(deployerClient.undeploy(application))
+			// then
+			.expectErrorMatches(e -> "app does not exist".equals(e.getMessage()))
+			.verify();
 
-		// then
-		assertThat(lastState.block()).isEqualTo("deleted");
-
-		verify(appDeployer).undeploy(eq(APP_NAME));
+		verify(appDeployer).undeploy(argThat(request -> APP_NAME.equals(request.getName())));
 	}
 
-	private ArgumentMatcher<AppDeploymentRequest> matchesRequest(String appName, String appArchive,
-																 Map<String, String> properties,
-																 Map<String, String> environment) {
+	private ArgumentMatcher<DeployApplicationRequest> matchesRequest(String appName, String appArchive,
+																	 Map<String, String> properties,
+																	 Map<String, String> environment,
+																	 List<String> services) {
 		return request ->
-			request.getDefinition().getName().equals(appName) &&
-				request.getDefinition().getProperties().equals(environment) &&
-				request.getResource().getFilename().equals(appArchive) &&
-				request.getDeploymentProperties().equals(properties);
+			request.getName().equals(appName) &&
+				request.getPath().equals(appArchive) &&
+				request.getProperties().equals(properties) &&
+				request.getEnvironment().equals(environment) &&
+				request.getServices().equals(services);
 	}
 
 	private void setupAppDeployer() {
-		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
-		when(appDeployer.deploy(any())).thenReturn(Mono.just("appID"));
+		when(appDeployer.deploy(any()))
+			.thenReturn(Mono.just(DeployApplicationResponse.builder()
+				.name(APP_NAME)
+				.build()));
 	}
 }

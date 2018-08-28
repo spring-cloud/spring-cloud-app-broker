@@ -16,6 +16,15 @@
 
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
+import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cloudfoundry.operations.CloudFoundryOperations;
@@ -31,28 +40,29 @@ import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.appbroker.deployer.ReactiveAppDeployer;
-import org.springframework.cloud.deployer.spi.app.AppDeployer;
+import org.yaml.snakeyaml.Yaml;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.appbroker.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.DeployApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.GetApplicationStatusRequest;
+import org.springframework.cloud.appbroker.deployer.GetApplicationStatusResponse;
+import org.springframework.cloud.appbroker.deployer.UndeployApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.UndeployApplicationResponse;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.cloudfoundry.AppNameGenerator;
 import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryAppInstanceStatus;
 import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties;
+import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
+import org.springframework.context.ResourceLoaderAware;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.StringUtils;
-import org.yaml.snakeyaml.Yaml;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
-import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties.DOMAIN_PROPERTY;
 import static org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY;
@@ -65,27 +75,40 @@ import static org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDe
 import static org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties.ROUTE_PROPERTY;
 import static org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties.USE_SPRING_APPLICATION_JSON_KEY;
 
-public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiveAppDeployer implements ReactiveAppDeployer {
+public class CloudFoundryAppDeployer extends AbstractCloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware {
+
+	private static final Logger logger = LoggerFactory.getLogger(CloudFoundryAppDeployer.class);
+
+	private static final String SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES_KEY = "spring.cloud.deployer.cloudfoundry.services";
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-	private static final Logger logger = LoggerFactory.getLogger(org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryAppDeployer.class);
 
 	private final AppNameGenerator applicationNameGenerator;
 
 	private final CloudFoundryOperations operations;
 
-	public CloudFoundryReactiveAppDeployer(AppNameGenerator applicationNameGenerator,
-										   CloudFoundryDeploymentProperties deploymentProperties,
-										   CloudFoundryOperations operations,
-										   RuntimeEnvironmentInfo runtimeEnvironmentInfo) {
+	private ResourceLoader resourceLoader;
+
+	public CloudFoundryAppDeployer(AppNameGenerator applicationNameGenerator,
+								   CloudFoundryDeploymentProperties deploymentProperties,
+								   CloudFoundryOperations operations,
+								   RuntimeEnvironmentInfo runtimeEnvironmentInfo,
+								   ResourceLoader resourceLoader) {
 		super(deploymentProperties, runtimeEnvironmentInfo);
 		this.operations = operations;
 		this.applicationNameGenerator = applicationNameGenerator;
+		this.resourceLoader = resourceLoader;
 	}
 
 	@Override
-	public Mono<String> deploy(AppDeploymentRequest request) {
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		this.resourceLoader = resourceLoader;
+	}
+
+	@Override
+	public Mono<DeployApplicationResponse> deploy(DeployApplicationRequest deployApplicationRequest) {
+		AppDeploymentRequest request = createAppDeploymentRequest(deployApplicationRequest);
+
 		logger.trace("Entered deploy: Deploying AppDeploymentRequest: AppDefinition = {}, Resource = {}, Deployment Properties = {}",
 				request.getDefinition(), request.getResource(), request.getDeploymentProperties());
 		String deploymentId = deploymentId(request);
@@ -102,7 +125,9 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 						logError(String.format("Failed to deploy %s", deploymentId)).accept(error);
 					}
 				})
-				.then(Mono.just(deploymentId));
+				.thenReturn(DeployApplicationResponse.builder()
+					.name(deploymentId)
+					.build());
 	}
 
 	private Mono<Void> pushApplication(String deploymentId, AppDeploymentRequest request) {
@@ -170,26 +195,35 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 	}
 
 	@Override
-	public Mono<AppStatus> status(String id) {
-		return getStatus(id)
-			.doOnSuccess(v -> logger.info("Successfully computed status [{}] for {}", v, id))
-			.doOnError(logError(String.format("Failed to compute status for %s", id)))
+	public Mono<GetApplicationStatusResponse> status(GetApplicationStatusRequest request) {
+		return getStatus(request.getName())
+			.doOnSuccess(v -> logger.info("Successfully computed status [{}] for {}", v, request.getName()))
+			.doOnError(logError(String.format("Failed to compute status for %s", request.getName())))
 			.timeout(Duration.ofMillis(this.deploymentProperties.getStatusTimeout()))
 			.onErrorResume(t -> {
-				logger.error("Caught exception while querying for status of {}", id, t);
-				return Mono.just(createErrorAppStatus(id));
-			});
+				logger.error("Caught exception while querying for status of {}", request.getName(), t);
+				return Mono.just(createErrorAppStatus(request.getName()));
+			})
+			.flatMap(status -> Mono.just(GetApplicationStatusResponse.builder()
+				.deploymentId(status.getDeploymentId())
+				.status(status.toString())
+				.build()));
 	}
 
 	@Override
-	public Mono<Void> undeploy(String id) {
-		return getStatus(id)
-			.doOnNext(status -> assertApplicationExists(id, status))
+	public Mono<UndeployApplicationResponse> undeploy(UndeployApplicationRequest request) {
+		return getStatus(request.getName())
+			.doOnNext(status -> assertApplicationExists(request.getName(), status))
 			.timeout(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()))
-			.then(requestDeleteApplication(id)
+			.then(requestDeleteApplication(request.getName())
 				.timeout(Duration.ofSeconds(this.deploymentProperties.getApiTimeout()))
-				.doOnSuccess(v -> logger.info("Successfully undeployed app {}", id))
-				.doOnError(logError(String.format("Failed to undeploy app %s", id))));
+				.doOnSuccess(v -> logger.info("Successfully undeployed app {}", request.getName()))
+				.doOnError(logError(String.format("Failed to undeploy app %s", request.getName()))))
+			.then(getStatus(request.getName()))
+			//TODO: do we wait for deletion here? maybe we don't need status.
+			.flatMap(status -> Mono.just(UndeployApplicationResponse.builder()
+				.status(status.getState().toString())
+				.build()));
 	}
 
 	private void assertApplicationExists(String deploymentId, AppStatus status) {
@@ -228,7 +262,7 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 	}
 
 	private String deploymentId(AppDeploymentRequest request) {
-		String prefix = Optional.ofNullable(request.getDeploymentProperties().get(AppDeployer.GROUP_PROPERTY_KEY))
+		String prefix = Optional.ofNullable(request.getDeploymentProperties().get(org.springframework.cloud.deployer.spi.app.AppDeployer.GROUP_PROPERTY_KEY))
 				.map(group -> String.format("%s-", group))
 				.orElse("");
 
@@ -276,7 +310,7 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 		if (StringUtils.hasText(javaOpts)) {
 			envVariables.put("JAVA_OPTS", javaOpts(request));
 		}
-		String group = request.getDeploymentProperties().get(AppDeployer.GROUP_PROPERTY_KEY);
+		String group = request.getDeploymentProperties().get(org.springframework.cloud.deployer.spi.app.AppDeployer.GROUP_PROPERTY_KEY);
 		if (StringUtils.hasText(group)) {
 			envVariables.put("SPRING_CLOUD_APPLICATION_GROUP", group);
 		}
@@ -329,7 +363,7 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 	}
 
 	private int instances(AppDeploymentRequest request) {
-		return Optional.ofNullable(request.getDeploymentProperties().get(AppDeployer.COUNT_PROPERTY_KEY))
+		return Optional.ofNullable(request.getDeploymentProperties().get(org.springframework.cloud.deployer.spi.app.AppDeployer.COUNT_PROPERTY_KEY))
 				.map(Integer::parseInt)
 				.orElse(this.deploymentProperties.getInstances());
 	}
@@ -398,6 +432,27 @@ public class CloudFoundryReactiveAppDeployer extends AbstractCloudFoundryReactiv
 		return Optional.ofNullable(request.getDeploymentProperties().get(USE_SPRING_APPLICATION_JSON_KEY))
 				.map(Boolean::valueOf)
 				.orElse(this.deploymentProperties.isUseSpringApplicationJson());
+	}
+
+	private AppDeploymentRequest createAppDeploymentRequest(DeployApplicationRequest request) {
+		AppDefinition appDefinition = new AppDefinition(request.getName(), request.getEnvironment());
+		Resource resource = resourceLoader.getResource(request.getPath());
+		Map<String, String> deploymentProperties = createDeploymentProperties(request);
+		return new AppDeploymentRequest(appDefinition, resource, deploymentProperties);
+	}
+
+	private Map<String, String> createDeploymentProperties(DeployApplicationRequest request) {
+		Map<String, String> deploymentProperties = new HashMap<>();
+		if (request.getProperties() != null) {
+			deploymentProperties.putAll(request.getProperties());
+		}
+
+		if (request.getServices() != null) {
+			Map<String, String> services = Collections.singletonMap(SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES_KEY,
+				StringUtils.collectionToCommaDelimitedString(request.getServices()));
+			deploymentProperties.putAll(services);
+		}
+		return deploymentProperties;
 	}
 
 }

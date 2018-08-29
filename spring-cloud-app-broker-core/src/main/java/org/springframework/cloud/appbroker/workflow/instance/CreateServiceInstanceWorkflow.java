@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import reactor.core.publisher.Mono;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
@@ -28,23 +29,19 @@ public class CreateServiceInstanceWorkflow extends ServiceInstanceWorkflow {
 	private final Logger log = Loggers.getLogger(CreateServiceInstanceWorkflow.class);
 
 	private BackingAppDeploymentService deploymentService;
-	private ParametersTransformer parametersTransformer;
+	private ParametersTransformationService parametersTransformationService;
 
 	public CreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 										 BackingAppDeploymentService deploymentService,
-										 ParametersTransformer parametersTransformer) {
+										 ParametersTransformationService parametersTransformationService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
-		this.parametersTransformer = parametersTransformer;
+		this.parametersTransformationService = parametersTransformationService;
 	}
 
 	public Mono<String> create(CreateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-			.flatMap(backingApps ->
-				Mono.fromCallable(() -> {
-					parametersTransformer.transform(backingApps, request.getParameters());
-					return backingApps;
-				}))
+			.flatMap(backingApps -> parametersTransformationService.transformParameters(backingApps, request.getParameters()))
 			.flatMap(deploymentService::deploy)
 			.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
 			.doOnSuccess(d -> log.info("Finished deploying applications {}", brokeredServices))

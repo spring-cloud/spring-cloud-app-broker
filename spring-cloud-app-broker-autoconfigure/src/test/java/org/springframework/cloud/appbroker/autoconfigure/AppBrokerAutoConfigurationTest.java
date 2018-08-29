@@ -26,6 +26,7 @@ import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -88,6 +89,7 @@ class AppBrokerAutoConfigurationTest {
 
 				assertThat(context).hasSingleBean(DeployerClient.class);
 				assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
+				assertThat(context).hasSingleBean(ParametersTransformationService.class);
 				assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);
 				assertThat(context).hasSingleBean(CreateServiceInstanceWorkflow.class);
 			});

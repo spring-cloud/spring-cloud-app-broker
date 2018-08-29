@@ -38,7 +38,8 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCreat
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0]=SimpleMapping"
 })
 class CreateInstanceWithCreationParametersComponentTest extends WiremockComponentTest {
 	static final String APP_NAME = "app-with-env-create-params";

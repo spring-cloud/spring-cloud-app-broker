@@ -11,8 +11,6 @@ export_variables_to_circle() {
     : ${JUMPBOX_PRIVATE_KEY:?"Required Env Variable not found!"}
     : ${UAA_CERT:?"Required Env Variable not found!"}
     : ${CREDHUB_CA:?"Required Env Variable not found!"}
-    : ${LB_KEY:?"Required Env Variable not found!"}
-    : ${LB_CERT:?"Required Env Variable not found!"}
     : ${DIRECTOR_SSLPRIVATE_KEY:?"Required Env Variable not found!"}
     : ${DIRECTOR_SSLCERTIFICATE:?"Required Env Variable not found!"}
     : ${DIRECTOR_SSLCERTIFICATE:?"Required Env Variable not found!"}
@@ -22,8 +20,6 @@ export_variables_to_circle() {
     : ${DIRECTOR_INTERNAL_IP:?"Required Env Variable not found!"}
     : ${DIRECTOR_PORT:?"Required Env Variable not found!"}
     : ${JUMPBOX_URL:?"Required Env Variable not found!"}
-    : ${LB_DOMAIN:?"Required Env Variable not found!"}
-    : ${DIRECTOR_ADMIN_PASSWORD:?"Required Env Variable not found!"}
     : ${CREDHUB_ADMIN_CLIENT_SECRET:?"Required Env Variable not found!"}
     : ${BBL_ENV_ID:?"Required Env Variable not found!"}
     : ${CIRCLECI_API_KEY:?"Required Env Variable not found!"}
@@ -40,8 +36,6 @@ export_variables_to_circle() {
 	create_envvar_in_circle JUMPBOX_PRIVATE_KEY "${JUMPBOX_PRIVATE_KEY}"
 	create_envvar_in_circle UAA_CERT "${UAA_CERT}"
 	create_envvar_in_circle CREDHUB_CA "${CREDHUB_CA}"
-	create_envvar_in_circle LB_KEY "${LB_KEY}"
-	create_envvar_in_circle LB_CERT "${LB_CERT}"
 	create_envvar_in_circle DIRECTOR_SSLPRIVATE_KEY "${DIRECTOR_SSLPRIVATE_KEY}"
 	create_envvar_in_circle DIRECTOR_SSLCERTIFICATE "${DIRECTOR_SSLCERTIFICATE}"
 	create_envvar_in_circle DIRECTOR_JUMPBOX_SSH_PRIVATE_KEY "${DIRECTOR_JUMPBOX_SSH_PRIVATE_KEY}"
@@ -50,8 +44,6 @@ export_variables_to_circle() {
 	create_envvar_in_circle DIRECTOR_INTERNAL_IP "${DIRECTOR_INTERNAL_IP}"
 	create_envvar_in_circle DIRECTOR_PORT "${DIRECTOR_PORT}"
 	create_envvar_in_circle JUMPBOX_URL "${JUMPBOX_URL}"
-	create_envvar_in_circle LB_DOMAIN "${LB_DOMAIN}"
-	create_envvar_in_circle DIRECTOR_ADMIN_PASSWORD "${DIRECTOR_ADMIN_PASSWORD}"
 	create_envvar_in_circle CREDHUB_ADMIN_CLIENT_SECRET "${CREDHUB_ADMIN_CLIENT_SECRET}"
 	create_envvar_in_circle BBL_ENV_ID "${BBL_ENV_ID}"
 	create_envvar_in_circle CIRCLECI_API_KEY "${CIRCLECI_API_KEY}"

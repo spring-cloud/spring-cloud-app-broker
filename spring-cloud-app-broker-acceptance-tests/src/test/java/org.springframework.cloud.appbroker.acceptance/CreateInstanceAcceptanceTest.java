@@ -17,11 +17,11 @@
 package org.springframework.cloud.appbroker.acceptance;
 
 import java.util.Optional;
+
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.junit.jupiter.api.Test;
-
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,7 +44,7 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		// when a service instance is created
 		createServiceInstance();
 
-		Optional<ServiceInstance> serviceInstance = getServiceInstance();
+		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance();
 		assertThat(serviceInstance).isNotEmpty();
 
 		// then a backing application is deployed

@@ -23,16 +23,17 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.sample.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
-import org.springframework.cloud.appbroker.workflow.instance.ParametersTransformer;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformer;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import reactor.core.publisher.Mono;
 
 
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
@@ -46,7 +47,8 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCusto
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0]=CustomMapping"
 })
 @ContextConfiguration(classes = CreateInstanceWithCustomCreationParametersComponentTest.CustomConfig.class)
 class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockComponentTest {
@@ -92,13 +94,14 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 	static class CustomConfig {
 		@Bean
 		public ParametersTransformer parametersTransformer() {
-			return new CustomParametersTransformer();
+			return new CustomMappingParametersTransformer();
 		}
 
-		public class CustomParametersTransformer implements ParametersTransformer {
+		public class CustomMappingParametersTransformer implements ParametersTransformer {
 			@Override
-			public void transform(BackingApplications backingApps, Map<String, Object> parameters) {
-				backingApps.forEach(backingApplication -> backingApplication.setEnvironment(createEnvironmentMap(parameters)));
+			public Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters) {
+				backingApplication.setEnvironment(createEnvironmentMap(parameters));
+				return Mono.just(backingApplication);
 			}
 
 			private Map<String, String> createEnvironmentMap(Map<String, Object> parameters) {

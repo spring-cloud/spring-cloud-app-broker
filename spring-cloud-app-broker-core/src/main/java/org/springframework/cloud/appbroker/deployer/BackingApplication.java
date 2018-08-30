@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.deployer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,17 +29,20 @@ public class BackingApplication {
 	private Map<String, String> properties;
 	private Map<String, String> environment;
 	private List<String> services;
+	private List<String> parametersTransformers;
 
 	private BackingApplication() {
 	}
 
 	private BackingApplication(String name, String path, Map<String, String> properties,
-							   Map<String, String> environment, List<String> services) {
+							   Map<String, String> environment, List<String> services,
+							   List<String> parametersTransformers) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
 		this.environment = environment;
 		this.services = services;
+		this.parametersTransformers = parametersTransformers;
 	}
 
 	public String getName() {
@@ -81,6 +85,14 @@ public class BackingApplication {
 		this.services = services;
 	}
 
+	public List<String> getParametersTransformers() {
+		return parametersTransformers;
+	}
+
+	public void setParametersTransformers(List<String> parametersTransformers) {
+		this.parametersTransformers = parametersTransformers;
+	}
+
 	public static BackingApplicationBuilder builder() {
 		return new BackingApplicationBuilder();
 	}
@@ -88,14 +100,11 @@ public class BackingApplication {
 	public static class BackingApplicationBuilder {
 
 		private String name;
-
 		private String path;
-
 		private Map<String, String> properties = new HashMap<>();
-
 		private Map<String, String> environment = new HashMap<>();
-
 		private List<String> services = new ArrayList<>();
+		private List<String> parameterTransformers = new ArrayList<>();
 
 		BackingApplicationBuilder() {
 		}
@@ -130,18 +139,18 @@ public class BackingApplication {
 			return this;
 		}
 
-		public BackingApplicationBuilder service(String service) {
-			this.services.add(service);
+		public BackingApplicationBuilder services(String... services) {
+			this.services.addAll(Arrays.asList(services));
 			return this;
 		}
 
-		public BackingApplicationBuilder services(List<String> services) {
-			this.services.addAll(services);
+		public BackingApplicationBuilder parameterTransformers(String... parameterTransformer) {
+			this.parameterTransformers.addAll(Arrays.asList(parameterTransformer));
 			return this;
 		}
 
 		public BackingApplication build() {
-			return new BackingApplication(name, path, properties, environment, services);
+			return new BackingApplication(name, path, properties, environment, services, parameterTransformers);
 		}
 	}
 }

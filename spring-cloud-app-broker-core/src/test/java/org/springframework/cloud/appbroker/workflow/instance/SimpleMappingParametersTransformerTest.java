@@ -18,7 +18,8 @@ package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.extensions.parameters.SimpleMappingParametersTransformer;
+import reactor.test.StepVerifier;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,45 +31,41 @@ class SimpleMappingParametersTransformerTest {
 
 	@Test
 	void parametersAreMappedToApplicationEnvironment() {
-		BackingApplications backingApplications = BackingApplications.builder()
-			.backingApplication(BackingApplication.builder()
-				.build())
-			.backingApplication(BackingApplication.builder()
-				.build())
+		BackingApplication backingApplication = BackingApplication.builder()
 			.build();
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("parameter1", "value1");
 		parameters.put("parameter2", "value2");
 
-		transformer.transform(backingApplications, parameters);
+		StepVerifier
+			.create(transformer.transform(backingApplication, parameters))
+			.expectNext(backingApplication)
+			.verifyComplete();
 
-		parameters.forEach((key, value) -> {
-				assertThat(backingApplications.get(0).getEnvironment()).containsEntry(key, value.toString());
-				assertThat(backingApplications.get(1).getEnvironment()).containsEntry(key, value.toString());
-			}
+		parameters.forEach((key, value) ->
+			assertThat(backingApplication.getEnvironment()).containsEntry(key, value.toString())
 		);
 	}
 
 	@Test
 	void parametersOverrideApplicationEnvironment() {
-		BackingApplications backingApplications = BackingApplications.builder()
-			.backingApplication(BackingApplication.builder()
-				.environment("parameter1", "config-value1")
-				.build())
-			.backingApplication(BackingApplication.builder()
-				.build())
+		BackingApplication backingApplication = BackingApplication.builder()
+			.environment("parameter1", "config-value1")
 			.build();
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("parameter1", "value1");
 		parameters.put("parameter2", "value2");
 
-		transformer.transform(backingApplications, parameters);
+		StepVerifier
+			.create(transformer.transform(backingApplication, parameters))
+			.expectNext(backingApplication)
+			.verifyComplete();
 
 		parameters.forEach((key, value) -> {
-				assertThat(backingApplications.get(0).getEnvironment()).containsEntry(key, value.toString());
-				assertThat(backingApplications.get(1).getEnvironment()).containsEntry(key, value.toString());
+				assertThat(backingApplication.getEnvironment()).containsEntry(key, value.toString());
+				assertThat(backingApplication.getEnvironment()).containsEntry(key, value.toString());
 			}
 		);
 	}

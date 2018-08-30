@@ -18,7 +18,6 @@ package org.springframework.cloud.appbroker.autoconfigure;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
@@ -28,11 +27,14 @@ import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceServic
 import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.SimpleMappingParametersTransformer;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.workflow.instance.ParametersTransformer;
-import org.springframework.cloud.appbroker.workflow.instance.SimpleMappingParametersTransformer;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 @AutoConfigureAfter(AppDeployerAutoConfiguration.class)
@@ -63,16 +65,20 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(ParametersTransformer.class)
-	public ParametersTransformer parametersTransformer() {
+	public SimpleMappingParametersTransformer simpleMappingParametersTransformer() {
 		return new SimpleMappingParametersTransformer();
+	}
+
+	@Bean
+	public ParametersTransformationService parametersTransformerService(List<ParametersTransformer> transformers) {
+		return new ParametersTransformationService(transformers);
 	}
 
 	@Bean
 	public CreateServiceInstanceWorkflow createServiceInstanceWorkflow(BrokeredServices brokeredServices,
 																	   BackingAppDeploymentService backingAppDeploymentService,
-																	   ParametersTransformer parametersTransformer) {
-		return new CreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformer);
+																	   ParametersTransformationService parametersTransformationService) {
+		return new CreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService);
 	}
 
 	@Bean

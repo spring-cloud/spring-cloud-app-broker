@@ -108,7 +108,7 @@ class DeployerClientTest {
 		BackingApplication application = BackingApplication.builder()
 			.name(APP_NAME)
 			.path(APP_PATH)
-			.service("my-db-service")
+			.services("my-db-service")
 			.build();
 
 		// when

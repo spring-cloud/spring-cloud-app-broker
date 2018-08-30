@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
@@ -34,15 +35,12 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import reactor.test.StepVerifier;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,13 +50,14 @@ class CreateServiceInstanceWorkflowTest {
 	private BackingAppDeploymentService backingAppDeploymentService;
 
 	@Mock
-	private ParametersTransformer parametersTransformer;
+	private ParametersTransformationService parametersTransformationService;
 
 	private BrokeredServices brokeredServices;
+	private BackingApplications backingApps;
 
 	@BeforeEach
 	void setUp() {
-		BackingApplications backingApps = BackingApplications.builder()
+		backingApps = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()
 				.name("helloworldapp")
 				.path("http://myfiles/app.jar")
@@ -77,46 +76,57 @@ class CreateServiceInstanceWorkflowTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	void createServiceInstanceSucceeds() {
-		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
+		CreateServiceInstanceRequest request = buildRequest("service1", "plan1");
+
+		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
 			.willReturn(Mono.just("deployed"));
-
-		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformer);
-
-		StepVerifier
-			.create(createServiceInstanceWorkflow.create(buildRequest("service1", "plan1")))
-			.expectNext("deployed")
-			.verifyComplete();
-
-		verifyNoMoreInteractions(this.backingAppDeploymentService);
-		verify(this.parametersTransformer).transform(any(BackingApplications.class), eq(Collections.EMPTY_MAP));
-	}
-
-	@Test
-	void createServiceInstanceWithParametersSucceeds() {
-		given(this.backingAppDeploymentService.deploy(any(BackingApplications.class)))
-			.willReturn(Mono.just("deployment-id-app1"));
+		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
+			.willReturn(Mono.just(backingApps));
 
 		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
 			new CreateServiceInstanceWorkflow(brokeredServices,
 				backingAppDeploymentService,
-				parametersTransformer);
+				parametersTransformationService);
 
 		StepVerifier
-			.create(createServiceInstanceWorkflow.create(buildRequest("service1", "plan1",
-				singletonMap("ENV_VAR_1", "value from parameters"))))
+			.create(createServiceInstanceWorkflow.create(request))
+			.expectNext("deployed")
+			.verifyComplete();
+
+		verifyNoMoreInteractions(this.backingAppDeploymentService);
+		verifyNoMoreInteractions(this.parametersTransformationService);
+	}
+
+	@Test
+	void createServiceInstanceWithParametersSucceeds() {
+		CreateServiceInstanceRequest request = buildRequest("service1", "plan1",
+			singletonMap("ENV_VAR_1", "value from parameters"));
+
+		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
+			.willReturn(Mono.just("deployment-id-app1"));
+		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
+			.willReturn(Mono.just(backingApps));
+
+		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
+			new CreateServiceInstanceWorkflow(brokeredServices,
+				backingAppDeploymentService,
+				parametersTransformationService);
+
+		StepVerifier
+			.create(createServiceInstanceWorkflow.create(request))
 			.expectNext("deployment-id-app1")
 			.verifyComplete();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
-		verify(this.parametersTransformer).transform(any(BackingApplications.class),
-			eq(Collections.singletonMap("ENV_VAR_1", "value from parameters")));
+		verifyNoMoreInteractions(this.parametersTransformationService);
 	}
 
 	@Test
 	void createServiceInstanceFailsWithMisconfigurationFails() {
 		CreateServiceInstanceWorkflow createServiceInstanceWorkflow =
-			new CreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformer);
+			new CreateServiceInstanceWorkflow(brokeredServices,
+				backingAppDeploymentService,
+				parametersTransformationService);
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(buildRequest("unsupported-service", "plan1")))
@@ -124,6 +134,7 @@ class CreateServiceInstanceWorkflowTest {
 			.verify();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
+		verifyNoMoreInteractions(this.parametersTransformationService);
 	}
 
 	private CreateServiceInstanceRequest buildRequest(String serviceName, String planName) {

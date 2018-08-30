@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow.instance;
+package org.springframework.cloud.appbroker.extensions.parameters;
 
 import java.util.Map;
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
+
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import reactor.core.publisher.Mono;
 
 public interface ParametersTransformer {
 
-	void transform(BackingApplications backingApps, Map<String, Object> parameters);
+	default String getName() {
+		return getClass().getSimpleName().replace(ParametersTransformer.class.getSimpleName(), "");
+	}
+
+	Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters);
 
 }

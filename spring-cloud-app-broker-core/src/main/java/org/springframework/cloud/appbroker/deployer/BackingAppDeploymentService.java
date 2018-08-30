@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import reactor.core.publisher.Flux;
@@ -33,7 +34,7 @@ public class BackingAppDeploymentService {
 		this.deployerClient = deployerClient;
 	}
 
-	public Mono<String> deploy(BackingApplications backingApps) {
+	public Mono<String> deploy(List<BackingApplication> backingApps) {
 		return Flux.fromIterable(backingApps)
 			.parallel()
 			.runOn(Schedulers.parallel())
@@ -45,7 +46,7 @@ public class BackingAppDeploymentService {
 			.collect(Collectors.joining(","));
 	}
 
-	public Mono<String> undeploy(BackingApplications backingApps) {
+	public Mono<String> undeploy(List<BackingApplication> backingApps) {
 		return Flux.fromIterable(backingApps)
 			.parallel()
 			.runOn(Schedulers.parallel())

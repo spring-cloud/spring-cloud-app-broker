@@ -16,12 +16,14 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 public class ServiceInstanceWorkflow {
 
@@ -31,9 +33,8 @@ public class ServiceInstanceWorkflow {
 		this.brokeredServices = brokeredServices;
 	}
 
-	Mono<BackingApplications> getBackingApplicationsForService(ServiceDefinition serviceDefinition, String planId) {
-		return Mono.fromCallable(() ->
-			findBrokeredService(serviceDefinition, planId).getApps());
+	Mono<List<BackingApplication>> getBackingApplicationsForService(ServiceDefinition serviceDefinition, String planId) {
+		return Mono.defer(() -> Mono.just(findBrokeredService(serviceDefinition, planId).getApps()));
 	}
 
 	private BrokeredService findBrokeredService(ServiceDefinition serviceDefinition, String planId) {

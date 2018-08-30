@@ -17,7 +17,6 @@
 package org.springframework.cloud.appbroker.extensions.parameters;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -35,26 +34,27 @@ public class ParametersTransformationService {
 			this.parametersTransformersByName.put(parametersTransformer.getName(), parametersTransformer));
 	}
 
-	public Mono<BackingApplications> transformParameters(BackingApplications backingApplications,
-														 Map<String, Object> parameters) {
+	public Mono<List<BackingApplication>> transformParameters(List<BackingApplication> backingApplications,
+															  Map<String, Object> parameters) {
 		return Flux.fromIterable(backingApplications)
 			.flatMap(backingApplication ->
-				Flux.fromIterable(getTransformers(backingApplication))
+				Flux.fromIterable(getTransformerNamesForApplication(backingApplication))
 					.flatMap(transformerName ->
-						transform(transformerName, backingApplication, parameters)
-					))
-			.then(Mono.just(backingApplications));
+						transformParametersForApplication(transformerName, backingApplication, parameters))
+					.then(Mono.just(backingApplication))
+			)
+			.collectList();
 	}
 
-	private List<String> getTransformers(BackingApplication backingApplication) {
+	private List<String> getTransformerNamesForApplication(BackingApplication backingApplication) {
 		return backingApplication.getParametersTransformers() == null
 			? Collections.emptyList()
 			: backingApplication.getParametersTransformers();
 	}
 
-	private Mono<BackingApplication> transform(String transformerName,
-											   BackingApplication backingApplication,
-											   Map<String, Object> parameters) {
+	private Mono<BackingApplication> transformParametersForApplication(String transformerName,
+																	   BackingApplication backingApplication,
+																	   Map<String, Object> parameters) {
 		return getTransformerByName(transformerName, backingApplication.getName())
 			.flatMap(transformer -> transformer.transform(backingApplication, parameters));
 	}

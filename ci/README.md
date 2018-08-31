@@ -48,3 +48,23 @@ be uploaded to circle so they can be used by the build.
 	source ci/.envrc
 	```
 * Upload the variables to CircleCi: `ci/scripts/export-envvars-to-cirle.sh`
+
+### Building / Repaving a BOSH Lite environment
+
+* Decide a new name for the environment. Currently the naming convention is towns and villages in Devon (see https://www.devonguide.com/gazetteer.htm) so for example `ENV_NAME=appbroker-exeter`
+* Create a working directory *outside of version control* to create the environments
+* `cd $WORKING_DIR`
+* `git clone https://github.com/cloudfoundry/bosh-bootloader` 
+* `mkdir -p $ENV_NAME/bbl-state`
+* `cd $ENV_NAME/bbl-state`
+* `bbl plan --name $ENV_NAME`
+* `cp -r ../../bosh-bootloader/plan-patches/bosh-lite-gcp/. .`
+* `bbl up`
+* `bosh update-runtime-config bosh-deployment/runtime-configs/dns.yml --name dns`
+* `git clone https://github.com/cloudfoundry/cf-deployment`
+* `bosh -d cf deploy cf-deployment/cf-deployment.yml -o cf-deployment/operations/bosh-lite.yml -v system_domain=$ENV_NAME.cf-app.com -n`
+* To get the cf admin password: `credhub get --name /bosh-$ENV_NAME/cf/cf_admin_password`
+* Create a new DNS entry in route53 ./app-broker-repo/ci/scripts/update-route53.sh [$ENV_NAME] [Director external IP from $WORKING_DIR/$ENV_NAME/bbl-state/vars/director-vars-file.yml]
+* Test the new CF install `cf api $ENV_NAME.cf-app.com --skip-ssl-validation`
+TODO: The above steps produce a working CF install. There are still some manual steps unfortunately but there are plans to automate this. 
+Every credential in `bbl-state.json`, `director-vars-store.yml` and `jumpbox-vars-store.yml` needs to be added to the `.envrc` file in lastpass

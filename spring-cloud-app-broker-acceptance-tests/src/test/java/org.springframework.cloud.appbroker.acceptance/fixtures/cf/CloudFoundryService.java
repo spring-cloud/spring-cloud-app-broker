@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
@@ -39,18 +40,17 @@ import org.cloudfoundry.operations.serviceadmin.DeleteServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.EnableServiceAccessRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
-import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.DefaultSpaces;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import static java.lang.String.format;
 
@@ -138,15 +138,19 @@ public class CloudFoundryService {
 
 	public Mono<Void> deleteServiceInstance(String serviceInstanceName) {
 		return loggingMono(
-			cloudFoundryOperations
-				.services()
-				.listInstances()
-				.filter(si -> si.getName().equals(serviceInstanceName))
-				.next()
+			getServiceInstanceFromList(serviceInstanceName)
 				.flatMap(si ->
 					cloudFoundryOperations
 						.services()
 						.deleteInstance(DeleteServiceInstanceRequest.builder().name(si.getName()).build())));
+	}
+
+	private Mono<ServiceInstanceSummary> getServiceInstanceFromList(String serviceInstanceName) {
+		return cloudFoundryOperations
+			.services()
+			.listInstances()
+			.filter(si -> si.getName().equals(serviceInstanceName))
+			.next();
 	}
 
 	public Mono<Void> createServiceInstance(String planName,
@@ -165,13 +169,9 @@ public class CloudFoundryService {
 					.build()));
 	}
 
-	public Mono<ServiceInstance> getServiceInstance(String serviceInstanceName) {
+	public Mono<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName) {
 		return loggingMono(
-			cloudFoundryOperations
-				.services()
-				.getInstance(GetServiceInstanceRequest.builder()
-					.name(serviceInstanceName)
-					.build()));
+			getServiceInstanceFromList(serviceInstanceName));
 	}
 
 	public Mono<List<ApplicationSummary>> getApplications() {

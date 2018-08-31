@@ -17,14 +17,11 @@ substitute_bbl_state_file(){
 			-pe "s|<%= directorSSLCA %>|$(echo ${DIRECTOR_SSLCA} | jq -aR .)|;" \
 			-pe "s|<%= directorSSLCertificate %>|$(echo ${DIRECTOR_SSLCERTIFICATE} | jq -aR .)|;" \
 			-pe "s|<%= directorSSLPrivateKey %>|$(echo ${DIRECTOR_SSLPRIVATE_KEY} | jq -aR .)|;" \
-			-pe "s|<%= lbCert %>|$(echo ${LB_CERT} | jq -aR .)|;" \
-			-pe "s|<%= lbKey %>|$(echo ${LB_KEY} | jq -aR .)|;" \
-			-pe "s|<%= lbDomain %>|${LB_DOMAIN}|;" \
 			bbl-state.json.tmpl > bbl-state.json
 }
 
 substitute_director_vars_store(){
-	perl 	 -pe "s|<%= directorAdminPassword %>|${DIRECTOR_ADMIN_PASSWORD}|;" \
+	perl 	 -pe "s|<%= directorAdminPassword %>|${DIRECTOR_PASSWORD}|;" \
 			 -pe "s|<%= credhubAdminClientSecret %>|${CREDHUB_ADMIN_CLIENT_SECRET}|;" \
 			 -pe "s|<%= credhubCA %>|${CREDHUB_CA}|;" \
 			 -pe "s|<%= uaaCert %>|${UAA_CERT}|;" \

@@ -25,7 +25,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -96,7 +96,7 @@ class CloudFoundryAcceptanceTest {
 		blockingSubscribe(cloudFoundryService.deleteServiceInstance(SERVICE_INSTANCE_NAME));
 	}
 
-	Optional<ServiceInstance> getServiceInstance() {
+	Optional<ServiceInstanceSummary> getServiceInstance() {
 		return cloudFoundryService.getServiceInstance(SERVICE_INSTANCE_NAME).blockOptional();
 	}
 

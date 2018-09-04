@@ -23,14 +23,14 @@ import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
-import org.springframework.cloud.appbroker.extensions.parameters.SimpleMappingParametersTransformer;
+import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -65,12 +65,12 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	public SimpleMappingParametersTransformer simpleMappingParametersTransformer() {
-		return new SimpleMappingParametersTransformer();
+	public EnvironmentMappingParametersTransformerFactory simpleMappingParametersTransformerFactory() {
+		return new EnvironmentMappingParametersTransformerFactory();
 	}
 
 	@Bean
-	public ParametersTransformationService parametersTransformerService(List<ParametersTransformer> transformers) {
+	public ParametersTransformationService parametersTransformerService(List<ParametersTransformerFactory<?>> transformers) {
 		return new ParametersTransformationService(transformers);
 	}
 

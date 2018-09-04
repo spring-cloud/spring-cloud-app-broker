@@ -16,25 +16,56 @@
 
 package org.springframework.cloud.appbroker.extensions.parameters;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import reactor.core.publisher.Mono;
 
-public class SimpleMappingParametersTransformer implements ParametersTransformer {
+public class EnvironmentMappingParametersTransformerFactory extends
+	ParametersTransformerFactory<EnvironmentMappingParametersTransformerFactory.Config> {
 
-	public Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters) {
+	public EnvironmentMappingParametersTransformerFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public ParametersTransformer create(Config config) {
+		return (backingApplication, parameters) ->
+			transform(backingApplication, parameters, config.getIncludes());
+	}
+
+	private Mono<BackingApplication> transform(BackingApplication backingApplication,
+											   Map<String, Object> parameters,
+											   List<String> include) {
 		final Map<String, String> environment = new HashMap<>();
 		final Map<String, String> backingAppEnvironment = backingApplication.getEnvironment();
 		if (backingAppEnvironment != null) {
 			environment.putAll(backingAppEnvironment);
 		}
 		if (parameters != null) {
-			parameters.forEach((key, value) -> environment.put(key, value.toString()));
+			parameters.keySet().stream()
+				.filter(include::contains)
+				.forEach(key -> environment.put(key, parameters.get(key).toString()));
 		}
 		backingApplication.setEnvironment(environment);
 		return Mono.just(backingApplication);
 	}
 
+	public static class Config {
+		private String include;
+
+		public Config() {
+		}
+
+		public List<String> getIncludes() {
+			return Arrays.asList(include.split(","));
+		}
+
+		public void setInclude(String include) {
+			this.include = include;
+		}
+	}
 }

@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
@@ -35,11 +36,19 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		"spring.cloud.appbroker.services[0].plan-name=standard",
 		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0]=SimpleMapping"
+		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
+		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=config2",
+		"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=config3",
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=EnvironmentMapping",
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=parameter1,parameter3"
 	})
 	void shouldPushAppWhenCreateServiceCalled() {
 		// when a service instance is created
-		createServiceInstanceWithParameters(Collections.singletonMap("ENV_VAR_1", "value1"));
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("parameter1", "value1");
+		parameters.put("parameter2", "value2");
+		parameters.put("parameter3", "value3");
+		createServiceInstanceWithParameters(parameters);
 
 		// then a backing application is deployed
 		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
@@ -48,7 +57,9 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		// and has the environment variables
 		ApplicationEnvironments applicationEnvironments = getApplicationEnvironmentByName(BROKER_SAMPLE_APP_CREATE);
 		assertThat(applicationEnvironments.getUserProvided().get("SPRING_APPLICATION_JSON")).asString()
-			.contains("\"ENV_VAR_1\":\"value1\"");
+			.contains("\"parameter1\":\"value1\"")
+			.contains("\"parameter2\":\"config2\"")
+			.contains("\"parameter3\":\"value3\"");
 	}
 
 }

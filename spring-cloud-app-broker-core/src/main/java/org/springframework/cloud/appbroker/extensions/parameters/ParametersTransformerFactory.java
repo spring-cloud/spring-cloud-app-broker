@@ -16,12 +16,21 @@
 
 package org.springframework.cloud.appbroker.extensions.parameters;
 
-import java.util.Map;
+import org.springframework.cloud.appbroker.extensions.AbstractExtensionFactory;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import reactor.core.publisher.Mono;
+public abstract class ParametersTransformerFactory<C> extends AbstractExtensionFactory<ParametersTransformer, C> {
+	protected ParametersTransformerFactory() {
+		super();
+	}
 
-@FunctionalInterface
-public interface ParametersTransformer {
-	Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters);
+	protected ParametersTransformerFactory(Class<C> configClass) {
+		super(configClass);
+	}
+
+	@Override
+	public abstract ParametersTransformer create(C config);
+
+	public String getName() {
+		return getShortName(ParametersTransformerFactory.class);
+	}
 }

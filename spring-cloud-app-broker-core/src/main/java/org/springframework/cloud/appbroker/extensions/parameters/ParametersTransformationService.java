@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.extensions.parameters;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,9 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 public class ParametersTransformationService {
-	private Map<String, ParametersTransformer> parametersTransformersByName = new HashMap<>();
+	private Map<String, ParametersTransformerFactory<?>> parametersTransformersByName = new HashMap<>();
 
-	public ParametersTransformationService(List<ParametersTransformer> parametersTransformers) {
+	public ParametersTransformationService(List<ParametersTransformerFactory<?>> parametersTransformers) {
 		parametersTransformers.forEach(parametersTransformer ->
 			this.parametersTransformersByName.put(parametersTransformer.getName(), parametersTransformer));
 	}
@@ -37,37 +38,45 @@ public class ParametersTransformationService {
 	public Mono<List<BackingApplication>> transformParameters(List<BackingApplication> backingApplications,
 															  Map<String, Object> parameters) {
 		return Flux.fromIterable(backingApplications)
-			.flatMap(backingApplication ->
-				Flux.fromIterable(getTransformerNamesForApplication(backingApplication))
-					.flatMap(transformerName ->
-						transformParametersForApplication(transformerName, backingApplication, parameters))
-					.then(Mono.just(backingApplication))
-			)
+			.flatMap(backingApplication -> {
+				List<ParametersTransformerSpec> specs = getTransformerSpecsForApplication(backingApplication);
+
+				return Flux.fromIterable(specs)
+					.flatMap(spec -> {
+						ParametersTransformerFactory<?> factory =
+							getTransformerFactoryByName(spec.getName(), backingApplication.getName());
+						ParametersTransformer transformer = getTransformerFromFactory(factory, spec);
+						return transformParameters(transformer, backingApplication, parameters);
+					})
+					.then(Mono.just(backingApplication));
+			})
 			.collectList();
 	}
 
-	private List<String> getTransformerNamesForApplication(BackingApplication backingApplication) {
+	private List<ParametersTransformerSpec> getTransformerSpecsForApplication(BackingApplication backingApplication) {
 		return backingApplication.getParametersTransformers() == null
 			? Collections.emptyList()
 			: backingApplication.getParametersTransformers();
 	}
 
-	private Mono<BackingApplication> transformParametersForApplication(String transformerName,
-																	   BackingApplication backingApplication,
-																	   Map<String, Object> parameters) {
-		return getTransformerByName(transformerName, backingApplication.getName())
-			.flatMap(transformer -> transformer.transform(backingApplication, parameters));
+	private ParametersTransformerFactory<?> getTransformerFactoryByName(String transformerName, String applicationName) {
+		if (parametersTransformersByName.containsKey(transformerName)) {
+			return parametersTransformersByName.get(transformerName);
+		} else {
+			throw new ServiceBrokerException("Unknown parameters transformer " +
+				transformerName + " configured for application " + applicationName + ". " +
+				"Registered parameters transformers are " + parametersTransformersByName.keySet());
+		}
 	}
 
-	private Mono<ParametersTransformer> getTransformerByName(String transformerName, String applicationName) {
-		return Mono.defer(() -> {
-			if (parametersTransformersByName.containsKey(transformerName)) {
-				return Mono.just(parametersTransformersByName.get(transformerName));
-			} else {
-				return Mono.error(new ServiceBrokerException("Unknown parameters transformer " +
-					transformerName + " configured for application " + applicationName + ". " +
-					"Registered parameters transformers are " + parametersTransformersByName.keySet()));
-			}
-		});
+	private ParametersTransformer getTransformerFromFactory(ParametersTransformerFactory<?> factory,
+															ParametersTransformerSpec spec) {
+		return factory.createWithConfig(spec.getArgs());
+	}
+
+	private Mono<BackingApplication> transformParameters(ParametersTransformer transformer,
+														 BackingApplication backingApplication,
+														 Map<String, Object> parameters) {
+		return transformer.transform(backingApplication, parameters);
 	}
 }

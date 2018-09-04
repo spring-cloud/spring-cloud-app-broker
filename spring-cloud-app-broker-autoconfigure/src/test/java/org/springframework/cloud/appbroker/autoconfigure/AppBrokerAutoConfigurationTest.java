@@ -88,6 +88,7 @@ class AppBrokerAutoConfigurationTest {
 				assertThat(brokeredServices.get(1).getApps().get(0).getPath()).isEqualTo("classpath:app3.jar");
 
 				assertThat(context).hasSingleBean(DeployerClient.class);
+				assertThat(context).hasSingleBean(BrokeredServices.class);
 				assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
 				assertThat(context).hasSingleBean(ParametersTransformationService.class);
 				assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);

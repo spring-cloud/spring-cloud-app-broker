@@ -24,6 +24,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.sample.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformer;
@@ -48,7 +49,7 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCusto
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0]=CustomMapping"
+	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=CustomMapping"
 })
 @ContextConfiguration(classes = CreateInstanceWithCustomCreationParametersComponentTest.CustomConfig.class)
 class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockComponentTest {
@@ -93,13 +94,21 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 	@Configuration
 	static class CustomConfig {
 		@Bean
-		public ParametersTransformer parametersTransformer() {
-			return new CustomMappingParametersTransformer();
+		public ParametersTransformerFactory<Object> parametersTransformer() {
+			return new CustomMappingParametersTransformerFactory();
 		}
 
-		public class CustomMappingParametersTransformer implements ParametersTransformer {
+		public class CustomMappingParametersTransformerFactory extends ParametersTransformerFactory<Object> {
+			CustomMappingParametersTransformerFactory() {
+				super();
+			}
+
 			@Override
-			public Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters) {
+			public ParametersTransformer create(Object config) {
+				return this::transform;
+			}
+
+			private Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters) {
 				backingApplication.setEnvironment(createEnvironmentMap(parameters));
 				return Mono.just(backingApplication);
 			}
@@ -108,7 +117,8 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 				ObjectMapper objectMapper = new ObjectMapper();
 				ObjectNode customOutputEnvironmentParameters = objectMapper.createObjectNode();
 				try {
-					CustomInputParameters customInputParameters = objectMapper.readValue(parameters.get("firstKey").toString(), CustomInputParameters.class);
+					CustomInputParameters customInputParameters =
+						objectMapper.readValue(parameters.get("firstKey").toString(), CustomInputParameters.class);
 					customOutputEnvironmentParameters.put("otherKey", customInputParameters.getSecondKey());
 					customOutputEnvironmentParameters.put("otherLabel", customInputParameters.getLabel());
 				} catch (Exception e) {
@@ -116,7 +126,6 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 				}
 				return Collections.singletonMap("otherNestedKey", customOutputEnvironmentParameters.toString());
 			}
-
 		}
 
 		static class CustomInputParameters {

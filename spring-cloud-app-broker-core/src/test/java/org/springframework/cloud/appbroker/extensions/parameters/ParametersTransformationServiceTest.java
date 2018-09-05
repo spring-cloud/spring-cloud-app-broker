@@ -163,16 +163,16 @@ class ParametersTransformationServiceTest {
 	}
 
 	public static class Config {
-		public Config() {
+		private String arg1;
+		private Integer arg2;
+
+		Config() {
 		}
 		
-		public Config(String arg1, Integer arg2) {
+		Config(String arg1, Integer arg2) {
 			this.arg1 = arg1;
 			this.arg2 = arg2;
 		}
-
-		private String arg1;
-		private Integer arg2;
 
 		public String getArg1() {
 			return arg1;

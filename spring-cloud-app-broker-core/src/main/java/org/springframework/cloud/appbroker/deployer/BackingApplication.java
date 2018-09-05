@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class BackingApplication {
 
@@ -95,6 +96,36 @@ public class BackingApplication {
 
 	public static BackingApplicationBuilder builder() {
 		return new BackingApplicationBuilder();
+	}
+
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof BackingApplication)) return false;
+		BackingApplication that = (BackingApplication) o;
+		return Objects.equals(name, that.name) &&
+			Objects.equals(path, that.path) &&
+			Objects.equals(properties, that.properties) &&
+			Objects.equals(environment, that.environment) &&
+			Objects.equals(services, that.services) &&
+			Objects.equals(parametersTransformers, that.parametersTransformers);
+	}
+
+	@Override
+	public final int hashCode() {
+		return Objects.hash(name, path, properties, environment, services, parametersTransformers);
+	}
+
+	@Override
+	public String toString() {
+		return "BackingApplication{" +
+			"name='" + name + '\'' +
+			", path='" + path + '\'' +
+			", properties=" + properties +
+			", environment=" + environment +
+			", services=" + services +
+			", parametersTransformers=" + parametersTransformers +
+			'}';
 	}
 
 	public static class BackingApplicationBuilder {

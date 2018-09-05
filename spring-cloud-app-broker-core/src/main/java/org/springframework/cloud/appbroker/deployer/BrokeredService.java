@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.Objects;
+
 public class BrokeredService {
 	private String serviceName;
 	private String planName;
@@ -56,6 +58,30 @@ public class BrokeredService {
 
 	public static BrokeredServiceBuilder builder() {
 		return new BrokeredServiceBuilder();
+	}
+
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof BrokeredService)) return false;
+		BrokeredService that = (BrokeredService) o;
+		return Objects.equals(serviceName, that.serviceName) &&
+			Objects.equals(planName, that.planName) &&
+			Objects.equals(apps, that.apps);
+	}
+
+	@Override
+	public final int hashCode() {
+		return Objects.hash(serviceName, planName, apps);
+	}
+
+	@Override
+	public String toString() {
+		return "BrokeredService{" +
+			"serviceName='" + serviceName + '\'' +
+			", planName='" + planName + '\'' +
+			", apps=" + apps +
+			'}';
 	}
 
 	public static class BrokeredServiceBuilder {

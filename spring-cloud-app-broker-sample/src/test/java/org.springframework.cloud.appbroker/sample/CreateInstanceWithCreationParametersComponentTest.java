@@ -39,7 +39,11 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCreat
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0]=SimpleMapping"
+	"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
+	"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=false",
+	"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=config3",
+	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=EnvironmentMapping",
+	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=parameter1,parameter2"
 })
 class CreateInstanceWithCreationParametersComponentTest extends WiremockComponentTest {
 	static final String APP_NAME = "app-with-env-create-params";
@@ -55,12 +59,14 @@ class CreateInstanceWithCreationParametersComponentTest extends WiremockComponen
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME,
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*parameter1.*:.*value1.*/)]"),
-			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*parameter2.*:.*true.*/)]"));
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*parameter2.*:.*true.*/)]"),
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*parameter3.*:.*config3.*/)]"));
 
 		// given a set of parameters
 		Map<String, Object> params = new HashMap<>();
 		params.put("parameter1", "value1");
 		params.put("parameter2", true);
+		params.put("parameter3", "value3");
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest(params))

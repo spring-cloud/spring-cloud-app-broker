@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.workflow.instance;
+package org.springframework.cloud.appbroker.extensions.parameters;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformer;
+import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -29,10 +28,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ParametersTransformationServiceTest {
 	@Test
@@ -69,7 +67,9 @@ class ParametersTransformationServiceTest {
 		BackingApplications backingApplications = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()
 				.name("misconfigured-app")
-				.parameterTransformers("unknown-transformer")
+				.parameterTransformers(ParametersTransformerSpec.builder()
+					.name("uknown-transformer")
+					.build())
 				.build())
 			.build();
 
@@ -87,35 +87,129 @@ class ParametersTransformationServiceTest {
 
 		BackingApplication app1 = BackingApplication.builder()
 			.name("app1")
-			.parameterTransformers("transformer1")
+			.parameterTransformers(ParametersTransformerSpec.builder()
+				.name("transformer1")
+				.build())
 			.build();
 		BackingApplication app2 = BackingApplication.builder()
 			.name("app2")
-			.parameterTransformers("transformer1", "transformer2")
+			.parameterTransformers(ParametersTransformerSpec.builder()
+					.name("transformer1")
+					.arg("arg1", "value1")
+					.arg("arg2", 5)
+					.build(),
+				ParametersTransformerSpec.builder()
+					.name("transformer2")
+					.build())
 			.build();
 		BackingApplications backingApplications = BackingApplications.builder()
 			.backingApplication(app1)
 			.backingApplication(app2)
 			.build();
 
-		ParametersTransformer transformer1 = mock(ParametersTransformer.class);
-		given(transformer1.getName()).willReturn("transformer1");
-		given(transformer1.transform(eq(app1), eq(parameters)))
-			.willReturn(Mono.just(app1));
-		given(transformer1.transform(eq(app2), eq(parameters)))
-			.willReturn(Mono.just(app2));
-
-		ParametersTransformer transformer2 = mock(ParametersTransformer.class);
-		given(transformer2.getName()).willReturn("transformer2");
-		given(transformer2.transform(eq(app2), eq(parameters)))
-			.willReturn(Mono.just(app2));
+		TestFactory factory1 = new TestFactory("transformer1");
+		TestFactory factory2 = new TestFactory("transformer2");
 
 		ParametersTransformationService service = new ParametersTransformationService(
-			Arrays.asList(transformer1, transformer2));
+			Arrays.asList(factory1, factory2));
 
 		StepVerifier
 			.create(service.transformParameters(backingApplications, parameters))
 			.expectNext(backingApplications)
 			.verifyComplete();
+
+		assertThat(factory1.getActualParameters()).isEqualTo(parameters);
+		assertThat(factory2.getActualParameters()).isEqualTo(parameters);
+
+		assertThat(factory1.getActualConfig()).isEqualTo(new Config("value1", 5));
+		assertThat(factory2.getActualConfig()).isEqualTo(new Config(null, null));
+	}
+
+	public static class TestFactory extends ParametersTransformerFactory<Config> {
+		private String name;
+
+		private Map<String, Object> actualParameters;
+		private Config actualConfig;
+
+		TestFactory(String name) {
+			super(Config.class);
+			this.name = name;
+		}
+
+		@Override
+		public String getName() {
+			return this.name;
+		}
+
+		@Override
+		public ParametersTransformer create(Config config) {
+			this.actualConfig = config;
+			return this::doTransform;
+		}
+
+		private Mono<BackingApplication> doTransform(BackingApplication backingApplication,
+													 Map<String, Object> parameters) {
+			this.actualParameters = parameters;
+			return Mono.just(backingApplication);
+		}
+
+		Map<String, Object> getActualParameters() {
+			return actualParameters;
+		}
+
+		public Config getActualConfig() {
+			return actualConfig;
+		}
+	}
+
+	public static class Config {
+		public Config() {
+		}
+		
+		public Config(String arg1, Integer arg2) {
+			this.arg1 = arg1;
+			this.arg2 = arg2;
+		}
+
+		private String arg1;
+		private Integer arg2;
+
+		public String getArg1() {
+			return arg1;
+		}
+
+		public void setArg1(String arg1) {
+			this.arg1 = arg1;
+		}
+
+		public int getArg2() {
+			return arg2;
+		}
+
+		public void setArg2(int arg2) {
+			this.arg2 = arg2;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (!(o instanceof Config)) return false;
+			Config config = (Config) o;
+			return Objects.equals(arg2, config.arg2) &&
+				Objects.equals(arg1, config.arg1);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(arg1, arg2);
+		}
+
+		@Override
+		public String toString() {
+			return "Config{" +
+				"arg1='" + arg1 + '\'' +
+				", arg2=" + arg2 +
+				'}';
+		}
 	}
 }

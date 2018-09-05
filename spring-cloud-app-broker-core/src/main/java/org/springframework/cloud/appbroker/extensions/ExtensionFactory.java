@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.extensions.parameters;
-
-import java.util.Map;
-
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import reactor.core.publisher.Mono;
+package org.springframework.cloud.appbroker.extensions;
 
 @FunctionalInterface
-public interface ParametersTransformer {
-	Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters);
+public interface ExtensionFactory<T, C> {
+
+	T create(C config);
+
+	default String getName() {
+		throw new UnsupportedOperationException("getName() not implemented");
+	}
 }

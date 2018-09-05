@@ -29,14 +29,14 @@ public class BackingApplication {
 	private Map<String, String> properties;
 	private Map<String, String> environment;
 	private List<String> services;
-	private List<String> parametersTransformers;
+	private List<ParametersTransformerSpec> parametersTransformers;
 
 	private BackingApplication() {
 	}
 
 	private BackingApplication(String name, String path, Map<String, String> properties,
 							   Map<String, String> environment, List<String> services,
-							   List<String> parametersTransformers) {
+							   List<ParametersTransformerSpec> parametersTransformers) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
@@ -85,11 +85,11 @@ public class BackingApplication {
 		this.services = services;
 	}
 
-	public List<String> getParametersTransformers() {
+	public List<ParametersTransformerSpec> getParametersTransformers() {
 		return parametersTransformers;
 	}
 
-	public void setParametersTransformers(List<String> parametersTransformers) {
+	public void setParametersTransformers(List<ParametersTransformerSpec> parametersTransformers) {
 		this.parametersTransformers = parametersTransformers;
 	}
 
@@ -104,7 +104,7 @@ public class BackingApplication {
 		private Map<String, String> properties = new HashMap<>();
 		private Map<String, String> environment = new HashMap<>();
 		private List<String> services = new ArrayList<>();
-		private List<String> parameterTransformers = new ArrayList<>();
+		private List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
 
 		BackingApplicationBuilder() {
 		}
@@ -144,7 +144,7 @@ public class BackingApplication {
 			return this;
 		}
 
-		public BackingApplicationBuilder parameterTransformers(String... parameterTransformer) {
+		public BackingApplicationBuilder parameterTransformers(ParametersTransformerSpec... parameterTransformer) {
 			this.parameterTransformers.addAll(Arrays.asList(parameterTransformer));
 			return this;
 		}

@@ -32,6 +32,23 @@ public class BackingApplication {
 	private List<String> services;
 	private List<ParametersTransformerSpec> parametersTransformers;
 
+	public BackingApplication(BackingApplication backingApplicationToCopy) {
+		this.name = backingApplicationToCopy.name;
+		this.path = backingApplicationToCopy.path;
+		this.properties = backingApplicationToCopy.properties != null
+			? new HashMap<>(backingApplicationToCopy.properties)
+			: new HashMap<>();
+		this.environment = backingApplicationToCopy.environment != null
+			? new HashMap<>(backingApplicationToCopy.environment)
+			: new HashMap<>();
+		this.services = backingApplicationToCopy.services != null
+			? new ArrayList<>(backingApplicationToCopy.services)
+			: new ArrayList<>();
+		this.parametersTransformers = backingApplicationToCopy.parametersTransformers != null
+			? new ArrayList<>(backingApplicationToCopy.parametersTransformers)
+			: new ArrayList<>();
+	}
+
 	private BackingApplication() {
 	}
 

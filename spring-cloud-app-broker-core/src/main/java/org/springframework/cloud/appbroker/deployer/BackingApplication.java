@@ -17,9 +17,11 @@
 package org.springframework.cloud.appbroker.deployer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class BackingApplication {
 
@@ -28,17 +30,20 @@ public class BackingApplication {
 	private Map<String, String> properties;
 	private Map<String, String> environment;
 	private List<String> services;
+	private List<ParametersTransformerSpec> parametersTransformers;
 
 	private BackingApplication() {
 	}
 
 	private BackingApplication(String name, String path, Map<String, String> properties,
-							   Map<String, String> environment, List<String> services) {
+							   Map<String, String> environment, List<String> services,
+							   List<ParametersTransformerSpec> parametersTransformers) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
 		this.environment = environment;
 		this.services = services;
+		this.parametersTransformers = parametersTransformers;
 	}
 
 	public String getName() {
@@ -81,16 +86,56 @@ public class BackingApplication {
 		this.services = services;
 	}
 
+	public List<ParametersTransformerSpec> getParametersTransformers() {
+		return parametersTransformers;
+	}
+
+	public void setParametersTransformers(List<ParametersTransformerSpec> parametersTransformers) {
+		this.parametersTransformers = parametersTransformers;
+	}
+
 	public static BackingApplicationBuilder builder() {
 		return new BackingApplicationBuilder();
 	}
 
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof BackingApplication)) return false;
+		BackingApplication that = (BackingApplication) o;
+		return Objects.equals(name, that.name) &&
+			Objects.equals(path, that.path) &&
+			Objects.equals(properties, that.properties) &&
+			Objects.equals(environment, that.environment) &&
+			Objects.equals(services, that.services) &&
+			Objects.equals(parametersTransformers, that.parametersTransformers);
+	}
+
+	@Override
+	public final int hashCode() {
+		return Objects.hash(name, path, properties, environment, services, parametersTransformers);
+	}
+
+	@Override
+	public String toString() {
+		return "BackingApplication{" +
+			"name='" + name + '\'' +
+			", path='" + path + '\'' +
+			", properties=" + properties +
+			", environment=" + environment +
+			", services=" + services +
+			", parametersTransformers=" + parametersTransformers +
+			'}';
+	}
+
 	public static class BackingApplicationBuilder {
+
 		private String name;
 		private String path;
-		private Map<String, String> properties;
-		private Map<String, String> environment;
-		private List<String> services;
+		private Map<String, String> properties = new HashMap<>();
+		private Map<String, String> environment = new HashMap<>();
+		private List<String> services = new ArrayList<>();
+		private List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
 
 		BackingApplicationBuilder() {
 		}
@@ -106,55 +151,37 @@ public class BackingApplication {
 		}
 
 		public BackingApplicationBuilder property(String key, String value) {
-			if (this.properties == null) {
-				this.properties = new HashMap<>();
-			}
 			this.properties.put(key, value);
 			return this;
 		}
 
 		public BackingApplicationBuilder properties(Map<String, String> properties) {
-			if (this.properties == null) {
-				this.properties = new HashMap<>();
-			}
 			this.properties.putAll(properties);
 			return this;
 		}
 
 		public BackingApplicationBuilder environment(String key, String value) {
-			if (this.environment == null) {
-				this.environment = new HashMap<>();
-			}
 			this.environment.put(key, value);
 			return this;
 		}
 
 		public BackingApplicationBuilder environment(Map<String, String> environment) {
-			if (this.environment == null) {
-				this.environment = new HashMap<>();
-			}
 			this.environment.putAll(environment);
 			return this;
 		}
 
-		public BackingApplicationBuilder service(String service) {
-			if (this.services == null) {
-				this.services = new ArrayList<>();
-			}
-			this.services.add(service);
+		public BackingApplicationBuilder services(String... services) {
+			this.services.addAll(Arrays.asList(services));
 			return this;
 		}
 
-		public BackingApplicationBuilder services(List<String> services) {
-			if (this.services == null) {
-				this.services = new ArrayList<>();
-			}
-			this.services.addAll(services);
+		public BackingApplicationBuilder parameterTransformers(ParametersTransformerSpec... parameterTransformer) {
+			this.parameterTransformers.addAll(Arrays.asList(parameterTransformer));
 			return this;
 		}
 
 		public BackingApplication build() {
-			return new BackingApplication(name, path, properties, environment, services);
+			return new BackingApplication(name, path, properties, environment, services, parameterTransformers);
 		}
 	}
 }

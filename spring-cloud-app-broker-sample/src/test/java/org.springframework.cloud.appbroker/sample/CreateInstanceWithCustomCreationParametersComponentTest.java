@@ -23,16 +23,18 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.sample.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
-import org.springframework.cloud.appbroker.workflow.instance.ParametersTransformer;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformer;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import reactor.core.publisher.Mono;
 
 
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
@@ -43,8 +45,11 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCustomCreationParametersComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME
+	"spring.cloud.appbroker.services[0].service-name=example",
+	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=CustomMapping"
 })
 @ContextConfiguration(classes = CreateInstanceWithCustomCreationParametersComponentTest.CustomConfig.class)
 class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockComponentTest {
@@ -57,7 +62,7 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void shouldPushAppWithEnvironmentWhenCreateServiceEndpointCalledWithCreationParameters() {
+	void pushAppWithParametersTransformedUsingCustomTransformer() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME,
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*otherNestedKey.*:.*otherKey.*:.*keyValue.*/)]"),
@@ -89,21 +94,31 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 	@Configuration
 	static class CustomConfig {
 		@Bean
-		public ParametersTransformer parametersTransformer() {
-			return new CustomParametersTransformer();
+		public ParametersTransformerFactory<Object> parametersTransformer() {
+			return new CustomMappingParametersTransformerFactory();
 		}
 
-		public class CustomParametersTransformer implements ParametersTransformer {
+		public class CustomMappingParametersTransformerFactory extends ParametersTransformerFactory<Object> {
+			CustomMappingParametersTransformerFactory() {
+				super();
+			}
+
 			@Override
-			public void transform(BackingApplications backingApps, Map<String, Object> parameters) {
-				backingApps.forEach(backingApplication -> backingApplication.setEnvironment(createEnvironmentMap(parameters)));
+			public ParametersTransformer create(Object config) {
+				return this::transform;
+			}
+
+			private Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters) {
+				backingApplication.setEnvironment(createEnvironmentMap(parameters));
+				return Mono.just(backingApplication);
 			}
 
 			private Map<String, String> createEnvironmentMap(Map<String, Object> parameters) {
 				ObjectMapper objectMapper = new ObjectMapper();
 				ObjectNode customOutputEnvironmentParameters = objectMapper.createObjectNode();
 				try {
-					CustomInputParameters customInputParameters = objectMapper.readValue(parameters.get("firstKey").toString(), CustomInputParameters.class);
+					CustomInputParameters customInputParameters =
+						objectMapper.readValue(parameters.get("firstKey").toString(), CustomInputParameters.class);
 					customOutputEnvironmentParameters.put("otherKey", customInputParameters.getSecondKey());
 					customOutputEnvironmentParameters.put("otherLabel", customInputParameters.getLabel());
 				} catch (Exception e) {
@@ -111,11 +126,9 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 				}
 				return Collections.singletonMap("otherNestedKey", customOutputEnvironmentParameters.toString());
 			}
-
 		}
 
 		static class CustomInputParameters {
-
 			private CustomInputParameters() {
 			}
 

@@ -35,8 +35,15 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCreationParametersComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.apps[0].name=" + APP_NAME
+	"spring.cloud.appbroker.services[0].service-name=example",
+	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
+	"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=false",
+	"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=config3",
+	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=EnvironmentMapping",
+	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=parameter1,parameter2"
 })
 class CreateInstanceWithCreationParametersComponentTest extends WiremockComponentTest {
 	static final String APP_NAME = "app-with-env-create-params";
@@ -48,16 +55,18 @@ class CreateInstanceWithCreationParametersComponentTest extends WiremockComponen
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void shouldPushAppWithEnvironmentWhenCreateServiceEndpointCalledWithCreationParameters() {
+	void pushAppWithParametersTransformedToEnvironmentVariables() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME,
-			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*ENV_VAR_1.*:.*value1.*/)]"),
-			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*ENV_VAR_2.*:.*true.*/)]"));
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*parameter1.*:.*value1.*/)]"),
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*parameter2.*:.*true.*/)]"),
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*parameter3.*:.*config3.*/)]"));
 
 		// given a set of parameters
 		Map<String, Object> params = new HashMap<>();
-		params.put("ENV_VAR_1", "value1");
-		params.put("ENV_VAR_2", true);
+		params.put("parameter1", "value1");
+		params.put("parameter2", true);
+		params.put("parameter3", "value3");
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest(params))

@@ -14,8 +14,23 @@
  * limitations under the License.
  */
 
-description = "Spring Cloud App Broker Deployer"
+package org.springframework.cloud.appbroker.extensions.parameters;
 
-dependencies {
-	api("io.projectreactor:reactor-core:${reactorVersion}")
+import org.springframework.cloud.appbroker.extensions.AbstractExtensionFactory;
+
+public abstract class ParametersTransformerFactory<C> extends AbstractExtensionFactory<ParametersTransformer, C> {
+	protected ParametersTransformerFactory() {
+		super();
+	}
+
+	protected ParametersTransformerFactory(Class<C> configClass) {
+		super(configClass);
+	}
+
+	@Override
+	public abstract ParametersTransformer create(C config);
+
+	public String getName() {
+		return getShortName(ParametersTransformerFactory.class);
+	}
 }

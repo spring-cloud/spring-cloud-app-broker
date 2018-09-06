@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-description = "Spring Cloud App Broker Deployer"
+package org.springframework.cloud.appbroker.extensions;
 
-dependencies {
-	api("io.projectreactor:reactor-core:${reactorVersion}")
+@FunctionalInterface
+public interface ExtensionFactory<T, C> {
+
+	T create(C config);
+
+	default String getName() {
+		throw new UnsupportedOperationException("getName() not implemented");
+	}
 }

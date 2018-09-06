@@ -74,7 +74,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS,
 			"create service instance started")
-			.then(createServiceInstanceWorkflow.create(request.getParameters())
+			.then(createServiceInstanceWorkflow.create(request)
 				.doOnRequest(l -> log.info("Creating service instance {}", request))
 				.doOnSuccess(d -> log.info("Finished creating service instance {}", request))
 				.doOnError(e -> log.info("Error creating service instance {} with error {}", request, e)))
@@ -99,7 +99,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private Mono<Void> delete(DeleteServiceInstanceRequest request) {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS, "delete service instance started")
-			.then(deleteServiceInstanceWorkflow.delete()
+			.then(deleteServiceInstanceWorkflow.delete(request)
 				.doOnRequest(l -> log.info("Deleting service instance {}", request))
 				.doOnSuccess(d -> log.info("Finished deleting service instance {}", request))
 				.doOnError(e -> log.info("Error deleting service instance {} with error {}", request, e)))

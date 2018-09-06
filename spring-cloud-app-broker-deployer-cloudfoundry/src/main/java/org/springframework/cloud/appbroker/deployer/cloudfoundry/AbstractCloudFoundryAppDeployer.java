@@ -16,22 +16,6 @@
 
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
-import org.cloudfoundry.AbstractCloudFoundryException;
-import org.cloudfoundry.UnknownCloudFoundryException;
-import org.cloudfoundry.util.DelayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.cloud.deployer.spi.app.AppDeployer;
-import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties;
-import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
-import org.springframework.cloud.deployer.spi.util.ByteSizeUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.util.StringUtils;
-import reactor.core.Exceptions;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -42,19 +26,36 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.cloudfoundry.AbstractCloudFoundryException;
+import org.cloudfoundry.UnknownCloudFoundryException;
+import org.cloudfoundry.util.DelayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import reactor.core.Exceptions;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
+import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties;
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
+import org.springframework.cloud.deployer.spi.util.ByteSizeUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
+
 import static org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY;
 import static org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY;
 import static org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties.SERVICES_PROPERTY_KEY;
 
-class AbstractCloudFoundryReactiveAppDeployer {
+class AbstractCloudFoundryAppDeployer {
 
 	private final RuntimeEnvironmentInfo runtimeEnvironmentInfo;
 
 	final CloudFoundryDeploymentProperties deploymentProperties;
 
-	private final Logger logger = LoggerFactory.getLogger(AbstractCloudFoundryReactiveAppDeployer.class);
+	private final Logger logger = LoggerFactory.getLogger(AbstractCloudFoundryAppDeployer.class);
 
-	AbstractCloudFoundryReactiveAppDeployer(CloudFoundryDeploymentProperties deploymentProperties, RuntimeEnvironmentInfo runtimeEnvironmentInfo) {
+	AbstractCloudFoundryAppDeployer(CloudFoundryDeploymentProperties deploymentProperties, RuntimeEnvironmentInfo runtimeEnvironmentInfo) {
 		this.deploymentProperties = deploymentProperties;
 		this.runtimeEnvironmentInfo = runtimeEnvironmentInfo;
 	}

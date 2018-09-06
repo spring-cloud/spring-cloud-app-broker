@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-description = "Spring Cloud App Broker Deployer"
+package org.springframework.cloud.appbroker.extensions.parameters;
 
-dependencies {
-	api("io.projectreactor:reactor-core:${reactorVersion}")
+import java.util.Map;
+
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import reactor.core.publisher.Mono;
+
+@FunctionalInterface
+public interface ParametersTransformer {
+	Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters);
 }

@@ -17,23 +17,21 @@
 package org.springframework.cloud.appbroker.extensions.parameters;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cloud.appbroker.extensions.ExtensionLocator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 public class ParametersTransformationService {
-	private Map<String, ParametersTransformerFactory<?>> parametersTransformersByName = new HashMap<>();
+	private final ExtensionLocator<ParametersTransformer> locator;
 
-	public ParametersTransformationService(List<ParametersTransformerFactory<?>> parametersTransformers) {
-		parametersTransformers.forEach(parametersTransformer ->
-			this.parametersTransformersByName.put(parametersTransformer.getName(), parametersTransformer));
+	public ParametersTransformationService(List<ParametersTransformerFactory<?>> factories) {
+		locator = new ExtensionLocator<>(factories);
 	}
 
 	public Mono<List<BackingApplication>> transformParameters(List<BackingApplication> backingApplications,
@@ -45,10 +43,8 @@ public class ParametersTransformationService {
 
 				return Flux.fromIterable(specs)
 					.flatMap(spec -> {
-						ParametersTransformerFactory<?> factory =
-							getTransformerFactoryByName(spec.getName(), backingApplication.getName());
-						ParametersTransformer transformer = getTransformerFromFactory(factory, spec);
-						return transformParameters(transformer, backingApplication, parameters);
+						ParametersTransformer transformer = locator.getByName(spec.getName(), spec.getArgs());
+						return transformer.transform(backingApplication, parameters);
 					})
 					.then(Mono.just(backingApplication));
 			})
@@ -59,26 +55,5 @@ public class ParametersTransformationService {
 		return backingApplication.getParametersTransformers() == null
 			? Collections.emptyList()
 			: backingApplication.getParametersTransformers();
-	}
-
-	private ParametersTransformerFactory<?> getTransformerFactoryByName(String transformerName, String applicationName) {
-		if (parametersTransformersByName.containsKey(transformerName)) {
-			return parametersTransformersByName.get(transformerName);
-		} else {
-			throw new ServiceBrokerException("Unknown parameters transformer " +
-				transformerName + " configured for application " + applicationName + ". " +
-				"Registered parameters transformers are " + parametersTransformersByName.keySet());
-		}
-	}
-
-	private ParametersTransformer getTransformerFromFactory(ParametersTransformerFactory<?> factory,
-															ParametersTransformerSpec spec) {
-		return factory.createWithConfig(spec.getArgs());
-	}
-
-	private Mono<BackingApplication> transformParameters(ParametersTransformer transformer,
-														 BackingApplication backingApplication,
-														 Map<String, Object> parameters) {
-		return transformer.transform(backingApplication, parameters);
 	}
 }

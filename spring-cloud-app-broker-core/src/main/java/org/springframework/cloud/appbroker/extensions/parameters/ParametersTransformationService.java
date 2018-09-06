@@ -16,16 +16,17 @@
 
 package org.springframework.cloud.appbroker.extensions.parameters;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 public class ParametersTransformationService {
 	private Map<String, ParametersTransformerFactory<?>> parametersTransformersByName = new HashMap<>();
@@ -38,6 +39,7 @@ public class ParametersTransformationService {
 	public Mono<List<BackingApplication>> transformParameters(List<BackingApplication> backingApplications,
 															  Map<String, Object> parameters) {
 		return Flux.fromIterable(backingApplications)
+			.map(BackingApplication::new)
 			.flatMap(backingApplication -> {
 				List<ParametersTransformerSpec> specs = getTransformerSpecsForApplication(backingApplication);
 

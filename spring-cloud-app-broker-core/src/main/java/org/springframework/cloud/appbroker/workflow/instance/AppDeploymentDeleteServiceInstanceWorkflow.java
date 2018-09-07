@@ -17,20 +17,24 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 
-public class DeleteServiceInstanceWorkflow extends ServiceInstanceWorkflow {
+public class AppDeploymentDeleteServiceInstanceWorkflow
+	extends AppDeploymentInstanceWorkflow
+	implements DeleteServiceInstanceWorkflow {
 	private final BackingAppDeploymentService deploymentService;
 
-	public DeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
-										 BackingAppDeploymentService deploymentService) {
+	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
+													  BackingAppDeploymentService deploymentService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 	}
 
+	@Override
 	public Mono<String> delete(DeleteServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
 			.flatMap(deploymentService::undeploy);

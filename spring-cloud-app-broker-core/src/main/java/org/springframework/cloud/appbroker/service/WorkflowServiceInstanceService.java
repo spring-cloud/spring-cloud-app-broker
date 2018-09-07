@@ -18,15 +18,7 @@
 
 package org.springframework.cloud.appbroker.service;
 
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.Logger;
-import reactor.util.Loggers;
-
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
-import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.workflow.instance.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
@@ -40,6 +32,13 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.Logger;
+import reactor.util.Loggers;
+
+import java.util.List;
 
 /**
  * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects for each service broker
@@ -48,22 +47,22 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private final Logger log = Loggers.getLogger(WorkflowServiceInstanceService.class);
 
-	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
+	private List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows;
 
-	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
+	private List<DeleteServiceInstanceWorkflow> deleteServiceInstanceWorkflows;
 
-	private UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow;
+	private List<UpdateServiceInstanceWorkflow> updateServiceInstanceWorkflows;
 
 	private ServiceInstanceStateRepository stateRepository;
 
 	public WorkflowServiceInstanceService(ServiceInstanceStateRepository serviceInstanceStateRepository,
-										  CreateServiceInstanceWorkflow createServiceInstanceWorkflow,
-										  DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow,
-										  UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow) {
+										  List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows,
+										  List<DeleteServiceInstanceWorkflow> deleteServiceInstanceWorkflows,
+										  List<UpdateServiceInstanceWorkflow> updateServiceInstanceWorkflows) {
 		this.stateRepository = serviceInstanceStateRepository;
-		this.createServiceInstanceWorkflow = createServiceInstanceWorkflow;
-		this.deleteServiceInstanceWorkflow = deleteServiceInstanceWorkflow;
-		this.updateServiceInstanceWorkflow = updateServiceInstanceWorkflow;
+		this.createServiceInstanceWorkflows = createServiceInstanceWorkflows;
+		this.deleteServiceInstanceWorkflows = deleteServiceInstanceWorkflows;
+		this.updateServiceInstanceWorkflows = updateServiceInstanceWorkflows;
 	}
 
 	@Override
@@ -80,7 +79,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS,
 			"create service instance started")
-			.then(createServiceInstanceWorkflow.create(request)
+			.then(invokeCreateWorkflows(request)
 				.doOnRequest(l -> log.info("Creating service instance {}", request))
 				.doOnSuccess(d -> log.info("Finished creating service instance {}", request))
 				.doOnError(e -> log.info("Error creating service instance {} with error {}", request, e)))
@@ -90,6 +89,12 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.FAILED, e.getMessage())
 				.then());
+	}
+
+	private Mono<Void> invokeCreateWorkflows(CreateServiceInstanceRequest request) {
+		return Flux.fromIterable(createServiceInstanceWorkflows)
+			.flatMap(createServiceInstanceWorkflow -> createServiceInstanceWorkflow.create(request))
+			.thenEmpty(Mono.empty());
 	}
 
 	@Override
@@ -105,7 +110,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private Mono<Void> delete(DeleteServiceInstanceRequest request) {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS, "delete service instance started")
-			.then(deleteServiceInstanceWorkflow.delete(request)
+			.then(invokeDeleteWorkflows(request)
 				.doOnRequest(l -> log.info("Deleting service instance {}", request))
 				.doOnSuccess(d -> log.info("Finished deleting service instance {}", request))
 				.doOnError(e -> log.info("Error deleting service instance {} with error {}", request, e)))
@@ -115,6 +120,12 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.FAILED, e.getMessage())
 				.then());
+	}
+
+	private Mono<Void> invokeDeleteWorkflows(DeleteServiceInstanceRequest request) {
+		return Flux.fromIterable(deleteServiceInstanceWorkflows)
+			.flatMap(deleteServiceInstanceWorkflow -> deleteServiceInstanceWorkflow.delete(request))
+			.thenEmpty(Mono.empty());
 	}
 
 	@Override
@@ -136,25 +147,31 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
 		return Mono.just(UpdateServiceInstanceResponse.builder()
-            .async(true)
-            .build())
-            .publishOn(Schedulers.parallel())
-            .doOnNext(response -> update(request)
-                .subscribe());
+			.async(true)
+			.build())
+			.publishOn(Schedulers.parallel())
+			.doOnNext(response -> update(request)
+				.subscribe());
 	}
 
 	private Mono<Void> update(UpdateServiceInstanceRequest request) {
 		return stateRepository.saveState(request.getServiceInstanceId(),
-            OperationState.IN_PROGRESS,"update service instance started")
-                .then(updateServiceInstanceWorkflow.update(request)
-                    .doOnRequest(l -> log.info("Updating service instance {}", request))
-                    .doOnSuccess(d -> log.info("Finished updating service instance {}", request))
-                    .doOnError(e -> log.info("Error updating service instance {} with error {}", request, e)))
-                .thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
-                    OperationState.SUCCEEDED, "update service instance completed")
-                    .then())
-                .onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
-                    OperationState.FAILED, e.getMessage())
-                .then());
+			OperationState.IN_PROGRESS, "update service instance started")
+			.then(invokeUpdateWorkflows(request)
+				.doOnRequest(l -> log.info("Updating service instance {}", request))
+				.doOnSuccess(d -> log.info("Finished updating service instance {}", request))
+				.doOnError(e -> log.info("Error updating service instance {} with error {}", request, e)))
+			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.SUCCEEDED, "update service instance completed")
+				.then())
+			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.FAILED, e.getMessage())
+				.then());
+	}
+
+	private Mono<Void> invokeUpdateWorkflows(UpdateServiceInstanceRequest request) {
+		return Flux.fromIterable(updateServiceInstanceWorkflows)
+			.flatMap(updateServiceInstanceWorkflow -> updateServiceInstanceWorkflow.update(request))
+			.thenEmpty(Mono.empty());
 	}
 }

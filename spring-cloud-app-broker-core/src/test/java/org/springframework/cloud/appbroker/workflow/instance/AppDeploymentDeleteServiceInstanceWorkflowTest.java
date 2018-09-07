@@ -26,6 +26,7 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
@@ -38,7 +39,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
-class DeleteServiceInstanceWorkflowTest {
+class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
@@ -69,7 +70,7 @@ class DeleteServiceInstanceWorkflowTest {
 			.willReturn(Mono.just("undeployed"));
 
 		DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow =
-			new DeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
+			new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
 
 		// when
 		StepVerifier
@@ -83,7 +84,7 @@ class DeleteServiceInstanceWorkflowTest {
 	@Test
 	void deleteServiceInstanceFailsWithMisconfigurationFails() {
 		DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow =
-			new DeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
+			new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
 
 		// when
 		StepVerifier

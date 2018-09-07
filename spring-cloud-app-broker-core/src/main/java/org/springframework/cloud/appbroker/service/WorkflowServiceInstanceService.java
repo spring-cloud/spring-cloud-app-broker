@@ -32,6 +32,7 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -63,6 +64,10 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 		this.createServiceInstanceWorkflows = createServiceInstanceWorkflows;
 		this.deleteServiceInstanceWorkflows = deleteServiceInstanceWorkflows;
 		this.updateServiceInstanceWorkflows = updateServiceInstanceWorkflows;
+
+		AnnotationAwareOrderComparator.sort(this.createServiceInstanceWorkflows);
+		AnnotationAwareOrderComparator.sort(this.deleteServiceInstanceWorkflows);
+		AnnotationAwareOrderComparator.sort(this.updateServiceInstanceWorkflows);
 	}
 
 	@Override

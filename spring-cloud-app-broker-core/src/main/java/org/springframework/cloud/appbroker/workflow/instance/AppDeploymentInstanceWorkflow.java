@@ -25,11 +25,11 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public class AppDeploymentInstanceWorkflow {
+class AppDeploymentInstanceWorkflow {
 
 	final BrokeredServices brokeredServices;
 
-	public AppDeploymentInstanceWorkflow(BrokeredServices brokeredServices) {
+	AppDeploymentInstanceWorkflow(BrokeredServices brokeredServices) {
 		this.brokeredServices = brokeredServices;
 	}
 

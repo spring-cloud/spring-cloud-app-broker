@@ -19,10 +19,12 @@ package org.springframework.cloud.appbroker.workflow.instance;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
+import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 
+@Order(0)
 public class AppDeploymentDeleteServiceInstanceWorkflow
 	extends AppDeploymentInstanceWorkflow
 	implements DeleteServiceInstanceWorkflow {

@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.workflow.instance;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
+import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Mono;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
@@ -26,6 +27,7 @@ import org.springframework.cloud.servicebroker.model.instance.CreateServiceInsta
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
+@Order(0)
 public class AppDeploymentCreateServiceInstanceWorkflow
 	extends AppDeploymentInstanceWorkflow
 	implements CreateServiceInstanceWorkflow {

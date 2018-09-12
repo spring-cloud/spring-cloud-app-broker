@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.autoconfigure;
 
+import java.util.List;
+
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -23,18 +25,17 @@ import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
+import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
-import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.UpdateServiceInstanceWorkflow;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 @Configuration
 @AutoConfigureAfter(AppDeployerAutoConfiguration.class)
@@ -87,10 +88,17 @@ public class AppBrokerAutoConfiguration {
 		return new DeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
 	}
 
+	@Bean UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow(BrokeredServices brokeredServices,
+																	  BackingAppDeploymentService backingAppDeploymentService,
+																	  ParametersTransformationService parametersTransformationService) {
+		return new UpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService);
+	}
+
 	@Bean
 	public WorkflowServiceInstanceService serviceInstanceService(ServiceInstanceStateRepository stateRepository,
 																 CreateServiceInstanceWorkflow createWorkflow,
-																 DeleteServiceInstanceWorkflow deleteWorkflow) {
-		return new WorkflowServiceInstanceService(stateRepository, createWorkflow, deleteWorkflow);
+																 DeleteServiceInstanceWorkflow deleteWorkflow,
+																 UpdateServiceInstanceWorkflow updateWorkflow) {
+		return new WorkflowServiceInstanceService(stateRepository, createWorkflow, deleteWorkflow, updateWorkflow);
 	}
 }

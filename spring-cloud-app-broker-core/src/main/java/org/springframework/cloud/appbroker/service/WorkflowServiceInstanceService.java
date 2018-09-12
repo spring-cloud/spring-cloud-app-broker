@@ -18,9 +18,15 @@
 
 package org.springframework.cloud.appbroker.service;
 
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.Logger;
+import reactor.util.Loggers;
+
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
@@ -34,10 +40,6 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.Logger;
-import reactor.util.Loggers;
 
 /**
  * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects for each service broker
@@ -50,14 +52,18 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
+	private UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow;
+
 	private ServiceInstanceStateRepository stateRepository;
 
 	public WorkflowServiceInstanceService(ServiceInstanceStateRepository serviceInstanceStateRepository,
 										  CreateServiceInstanceWorkflow createServiceInstanceWorkflow,
-										  DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow) {
+										  DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow,
+										  UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow) {
 		this.stateRepository = serviceInstanceStateRepository;
 		this.createServiceInstanceWorkflow = createServiceInstanceWorkflow;
 		this.deleteServiceInstanceWorkflow = deleteServiceInstanceWorkflow;
+		this.updateServiceInstanceWorkflow = updateServiceInstanceWorkflow;
 	}
 
 	@Override
@@ -129,7 +135,26 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
-		//TODO add functionality
-		return Mono.empty();
+		return Mono.just(UpdateServiceInstanceResponse.builder()
+            .async(true)
+            .build())
+            .publishOn(Schedulers.parallel())
+            .doOnNext(response -> update(request)
+                .subscribe());
+	}
+
+	private Mono<Void> update(UpdateServiceInstanceRequest request) {
+		return stateRepository.saveState(request.getServiceInstanceId(),
+            OperationState.IN_PROGRESS,"update service instance started")
+                .then(updateServiceInstanceWorkflow.update(request)
+                    .doOnRequest(l -> log.info("Updating service instance {}", request))
+                    .doOnSuccess(d -> log.info("Finished updating service instance {}", request))
+                    .doOnError(e -> log.info("Error updating service instance {} with error {}", request, e)))
+                .thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
+                    OperationState.SUCCEEDED, "update service instance completed")
+                    .then())
+                .onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
+                    OperationState.FAILED, e.getMessage())
+                .then());
 	}
 }

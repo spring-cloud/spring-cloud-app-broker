@@ -16,21 +16,26 @@
 
 package org.springframework.cloud.appbroker.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.cloud.appbroker.state.ServiceInstanceState;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +56,9 @@ class WorkflowServiceInstanceServiceTest {
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
 
 	@Mock
+	private UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow;
+
+	@Mock
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
 	private WorkflowServiceInstanceService workflowServiceInstanceService;
@@ -58,7 +66,7 @@ class WorkflowServiceInstanceServiceTest {
 	@BeforeEach
 	void setUp() {
 		this.workflowServiceInstanceService = new WorkflowServiceInstanceService(serviceInstanceStateRepository,
-			createServiceInstanceWorkflow, deleteServiceInstanceWorkflow);
+			createServiceInstanceWorkflow, deleteServiceInstanceWorkflow, updateServiceInstanceWorkflow);
 	}
 
 	@Test
@@ -150,7 +158,7 @@ class WorkflowServiceInstanceServiceTest {
 		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
 			.build();
-		
+
 		given(deleteServiceInstanceWorkflow.delete(request))
 			.willReturn(Mono.error(new RuntimeException("delete foo error")));
 
@@ -166,5 +174,89 @@ class WorkflowServiceInstanceServiceTest {
 				assertThat(deleteServiceInstanceResponse.isAsync()).isTrue();
 			})
 			.verifyComplete();
+	}
+
+	@Test
+	void updateServiceInstance() {
+		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "update service instance completed")));
+
+		UpdateServiceInstanceRequest request = UpdateServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build();
+
+		given(updateServiceInstanceWorkflow.update(request))
+			.willReturn(Mono.empty());
+
+		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
+            .assertNext(updateServiceInstanceResponse -> {
+                verify(serviceInstanceStateRepository)
+                    .saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
+                verify(updateServiceInstanceWorkflow).update(request);
+                verify(serviceInstanceStateRepository)
+                    .saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("update service instance completed"));
+                verifyNoMoreInteractions(serviceInstanceStateRepository, createServiceInstanceWorkflow);
+                assertThat(updateServiceInstanceResponse).isNotNull();
+                assertThat(updateServiceInstanceResponse.isAsync()).isTrue();
+            })
+            .verifyComplete();
+	}
+
+	@Test
+	void updateServiceInstanceWithParameters() {
+		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "update service instance completed")));
+
+		Map<String, Object> params = new HashMap<>();
+		params.put("ENV_VAR_1", "value1");
+		params.put("ENV_VAR_2", true);
+
+		UpdateServiceInstanceRequest request = UpdateServiceInstanceRequest.builder()
+           .serviceInstanceId("foo")
+           .parameters(params)
+           .build();
+
+		given(updateServiceInstanceWorkflow.update(request))
+			.willReturn(Mono.empty());
+
+		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
+            .assertNext(updateServiceInstanceResponse -> {
+                verify(serviceInstanceStateRepository)
+                    .saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
+                verify(updateServiceInstanceWorkflow).update(request);
+                verify(serviceInstanceStateRepository)
+                    .saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("update service instance completed"));
+                verifyNoMoreInteractions(serviceInstanceStateRepository, updateServiceInstanceWorkflow);
+                assertThat(updateServiceInstanceResponse).isNotNull();
+                assertThat(updateServiceInstanceResponse.isAsync()).isTrue();
+            })
+            .verifyComplete();
+	}
+
+	@Test
+	void updateServiceInstanceError() {
+		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "update service instance failed")));
+
+		UpdateServiceInstanceRequest request = UpdateServiceInstanceRequest.builder()
+           .serviceInstanceId("foo")
+           .build();
+
+		given(updateServiceInstanceWorkflow.update(request))
+			.willReturn(Mono.error(new RuntimeException("update foo error")));
+
+		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
+            .assertNext(error -> {
+                verify(serviceInstanceStateRepository)
+                    .saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
+                verify(updateServiceInstanceWorkflow).update(request);
+                verify(serviceInstanceStateRepository)
+                    .saveState(eq("foo"), eq(OperationState.FAILED), eq("update foo error"));
+                verifyNoMoreInteractions(serviceInstanceStateRepository, createServiceInstanceWorkflow);
+            })
+            .verifyComplete();
 	}
 }

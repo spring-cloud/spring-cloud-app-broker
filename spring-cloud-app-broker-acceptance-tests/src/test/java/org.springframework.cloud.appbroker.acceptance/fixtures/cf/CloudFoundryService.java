@@ -41,6 +41,7 @@ import org.cloudfoundry.operations.serviceadmin.EnableServiceAccessRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.DefaultSpaces;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
@@ -167,6 +168,17 @@ public class CloudFoundryService {
 					.serviceInstanceName(serviceInstanceName)
 					.parameters(parameters)
 					.build()));
+	}
+
+	public Mono<Void> updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
+		return loggingMono(
+			cloudFoundryOperations
+				.services()
+				.updateInstance(UpdateServiceInstanceRequest
+                    .builder()
+                    .serviceInstanceName(serviceInstanceName)
+                    .parameters(parameters)
+                    .build()));
 	}
 
 	public Mono<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName) {

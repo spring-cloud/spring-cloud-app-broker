@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -44,7 +45,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
-class UpdateServiceInstanceWorkflowTest {
+class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
@@ -52,25 +53,33 @@ class UpdateServiceInstanceWorkflowTest {
 	@Mock
 	private ParametersTransformationService parametersTransformationService;
 
-	private BrokeredServices brokeredServices;
 	private BackingApplications backingApps;
+	private AppDeploymentUpdateServiceInstanceWorkflow updateServiceInstanceWorkflow;
 
 	@BeforeEach
 	void setUp() {
 		backingApps = BackingApplications.builder()
-            .backingApplication(BackingApplication.builder()
-                .name("helloworldapp")
-                .path("http://myfiles/app.jar")
-                .build())
-            .build();
+			.backingApplication(BackingApplication.builder()
+				.name("app1")
+				.path("http://myfiles/app1.jar")
+				.build())
+			.backingApplication(BackingApplication.builder()
+				.name("app2")
+				.path("http://myfiles/app2.jar")
+				.build())
+			.build();
 
-		brokeredServices = BrokeredServices.builder()
-            .service(BrokeredService.builder()
-                .serviceName("service1")
-                .planName("plan1")
-                .apps(backingApps)
-                .build())
-            .build();
+		BrokeredServices brokeredServices = BrokeredServices.builder()
+			.service(BrokeredService.builder()
+				.serviceName("service1")
+				.planName("plan1")
+				.apps(backingApps)
+				.build())
+			.build();
+
+		updateServiceInstanceWorkflow = new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices,
+			backingAppDeploymentService,
+			parametersTransformationService);
 	}
 
 	@Test
@@ -79,18 +88,14 @@ class UpdateServiceInstanceWorkflowTest {
 		UpdateServiceInstanceRequest request = buildRequest("service1", "plan1");
 
 		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
-			.willReturn(Mono.just("deployed"));
+			.willReturn(Flux.just("app1", "app2"));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
 
-		UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow =
-			new UpdateServiceInstanceWorkflow(brokeredServices,
-											  backingAppDeploymentService,
-											  parametersTransformationService);
-
 		StepVerifier
 			.create(updateServiceInstanceWorkflow.update(request))
-			.expectNext("deployed")
+			.expectNext()
+			.expectNext()
 			.verifyComplete();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
@@ -100,21 +105,17 @@ class UpdateServiceInstanceWorkflowTest {
 	@Test
 	void updateServiceInstanceWithParametersSucceeds() {
 		UpdateServiceInstanceRequest request = buildRequest("service1", "plan1",
-															singletonMap("ENV_VAR_1", "value from parameters"));
+			singletonMap("ENV_VAR_1", "value from parameters"));
 
 		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
-			.willReturn(Mono.just("deployment-id-app1"));
+			.willReturn(Flux.just("app1", "app2"));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
 
-		UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow =
-			new UpdateServiceInstanceWorkflow(brokeredServices,
-											  backingAppDeploymentService,
-											  parametersTransformationService);
-
 		StepVerifier
 			.create(updateServiceInstanceWorkflow.update(request))
-			.expectNext("deployment-id-app1")
+			.expectNext()
+			.expectNext()
 			.verifyComplete();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
@@ -123,11 +124,6 @@ class UpdateServiceInstanceWorkflowTest {
 
 	@Test
 	void updateServiceInstanceFailsWithMisconfigurationFails() {
-		UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow =
-			new UpdateServiceInstanceWorkflow(brokeredServices,
-											  backingAppDeploymentService,
-											  parametersTransformationService);
-
 		StepVerifier
 			.create(updateServiceInstanceWorkflow.update(buildRequest("unsupported-service", "plan1")))
 			.expectError(ServiceBrokerException.class)
@@ -144,17 +140,17 @@ class UpdateServiceInstanceWorkflowTest {
 	private UpdateServiceInstanceRequest buildRequest(String serviceName, String planName,
 													  Map<String, Object> parameters) {
 		return UpdateServiceInstanceRequest.builder()
-            .serviceDefinitionId(serviceName + "-id")
-            .planId(planName + "-id")
-            .serviceDefinition(ServiceDefinition.builder()
-                .id(serviceName + "-id")
-                .name(serviceName)
-                .plans(Plan.builder()
-                .id(planName + "-id")
-                .name(planName)
-                .build())
-            .build())
-            .parameters(parameters != null ? parameters : new HashMap<>())
-            .build();
+			.serviceDefinitionId(serviceName + "-id")
+			.planId(planName + "-id")
+			.serviceDefinition(ServiceDefinition.builder()
+				.id(serviceName + "-id")
+				.name(serviceName)
+				.plans(Plan.builder()
+					.id(planName + "-id")
+					.name(planName)
+					.build())
+				.build())
+			.parameters(parameters != null ? parameters : new HashMap<>())
+			.build();
 	}
 }

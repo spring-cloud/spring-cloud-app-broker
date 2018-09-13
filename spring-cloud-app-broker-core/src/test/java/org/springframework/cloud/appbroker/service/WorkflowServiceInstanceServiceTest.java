@@ -16,34 +16,33 @@
 
 package org.springframework.cloud.appbroker.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import org.springframework.cloud.appbroker.state.ServiceInstanceState;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
-import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.workflow.instance.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,20 +52,31 @@ class WorkflowServiceInstanceServiceTest {
 	private ServiceInstanceStateRepository serviceInstanceStateRepository;
 
 	@Mock
-	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
+	private LowOrderCreateServiceInstanceWorkflow createServiceInstanceWorkflow1;
 
 	@Mock
-	private UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow;
+	private HighOrderCreateServiceInstanceWorkflow createServiceInstanceWorkflow2;
 
 	@Mock
-	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
+	private LowOrderDeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow1;
+
+	@Mock
+	private HighOrderDeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow2;
+
+	@Mock
+	private LowOrderUpdateServiceInstanceWorkflow updateServiceInstanceWorkflow1;
+
+	@Mock
+	private HighOrderUpdateServiceInstanceWorkflow updateServiceInstanceWorkflow2;
 
 	private WorkflowServiceInstanceService workflowServiceInstanceService;
 
 	@BeforeEach
 	void setUp() {
 		this.workflowServiceInstanceService = new WorkflowServiceInstanceService(serviceInstanceStateRepository,
-			createServiceInstanceWorkflow, deleteServiceInstanceWorkflow, updateServiceInstanceWorkflow);
+			Arrays.asList(createServiceInstanceWorkflow1, createServiceInstanceWorkflow2),
+			Arrays.asList(deleteServiceInstanceWorkflow1, deleteServiceInstanceWorkflow2),
+			Arrays.asList(updateServiceInstanceWorkflow1, updateServiceInstanceWorkflow2));
 	}
 
 	@Test
@@ -79,22 +89,29 @@ class WorkflowServiceInstanceServiceTest {
 			.serviceInstanceId("foo")
 			.build();
 
-		given(createServiceInstanceWorkflow.create(request))
-			.willReturn(Mono.empty());
+		given(createServiceInstanceWorkflow1.create(request))
+			.willReturn(Flux.empty());
+		given(createServiceInstanceWorkflow2.create(request))
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
 			.assertNext(createServiceInstanceResponse -> {
-				verify(serviceInstanceStateRepository)
+				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
+				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("create service instance started"));
-				verify(createServiceInstanceWorkflow).create(request);
-					verify(serviceInstanceStateRepository)
+				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("create service instance completed"));
-				verifyNoMoreInteractions(serviceInstanceStateRepository, createServiceInstanceWorkflow);
+				repoOrder.verifyNoMoreInteractions();
+
+				InOrder createOrder = inOrder(createServiceInstanceWorkflow1, createServiceInstanceWorkflow2);
+				createOrder.verify(createServiceInstanceWorkflow2).create(request);
+				createOrder.verify(createServiceInstanceWorkflow1).create(request);
+				createOrder.verifyNoMoreInteractions();
+
 				assertThat(createServiceInstanceResponse).isNotNull();
 				assertThat(createServiceInstanceResponse.isAsync()).isTrue();
 			})
 			.verifyComplete();
-
 	}
 
 	@Test
@@ -107,17 +124,24 @@ class WorkflowServiceInstanceServiceTest {
 			.serviceInstanceId("foo")
 			.build();
 
-		given(createServiceInstanceWorkflow.create(request))
-			.willReturn(Mono.error(new RuntimeException("create foo error")));
+		given(createServiceInstanceWorkflow1.create(request))
+			.willReturn(Flux.error(new RuntimeException("create foo error")));
+		given(createServiceInstanceWorkflow2.create(request))
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
 			.assertNext(error -> {
-				verify(serviceInstanceStateRepository)
+				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
+				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("create service instance started"));
-				verify(createServiceInstanceWorkflow).create(request);
-				verify(serviceInstanceStateRepository)
+				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.FAILED), eq("create foo error"));
-				verifyNoMoreInteractions(serviceInstanceStateRepository, createServiceInstanceWorkflow);
+				repoOrder.verifyNoMoreInteractions();
+
+				InOrder createOrder = inOrder(createServiceInstanceWorkflow1, createServiceInstanceWorkflow2);
+				createOrder.verify(createServiceInstanceWorkflow2).create(request);
+				createOrder.verify(createServiceInstanceWorkflow1).create(request);
+				createOrder.verifyNoMoreInteractions();
 			})
 			.verifyComplete();
 	}
@@ -132,17 +156,25 @@ class WorkflowServiceInstanceServiceTest {
 			.serviceInstanceId("foo")
 			.build();
 
-		given(deleteServiceInstanceWorkflow.delete(request))
-			.willReturn(Mono.empty());
+		given(deleteServiceInstanceWorkflow1.delete(request))
+			.willReturn(Flux.empty());
+		given(deleteServiceInstanceWorkflow2.delete(request))
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
-				verify(serviceInstanceStateRepository)
+				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
+				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("delete service instance started"));
-				verify(deleteServiceInstanceWorkflow).delete(request);
-				verify(serviceInstanceStateRepository)
+				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("delete service instance completed"));
-				verifyNoMoreInteractions(serviceInstanceStateRepository, deleteServiceInstanceWorkflow);
+				repoOrder.verifyNoMoreInteractions();
+
+				InOrder deleteOrder = inOrder(deleteServiceInstanceWorkflow1, deleteServiceInstanceWorkflow2);
+				deleteOrder.verify(deleteServiceInstanceWorkflow2).delete(request);
+				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request);
+				deleteOrder.verifyNoMoreInteractions();
+
 				assertThat(deleteServiceInstanceResponse).isNotNull();
 				assertThat(deleteServiceInstanceResponse.isAsync()).isTrue();
 			})
@@ -158,18 +190,26 @@ class WorkflowServiceInstanceServiceTest {
 		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
 			.build();
-
-		given(deleteServiceInstanceWorkflow.delete(request))
-			.willReturn(Mono.error(new RuntimeException("delete foo error")));
+		
+		given(deleteServiceInstanceWorkflow1.delete(request))
+			.willReturn(Flux.error(new RuntimeException("delete foo error")));
+		given(deleteServiceInstanceWorkflow2.delete(request))
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
-				verify(serviceInstanceStateRepository)
+				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
+				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("delete service instance started"));
-				verify(deleteServiceInstanceWorkflow).delete(request);
-				verify(serviceInstanceStateRepository)
+				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.FAILED), eq("delete foo error"));
-				verifyNoMoreInteractions(serviceInstanceStateRepository, deleteServiceInstanceWorkflow);
+				repoOrder.verifyNoMoreInteractions();
+
+				InOrder deleteOrder = inOrder(deleteServiceInstanceWorkflow1, deleteServiceInstanceWorkflow2);
+				deleteOrder.verify(deleteServiceInstanceWorkflow2).delete(request);
+				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request);
+				deleteOrder.verifyNoMoreInteractions();
+
 				assertThat(deleteServiceInstanceResponse).isNotNull();
 				assertThat(deleteServiceInstanceResponse.isAsync()).isTrue();
 			})
@@ -186,53 +226,29 @@ class WorkflowServiceInstanceServiceTest {
 			.serviceInstanceId("foo")
 			.build();
 
-		given(updateServiceInstanceWorkflow.update(request))
-			.willReturn(Mono.empty());
+		given(updateServiceInstanceWorkflow1.update(request))
+			.willReturn(Flux.empty());
+		given(updateServiceInstanceWorkflow2.update(request))
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
-            .assertNext(updateServiceInstanceResponse -> {
-                verify(serviceInstanceStateRepository)
-                    .saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
-                verify(updateServiceInstanceWorkflow).update(request);
-                verify(serviceInstanceStateRepository)
-                    .saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("update service instance completed"));
-                verifyNoMoreInteractions(serviceInstanceStateRepository, createServiceInstanceWorkflow);
-                assertThat(updateServiceInstanceResponse).isNotNull();
-                assertThat(updateServiceInstanceResponse.isAsync()).isTrue();
-            })
-            .verifyComplete();
-	}
+			.assertNext(updateServiceInstanceResponse -> {
+				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
+				repoOrder.verify(serviceInstanceStateRepository)
+					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
+				repoOrder.verify(serviceInstanceStateRepository)
+					.saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("update service instance completed"));
+				repoOrder.verifyNoMoreInteractions();
 
-	@Test
-	void updateServiceInstanceWithParameters() {
-		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "update service instance completed")));
+				InOrder updateOrder = inOrder(updateServiceInstanceWorkflow1, updateServiceInstanceWorkflow2);
+				updateOrder.verify(updateServiceInstanceWorkflow2).update(request);
+				updateOrder.verify(updateServiceInstanceWorkflow1).update(request);
+				updateOrder.verifyNoMoreInteractions();
 
-		Map<String, Object> params = new HashMap<>();
-		params.put("ENV_VAR_1", "value1");
-		params.put("ENV_VAR_2", true);
-
-		UpdateServiceInstanceRequest request = UpdateServiceInstanceRequest.builder()
-           .serviceInstanceId("foo")
-           .parameters(params)
-           .build();
-
-		given(updateServiceInstanceWorkflow.update(request))
-			.willReturn(Mono.empty());
-
-		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
-            .assertNext(updateServiceInstanceResponse -> {
-                verify(serviceInstanceStateRepository)
-                    .saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
-                verify(updateServiceInstanceWorkflow).update(request);
-                verify(serviceInstanceStateRepository)
-                    .saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("update service instance completed"));
-                verifyNoMoreInteractions(serviceInstanceStateRepository, updateServiceInstanceWorkflow);
-                assertThat(updateServiceInstanceResponse).isNotNull();
-                assertThat(updateServiceInstanceResponse.isAsync()).isTrue();
-            })
-            .verifyComplete();
+				assertThat(updateServiceInstanceResponse).isNotNull();
+				assertThat(updateServiceInstanceResponse.isAsync()).isTrue();
+			})
+			.verifyComplete();
 	}
 
 	@Test
@@ -242,21 +258,52 @@ class WorkflowServiceInstanceServiceTest {
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "update service instance failed")));
 
 		UpdateServiceInstanceRequest request = UpdateServiceInstanceRequest.builder()
-           .serviceInstanceId("foo")
-           .build();
+			.serviceInstanceId("foo")
+			.build();
 
-		given(updateServiceInstanceWorkflow.update(request))
-			.willReturn(Mono.error(new RuntimeException("update foo error")));
+		given(updateServiceInstanceWorkflow1.update(request))
+			.willReturn(Flux.error(new RuntimeException("update foo error")));
+		given(updateServiceInstanceWorkflow2.update(request))
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
-            .assertNext(error -> {
-                verify(serviceInstanceStateRepository)
-                    .saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
-                verify(updateServiceInstanceWorkflow).update(request);
-                verify(serviceInstanceStateRepository)
-                    .saveState(eq("foo"), eq(OperationState.FAILED), eq("update foo error"));
-                verifyNoMoreInteractions(serviceInstanceStateRepository, createServiceInstanceWorkflow);
-            })
-            .verifyComplete();
+			.assertNext(error -> {
+				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
+				repoOrder.verify(serviceInstanceStateRepository)
+					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
+				repoOrder.verify(serviceInstanceStateRepository)
+					.saveState(eq("foo"), eq(OperationState.FAILED), eq("update foo error"));
+				repoOrder.verifyNoMoreInteractions();
+
+				InOrder updateOrder = inOrder(updateServiceInstanceWorkflow1, updateServiceInstanceWorkflow2);
+				updateOrder.verify(updateServiceInstanceWorkflow2).update(request);
+				updateOrder.verify(updateServiceInstanceWorkflow1).update(request);
+				updateOrder.verifyNoMoreInteractions();
+			})
+			.verifyComplete();
+	}
+
+	@Order(Ordered.HIGHEST_PRECEDENCE)
+	private interface HighOrderCreateServiceInstanceWorkflow extends CreateServiceInstanceWorkflow {
+	}
+
+	@Order
+	private interface LowOrderCreateServiceInstanceWorkflow extends CreateServiceInstanceWorkflow {
+	}
+
+	@Order(Ordered.HIGHEST_PRECEDENCE)
+	private interface HighOrderDeleteServiceInstanceWorkflow extends DeleteServiceInstanceWorkflow {
+	}
+
+	@Order
+	private interface LowOrderDeleteServiceInstanceWorkflow extends DeleteServiceInstanceWorkflow {
+	}
+
+	@Order(Ordered.HIGHEST_PRECEDENCE)
+	private interface HighOrderUpdateServiceInstanceWorkflow extends UpdateServiceInstanceWorkflow {
+	}
+
+	@Order
+	private interface LowOrderUpdateServiceInstanceWorkflow extends UpdateServiceInstanceWorkflow {
 	}
 }

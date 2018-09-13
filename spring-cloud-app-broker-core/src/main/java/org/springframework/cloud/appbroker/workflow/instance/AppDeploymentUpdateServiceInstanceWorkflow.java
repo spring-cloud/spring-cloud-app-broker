@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import reactor.core.publisher.Mono;
+import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
+import reactor.core.publisher.Flux;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -25,26 +26,30 @@ import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 
-public class UpdateServiceInstanceWorkflow extends ServiceInstanceWorkflow {
-	private final Logger log = Loggers.getLogger(UpdateServiceInstanceWorkflow.class);
+public class AppDeploymentUpdateServiceInstanceWorkflow
+	extends AppDeploymentInstanceWorkflow
+	implements UpdateServiceInstanceWorkflow {
+	private final Logger log = Loggers.getLogger(AppDeploymentUpdateServiceInstanceWorkflow.class);
 
 	private BackingAppDeploymentService deploymentService;
 	private ParametersTransformationService parametersTransformationService;
 
-	public UpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
-										 BackingAppDeploymentService deploymentService,
-										 ParametersTransformationService parametersTransformationService) {
+	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
+													  BackingAppDeploymentService deploymentService,
+													  ParametersTransformationService parametersTransformationService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.parametersTransformationService = parametersTransformationService;
 	}
 
-	public Mono<String> update(UpdateServiceInstanceRequest request) {
+	public Flux<Void> update(UpdateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
 			.flatMap(backingApps -> parametersTransformationService.transformParameters(backingApps, request.getParameters()))
-			.flatMap(deploymentService::deploy)
-			.doOnRequest(l -> log.info("Updating applications {}", brokeredServices))
-			.doOnSuccess(d -> log.info("Finished updating applications {}", brokeredServices))
-			.doOnError(e -> log.info("Error updating applications {} with error {}", brokeredServices, e));
+			.flatMapMany(deploymentService::deploy)
+			.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
+			.doOnEach(s -> log.info("Finished deploying {}", s))
+			.doOnComplete(() -> log.info("Finished deploying applications {}", brokeredServices))
+			.doOnError(e -> log.info("Error deploying applications {} with error {}", brokeredServices, e))
+			.flatMap(apps -> Flux.empty());
 	}
 }

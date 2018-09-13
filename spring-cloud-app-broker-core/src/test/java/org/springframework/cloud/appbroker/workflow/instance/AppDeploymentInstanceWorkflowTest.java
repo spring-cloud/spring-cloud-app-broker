@@ -27,7 +27,7 @@ import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import reactor.test.StepVerifier;
 
-class ServiceInstanceWorkflowTest {
+class AppDeploymentInstanceWorkflowTest {
 
 	private BrokeredServices brokeredServices;
 	private BackingApplications backingApps;
@@ -52,10 +52,10 @@ class ServiceInstanceWorkflowTest {
 
 	@Test
 	void getBackingAppForServiceSucceeds() {
-		ServiceInstanceWorkflow serviceInstanceWorkflow = new ServiceInstanceWorkflow(brokeredServices);
+		AppDeploymentInstanceWorkflow appDeploymentInstanceWorkflow = new AppDeploymentInstanceWorkflow(brokeredServices);
 
 		StepVerifier
-			.create(serviceInstanceWorkflow
+			.create(appDeploymentInstanceWorkflow
 				.getBackingApplicationsForService(buildServiceDefinition("service1", "plan1"), "plan1-id"))
 			.expectNext(backingApps)
 			.verifyComplete();
@@ -63,10 +63,10 @@ class ServiceInstanceWorkflowTest {
 
 	@Test
 	void getBackingAppForServiceWithUnknownServiceIdFails() {
-		ServiceInstanceWorkflow serviceInstanceWorkflow = new ServiceInstanceWorkflow(brokeredServices);
+		AppDeploymentInstanceWorkflow appDeploymentInstanceWorkflow = new AppDeploymentInstanceWorkflow(brokeredServices);
 
 		StepVerifier
-			.create(serviceInstanceWorkflow
+			.create(appDeploymentInstanceWorkflow
 				.getBackingApplicationsForService(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
 		.expectError(ServiceBrokerException.class)
 		.verify();
@@ -74,10 +74,10 @@ class ServiceInstanceWorkflowTest {
 
 	@Test
 	void getBackingAppForServiceWithUnknownPlanIdFails() {
-		ServiceInstanceWorkflow serviceInstanceWorkflow = new ServiceInstanceWorkflow(brokeredServices);
+		AppDeploymentInstanceWorkflow appDeploymentInstanceWorkflow = new AppDeploymentInstanceWorkflow(brokeredServices);
 
 		StepVerifier
-			.create(serviceInstanceWorkflow
+			.create(appDeploymentInstanceWorkflow
 				.getBackingApplicationsForService(buildServiceDefinition("service1", "unknown-plan"), "unknown-plan-id"))
 		.expectError(ServiceBrokerException.class)
 		.verify();

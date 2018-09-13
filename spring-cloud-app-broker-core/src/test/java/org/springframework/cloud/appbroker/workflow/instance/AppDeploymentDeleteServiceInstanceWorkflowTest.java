@@ -26,11 +26,12 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -38,43 +39,47 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
-class DeleteServiceInstanceWorkflowTest {
+class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
 
-	private BrokeredServices brokeredServices;
+	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
 	@BeforeEach
 	void setUp() {
 		BackingApplications backingApps = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()
 				.name("app1")
-				.path("http://myfiles/app.jar")
+				.path("http://myfiles/app1.jar")
+				.build())
+			.backingApplication(BackingApplication.builder()
+				.name("app2")
+				.path("http://myfiles/app2.jar")
 				.build())
 			.build();
 
-		brokeredServices = BrokeredServices.builder()
+		BrokeredServices brokeredServices = BrokeredServices.builder()
 			.service(BrokeredService.builder()
 				.serviceName("service1")
 				.planName("plan1")
 				.apps(backingApps)
 				.build())
 			.build();
+
+		deleteServiceInstanceWorkflow = new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
 	}
 
 	@Test
 	void deleteServiceInstanceSucceeds() {
 		given(this.backingAppDeploymentService.undeploy(any(BackingApplications.class)))
-			.willReturn(Mono.just("undeployed"));
-
-		DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow =
-			new DeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
+			.willReturn(Flux.just("undeployed1", "undeployed2"));
 
 		// when
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(buildRequest("service1", "plan1")))
-			.expectNext("undeployed")
+			.expectNext()
+			.expectNext()
 			.verifyComplete();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
@@ -82,9 +87,6 @@ class DeleteServiceInstanceWorkflowTest {
 
 	@Test
 	void deleteServiceInstanceFailsWithMisconfigurationFails() {
-		DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow =
-			new DeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
-
 		// when
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(buildRequest("unsupported-service", "plan1")))

@@ -17,7 +17,7 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -42,12 +42,14 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 		this.parametersTransformationService = parametersTransformationService;
 	}
 
-	public Mono<String> update(UpdateServiceInstanceRequest request) {
+	public Flux<Void> update(UpdateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
 			.flatMap(backingApps -> parametersTransformationService.transformParameters(backingApps, request.getParameters()))
-			.flatMap(deploymentService::deploy)
-			.doOnRequest(l -> log.info("Updating applications {}", brokeredServices))
-			.doOnSuccess(d -> log.info("Finished updating applications {}", brokeredServices))
-			.doOnError(e -> log.info("Error updating applications {} with error {}", brokeredServices, e));
+			.flatMapMany(deploymentService::deploy)
+			.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
+			.doOnEach(s -> log.info("Finished deploying {}", s))
+			.doOnComplete(() -> log.info("Finished deploying applications {}", brokeredServices))
+			.doOnError(e -> log.info("Error deploying applications {} with error {}", brokeredServices, e))
+			.flatMap(apps -> Flux.empty());
 	}
 }

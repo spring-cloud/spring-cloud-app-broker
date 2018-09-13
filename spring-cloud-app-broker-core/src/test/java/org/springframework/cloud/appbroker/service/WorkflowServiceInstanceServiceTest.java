@@ -30,6 +30,7 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -89,9 +90,9 @@ class WorkflowServiceInstanceServiceTest {
 			.build();
 
 		given(createServiceInstanceWorkflow1.create(request))
-			.willReturn(Mono.empty());
+			.willReturn(Flux.empty());
 		given(createServiceInstanceWorkflow2.create(request))
-			.willReturn(Mono.empty());
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
 			.assertNext(createServiceInstanceResponse -> {
@@ -124,9 +125,9 @@ class WorkflowServiceInstanceServiceTest {
 			.build();
 
 		given(createServiceInstanceWorkflow1.create(request))
-			.willReturn(Mono.error(new RuntimeException("create foo error")));
+			.willReturn(Flux.error(new RuntimeException("create foo error")));
 		given(createServiceInstanceWorkflow2.create(request))
-			.willReturn(Mono.empty());
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
 			.assertNext(error -> {
@@ -156,9 +157,9 @@ class WorkflowServiceInstanceServiceTest {
 			.build();
 
 		given(deleteServiceInstanceWorkflow1.delete(request))
-			.willReturn(Mono.empty());
+			.willReturn(Flux.empty());
 		given(deleteServiceInstanceWorkflow2.delete(request))
-			.willReturn(Mono.empty());
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
@@ -191,9 +192,9 @@ class WorkflowServiceInstanceServiceTest {
 			.build();
 		
 		given(deleteServiceInstanceWorkflow1.delete(request))
-			.willReturn(Mono.error(new RuntimeException("delete foo error")));
+			.willReturn(Flux.error(new RuntimeException("delete foo error")));
 		given(deleteServiceInstanceWorkflow2.delete(request))
-			.willReturn(Mono.empty());
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
@@ -226,9 +227,9 @@ class WorkflowServiceInstanceServiceTest {
 			.build();
 
 		given(updateServiceInstanceWorkflow1.update(request))
-			.willReturn(Mono.empty());
+			.willReturn(Flux.empty());
 		given(updateServiceInstanceWorkflow2.update(request))
-			.willReturn(Mono.empty());
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
 			.assertNext(updateServiceInstanceResponse -> {
@@ -261,9 +262,9 @@ class WorkflowServiceInstanceServiceTest {
 			.build();
 
 		given(updateServiceInstanceWorkflow1.update(request))
-			.willReturn(Mono.error(new RuntimeException("update foo error")));
+			.willReturn(Flux.error(new RuntimeException("update foo error")));
 		given(updateServiceInstanceWorkflow2.update(request))
-			.willReturn(Mono.empty());
+			.willReturn(Flux.empty());
 
 		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
 			.assertNext(error -> {

@@ -17,8 +17,8 @@
 package org.springframework.cloud.appbroker.service;
 
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 public interface UpdateServiceInstanceWorkflow {
-	Mono<String> update(UpdateServiceInstanceRequest request);
+	Flux<Void> update(UpdateServiceInstanceRequest request);
 }

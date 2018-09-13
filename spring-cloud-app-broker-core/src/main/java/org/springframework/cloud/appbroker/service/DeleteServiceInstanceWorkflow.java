@@ -17,8 +17,8 @@
 package org.springframework.cloud.appbroker.service;
 
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 public interface DeleteServiceInstanceWorkflow {
-	Mono<String> delete(DeleteServiceInstanceRequest request);
+	Flux<Void> delete(DeleteServiceInstanceRequest request);
 }

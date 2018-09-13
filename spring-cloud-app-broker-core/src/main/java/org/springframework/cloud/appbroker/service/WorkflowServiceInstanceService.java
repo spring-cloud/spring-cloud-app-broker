@@ -84,9 +84,9 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS,
 			"create service instance started")
-			.then(invokeCreateWorkflows(request)
+			.thenMany(invokeCreateWorkflows(request)
 				.doOnRequest(l -> log.info("Creating service instance {}", request))
-				.doOnSuccess(d -> log.info("Finished creating service instance {}", request))
+				.doOnComplete(() -> log.info("Finished creating service instance {}", request))
 				.doOnError(e -> log.info("Error creating service instance {} with error {}", request, e)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "create service instance completed")
@@ -96,10 +96,9 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 				.then());
 	}
 
-	private Mono<Void> invokeCreateWorkflows(CreateServiceInstanceRequest request) {
+	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceRequest request) {
 		return Flux.fromIterable(createServiceInstanceWorkflows)
-			.flatMap(createServiceInstanceWorkflow -> createServiceInstanceWorkflow.create(request))
-			.thenEmpty(Mono.empty());
+			.flatMap(createServiceInstanceWorkflow -> createServiceInstanceWorkflow.create(request));
 	}
 
 	@Override
@@ -115,9 +114,9 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private Mono<Void> delete(DeleteServiceInstanceRequest request) {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS, "delete service instance started")
-			.then(invokeDeleteWorkflows(request)
+			.thenMany(invokeDeleteWorkflows(request)
 				.doOnRequest(l -> log.info("Deleting service instance {}", request))
-				.doOnSuccess(d -> log.info("Finished deleting service instance {}", request))
+				.doOnComplete(() -> log.info("Finished deleting service instance {}", request))
 				.doOnError(e -> log.info("Error deleting service instance {} with error {}", request, e)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "delete service instance completed")
@@ -127,10 +126,39 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 				.then());
 	}
 
-	private Mono<Void> invokeDeleteWorkflows(DeleteServiceInstanceRequest request) {
+	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceRequest request) {
 		return Flux.fromIterable(deleteServiceInstanceWorkflows)
-			.flatMap(deleteServiceInstanceWorkflow -> deleteServiceInstanceWorkflow.delete(request))
-			.thenEmpty(Mono.empty());
+			.flatMap(deleteServiceInstanceWorkflow -> deleteServiceInstanceWorkflow.delete(request));
+	}
+
+	@Override
+	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
+		return Mono.just(UpdateServiceInstanceResponse.builder()
+			.async(true)
+			.build())
+			.publishOn(Schedulers.parallel())
+			.doOnNext(response -> update(request)
+				.subscribe());
+	}
+
+	private Mono<Void> update(UpdateServiceInstanceRequest request) {
+		return stateRepository.saveState(request.getServiceInstanceId(),
+			OperationState.IN_PROGRESS, "update service instance started")
+			.thenMany(invokeUpdateWorkflows(request)
+				.doOnRequest(l -> log.info("Updating service instance {}", request))
+				.doOnComplete(() -> log.info("Finished updating service instance {}", request))
+				.doOnError(e -> log.info("Error updating service instance {} with error {}", request, e)))
+			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.SUCCEEDED, "update service instance completed")
+				.then())
+			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.FAILED, e.getMessage())
+				.then());
+	}
+
+	private Flux<Void> invokeUpdateWorkflows(UpdateServiceInstanceRequest request) {
+		return Flux.fromIterable(updateServiceInstanceWorkflows)
+			.flatMap(updateServiceInstanceWorkflow -> updateServiceInstanceWorkflow.update(request));
 	}
 
 	@Override
@@ -147,36 +175,5 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	public Mono<GetServiceInstanceResponse> getServiceInstance(GetServiceInstanceRequest request) {
 		//TODO add functionality
 		return Mono.empty();
-	}
-
-	@Override
-	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
-		return Mono.just(UpdateServiceInstanceResponse.builder()
-			.async(true)
-			.build())
-			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> update(request)
-				.subscribe());
-	}
-
-	private Mono<Void> update(UpdateServiceInstanceRequest request) {
-		return stateRepository.saveState(request.getServiceInstanceId(),
-			OperationState.IN_PROGRESS, "update service instance started")
-			.then(invokeUpdateWorkflows(request)
-				.doOnRequest(l -> log.info("Updating service instance {}", request))
-				.doOnSuccess(d -> log.info("Finished updating service instance {}", request))
-				.doOnError(e -> log.info("Error updating service instance {} with error {}", request, e)))
-			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.SUCCEEDED, "update service instance completed")
-				.then())
-			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.FAILED, e.getMessage())
-				.then());
-	}
-
-	private Mono<Void> invokeUpdateWorkflows(UpdateServiceInstanceRequest request) {
-		return Flux.fromIterable(updateServiceInstanceWorkflows)
-			.flatMap(updateServiceInstanceWorkflow -> updateServiceInstanceWorkflow.update(request))
-			.thenEmpty(Mono.empty());
 	}
 }

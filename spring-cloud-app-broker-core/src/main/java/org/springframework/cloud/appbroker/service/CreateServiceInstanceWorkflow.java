@@ -17,8 +17,8 @@
 package org.springframework.cloud.appbroker.service;
 
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 public interface CreateServiceInstanceWorkflow {
-	Mono<String> create(CreateServiceInstanceRequest request);
+	Flux<Void> create(CreateServiceInstanceRequest request);
 }

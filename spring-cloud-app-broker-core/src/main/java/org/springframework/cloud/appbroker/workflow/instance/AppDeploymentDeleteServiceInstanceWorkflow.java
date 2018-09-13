@@ -20,14 +20,18 @@ import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.core.annotation.Order;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 @Order(0)
 public class AppDeploymentDeleteServiceInstanceWorkflow
 	extends AppDeploymentInstanceWorkflow
 	implements DeleteServiceInstanceWorkflow {
+	private final Logger log = Loggers.getLogger(AppDeploymentDeleteServiceInstanceWorkflow.class);
+
 	private final BackingAppDeploymentService deploymentService;
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
@@ -37,8 +41,13 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	}
 
 	@Override
-	public Mono<String> delete(DeleteServiceInstanceRequest request) {
+	public Flux<Void> delete(DeleteServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-			.flatMap(deploymentService::undeploy);
+			.flatMapMany(deploymentService::undeploy)
+			.doOnRequest(l -> log.info("Undeploying applications {}", brokeredServices))
+			.doOnEach(s -> log.info("Finished undeploying {}", s))
+			.doOnComplete(() -> log.info("Finished undeploying applications {}", brokeredServices))
+			.doOnError(e -> log.info("Error undeploying applications {} with error {}", brokeredServices, e))
+			.flatMap(apps -> Flux.empty());
 	}
 }

@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
+import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Flux;
 import reactor.util.Logger;
 import reactor.util.Loggers;
@@ -26,6 +27,7 @@ import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 
+@Order(0)
 public class AppDeploymentUpdateServiceInstanceWorkflow
 	extends AppDeploymentInstanceWorkflow
 	implements UpdateServiceInstanceWorkflow {

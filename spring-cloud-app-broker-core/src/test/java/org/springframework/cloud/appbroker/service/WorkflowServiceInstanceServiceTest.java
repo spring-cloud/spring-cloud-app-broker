@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.appbroker.state.ServiceInstanceState;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse.CreateServiceInstanceResponseBuilder;
@@ -112,7 +113,7 @@ class WorkflowServiceInstanceServiceTest {
 				.operation("working2")));
 
 		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
-			.assertNext(createServiceInstanceResponse -> {
+			.assertNext(response -> {
 				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
 				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("create service instance started"));
@@ -129,16 +130,16 @@ class WorkflowServiceInstanceServiceTest {
 				createOrder.verify(createServiceInstanceWorkflow1).create(request);
 				createOrder.verifyNoMoreInteractions();
 
-				assertThat(createServiceInstanceResponse).isNotNull();
-				assertThat(createServiceInstanceResponse.isAsync()).isTrue();
-				assertThat(createServiceInstanceResponse.getDashboardUrl()).isEqualTo("https://dashboard.example.com");
-				assertThat(createServiceInstanceResponse.getOperation()).isEqualTo("working2");
+				assertThat(response).isNotNull();
+				assertThat(response.isAsync()).isTrue();
+				assertThat(response.getDashboardUrl()).isEqualTo("https://dashboard.example.com");
+				assertThat(response.getOperation()).isEqualTo("working2");
 			})
 			.verifyComplete();
 	}
 
 	@Test
-	void createServiceInstanceError() {
+	void createServiceInstanceWithAsyncError() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance failed")));
@@ -160,7 +161,7 @@ class WorkflowServiceInstanceServiceTest {
 			.willReturn(Mono.just(responseBuilder));
 
 		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
-			.assertNext(error -> {
+			.assertNext(response -> {
 				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
 				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("create service instance started"));
@@ -176,8 +177,31 @@ class WorkflowServiceInstanceServiceTest {
 				createOrder.verify(createServiceInstanceWorkflow2).create(request);
 				createOrder.verify(createServiceInstanceWorkflow1).create(request);
 				createOrder.verifyNoMoreInteractions();
+
+				assertThat(response).isNotNull();
 			})
 			.verifyComplete();
+	}
+
+	@Test
+	void createServiceInstanceWithResponseError() {
+		CreateServiceInstanceRequest request = CreateServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build();
+
+		CreateServiceInstanceResponseBuilder responseBuilder = CreateServiceInstanceResponse.builder();
+
+		given(createServiceInstanceWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.error(new ServiceBrokerException("create foo error")));
+
+		given(createServiceInstanceWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
+
+		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessage("create foo error"))
+			.verify();
 	}
 
 	@Test
@@ -206,7 +230,7 @@ class WorkflowServiceInstanceServiceTest {
 				.operation("working2")));
 
 		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
-			.consumeNextWith(deleteServiceInstanceResponse -> {
+			.consumeNextWith(response -> {
 				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
 				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("delete service instance started"));
@@ -223,15 +247,15 @@ class WorkflowServiceInstanceServiceTest {
 				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request);
 				deleteOrder.verifyNoMoreInteractions();
 
-				assertThat(deleteServiceInstanceResponse).isNotNull();
-				assertThat(deleteServiceInstanceResponse.isAsync()).isTrue();
-				assertThat(deleteServiceInstanceResponse.getOperation()).isEqualTo("working2");
+				assertThat(response).isNotNull();
+				assertThat(response.isAsync()).isTrue();
+				assertThat(response.getOperation()).isEqualTo("working2");
 			})
 			.verifyComplete();
 	}
 
 	@Test
-	void deleteServiceInstanceError() {
+	void deleteServiceInstanceWithAsyncError() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "delete service instance failed")));
@@ -253,7 +277,7 @@ class WorkflowServiceInstanceServiceTest {
 			.willReturn(Mono.just(responseBuilder));
 
 		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
-			.consumeNextWith(deleteServiceInstanceResponse -> {
+			.consumeNextWith(response -> {
 				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
 				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("delete service instance started"));
@@ -270,9 +294,30 @@ class WorkflowServiceInstanceServiceTest {
 				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request);
 				deleteOrder.verifyNoMoreInteractions();
 
-				assertThat(deleteServiceInstanceResponse).isNotNull();
+				assertThat(response).isNotNull();
 			})
 			.verifyComplete();
+	}
+
+	@Test
+	void deleteServiceInstanceWithResponseError() {
+		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build();
+
+		DeleteServiceInstanceResponseBuilder responseBuilder = DeleteServiceInstanceResponse.builder();
+
+		given(deleteServiceInstanceWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.error(new ServiceBrokerException("delete foo error")));
+
+		given(deleteServiceInstanceWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
+
+		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessage("delete foo error"))
+			.verify();
 	}
 
 	@Test
@@ -302,7 +347,7 @@ class WorkflowServiceInstanceServiceTest {
 				.operation("working2")));
 
 		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
-			.assertNext(updateServiceInstanceResponse -> {
+			.assertNext(response -> {
 				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
 				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
@@ -319,16 +364,16 @@ class WorkflowServiceInstanceServiceTest {
 				updateOrder.verify(updateServiceInstanceWorkflow1).update(request);
 				updateOrder.verifyNoMoreInteractions();
 
-				assertThat(updateServiceInstanceResponse).isNotNull();
-				assertThat(updateServiceInstanceResponse.isAsync()).isTrue();
-				assertThat(updateServiceInstanceResponse.getDashboardUrl()).isEqualTo("https://dashboard.example.com");
-				assertThat(updateServiceInstanceResponse.getOperation()).isEqualTo("working2");
+				assertThat(response).isNotNull();
+				assertThat(response.isAsync()).isTrue();
+				assertThat(response.getDashboardUrl()).isEqualTo("https://dashboard.example.com");
+				assertThat(response.getOperation()).isEqualTo("working2");
 			})
 			.verifyComplete();
 	}
 
 	@Test
-	void updateServiceInstanceError() {
+	void updateServiceInstanceWithAsyncError() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started")))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "update service instance failed")));
@@ -350,7 +395,7 @@ class WorkflowServiceInstanceServiceTest {
 			.willReturn(Mono.just(responseBuilder));
 
 		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
-			.assertNext(error -> {
+			.assertNext(response -> {
 				InOrder repoOrder = inOrder(serviceInstanceStateRepository);
 				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.IN_PROGRESS), eq("update service instance started"));
@@ -366,8 +411,31 @@ class WorkflowServiceInstanceServiceTest {
 				updateOrder.verify(updateServiceInstanceWorkflow2).update(request);
 				updateOrder.verify(updateServiceInstanceWorkflow1).update(request);
 				updateOrder.verifyNoMoreInteractions();
+
+				assertThat(response).isNotNull();
 			})
 			.verifyComplete();
+	}
+
+	@Test
+	void updateServiceInstanceWithResponseError() {
+		UpdateServiceInstanceRequest request = UpdateServiceInstanceRequest.builder()
+			.serviceInstanceId("foo")
+			.build();
+
+		UpdateServiceInstanceResponseBuilder responseBuilder = UpdateServiceInstanceResponse.builder();
+
+		given(updateServiceInstanceWorkflow1.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.error(new ServiceBrokerException("update foo error")));
+
+		given(updateServiceInstanceWorkflow2.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
+
+		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessage("update foo error"))
+			.verify();
 	}
 
 	@Order(Ordered.HIGHEST_PRECEDENCE)

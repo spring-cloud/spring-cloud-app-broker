@@ -34,6 +34,7 @@ import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInsta
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -86,11 +87,14 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	}
 
 	@Test
-	void deleteServiceInstanceFailsWithMisconfigurationFails() {
+	void deleteServiceInstanceWithMisconfigurationFails() {
 		// when
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(buildRequest("unsupported-service", "plan1")))
-			.expectError(ServiceBrokerException.class)
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessageContaining("unsupported-service")
+				.hasMessageContaining("plan1"))
 			.verify();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);

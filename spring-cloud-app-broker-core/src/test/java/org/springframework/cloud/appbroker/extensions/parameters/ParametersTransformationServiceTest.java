@@ -70,14 +70,16 @@ class ParametersTransformationServiceTest {
 			.backingApplication(BackingApplication.builder()
 				.name("misconfigured-app")
 				.parameterTransformers(ParametersTransformerSpec.builder()
-					.name("uknown-transformer")
+					.name("unknown-transformer")
 					.build())
 				.build())
 			.build();
 
 		StepVerifier
 			.create(service.transformParameters(backingApplications, new HashMap<>()))
-			.expectError(ServiceBrokerException.class)
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessageContaining("unknown-transformer"))
 			.verify();
 	}
 

@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -126,12 +127,15 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	}
 
 	@Test
-	void createServiceInstanceFailsWithMisconfigurationFails() {
+	void createServiceInstanceWithMisconfigurationFails() {
 		CreateServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request))
-			.expectError(ServiceBrokerException.class)
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessageContaining("unsupported-service")
+				.hasMessageContaining("plan1"))
 			.verify();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);

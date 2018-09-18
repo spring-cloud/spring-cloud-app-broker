@@ -31,21 +31,21 @@ public class ExtensionLocator<T> {
 	}
 
 	public T getByName(String name, Map<String, Object> args) {
-		ExtensionFactory<T, ?> factory = getTransformerFactoryByName(name);
-		return getTransformerFromFactory(factory, args);
+		ExtensionFactory<T, ?> factory = getFactoryByName(name);
+		return getExtensionFromFactory(factory, args);
 	}
 
-	private ExtensionFactory<T, ?> getTransformerFactoryByName(String transformerName) {
-		if (factoriesByName.containsKey(transformerName)) {
-			return factoriesByName.get(transformerName);
+	private ExtensionFactory<T, ?> getFactoryByName(String name) {
+		if (factoriesByName.containsKey(name)) {
+			return factoriesByName.get(name);
 		} else {
-			throw new ServiceBrokerException("Unknown parameters transformer " + transformerName + ". " +
-				"Registered parameters transformers are " + factoriesByName.keySet());
+			throw new ServiceBrokerException("Unknown extension " + name + ". " +
+				"Registered extensions are " + factoriesByName.keySet());
 		}
 	}
 
-	private T getTransformerFromFactory(ExtensionFactory<T, ?> factory,
-										Map<String, Object> args) {
+	private T getExtensionFromFactory(ExtensionFactory<T, ?> factory,
+									  Map<String, Object> args) {
 		return factory.createWithConfig(args);
 	}
 }

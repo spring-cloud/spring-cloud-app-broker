@@ -40,6 +40,7 @@ import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 
 import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -123,10 +124,13 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	}
 
 	@Test
-	void updateServiceInstanceFailsWithMisconfigurationFails() {
+	void updateServiceInstanceWithMisconfigurationFails() {
 		StepVerifier
 			.create(updateServiceInstanceWorkflow.update(buildRequest("unsupported-service", "plan1")))
-			.expectError(ServiceBrokerException.class)
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessageContaining("unsupported-service")
+				.hasMessageContaining("plan1"))
 			.verify();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);

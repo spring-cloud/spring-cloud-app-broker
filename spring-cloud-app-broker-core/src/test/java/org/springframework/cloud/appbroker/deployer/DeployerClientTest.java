@@ -182,7 +182,7 @@ class DeployerClientTest {
 		// when
 		StepVerifier.create(deployerClient.undeploy(application))
 			// then
-			.expectErrorMatches(e -> "app does not exist".equals(e.getMessage()))
+			.expectErrorMessage("app does not exist")
 			.verify();
 
 		verify(appDeployer).undeploy(argThat(request -> APP_NAME.equals(request.getName())));

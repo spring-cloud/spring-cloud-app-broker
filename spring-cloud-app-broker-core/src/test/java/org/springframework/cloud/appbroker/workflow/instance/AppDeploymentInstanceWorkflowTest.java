@@ -72,7 +72,10 @@ class AppDeploymentInstanceWorkflowTest {
 		StepVerifier
 			.create(appDeploymentInstanceWorkflow
 				.getBackingApplicationsForService(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
-		.expectError(ServiceBrokerException.class)
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessageContaining("unknown-service")
+				.hasMessageContaining("plan1"))
 		.verify();
 	}
 
@@ -83,7 +86,10 @@ class AppDeploymentInstanceWorkflowTest {
 		StepVerifier
 			.create(appDeploymentInstanceWorkflow
 				.getBackingApplicationsForService(buildServiceDefinition("service1", "unknown-plan"), "unknown-plan-id"))
-		.expectError(ServiceBrokerException.class)
+		.expectErrorSatisfies(e -> assertThat(e)
+			.isInstanceOf(ServiceBrokerException.class)
+			.hasMessageContaining("service1")
+			.hasMessageContaining("unknown-plan"))
 		.verify();
 	}
 

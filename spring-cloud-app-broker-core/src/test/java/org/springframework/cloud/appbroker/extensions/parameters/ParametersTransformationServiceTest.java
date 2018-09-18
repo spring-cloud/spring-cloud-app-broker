@@ -135,11 +135,6 @@ class ParametersTransformationServiceTest {
 			})
 			.verifyComplete();
 
-		assertAll("original inputs to the transformation chain must not be modified",
-				  () -> assertThat(app1.getEnvironment()).isEmpty(),
-				  () -> assertThat(app2.getEnvironment()).isEmpty()
-		);
-
 		assertThat(factory1.getActualParameters()).isEqualTo(parameters);
 		assertThat(factory2.getActualParameters()).isEqualTo(parameters);
 

@@ -37,7 +37,6 @@ public class ParametersTransformationService {
 	public Mono<List<BackingApplication>> transformParameters(List<BackingApplication> backingApplications,
 															  Map<String, Object> parameters) {
 		return Flux.fromIterable(backingApplications)
-			.map(BackingApplication::new)
 			.flatMap(backingApplication -> {
 				List<ParametersTransformerSpec> specs = getTransformerSpecsForApplication(backingApplication);
 

@@ -27,6 +27,8 @@ import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import reactor.test.StepVerifier;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 class AppDeploymentInstanceWorkflowTest {
 
 	private BrokeredServices brokeredServices;
@@ -57,7 +59,9 @@ class AppDeploymentInstanceWorkflowTest {
 		StepVerifier
 			.create(appDeploymentInstanceWorkflow
 				.getBackingApplicationsForService(buildServiceDefinition("service1", "plan1"), "plan1-id"))
-			.expectNext(backingApps)
+			.assertNext(actual -> assertThat(actual)
+				.isEqualTo(backingApps)
+				.isNotSameAs(backingApps))
 			.verifyComplete();
 	}
 

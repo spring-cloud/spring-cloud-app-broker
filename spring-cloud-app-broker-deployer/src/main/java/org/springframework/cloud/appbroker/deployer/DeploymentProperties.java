@@ -83,4 +83,15 @@ public class DeploymentProperties {
 	 * round up. Exactly how this property affects the deployments will vary between implementations.
 	 */
 	public static final String CPU_PROPERTY_KEY = "cpu";
+
+	/**
+	 * The deployment property for the host that will be used in the app.
+	 */
+	public static final String HOST_KEY = "host";
+
+	/**
+	 * The deployment property for the location where the app will be deployed.
+	 * The location will vary between implementations.
+	 */
+	public static final String TARGET_KEY = "target";
 }

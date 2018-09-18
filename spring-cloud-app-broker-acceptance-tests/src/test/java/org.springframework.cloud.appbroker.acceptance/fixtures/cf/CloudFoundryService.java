@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -175,10 +176,10 @@ public class CloudFoundryService {
 			cloudFoundryOperations
 				.services()
 				.updateInstance(UpdateServiceInstanceRequest
-                    .builder()
-                    .serviceInstanceName(serviceInstanceName)
-                    .parameters(parameters)
-                    .build()));
+					.builder()
+					.serviceInstanceName(serviceInstanceName)
+					.parameters(parameters)
+					.build()));
 	}
 
 	public Mono<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName) {
@@ -189,6 +190,23 @@ public class CloudFoundryService {
 	public Mono<List<ApplicationSummary>> getApplications() {
 		return loggingMono(
 			cloudFoundryOperations.applications().list().collectList());
+	}
+
+	public Mono<List<String>> getSpaces() {
+		return this.cloudFoundryOperations.spaces().list().map(SpaceSummary::getName).collectList();
+	}
+
+	public Mono<ApplicationSummary> getApplicationSummaryByName(String appName, String space) {
+		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
+		return loggingFlux(DefaultCloudFoundryOperations.builder()
+			.cloudFoundryClient(cloudFoundryClient)
+			.organization(defaultOrg)
+			.space(space)
+			.build()
+			.applications()
+			.list()
+			.filter(applicationSummary -> applicationSummary.getName().equals(appName))
+		).next();
 	}
 
 	public Mono<ApplicationEnvironments> getApplicationEnvironmentByAppName(String appName) {
@@ -303,4 +321,11 @@ public class CloudFoundryService {
 		}
 	}
 
+	private <T> Flux<T> loggingFlux(Flux<T> publisher) {
+		if (LOGGER.isDebugEnabled()) {
+			return publisher.log();
+		} else {
+			return publisher;
+		}
+	}
 }

@@ -151,6 +151,10 @@ public class CloudFoundryDeploymentProperties {
 
 	private String javaOpts;
 
+	private String defaultOrg;
+
+	private String username;
+
 	public String getBuildpack() {
 		return buildpack;
 	}
@@ -301,5 +305,21 @@ public class CloudFoundryDeploymentProperties {
 
 	public void setJavaOpts(String javaOpts) {
 		this.javaOpts = javaOpts;
+	}
+
+	public String getDefaultOrg() {
+		return defaultOrg;
+	}
+
+	public void setDefaultOrg(String defaultOrg) {
+		this.defaultOrg = defaultOrg;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 }

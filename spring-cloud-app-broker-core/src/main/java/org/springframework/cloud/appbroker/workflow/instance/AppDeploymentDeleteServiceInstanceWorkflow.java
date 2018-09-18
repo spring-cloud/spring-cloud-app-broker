@@ -16,34 +16,39 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.Logger;
+import reactor.util.Loggers;
+
+import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
+import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
 import org.springframework.core.annotation.Order;
-import reactor.core.publisher.Flux;
-
-import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import reactor.core.publisher.Mono;
-import reactor.util.Logger;
-import reactor.util.Loggers;
 
 @Order(0)
 public class AppDeploymentDeleteServiceInstanceWorkflow
 	extends AppDeploymentInstanceWorkflow
 	implements DeleteServiceInstanceWorkflow {
+
 	private final Logger log = Loggers.getLogger(AppDeploymentDeleteServiceInstanceWorkflow.class);
 
 	private final BackingAppDeploymentService deploymentService;
 	private final CredentialProviderService credentialProviderService;
+	private final TargetService targetService;
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
-													  CredentialProviderService credentialProviderService) {
+													  CredentialProviderService credentialProviderService,
+													  TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.credentialProviderService = credentialProviderService;
+		this.targetService = targetService;
 	}
 
 	@Override
@@ -51,6 +56,7 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
 			.flatMap(backingApplications ->
 				credentialProviderService.deleteCredentials(backingApplications, request.getServiceInstanceId()))
+			.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
 			.flatMapMany(deploymentService::undeploy)
 			.doOnRequest(l -> log.info("Undeploying applications {}", brokeredServices))
 			.doOnEach(s -> log.info("Finished undeploying {}", s))

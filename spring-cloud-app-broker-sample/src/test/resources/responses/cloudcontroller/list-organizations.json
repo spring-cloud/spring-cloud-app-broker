@@ -14,10 +14,10 @@
 			"entity": {
 				"name": "test",
 				"billing_enabled": false,
-				"quota_definition_guid": "7885d305-f247-4d9c-b070-9c65536f09f3",
+				"quota_definition_guid": "TEST-QUOTA-DEFINITION-GUID",
 				"status": "active",
 				"default_isolation_segment_guid": null,
-				"quota_definition_url": "/v2/quota_definitions/7885d305-f247-4d9c-b070-9c65536f09f3",
+				"quota_definition_url": "/v2/quota_definitions/TEST-QUOTA-DEFINITION-GUID",
 				"spaces_url": "/v2/organizations/@org-guid/spaces",
 				"domains_url": "/v2/organizations/@org-guid/domains",
 				"private_domains_url": "/v2/organizations/@org-guid/private_domains",

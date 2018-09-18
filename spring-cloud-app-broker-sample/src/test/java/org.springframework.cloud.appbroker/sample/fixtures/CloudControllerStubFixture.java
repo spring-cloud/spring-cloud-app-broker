@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.sample.fixtures;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
+
 import org.springframework.boot.test.context.TestComponent;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
@@ -34,8 +35,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 @TestComponent
 public class CloudControllerStubFixture extends WiremockStubFixture {
+
 	private static final String TEST_SPACE_GUID = "TEST-SPACE-GUID";
 	private static final String TEST_ORG_GUID = "TEST-ORG-GUID";
+	private static final String TEST_QUOTA_DEFINITION_GUID = "TEST-QUOTA-DEFINITION-GUID";
 
 	public void stubCommonCloudControllerRequests() {
 		stubGetPlatformInfo();
@@ -91,9 +94,36 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("empty-query-results"))));
+
+		stubFor(get(urlEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/spaces?page=1"))
+			.willReturn(ok()
+				.withBody(cc("list-spaces",
+					replace("@org-guid", TEST_ORG_GUID),
+					replace("@space-guid", TEST_SPACE_GUID)))));
+
+		stubFor(get(urlEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/space_quota_definitions?page=1"))
+			.willReturn(ok()
+				.withBody(cc("list-organizations-quota",
+					replace("@org-guid", TEST_ORG_GUID)))));
+
+		stubFor(get(urlEqualTo("/v2/quota_definitions/" + TEST_QUOTA_DEFINITION_GUID))
+			.willReturn(ok()
+				.withBody(cc("get-organizations-quota",
+					replace("@org-guid", TEST_ORG_GUID)))));
 	}
 
 	public void stubAppDoesNotExist(final String appName) {
+		stubAppDoesNotExistInSpace(appName, TEST_SPACE_GUID);
+	}
+
+	public void stubAppDoesNotExistInSpace(final String appName, final String space) {
+		stubFor(get(urlEqualTo("/v2/spaces/" + space + "/apps?q=name:" + appName + "&page=1"))
+			.willReturn(ok()
+				.withBody(cc("empty-query-results"))));
+
+		stubFor(post(urlPathEqualTo("/v2/spaces"))
+			.willReturn(ok()));
+
 		stubFor(get(urlEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/apps?q=name:" + appName + "&page=1"))
 			.willReturn(ok()
 				.withBody(cc("empty-query-results"))));
@@ -132,7 +162,16 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 
 	public void stubPushApp(final String appName, ContentPattern<?>... appMetadataPatterns) {
 		stubCreateAppMetadata(appName, appMetadataPatterns);
-		stubMapRouteToApp(appName);
+		stubAppAfterCreation(appName, appName);
+	}
+
+	public void stubPushAppWithHost(final String appName, final String host, ContentPattern<?>... appMetadataPatterns) {
+		stubCreateAppMetadata(appName, appMetadataPatterns);
+		stubAppAfterCreation(appName, host);
+	}
+
+	private void stubAppAfterCreation(String appName, String host) {
+		stubMapRouteToApp(appName, host);
 		stubUploadAppBits(appName);
 		stubInitializeAppState(appName);
 		stubCheckAppState(appName);
@@ -140,10 +179,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 
 	public void stubUpdateApp(final String appName, ContentPattern<?>... appMetadataPatterns) {
 		stubUpdateAppMetadata(appName, appMetadataPatterns);
-		stubMapRouteToApp(appName);
-		stubUploadAppBits(appName);
-		stubInitializeAppState(appName);
-		stubCheckAppState(appName);
+		stubAppAfterCreation(appName, appName);
 	}
 
 	private void stubCreateAppMetadata(String appName, ContentPattern<?>... appMetadataPatterns) {
@@ -172,17 +208,17 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@guid", appGuid(appName))))));
 	}
 
-	private void stubMapRouteToApp(String appName) {
+	private void stubMapRouteToApp(String appName, String host) {
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/routes"))
 			.willReturn(ok()
 				.withBody(cc("empty-query-results"))));
 
-		stubFor(get(urlEqualTo("/v2/routes?q=domain_guid:" + TEST_ORG_GUID + "&q=host:" + appName + "&page=1"))
+		stubFor(get(urlEqualTo("/v2/routes?q=domain_guid:" + TEST_ORG_GUID + "&q=host:" + host + "&page=1"))
 			.willReturn(ok()
 				.withBody(cc("empty-query-results"))));
 
 		stubFor(post(urlEqualTo("/v2/routes"))
-			.withRequestBody(matchingJsonPath("$.[?(@.host == '" + appName + "')]"))
+			.withRequestBody(matchingJsonPath("$.[?(@.host == '" + host + "')]"))
 			.willReturn(created()
 				.withBody(cc("list-routes",
 					replace("@name", appName),

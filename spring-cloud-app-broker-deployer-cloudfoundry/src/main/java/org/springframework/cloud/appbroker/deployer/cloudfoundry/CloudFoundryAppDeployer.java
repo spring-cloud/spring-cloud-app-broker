@@ -34,30 +34,37 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cloudfoundry.AbstractCloudFoundryException;
 import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.operations.CloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationDetail;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
+import org.cloudfoundry.operations.applications.DefaultApplications;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.organizations.OrganizationDetail;
+import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
+import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
+import org.cloudfoundry.operations.spaces.DefaultSpaces;
+import org.cloudfoundry.operations.spaces.DeleteSpaceRequest;
+import org.cloudfoundry.operations.spaces.GetSpaceRequest;
+import org.cloudfoundry.operations.spaces.SpaceDetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
-import org.springframework.cloud.appbroker.deployer.util.ByteSizeUtils;
-import org.springframework.http.HttpStatus;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.UndeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.UndeployApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.util.ByteSizeUtils;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 
 @SuppressWarnings("PMD.GodClass")
@@ -118,15 +125,22 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 		logger.debug("Pushing manifest" + manifest.toString());
 
-		return requestPushApplication(
-				PushApplicationManifestRequest.builder()
-						.manifest(manifest)
-						.stagingTimeout(this.defaultDeploymentProperties.getStagingTimeout())
-						.startupTimeout(this.defaultDeploymentProperties.getStartupTimeout())
-						.build())
-				.doOnSuccess(v -> logger.info("Done uploading bits for {}", request.getName()))
-				.doOnError(e -> logger.error(String.format("Error creating app %s.  Exception Message %s",
-					request.getName(), e.getMessage())));
+		PushApplicationManifestRequest applicationManifestRequest =
+			PushApplicationManifestRequest.builder()
+										  .manifest(manifest)
+										  .stagingTimeout(this.defaultDeploymentProperties.getStagingTimeout())
+										  .startupTimeout(this.defaultDeploymentProperties.getStartupTimeout())
+										  .build();
+
+		Mono<Void> requestPushApplication = requestPushApplication(applicationManifestRequest);
+		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_KEY)) {
+			String space = deploymentProperties.get(DeploymentProperties.TARGET_KEY);
+			requestPushApplication = requestPushApplicationInSpace(applicationManifestRequest, space);
+		}
+
+		return requestPushApplication
+			.doOnSuccess(v -> logger.info("Done uploading bits for {}", request.getName()))
+			.doOnError(e -> logger.error(String.format("Error creating app %s.  Exception Message %s", request.getName(), e.getMessage())));
 	}
 
 	private ApplicationManifest buildAppManifest(DeployApplicationRequest request,
@@ -173,28 +187,49 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.pushManifest(request);
 	}
 
+	private Mono<Void> requestPushApplicationInSpace(PushApplicationManifestRequest request, String space) {
+		return createSpaceOperations()
+			.create(CreateSpaceRequest.builder().name(space).build())
+			.then(createCloudFoundryOperationsForSpace(space).applications().pushManifest(request));
+	}
+
+	private DefaultCloudFoundryOperations createCloudFoundryOperationsForSpace(String space) {
+		return DefaultCloudFoundryOperations
+			.builder()
+			.from((DefaultCloudFoundryOperations) this.operations)
+			.space(space).build();
+	}
+
+	private Mono<String> getOrganizationIdPublisher() {
+		OrganizationInfoRequest organizationInfoRequest =
+			OrganizationInfoRequest.builder().name(this.defaultDeploymentProperties.getDefaultOrg()).build();
+		return this.operations.organizations().get(organizationInfoRequest).map(OrganizationDetail::getId);
+	}
+
 	@Override
 	public Mono<UndeployApplicationResponse> undeploy(UndeployApplicationRequest request) {
 		String appName = request.getName();
 
 		logger.trace("Undeploying application: request={}", request);
 
-		return requestGetApplication(appName)
-			.timeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiTimeout()))
-			.then(requestDeleteApplication(appName)
+		Map<String, String> deploymentProperties = request.getProperties();
+		Mono<Void> requestDeleteApplication;
+		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_KEY)) {
+			String space = deploymentProperties.get(DeploymentProperties.TARGET_KEY);
+			requestDeleteApplication = requestDeleteApplicationInSpace(appName, space)
+				.then(createSpaceOperations().delete(DeleteSpaceRequest.builder().name(space).build()));
+		} else {
+			requestDeleteApplication = requestDeleteApplication(appName);
+		}
+
+		return
+			requestDeleteApplication
 				.timeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiTimeout()))
 				.doOnSuccess(v -> logger.info("Successfully undeployed app {}", appName))
 				.doOnError(logError(String.format("Failed to undeploy app %s", appName)))
 			.then(Mono.just(UndeployApplicationResponse.builder()
 				.name(appName)
-				.build())));
-	}
-
-	private Mono<ApplicationDetail> requestGetApplication(String name) {
-		return this.operations.applications()
-			.get(GetApplicationRequest.builder()
-				.name(name)
-				.build());
+				.build()));
 	}
 
 	private Mono<Void> requestDeleteApplication(String name) {
@@ -203,6 +238,28 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.deleteRoutes(defaultDeploymentProperties.isDeleteRoutes())
 				.name(name)
 				.build());
+	}
+
+	private Mono<Void> requestDeleteApplicationInSpace(String name, String space) {
+		return createSpaceApplications(space)
+			.delete(DeleteApplicationRequest.builder()
+				.deleteRoutes(defaultDeploymentProperties.isDeleteRoutes())
+				.name(name)
+				.build());
+	}
+
+	private DefaultApplications createSpaceApplications(String space) {
+		return new DefaultApplications(
+			((DefaultCloudFoundryOperations) this.operations).getCloudFoundryClientPublisher(),
+			((DefaultCloudFoundryOperations) this.operations).getDopplerClientPublisher(),
+			(this.operations).spaces().get(GetSpaceRequest.builder().name(space).build()).map(SpaceDetail::getId));
+	}
+
+	private DefaultSpaces createSpaceOperations() {
+		return new DefaultSpaces(
+			((DefaultCloudFoundryOperations) this.operations).getCloudFoundryClientPublisher() ,
+			getOrganizationIdPublisher(),
+			Mono.just(this.defaultDeploymentProperties.getUsername()));
 	}
 
 	private Map<String, String> getEnvironmentVariables(Map<String, String> environment) {

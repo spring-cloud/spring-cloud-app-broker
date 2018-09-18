@@ -26,8 +26,7 @@ public class ExtensionLocator<T> {
 	private final Map<String, ExtensionFactory<T, ?>> factoriesByName = new HashMap<>();
 
 	public ExtensionLocator(List<? extends ExtensionFactory<T, ?>> factories) {
-		factories.forEach(parametersTransformer ->
-			this.factoriesByName.put(parametersTransformer.getName(), parametersTransformer));
+		factories.forEach(extension -> this.factoriesByName.put(extension.getName(), extension));
 	}
 
 	public T getByName(String name, Map<String, Object> args) {

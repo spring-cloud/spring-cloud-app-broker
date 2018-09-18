@@ -46,6 +46,7 @@ public class DeployerClient {
 
 	Mono<String> undeploy(BackingApplication backingApplication) {
 		return appDeployer.undeploy(UndeployApplicationRequest.builder()
+			.properties(backingApplication.getProperties())
 			.name(backingApplication.getName())
 			.build())
 			.map(UndeployApplicationResponse::getName);

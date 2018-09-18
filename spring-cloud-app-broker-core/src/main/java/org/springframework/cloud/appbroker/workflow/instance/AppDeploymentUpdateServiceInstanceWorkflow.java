@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
-import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
-import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
@@ -27,27 +24,36 @@ import reactor.util.Loggers;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
+import org.springframework.core.annotation.Order;
 
 @Order(0)
 public class AppDeploymentUpdateServiceInstanceWorkflow
 	extends AppDeploymentInstanceWorkflow
 	implements UpdateServiceInstanceWorkflow {
+
 	private final Logger log = Loggers.getLogger(AppDeploymentUpdateServiceInstanceWorkflow.class);
 
 	private final BackingAppDeploymentService deploymentService;
 	private final ParametersTransformationService parametersTransformationService;
+	private final TargetService targetService;
 
 	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
-													  ParametersTransformationService parametersTransformationService) {
+													  ParametersTransformationService parametersTransformationService,
+													  TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.parametersTransformationService = parametersTransformationService;
+		this.targetService = targetService;
 	}
 
 	public Flux<Void> update(UpdateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+			.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
 			.flatMap(backingApps ->
 				parametersTransformationService.transformParameters(backingApps, request.getParameters()))
 			.flatMapMany(deploymentService::deploy)

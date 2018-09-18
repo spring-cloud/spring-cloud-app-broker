@@ -22,8 +22,10 @@ import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse.CreateServiceInstanceResponseBuilder;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationRequest;
 import org.springframework.cloud.servicebroker.model.instance.GetLastServiceOperationResponse;
 import org.springframework.cloud.servicebroker.model.instance.GetServiceInstanceRequest;
@@ -31,6 +33,7 @@ import org.springframework.cloud.servicebroker.model.instance.GetServiceInstance
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import reactor.core.publisher.Flux;
@@ -40,6 +43,7 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects for each service broker
@@ -72,12 +76,21 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
-		return Mono.just(CreateServiceInstanceResponse.builder()
-			.async(true)
-			.build())
+		return invokeCreateResponseBuilders(request)
 			.publishOn(Schedulers.parallel())
 			.doOnNext(response -> create(request)
 				.subscribe());
+	}
+
+	private Mono<CreateServiceInstanceResponse> invokeCreateResponseBuilders(CreateServiceInstanceRequest request) {
+		AtomicReference<CreateServiceInstanceResponseBuilder> responseBuilder =
+			new AtomicReference<>(CreateServiceInstanceResponse.builder());
+
+		return Flux.fromIterable(createServiceInstanceWorkflows)
+			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
+				.doOnNext(responseBuilder::set))
+			.last(responseBuilder.get())
+			.map(CreateServiceInstanceResponseBuilder::build);
 	}
 
 	private Mono<Void> create(CreateServiceInstanceRequest request) {
@@ -103,12 +116,21 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		return Mono.just(DeleteServiceInstanceResponse.builder()
-			.async(true)
-			.build())
+		return invokeDeleteResponseBuilders(request)
 			.publishOn(Schedulers.parallel())
 			.doOnNext(response -> delete(request)
 				.subscribe());
+	}
+
+	private Mono<DeleteServiceInstanceResponse> invokeDeleteResponseBuilders(DeleteServiceInstanceRequest request) {
+		AtomicReference<DeleteServiceInstanceResponseBuilder> responseBuilder =
+			new AtomicReference<>(DeleteServiceInstanceResponse.builder());
+
+		return Flux.fromIterable(deleteServiceInstanceWorkflows)
+			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
+				.doOnNext(responseBuilder::set))
+			.last(responseBuilder.get())
+			.map(DeleteServiceInstanceResponseBuilder::build);
 	}
 
 	private Mono<Void> delete(DeleteServiceInstanceRequest request) {
@@ -133,12 +155,21 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
-		return Mono.just(UpdateServiceInstanceResponse.builder()
-			.async(true)
-			.build())
+		return invokeUpdateResponseBuilders(request)
 			.publishOn(Schedulers.parallel())
 			.doOnNext(response -> update(request)
 				.subscribe());
+	}
+
+	private Mono<UpdateServiceInstanceResponse> invokeUpdateResponseBuilders(UpdateServiceInstanceRequest request) {
+		AtomicReference<UpdateServiceInstanceResponseBuilder> responseBuilder =
+			new AtomicReference<>(UpdateServiceInstanceResponse.builder());
+
+		return Flux.fromIterable(updateServiceInstanceWorkflows)
+			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
+				.doOnNext(responseBuilder::set))
+			.last(responseBuilder.get())
+			.map(UpdateServiceInstanceResponseBuilder::build);
 	}
 
 	private Mono<Void> update(UpdateServiceInstanceRequest request) {

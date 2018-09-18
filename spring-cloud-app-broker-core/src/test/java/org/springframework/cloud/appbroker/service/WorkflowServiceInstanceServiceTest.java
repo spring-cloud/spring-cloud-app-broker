@@ -25,8 +25,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.appbroker.state.ServiceInstanceState;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse.CreateServiceInstanceResponseBuilder;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
@@ -89,10 +95,21 @@ class WorkflowServiceInstanceServiceTest {
 			.serviceInstanceId("foo")
 			.build();
 
+		CreateServiceInstanceResponseBuilder responseBuilder = CreateServiceInstanceResponse.builder();
+
 		given(createServiceInstanceWorkflow1.create(request))
 			.willReturn(Flux.empty());
+		given(createServiceInstanceWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder
+				.async(true)
+				.operation("working1")));
+
 		given(createServiceInstanceWorkflow2.create(request))
 			.willReturn(Flux.empty());
+		given(createServiceInstanceWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder
+				.dashboardUrl("https://dashboard.example.com")
+				.operation("working2")));
 
 		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
 			.assertNext(createServiceInstanceResponse -> {
@@ -104,12 +121,18 @@ class WorkflowServiceInstanceServiceTest {
 				repoOrder.verifyNoMoreInteractions();
 
 				InOrder createOrder = inOrder(createServiceInstanceWorkflow1, createServiceInstanceWorkflow2);
+				createOrder.verify(createServiceInstanceWorkflow2).buildResponse(eq(request),
+					any(CreateServiceInstanceResponseBuilder.class));
+				createOrder.verify(createServiceInstanceWorkflow1).buildResponse(eq(request),
+					any(CreateServiceInstanceResponseBuilder.class));
 				createOrder.verify(createServiceInstanceWorkflow2).create(request);
 				createOrder.verify(createServiceInstanceWorkflow1).create(request);
 				createOrder.verifyNoMoreInteractions();
 
 				assertThat(createServiceInstanceResponse).isNotNull();
 				assertThat(createServiceInstanceResponse.isAsync()).isTrue();
+				assertThat(createServiceInstanceResponse.getDashboardUrl()).isEqualTo("https://dashboard.example.com");
+				assertThat(createServiceInstanceResponse.getOperation()).isEqualTo("working2");
 			})
 			.verifyComplete();
 	}
@@ -124,10 +147,17 @@ class WorkflowServiceInstanceServiceTest {
 			.serviceInstanceId("foo")
 			.build();
 
+		CreateServiceInstanceResponseBuilder responseBuilder = CreateServiceInstanceResponse.builder();
+
 		given(createServiceInstanceWorkflow1.create(request))
 			.willReturn(Flux.error(new RuntimeException("create foo error")));
+		given(createServiceInstanceWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
+
 		given(createServiceInstanceWorkflow2.create(request))
 			.willReturn(Flux.empty());
+		given(createServiceInstanceWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
 
 		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
 			.assertNext(error -> {
@@ -139,6 +169,10 @@ class WorkflowServiceInstanceServiceTest {
 				repoOrder.verifyNoMoreInteractions();
 
 				InOrder createOrder = inOrder(createServiceInstanceWorkflow1, createServiceInstanceWorkflow2);
+				createOrder.verify(createServiceInstanceWorkflow2).buildResponse(eq(request),
+					any(CreateServiceInstanceResponseBuilder.class));
+				createOrder.verify(createServiceInstanceWorkflow1).buildResponse(eq(request),
+					any(CreateServiceInstanceResponseBuilder.class));
 				createOrder.verify(createServiceInstanceWorkflow2).create(request);
 				createOrder.verify(createServiceInstanceWorkflow1).create(request);
 				createOrder.verifyNoMoreInteractions();
@@ -156,10 +190,20 @@ class WorkflowServiceInstanceServiceTest {
 			.serviceInstanceId("foo")
 			.build();
 
+		DeleteServiceInstanceResponseBuilder responseBuilder = DeleteServiceInstanceResponse.builder();
+
 		given(deleteServiceInstanceWorkflow1.delete(request))
 			.willReturn(Flux.empty());
+		given(deleteServiceInstanceWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder
+				.async(true)
+				.operation("working1")));
+
 		given(deleteServiceInstanceWorkflow2.delete(request))
 			.willReturn(Flux.empty());
+		given(deleteServiceInstanceWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder
+				.operation("working2")));
 
 		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
@@ -171,12 +215,17 @@ class WorkflowServiceInstanceServiceTest {
 				repoOrder.verifyNoMoreInteractions();
 
 				InOrder deleteOrder = inOrder(deleteServiceInstanceWorkflow1, deleteServiceInstanceWorkflow2);
+				deleteOrder.verify(deleteServiceInstanceWorkflow2).buildResponse(eq(request),
+					any(DeleteServiceInstanceResponseBuilder.class));
+				deleteOrder.verify(deleteServiceInstanceWorkflow1).buildResponse(eq(request),
+					any(DeleteServiceInstanceResponseBuilder.class));
 				deleteOrder.verify(deleteServiceInstanceWorkflow2).delete(request);
 				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request);
 				deleteOrder.verifyNoMoreInteractions();
 
 				assertThat(deleteServiceInstanceResponse).isNotNull();
 				assertThat(deleteServiceInstanceResponse.isAsync()).isTrue();
+				assertThat(deleteServiceInstanceResponse.getOperation()).isEqualTo("working2");
 			})
 			.verifyComplete();
 	}
@@ -190,11 +239,18 @@ class WorkflowServiceInstanceServiceTest {
 		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
 			.build();
-		
+
+		DeleteServiceInstanceResponseBuilder responseBuilder = DeleteServiceInstanceResponse.builder();
+
 		given(deleteServiceInstanceWorkflow1.delete(request))
 			.willReturn(Flux.error(new RuntimeException("delete foo error")));
+		given(deleteServiceInstanceWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
+
 		given(deleteServiceInstanceWorkflow2.delete(request))
 			.willReturn(Flux.empty());
+		given(deleteServiceInstanceWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
 
 		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
 			.consumeNextWith(deleteServiceInstanceResponse -> {
@@ -206,12 +262,15 @@ class WorkflowServiceInstanceServiceTest {
 				repoOrder.verifyNoMoreInteractions();
 
 				InOrder deleteOrder = inOrder(deleteServiceInstanceWorkflow1, deleteServiceInstanceWorkflow2);
+				deleteOrder.verify(deleteServiceInstanceWorkflow2).buildResponse(eq(request),
+					any(DeleteServiceInstanceResponseBuilder.class));
+				deleteOrder.verify(deleteServiceInstanceWorkflow1).buildResponse(eq(request),
+					any(DeleteServiceInstanceResponseBuilder.class));
 				deleteOrder.verify(deleteServiceInstanceWorkflow2).delete(request);
 				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request);
 				deleteOrder.verifyNoMoreInteractions();
 
 				assertThat(deleteServiceInstanceResponse).isNotNull();
-				assertThat(deleteServiceInstanceResponse.isAsync()).isTrue();
 			})
 			.verifyComplete();
 	}
@@ -226,10 +285,21 @@ class WorkflowServiceInstanceServiceTest {
 			.serviceInstanceId("foo")
 			.build();
 
+		UpdateServiceInstanceResponseBuilder responseBuilder = UpdateServiceInstanceResponse.builder();
+
 		given(updateServiceInstanceWorkflow1.update(request))
 			.willReturn(Flux.empty());
+		given(updateServiceInstanceWorkflow1.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder
+				.async(true)
+				.operation("working1")));
+
 		given(updateServiceInstanceWorkflow2.update(request))
 			.willReturn(Flux.empty());
+		given(updateServiceInstanceWorkflow2.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder
+				.dashboardUrl("https://dashboard.example.com")
+				.operation("working2")));
 
 		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
 			.assertNext(updateServiceInstanceResponse -> {
@@ -241,12 +311,18 @@ class WorkflowServiceInstanceServiceTest {
 				repoOrder.verifyNoMoreInteractions();
 
 				InOrder updateOrder = inOrder(updateServiceInstanceWorkflow1, updateServiceInstanceWorkflow2);
+				updateOrder.verify(updateServiceInstanceWorkflow2).buildResponse(eq(request),
+					any(UpdateServiceInstanceResponseBuilder.class));
+				updateOrder.verify(updateServiceInstanceWorkflow1).buildResponse(eq(request),
+					any(UpdateServiceInstanceResponseBuilder.class));
 				updateOrder.verify(updateServiceInstanceWorkflow2).update(request);
 				updateOrder.verify(updateServiceInstanceWorkflow1).update(request);
 				updateOrder.verifyNoMoreInteractions();
 
 				assertThat(updateServiceInstanceResponse).isNotNull();
 				assertThat(updateServiceInstanceResponse.isAsync()).isTrue();
+				assertThat(updateServiceInstanceResponse.getDashboardUrl()).isEqualTo("https://dashboard.example.com");
+				assertThat(updateServiceInstanceResponse.getOperation()).isEqualTo("working2");
 			})
 			.verifyComplete();
 	}
@@ -261,10 +337,17 @@ class WorkflowServiceInstanceServiceTest {
 			.serviceInstanceId("foo")
 			.build();
 
+		UpdateServiceInstanceResponseBuilder responseBuilder = UpdateServiceInstanceResponse.builder();
+
 		given(updateServiceInstanceWorkflow1.update(request))
 			.willReturn(Flux.error(new RuntimeException("update foo error")));
+		given(updateServiceInstanceWorkflow1.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
+
 		given(updateServiceInstanceWorkflow2.update(request))
 			.willReturn(Flux.empty());
+		given(updateServiceInstanceWorkflow2.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
 
 		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
 			.assertNext(error -> {
@@ -276,6 +359,10 @@ class WorkflowServiceInstanceServiceTest {
 				repoOrder.verifyNoMoreInteractions();
 
 				InOrder updateOrder = inOrder(updateServiceInstanceWorkflow1, updateServiceInstanceWorkflow2);
+				updateOrder.verify(updateServiceInstanceWorkflow2).buildResponse(eq(request),
+					any(UpdateServiceInstanceResponseBuilder.class));
+				updateOrder.verify(updateServiceInstanceWorkflow1).buildResponse(eq(request),
+					any(UpdateServiceInstanceResponseBuilder.class));
 				updateOrder.verify(updateServiceInstanceWorkflow2).update(request);
 				updateOrder.verify(updateServiceInstanceWorkflow1).update(request);
 				updateOrder.verifyNoMoreInteractions();

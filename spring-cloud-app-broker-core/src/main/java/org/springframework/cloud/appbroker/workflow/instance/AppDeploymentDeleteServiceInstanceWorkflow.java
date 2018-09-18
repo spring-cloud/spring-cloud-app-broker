@@ -19,10 +19,12 @@ package org.springframework.cloud.appbroker.workflow.instance;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
 import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -49,5 +51,11 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 			.doOnComplete(() -> log.info("Finished undeploying applications {}", brokeredServices))
 			.doOnError(e -> log.info("Error undeploying applications {} with error {}", brokeredServices, e))
 			.flatMap(apps -> Flux.empty());
+	}
+
+	@Override
+	public Mono<DeleteServiceInstanceResponseBuilder> buildResponse(DeleteServiceInstanceRequest request,
+																	DeleteServiceInstanceResponseBuilder responseBuilder) {
+		return Mono.just(responseBuilder.async(true));
 	}
 }

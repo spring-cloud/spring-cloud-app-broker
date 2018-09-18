@@ -17,8 +17,10 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
@@ -53,5 +55,11 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 			.doOnComplete(() -> log.info("Finished deploying applications {}", brokeredServices))
 			.doOnError(e -> log.info("Error deploying applications {} with error {}", brokeredServices, e))
 			.flatMap(apps -> Flux.empty());
+	}
+
+	@Override
+	public Mono<UpdateServiceInstanceResponseBuilder> buildResponse(UpdateServiceInstanceRequest request,
+																	UpdateServiceInstanceResponseBuilder responseBuilder) {
+		return Mono.just(responseBuilder.async(true));
 	}
 }

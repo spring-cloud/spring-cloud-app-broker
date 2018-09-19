@@ -30,8 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class AppDeploymentInstanceWorkflowTest {
 
-	private BrokeredServices brokeredServices;
 	private BackingApplications backingApps;
+	private AppDeploymentInstanceWorkflow workflow;
 
 	@BeforeEach
 	void setUp() {
@@ -42,21 +42,45 @@ class AppDeploymentInstanceWorkflowTest {
 				.build())
 			.build();
 
-		brokeredServices = BrokeredServices.builder()
+		BrokeredServices brokeredServices = BrokeredServices.builder()
 			.service(BrokeredService.builder()
 				.serviceName("service1")
 				.planName("plan1")
 				.apps(backingApps)
 				.build())
 			.build();
+
+		workflow = new AppDeploymentInstanceWorkflow(brokeredServices);
+	}
+
+	@Test
+	void acceptWithMatchingService() {
+		StepVerifier
+			.create(workflow.accept(buildServiceDefinition("service1", "plan1"), "plan1-id"))
+			.expectNextMatches(value -> value)
+			.verifyComplete();
+	}
+
+	@Test
+	void doNotAcceptWithUnsupportedService() {
+		StepVerifier
+			.create(workflow.accept(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
+	}
+
+	@Test
+	void doNotAcceptWithUnsupportedPlan() {
+		StepVerifier
+			.create(workflow.accept(buildServiceDefinition("service1", "unknown-plan"), "unknown-plan-id"))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
 	}
 
 	@Test
 	void getBackingAppForServiceSucceeds() {
-		AppDeploymentInstanceWorkflow appDeploymentInstanceWorkflow = new AppDeploymentInstanceWorkflow(brokeredServices);
-
 		StepVerifier
-			.create(appDeploymentInstanceWorkflow
+			.create(workflow
 				.getBackingApplicationsForService(buildServiceDefinition("service1", "plan1"), "plan1-id"))
 			.assertNext(actual -> assertThat(actual)
 				.isEqualTo(backingApps)
@@ -66,20 +90,16 @@ class AppDeploymentInstanceWorkflowTest {
 
 	@Test
 	void getBackingAppForServiceWithUnknownServiceIdDoesNothing() {
-		AppDeploymentInstanceWorkflow appDeploymentInstanceWorkflow = new AppDeploymentInstanceWorkflow(brokeredServices);
-
 		StepVerifier
-			.create(appDeploymentInstanceWorkflow
+			.create(workflow
 				.getBackingApplicationsForService(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
 		.verifyComplete();
 	}
 
 	@Test
 	void getBackingAppForServiceWithUnknownPlanIdDoesNothing() {
-		AppDeploymentInstanceWorkflow appDeploymentInstanceWorkflow = new AppDeploymentInstanceWorkflow(brokeredServices);
-
 		StepVerifier
-			.create(appDeploymentInstanceWorkflow
+			.create(workflow
 				.getBackingApplicationsForService(buildServiceDefinition("service1", "unknown-plan"), "unknown-plan-id"))
 		.verifyComplete();
 	}

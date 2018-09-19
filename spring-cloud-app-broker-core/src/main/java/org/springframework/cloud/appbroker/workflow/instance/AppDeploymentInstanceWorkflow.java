@@ -33,6 +33,12 @@ class AppDeploymentInstanceWorkflow {
 		this.brokeredServices = brokeredServices;
 	}
 
+	Mono<Boolean> accept(ServiceDefinition serviceDefinition, String planId) {
+		return getBackingApplicationsForService(serviceDefinition, planId)
+			.map(backingApplications -> !backingApplications.isEmpty())
+			.defaultIfEmpty(false);
+	}
+
 	Mono<List<BackingApplication>> getBackingApplicationsForService(ServiceDefinition serviceDefinition, String planId) {
 		return Mono.defer(() ->
 			Mono.justOrEmpty(findBackingApplications(serviceDefinition, planId)));

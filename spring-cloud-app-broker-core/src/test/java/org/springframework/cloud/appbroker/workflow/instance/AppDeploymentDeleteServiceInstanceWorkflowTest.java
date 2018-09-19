@@ -94,36 +94,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 	}
 
-	@Test
-	void acceptWithMatchingService() {
-		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
-
-		StepVerifier
-			.create(deleteServiceInstanceWorkflow.accept(request))
-			.expectNextMatches(value -> value)
-			.verifyComplete();
-	}
-
-	@Test
-	void doNotAcceptWithUnsupportedService() {
-		DeleteServiceInstanceRequest request = buildRequest("unknown-service", "plan1");
-
-		StepVerifier
-			.create(deleteServiceInstanceWorkflow.accept(request))
-			.expectNextMatches(value -> !value)
-			.verifyComplete();
-	}
-
-	@Test
-	void doNotAcceptWithUnsupportedPlan() {
-		DeleteServiceInstanceRequest request = buildRequest("service1", "unknown-plan");
-
-		StepVerifier
-			.create(deleteServiceInstanceWorkflow.accept(request))
-			.expectNextMatches(value -> !value)
-			.verifyComplete();
-	}
-
 	private DeleteServiceInstanceRequest buildRequest(String serviceName, String planName) {
 		return DeleteServiceInstanceRequest.builder()
 			.serviceDefinitionId(serviceName + "-id")

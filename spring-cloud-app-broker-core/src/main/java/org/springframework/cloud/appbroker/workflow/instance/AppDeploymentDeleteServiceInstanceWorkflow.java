@@ -55,9 +55,7 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	@Override
 	public Mono<Boolean> accept(DeleteServiceInstanceRequest request) {
-		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-			.map(backingApplications -> !backingApplications.isEmpty())
-			.defaultIfEmpty(false);
+		return accept(request.getServiceDefinition(), request.getPlanId());
 	}
 
 	@Override

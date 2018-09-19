@@ -137,36 +137,6 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		verifyNoMoreInteractions(this.parametersTransformationService);
 	}
 
-	@Test
-	void acceptWithMatchingService() {
-		CreateServiceInstanceRequest request = buildRequest("service1", "plan1");
-
-		StepVerifier
-			.create(createServiceInstanceWorkflow.accept(request))
-			.expectNextMatches(value -> value)
-			.verifyComplete();
-	}
-
-	@Test
-	void doNotAcceptWithUnsupportedService() {
-		CreateServiceInstanceRequest request = buildRequest("unknown-service", "plan1");
-
-		StepVerifier
-			.create(createServiceInstanceWorkflow.accept(request))
-			.expectNextMatches(value -> !value)
-			.verifyComplete();
-	}
-
-	@Test
-	void doNotAcceptWithUnsupportedPlan() {
-		CreateServiceInstanceRequest request = buildRequest("service1", "unknown-plan");
-
-		StepVerifier
-			.create(createServiceInstanceWorkflow.accept(request))
-			.expectNextMatches(value -> !value)
-			.verifyComplete();
-	}
-
 	private CreateServiceInstanceRequest buildRequest(String serviceName, String planName) {
 		return buildRequest(serviceName, planName, null);
 	}

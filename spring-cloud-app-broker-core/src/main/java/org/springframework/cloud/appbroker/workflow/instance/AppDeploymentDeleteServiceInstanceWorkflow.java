@@ -54,6 +54,13 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	}
 
 	@Override
+	public Mono<Boolean> accept(DeleteServiceInstanceRequest request) {
+		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+			.map(backingApplications -> !backingApplications.isEmpty())
+			.defaultIfEmpty(false);
+	}
+
+	@Override
 	public Mono<DeleteServiceInstanceResponseBuilder> buildResponse(DeleteServiceInstanceRequest request,
 																	DeleteServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder.async(true));

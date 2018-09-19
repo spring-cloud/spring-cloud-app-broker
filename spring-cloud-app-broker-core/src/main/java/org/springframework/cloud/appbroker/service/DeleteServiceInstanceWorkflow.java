@@ -24,6 +24,10 @@ import reactor.core.publisher.Mono;
 public interface DeleteServiceInstanceWorkflow {
 	Flux<Void> delete(DeleteServiceInstanceRequest request);
 
+	default Mono<Boolean> accept(DeleteServiceInstanceRequest request) {
+		return Mono.just(true);
+	}
+
 	default Mono<DeleteServiceInstanceResponseBuilder> buildResponse(DeleteServiceInstanceRequest request,
 																	 DeleteServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder);

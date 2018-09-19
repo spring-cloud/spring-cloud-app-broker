@@ -59,6 +59,13 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 	}
 
 	@Override
+	public Mono<Boolean> accept(CreateServiceInstanceRequest request) {
+		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+			.map(backingApplications -> !backingApplications.isEmpty())
+			.defaultIfEmpty(false);
+	}
+
+	@Override
 	public Mono<CreateServiceInstanceResponseBuilder> buildResponse(CreateServiceInstanceRequest request,
 																	CreateServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder.async(true));

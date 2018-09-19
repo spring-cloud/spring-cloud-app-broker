@@ -87,6 +87,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			new AtomicReference<>(CreateServiceInstanceResponse.builder());
 
 		return Flux.fromIterable(createServiceInstanceWorkflows)
+			.filterWhen(workflow -> workflow.accept(request))
 			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
 				.doOnNext(responseBuilder::set))
 			.last(responseBuilder.get())
@@ -111,7 +112,8 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceRequest request) {
 		return Flux.fromIterable(createServiceInstanceWorkflows)
-			.flatMap(createServiceInstanceWorkflow -> createServiceInstanceWorkflow.create(request));
+			.filterWhen(workflow -> workflow.accept(request))
+			.flatMap(workflow -> workflow.create(request));
 	}
 
 	@Override
@@ -127,6 +129,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			new AtomicReference<>(DeleteServiceInstanceResponse.builder());
 
 		return Flux.fromIterable(deleteServiceInstanceWorkflows)
+			.filterWhen(workflow -> workflow.accept(request))
 			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
 				.doOnNext(responseBuilder::set))
 			.last(responseBuilder.get())
@@ -150,7 +153,8 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceRequest request) {
 		return Flux.fromIterable(deleteServiceInstanceWorkflows)
-			.flatMap(deleteServiceInstanceWorkflow -> deleteServiceInstanceWorkflow.delete(request));
+			.filterWhen(workflow -> workflow.accept(request))
+			.flatMap(workflow -> workflow.delete(request));
 	}
 
 	@Override
@@ -166,6 +170,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			new AtomicReference<>(UpdateServiceInstanceResponse.builder());
 
 		return Flux.fromIterable(updateServiceInstanceWorkflows)
+			.filterWhen(workflow -> workflow.accept(request))
 			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
 				.doOnNext(responseBuilder::set))
 			.last(responseBuilder.get())
@@ -189,7 +194,8 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	private Flux<Void> invokeUpdateWorkflows(UpdateServiceInstanceRequest request) {
 		return Flux.fromIterable(updateServiceInstanceWorkflows)
-			.flatMap(updateServiceInstanceWorkflow -> updateServiceInstanceWorkflow.update(request));
+			.filterWhen(workflow -> workflow.accept(request))
+			.flatMap(workflow -> workflow.update(request));
 	}
 
 	@Override

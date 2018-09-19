@@ -24,6 +24,10 @@ import reactor.core.publisher.Mono;
 public interface CreateServiceInstanceWorkflow {
 	Flux<Void> create(CreateServiceInstanceRequest request);
 
+	default Mono<Boolean> accept(CreateServiceInstanceRequest request) {
+		return Mono.just(true);
+	}
+
 	default Mono<CreateServiceInstanceResponseBuilder> buildResponse(CreateServiceInstanceRequest request,
 																	 CreateServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder);

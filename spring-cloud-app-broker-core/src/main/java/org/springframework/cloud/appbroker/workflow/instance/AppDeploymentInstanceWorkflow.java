@@ -20,7 +20,6 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import reactor.core.publisher.Mono;
 
@@ -36,10 +35,17 @@ class AppDeploymentInstanceWorkflow {
 
 	Mono<List<BackingApplication>> getBackingApplicationsForService(ServiceDefinition serviceDefinition, String planId) {
 		return Mono.defer(() ->
-			Mono.just(new BackingApplications(findBrokeredService(serviceDefinition, planId).getApps())));
+			Mono.justOrEmpty(findBackingApplications(serviceDefinition, planId)));
 	}
 
-	private BrokeredService findBrokeredService(ServiceDefinition serviceDefinition, String planId) {
+	private BackingApplications findBackingApplications(ServiceDefinition serviceDefinition,
+														String planId) {
+		BrokeredService brokeredService = findBrokeredService(serviceDefinition, planId);
+		return brokeredService == null ? null : new BackingApplications(brokeredService.getApps());
+	}
+
+	private BrokeredService findBrokeredService(ServiceDefinition serviceDefinition,
+												String planId) {
 		String serviceName = serviceDefinition.getName();
 
 		String planName = serviceDefinition.getPlans().stream()
@@ -51,7 +57,6 @@ class AppDeploymentInstanceWorkflow {
 				brokeredService.getServiceName().equals(serviceName)
 					&& brokeredService.getPlanName().equals(planName))
 			.findFirst()
-			.orElseThrow(() -> new ServiceBrokerException("No deployment is configured for service "
-				+ serviceName + " and plan " + planName));
+			.orElse(null);
 	}
 }

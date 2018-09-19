@@ -24,6 +24,10 @@ import reactor.core.publisher.Mono;
 public interface UpdateServiceInstanceWorkflow {
 	Flux<Void> update(UpdateServiceInstanceRequest request);
 
+	default Mono<Boolean> accept(UpdateServiceInstanceRequest request) {
+		return Mono.just(true);
+	}
+
 	default Mono<UpdateServiceInstanceResponseBuilder> buildResponse(UpdateServiceInstanceRequest request,
 																	 UpdateServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder);

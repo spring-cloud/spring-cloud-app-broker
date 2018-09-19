@@ -76,7 +76,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		given(this.backingAppDeploymentService.undeploy(any(BackingApplications.class)))
 			.willReturn(Flux.just("undeployed1", "undeployed2"));
 
-		// when
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(buildRequest("service1", "plan1")))
 			.expectNext()
@@ -87,17 +86,42 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	}
 
 	@Test
-	void deleteServiceInstanceWithMisconfigurationFails() {
-		// when
+	void deleteServiceInstanceWithWithNoAppsDoesNothing() {
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(buildRequest("unsupported-service", "plan1")))
-			.expectErrorSatisfies(e -> assertThat(e)
-				.isInstanceOf(ServiceBrokerException.class)
-				.hasMessageContaining("unsupported-service")
-				.hasMessageContaining("plan1"))
-			.verify();
+			.verifyComplete();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
+	}
+
+	@Test
+	void acceptWithMatchingService() {
+		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
+
+		StepVerifier
+			.create(deleteServiceInstanceWorkflow.accept(request))
+			.expectNextMatches(value -> value)
+			.verifyComplete();
+	}
+
+	@Test
+	void doNotAcceptWithUnsupportedService() {
+		DeleteServiceInstanceRequest request = buildRequest("unknown-service", "plan1");
+
+		StepVerifier
+			.create(deleteServiceInstanceWorkflow.accept(request))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
+	}
+
+	@Test
+	void doNotAcceptWithUnsupportedPlan() {
+		DeleteServiceInstanceRequest request = buildRequest("service1", "unknown-plan");
+
+		StepVerifier
+			.create(deleteServiceInstanceWorkflow.accept(request))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
 	}
 
 	private DeleteServiceInstanceRequest buildRequest(String serviceName, String planName) {

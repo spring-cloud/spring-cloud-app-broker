@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -127,19 +126,45 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	}
 
 	@Test
-	void createServiceInstanceWithMisconfigurationFails() {
+	void createServiceInstanceWithNoAppsDoesNothing() {
 		CreateServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request))
-			.expectErrorSatisfies(e -> assertThat(e)
-				.isInstanceOf(ServiceBrokerException.class)
-				.hasMessageContaining("unsupported-service")
-				.hasMessageContaining("plan1"))
-			.verify();
+			.verifyComplete();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.parametersTransformationService);
+	}
+
+	@Test
+	void acceptWithMatchingService() {
+		CreateServiceInstanceRequest request = buildRequest("service1", "plan1");
+
+		StepVerifier
+			.create(createServiceInstanceWorkflow.accept(request))
+			.expectNextMatches(value -> value)
+			.verifyComplete();
+	}
+
+	@Test
+	void doNotAcceptWithUnsupportedService() {
+		CreateServiceInstanceRequest request = buildRequest("unknown-service", "plan1");
+
+		StepVerifier
+			.create(createServiceInstanceWorkflow.accept(request))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
+	}
+
+	@Test
+	void doNotAcceptWithUnsupportedPlan() {
+		CreateServiceInstanceRequest request = buildRequest("service1", "unknown-plan");
+
+		StepVerifier
+			.create(createServiceInstanceWorkflow.accept(request))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
 	}
 
 	private CreateServiceInstanceRequest buildRequest(String serviceName, String planName) {

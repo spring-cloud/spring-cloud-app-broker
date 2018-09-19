@@ -34,13 +34,11 @@ import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 
 import static java.util.Collections.singletonMap;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -124,17 +122,43 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	}
 
 	@Test
-	void updateServiceInstanceWithMisconfigurationFails() {
+	void updateServiceInstanceWithNoAppsDoesNothing() {
 		StepVerifier
 			.create(updateServiceInstanceWorkflow.update(buildRequest("unsupported-service", "plan1")))
-			.expectErrorSatisfies(e -> assertThat(e)
-				.isInstanceOf(ServiceBrokerException.class)
-				.hasMessageContaining("unsupported-service")
-				.hasMessageContaining("plan1"))
-			.verify();
+			.verifyComplete();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.parametersTransformationService);
+	}
+
+	@Test
+	void acceptWithMatchingService() {
+		UpdateServiceInstanceRequest request = buildRequest("service1", "plan1");
+
+		StepVerifier
+			.create(updateServiceInstanceWorkflow.accept(request))
+			.expectNextMatches(value -> value)
+			.verifyComplete();
+	}
+
+	@Test
+	void doNotAcceptWithUnsupportedService() {
+		UpdateServiceInstanceRequest request = buildRequest("unknown-service", "plan1");
+
+		StepVerifier
+			.create(updateServiceInstanceWorkflow.accept(request))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
+	}
+
+	@Test
+	void doNotAcceptWithUnsupportedPlan() {
+		UpdateServiceInstanceRequest request = buildRequest("service1", "unknown-plan");
+
+		StepVerifier
+			.create(updateServiceInstanceWorkflow.accept(request))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
 	}
 
 	private UpdateServiceInstanceRequest buildRequest(String serviceName, String planName) {

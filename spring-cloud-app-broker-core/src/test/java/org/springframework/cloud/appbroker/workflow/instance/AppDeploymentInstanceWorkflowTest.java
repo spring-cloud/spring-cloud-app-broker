@@ -22,7 +22,6 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import reactor.test.StepVerifier;
@@ -66,31 +65,23 @@ class AppDeploymentInstanceWorkflowTest {
 	}
 
 	@Test
-	void getBackingAppForServiceWithUnknownServiceIdFails() {
+	void getBackingAppForServiceWithUnknownServiceIdDoesNothing() {
 		AppDeploymentInstanceWorkflow appDeploymentInstanceWorkflow = new AppDeploymentInstanceWorkflow(brokeredServices);
 
 		StepVerifier
 			.create(appDeploymentInstanceWorkflow
 				.getBackingApplicationsForService(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
-			.expectErrorSatisfies(e -> assertThat(e)
-				.isInstanceOf(ServiceBrokerException.class)
-				.hasMessageContaining("unknown-service")
-				.hasMessageContaining("plan1"))
-		.verify();
+		.verifyComplete();
 	}
 
 	@Test
-	void getBackingAppForServiceWithUnknownPlanIdFails() {
+	void getBackingAppForServiceWithUnknownPlanIdDoesNothing() {
 		AppDeploymentInstanceWorkflow appDeploymentInstanceWorkflow = new AppDeploymentInstanceWorkflow(brokeredServices);
 
 		StepVerifier
 			.create(appDeploymentInstanceWorkflow
 				.getBackingApplicationsForService(buildServiceDefinition("service1", "unknown-plan"), "unknown-plan-id"))
-		.expectErrorSatisfies(e -> assertThat(e)
-			.isInstanceOf(ServiceBrokerException.class)
-			.hasMessageContaining("service1")
-			.hasMessageContaining("unknown-plan"))
-		.verify();
+		.verifyComplete();
 	}
 
 	private ServiceDefinition buildServiceDefinition(String serviceName, String planName) {

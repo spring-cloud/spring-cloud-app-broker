@@ -8,13 +8,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
 class BackingAppDeploymentServiceTest {
-
-	private static final String STATUS_RUNNING = "running";
-	private static final String STATUS_DELETED = "deleted";
 
 	@Mock
 	private DeployerClient deployerClient;
@@ -38,26 +38,42 @@ class BackingAppDeploymentServiceTest {
 	}
 
 	@Test
+	@SuppressWarnings("UnassignedFluxMonoInstance")
 	void shouldDeployApplications() {
-		doReturn(Mono.just(STATUS_RUNNING))
+		doReturn(Mono.just("app1"))
 			.when(deployerClient).deploy(backingApps.get(0));
-		doReturn(Mono.just(STATUS_RUNNING))
+		doReturn(Mono.just("app2"))
 			.when(deployerClient).deploy(backingApps.get(1));
 
+		List<String> expectedValues = new ArrayList<>();
+		expectedValues.add("app1");
+		expectedValues.add("app2");
+
 		StepVerifier.create(backingAppDeploymentService.deploy(backingApps))
-			.expectNext(STATUS_RUNNING + "," + STATUS_RUNNING)
+			// deployments are run in parallel, so the order of completion is not predictable
+			// ensure that both expected signals are sent in any order
+			.expectNextMatches(expectedValues::remove)
+			.expectNextMatches(expectedValues::remove)
 			.verifyComplete();
 	}
 
 	@Test
+	@SuppressWarnings("UnassignedFluxMonoInstance")
 	void shouldUndeployApplications() {
-		doReturn(Mono.just(STATUS_DELETED))
+		doReturn(Mono.just("deleted1"))
 			.when(deployerClient).undeploy(backingApps.get(0));
-		doReturn(Mono.just(STATUS_DELETED))
+		doReturn(Mono.just("deleted2"))
 			.when(deployerClient).undeploy(backingApps.get(1));
 
+		List<String> expectedValues = new ArrayList<>();
+		expectedValues.add("deleted1");
+		expectedValues.add("deleted2");
+
 		StepVerifier.create(backingAppDeploymentService.undeploy(backingApps))
-			.expectNext(STATUS_DELETED + "," + STATUS_DELETED)
+			// deployments are run in parallel, so the order of completion is not predictable
+			// ensure that both expected signals are sent in any order
+			.expectNextMatches(expectedValues::remove)
+			.expectNextMatches(expectedValues::remove)
 			.verifyComplete();
 	}
 }

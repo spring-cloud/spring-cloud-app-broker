@@ -17,27 +17,41 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public class ServiceInstanceWorkflow {
+class AppDeploymentInstanceWorkflow {
 
 	final BrokeredServices brokeredServices;
 
-	public ServiceInstanceWorkflow(BrokeredServices brokeredServices) {
+	AppDeploymentInstanceWorkflow(BrokeredServices brokeredServices) {
 		this.brokeredServices = brokeredServices;
 	}
 
-	Mono<List<BackingApplication>> getBackingApplicationsForService(ServiceDefinition serviceDefinition, String planId) {
-		return Mono.defer(() -> Mono.just(findBrokeredService(serviceDefinition, planId).getApps()));
+	Mono<Boolean> accept(ServiceDefinition serviceDefinition, String planId) {
+		return getBackingApplicationsForService(serviceDefinition, planId)
+			.map(backingApplications -> !backingApplications.isEmpty())
+			.defaultIfEmpty(false);
 	}
 
-	private BrokeredService findBrokeredService(ServiceDefinition serviceDefinition, String planId) {
+	Mono<List<BackingApplication>> getBackingApplicationsForService(ServiceDefinition serviceDefinition, String planId) {
+		return Mono.defer(() ->
+			Mono.justOrEmpty(findBackingApplications(serviceDefinition, planId)));
+	}
+
+	private BackingApplications findBackingApplications(ServiceDefinition serviceDefinition,
+														String planId) {
+		BrokeredService brokeredService = findBrokeredService(serviceDefinition, planId);
+		return brokeredService == null ? null : new BackingApplications(brokeredService.getApps());
+	}
+
+	private BrokeredService findBrokeredService(ServiceDefinition serviceDefinition,
+												String planId) {
 		String serviceName = serviceDefinition.getName();
 
 		String planName = serviceDefinition.getPlans().stream()
@@ -49,7 +63,6 @@ public class ServiceInstanceWorkflow {
 				brokeredService.getServiceName().equals(serviceName)
 					&& brokeredService.getPlanName().equals(planName))
 			.findFirst()
-			.orElseThrow(() -> new ServiceBrokerException("No deployment is configured for service "
-				+ serviceName + " and plan " + planName));
+			.orElse(null);
 	}
 }

@@ -16,21 +16,23 @@
 
 package org.springframework.cloud.appbroker.extensions.parameters;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
-import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 class ParametersTransformationServiceTest {
 	@Test
@@ -68,14 +70,16 @@ class ParametersTransformationServiceTest {
 			.backingApplication(BackingApplication.builder()
 				.name("misconfigured-app")
 				.parameterTransformers(ParametersTransformerSpec.builder()
-					.name("uknown-transformer")
+					.name("unknown-transformer")
 					.build())
 				.build())
 			.build();
 
 		StepVerifier
 			.create(service.transformParameters(backingApplications, new HashMap<>()))
-			.expectError(ServiceBrokerException.class)
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessageContaining("unknown-transformer"))
 			.verify();
 	}
 
@@ -115,7 +119,22 @@ class ParametersTransformationServiceTest {
 
 		StepVerifier
 			.create(service.transformParameters(backingApplications, parameters))
-			.expectNext(backingApplications)
+			.expectNextMatches(transformedBackingApplications -> {
+				Map<String, String> app1ExpectedTransformedEnvironment = new HashMap<>(app1.getEnvironment());
+				app1ExpectedTransformedEnvironment.put("0", "transformer1");
+
+				Map<String, String> app2ExpectedTransformedEnvironment = new HashMap<>(app2.getEnvironment());
+				app2ExpectedTransformedEnvironment.put("0", "transformer1");
+				app2ExpectedTransformedEnvironment.put("1", "transformer2");
+
+				assertAll("unexpected transformation results",
+						  () -> assertThat(transformedBackingApplications.size()).isEqualTo(backingApplications.size()),
+						  () -> assertThat(transformedBackingApplications.get(0).getEnvironment()).isEqualTo(app1ExpectedTransformedEnvironment),
+						  () -> assertThat(transformedBackingApplications.get(1).getEnvironment()).isEqualTo(app2ExpectedTransformedEnvironment)
+				);
+
+				return true;
+			})
 			.verifyComplete();
 
 		assertThat(factory1.getActualParameters()).isEqualTo(parameters);
@@ -150,6 +169,7 @@ class ParametersTransformationServiceTest {
 		private Mono<BackingApplication> doTransform(BackingApplication backingApplication,
 													 Map<String, Object> parameters) {
 			this.actualParameters = parameters;
+			backingApplication.getEnvironment().put(Integer.toString(backingApplication.getEnvironment().size()), getName());
 			return Mono.just(backingApplication);
 		}
 
@@ -168,7 +188,7 @@ class ParametersTransformationServiceTest {
 
 		Config() {
 		}
-		
+
 		Config(String arg1, Integer arg2) {
 			this.arg1 = arg1;
 			this.arg2 = arg2;

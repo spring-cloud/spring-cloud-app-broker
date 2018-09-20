@@ -23,14 +23,18 @@ import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
+import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
+import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
-import org.springframework.cloud.appbroker.workflow.instance.CreateServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
-import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
-import org.springframework.cloud.appbroker.workflow.instance.DeleteServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentUpdateServiceInstanceWorkflow;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -75,22 +79,30 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	public CreateServiceInstanceWorkflow createServiceInstanceWorkflow(BrokeredServices brokeredServices,
-																	   BackingAppDeploymentService backingAppDeploymentService,
-																	   ParametersTransformationService parametersTransformationService) {
-		return new CreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService);
+	public CreateServiceInstanceWorkflow appDeploymentCreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
+																					BackingAppDeploymentService backingAppDeploymentService,
+																					ParametersTransformationService parametersTransformationService) {
+		return new AppDeploymentCreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService);
 	}
 
 	@Bean
-	public DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
-																	   BackingAppDeploymentService backingAppDeploymentService) {
-		return new DeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
+	public DeleteServiceInstanceWorkflow appDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
+																					BackingAppDeploymentService backingAppDeploymentService) {
+		return new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
+	}
+
+	@Bean
+	public UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow(BrokeredServices brokeredServices,
+																	   BackingAppDeploymentService backingAppDeploymentService,
+																	   ParametersTransformationService parametersTransformationService) {
+		return new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService);
 	}
 
 	@Bean
 	public WorkflowServiceInstanceService serviceInstanceService(ServiceInstanceStateRepository stateRepository,
-																 CreateServiceInstanceWorkflow createWorkflow,
-																 DeleteServiceInstanceWorkflow deleteWorkflow) {
-		return new WorkflowServiceInstanceService(stateRepository, createWorkflow, deleteWorkflow);
+																 List<CreateServiceInstanceWorkflow> createWorkflows,
+																 List<DeleteServiceInstanceWorkflow> deleteWorkflows,
+																 List<UpdateServiceInstanceWorkflow> updateWorkflows) {
+		return new WorkflowServiceInstanceService(stateRepository, createWorkflows, deleteWorkflows, updateWorkflows);
 	}
 }

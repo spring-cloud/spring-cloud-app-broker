@@ -25,6 +25,11 @@ public class BackingApplications extends ArrayList<BackingApplication> {
 	public BackingApplications() {
 	}
 
+	public BackingApplications(BackingApplications backingApplicationsToCopy) {
+		backingApplicationsToCopy.forEach(backingApplicationToCopy ->
+			this.add(new BackingApplication(backingApplicationToCopy)));
+	}
+
 	private BackingApplications(List<BackingApplication> backingApplications) {
 		super.addAll(backingApplications);
 	}

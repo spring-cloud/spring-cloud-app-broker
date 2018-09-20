@@ -92,12 +92,20 @@ class CloudFoundryAcceptanceTest {
 		blockingSubscribe(cloudFoundryService.createServiceInstance(PLAN_NAME, SERVICE_NAME, SERVICE_INSTANCE_NAME, parameters));
 	}
 
+	void updateServiceInstance(Map<String, Object> parameters) {
+		blockingSubscribe(cloudFoundryService.updateServiceInstance(SERVICE_INSTANCE_NAME, parameters));
+	}
+
 	void deleteServiceInstance() {
 		blockingSubscribe(cloudFoundryService.deleteServiceInstance(SERVICE_INSTANCE_NAME));
 	}
 
 	Optional<ServiceInstanceSummary> getServiceInstance() {
-		return cloudFoundryService.getServiceInstance(SERVICE_INSTANCE_NAME).blockOptional();
+		return getServiceInstanceMono().blockOptional();
+	}
+
+	Mono<ServiceInstanceSummary> getServiceInstanceMono() {
+		return cloudFoundryService.getServiceInstance(SERVICE_INSTANCE_NAME);
 	}
 
 	Optional<ApplicationSummary> getApplicationSummaryByName(String appName) {

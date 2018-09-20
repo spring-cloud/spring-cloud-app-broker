@@ -22,15 +22,16 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import reactor.test.StepVerifier;
 
-class ServiceInstanceWorkflowTest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-	private BrokeredServices brokeredServices;
+class AppDeploymentInstanceWorkflowTest {
+
 	private BackingApplications backingApps;
+	private AppDeploymentInstanceWorkflow workflow;
 
 	@BeforeEach
 	void setUp() {
@@ -41,46 +42,66 @@ class ServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
-		brokeredServices = BrokeredServices.builder()
+		BrokeredServices brokeredServices = BrokeredServices.builder()
 			.service(BrokeredService.builder()
 				.serviceName("service1")
 				.planName("plan1")
 				.apps(backingApps)
 				.build())
 			.build();
+
+		workflow = new AppDeploymentInstanceWorkflow(brokeredServices);
 	}
 
 	@Test
-	void getBackingAppForServiceSucceeds() {
-		ServiceInstanceWorkflow serviceInstanceWorkflow = new ServiceInstanceWorkflow(brokeredServices);
-
+	void acceptWithMatchingService() {
 		StepVerifier
-			.create(serviceInstanceWorkflow
-				.getBackingApplicationsForService(buildServiceDefinition("service1", "plan1"), "plan1-id"))
-			.expectNext(backingApps)
+			.create(workflow.accept(buildServiceDefinition("service1", "plan1"), "plan1-id"))
+			.expectNextMatches(value -> value)
 			.verifyComplete();
 	}
 
 	@Test
-	void getBackingAppForServiceWithUnknownServiceIdFails() {
-		ServiceInstanceWorkflow serviceInstanceWorkflow = new ServiceInstanceWorkflow(brokeredServices);
-
+	void doNotAcceptWithUnsupportedService() {
 		StepVerifier
-			.create(serviceInstanceWorkflow
-				.getBackingApplicationsForService(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
-		.expectError(ServiceBrokerException.class)
-		.verify();
+			.create(workflow.accept(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
 	}
 
 	@Test
-	void getBackingAppForServiceWithUnknownPlanIdFails() {
-		ServiceInstanceWorkflow serviceInstanceWorkflow = new ServiceInstanceWorkflow(brokeredServices);
-
+	void doNotAcceptWithUnsupportedPlan() {
 		StepVerifier
-			.create(serviceInstanceWorkflow
+			.create(workflow.accept(buildServiceDefinition("service1", "unknown-plan"), "unknown-plan-id"))
+			.expectNextMatches(value -> !value)
+			.verifyComplete();
+	}
+
+	@Test
+	void getBackingAppForServiceSucceeds() {
+		StepVerifier
+			.create(workflow
+				.getBackingApplicationsForService(buildServiceDefinition("service1", "plan1"), "plan1-id"))
+			.assertNext(actual -> assertThat(actual)
+				.isEqualTo(backingApps)
+				.isNotSameAs(backingApps))
+			.verifyComplete();
+	}
+
+	@Test
+	void getBackingAppForServiceWithUnknownServiceIdDoesNothing() {
+		StepVerifier
+			.create(workflow
+				.getBackingApplicationsForService(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
+		.verifyComplete();
+	}
+
+	@Test
+	void getBackingAppForServiceWithUnknownPlanIdDoesNothing() {
+		StepVerifier
+			.create(workflow
 				.getBackingApplicationsForService(buildServiceDefinition("service1", "unknown-plan"), "unknown-plan-id"))
-		.expectError(ServiceBrokerException.class)
-		.verify();
+		.verifyComplete();
 	}
 
 	private ServiceDefinition buildServiceDefinition(String serviceName, String planName) {

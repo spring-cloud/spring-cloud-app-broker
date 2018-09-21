@@ -8,17 +8,9 @@ readonly CI_DIR=$(dirname "${PROG_DIR}")
 [[ -z "${2:-}" ]] && printf "Must provide external IP of Director VM (found in file bbl-state/vars/director-vars-file.yml)\n" && exit 1
 
 validate(){
-	[[ $(type circleci) ]] || (echo "circleci tool not installed" >&2 ; circle_usage ; exit 2)
 	[[ $(type aws) ]] || (echo "aws-cli tool not installed" >&2 ; aws_usage ; exit 2)
-	[[ -f "${CI_DIR}/.envrc" ]] || (printf "Download .envrc from LastPass using \"lpass show --notes 7083089362665788436\" in directory ${CI_DIR} before running script"; exit 1)
+	[[ -f "${CI_DIR}/.envrc" ]] || (printf "Download .envrc in directory ${CI_DIR} before running script"; exit 1)
 
-}
-circle_usage() {
-    cat <<- EOF
-Install circle command line tool to run local builds:
-    "curl -o /usr/local/bin/circleci https://circle-downloads.s3.amazonaws.com/releases/build_agent_wrapper/circleci && \
-    chmod +x /usr/local/bin/circleci"
-EOF
 }
 
 aws_usage() {

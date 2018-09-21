@@ -10,4 +10,15 @@ RUN BBL_URL="https://github.com/cloudfoundry/bosh-bootloader/releases/download/v
   sudo chmod +x /usr/bin/bbl && \
   bbl -v
 
-RUN sudo apt-get install python3
+RUN sudo apt-get -qqy install python3 \
+	lsb-release \
+	apt-transport-https
+
+RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
+    echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    sudo curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
+    sudo apt-get update && \
+    sudo apt-get install -y google-cloud-sdk && \
+    gcloud config set core/disable_usage_reporting true && \
+    gcloud config set component_manager/disable_update_check true && \
+    gcloud --version

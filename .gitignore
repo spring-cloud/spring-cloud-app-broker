@@ -12,10 +12,13 @@ target
 bin
 .idea
 out
-.envrc
-.envrc-local
+.envrc*
+envrc-local.txt
 bbl-state.json
 director-vars-store.yml
 jumpbox-vars-store.yml
 director-vars-file.yml
 bbl-env.sh
+bbl-env-creds.sh
+bosh-env-*/
+*key.json

@@ -6,7 +6,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: springcloudservices/spring-cloud-app-broker-ci:v1
+    - image: springcloudservices/spring-cloud-app-broker-ci:v1
 
     working_directory: ~/repo
 
@@ -16,94 +16,87 @@ jobs:
       TERM: dumb
 
     steps:
-      - checkout
+    - checkout
 
-      - restore_cache:
-          key: sc-app-broker-{{ .Branch }}
+    - restore_cache:
+        key: sc-app-broker-{{ .Branch }}
 
-      - run:
-          name: "Populate Secrets from Environment"
-          command: |
-            if [[ ${CIRCLE_BUILD_NUM} = "" ]]; then
-                echo "populating from .envrc"
-                [[ -f "ci/.envrc-local" ]] || (printf "Download .envrc-local from LastPass using \"lpass show --notes 5798335231099672425\" in directory ${CI_DIR} before running script"; exit 1)
-                cd ~/repo/ci/
-                cat .envrc-local >> $BASH_ENV
-                ./scripts/populate-secrets-from-environment.sh
-                ./scripts/fix-bbl-state-json-line-breaks.py
-                cd bbl-bosh-lite-environment/bbl-state
-                bbl print-env >> $BASH_ENV
-            else
-                echo "populating from bbl env"
-                cd ~/repo/ci/scripts
-                ./populate-secrets-from-environment.sh
-                cd ~/repo/ci/bbl-bosh-lite-environment/bbl-state
-                bbl print-env >> $BASH_ENV
-            fi
+    - run:
+        name: "Populate Secrets from Environment"
+        command: |
+          cd ~/repo/ci/
+          if [[ ${CIRCLE_BUILD_NUM} = "" ]]; then
+              echo "populating from .envrc"
+              [[ -f ".envrc-localci" ]] || (printf "Ensure .envrc is present in ci directory before running script"; exit 1)
+              cat .envrc-localci >> $BASH_ENV
+              source .envrc-localci
+              ./scripts/manage-bosh-bbl-environment.sh generate-bbl-state-directory -b "${ACTIVE_BBL_ENV_LOCAL}"
+              bbl -s "bosh-env-${ACTIVE_BBL_ENV_LOCAL}/bbl-state" print-env >> $BASH_ENV
+          else
+              echo "populating from bbl env"
+              ./scripts/manage-bosh-bbl-environment.sh generate-bbl-state-directory -b "${ACTIVE_BBL_ENV_CIRCLE}"
+              bbl -s "bosh-env-${ACTIVE_BBL_ENV_CIRCLE}/bbl-state" print-env >> $BASH_ENV
+          fi
 
-      - run:
-          name: "Queue until all other builds finished"
-          command: |
-            cd ~/repo/ci/scripts
-            ./wait-for-other-builds-to-finish.sh 60
+    - run:
+        name: "Queue until all other builds finished"
+        command: |
+          cd ~/repo/ci/scripts
+          ./wait-for-other-builds-to-finish.sh 60
 
-      - run:
-          name: "Download dependencies"
-          command: ./gradlew assemble
+    - run:
+        name: "Download dependencies"
+        command: ./gradlew assemble
 
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: sc-app-broker-{{ .Branch }}
+    - save_cache:
+        paths:
+        - ~/.gradle
+        key: sc-app-broker-{{ .Branch }}
 
-      - run:
-          name: "Disable Gradle daemon"
-          command: touch ~/.gradle/gradle.properties && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
+    - run:
+        name: "Disable Gradle daemon"
+        command: touch ~/.gradle/gradle.properties && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
 
-      - run:
-          name: "Run unit tests"
-          command: ./gradlew clean codeCoverageReport --stacktrace
+    - run:
+        name: "Run unit tests"
+        command: ./gradlew clean codeCoverageReport --stacktrace
 
-      - run:
-          name: "Aggregate test results"
-          when: always
-          command: |
-            mkdir -p ~/junit/
-            find . -type f -regex ".*/build/test-results/.*" -exec cp {} ~/junit/ \;
+    - run:
+        name: "Aggregate test results"
+        when: always
+        command: |
+          mkdir -p ~/junit/
+          find . -type f -regex ".*/build/test-results/.*" -exec cp {} ~/junit/ \;
 
-      - run:
-          name: "Upload tests coverage"
-          command: bash <(curl -s https://codecov.io/bash)
+    - run:
+        name: "Upload tests coverage"
+        command: bash <(curl -s https://codecov.io/bash)
 
-      - store_artifacts:
-          path: ~/junit/
-          destination: artifacts
+    - store_artifacts:
+        path: ~/junit/
+        destination: artifacts
 
-      - store_test_results:
-          path: ~/junit/
-          destination: testartifacts
+    - store_test_results:
+        path: ~/junit/
+        destination: testartifacts
 
+    - run:
+        name: "Start BOSH Lite"
+        command: |
+          cd ~/repo/ci
+          ./scripts/wait-for-bosh-locks-to-be-released.sh 30
+          bosh -n -d cf start
 
-      - run:
-          name: "Start BOSH Lite"
-          command: |
-            cd ~/repo/ci
-            ./scripts/wait-for-bosh-locks-to-be-released.sh 30
-            bosh -n -d cf start
+    - run:
+        name: "Run acceptance tests"
+        command: |
+          ./gradlew -b spring-cloud-app-broker-sample/build.gradle assemble
+          ./gradlew clean assemble check -PacceptanceTests --stacktrace --continue -b spring-cloud-app-broker-acceptance-tests/build.gradle
 
-      - run:
-          name: "Run acceptance tests"
-          command: |
-            ./gradlew -b spring-cloud-app-broker-sample/build.gradle assemble
-            ./gradlew clean assemble check -PacceptanceTests --stacktrace --continue -b spring-cloud-app-broker-acceptance-tests/build.gradle
+    - run:
+        name: "BOSH Cleanup"
+        command: bosh -n clean-up --all
 
-      - store_test_results:
-          path: ~/repo/spring-cloud-app-broker-acceptance-tests/build/test-results
-          destination: acceptancetestartifacts
-
-      - run:
-          name: "Stop BOSH Lite"
-          command: |
-            cd ~/repo/ci/bbl-bosh-lite-environment/bbl-state
-            bosh -n -d cf stop
-          when: always
+    - store_test_results:
+        path: ~/repo/spring-cloud-app-broker-acceptance-tests/build/test-results
+        destination: acceptancetestartifacts

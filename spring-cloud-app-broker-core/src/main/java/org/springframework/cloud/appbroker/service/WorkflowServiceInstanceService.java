@@ -113,7 +113,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceRequest request) {
 		return Flux.fromIterable(createServiceInstanceWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
-			.flatMap(workflow -> workflow.create(request));
+			.concatMap(workflow -> workflow.create(request));
 	}
 
 	@Override
@@ -154,7 +154,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceRequest request) {
 		return Flux.fromIterable(deleteServiceInstanceWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
-			.flatMap(workflow -> workflow.delete(request));
+			.concatMap(workflow -> workflow.delete(request));
 	}
 
 	@Override
@@ -195,7 +195,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private Flux<Void> invokeUpdateWorkflows(UpdateServiceInstanceRequest request) {
 		return Flux.fromIterable(updateServiceInstanceWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
-			.flatMap(workflow -> workflow.update(request));
+			.concatMap(workflow -> workflow.update(request));
 	}
 
 	@Override

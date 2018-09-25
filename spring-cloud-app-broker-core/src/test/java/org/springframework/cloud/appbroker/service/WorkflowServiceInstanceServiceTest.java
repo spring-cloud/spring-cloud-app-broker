@@ -16,12 +16,19 @@
 
 package org.springframework.cloud.appbroker.service;
 
+import java.util.Arrays;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+import reactor.test.publisher.TestPublisher;
+
 import org.springframework.cloud.appbroker.state.ServiceInstanceState;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
@@ -32,17 +39,11 @@ import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -99,10 +100,13 @@ class WorkflowServiceInstanceServiceTest {
 
 		CreateServiceInstanceResponseBuilder responseBuilder = CreateServiceInstanceResponse.builder();
 
+		TestPublisher<Void> lowerOrderFlow = TestPublisher.create();
+		TestPublisher<Void> higherOrderFlow = TestPublisher.create();
+
 		given(createServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceWorkflow1.create(request))
-			.willReturn(Flux.empty());
+			.willReturn(lowerOrderFlow.flux());
 		given(createServiceInstanceWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -111,7 +115,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(createServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceWorkflow2.create(request))
-			.willReturn(Flux.empty());
+			.willReturn(higherOrderFlow.flux());
 		given(createServiceInstanceWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.dashboardUrl("https://dashboard.example.com")
@@ -125,6 +129,12 @@ class WorkflowServiceInstanceServiceTest {
 				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("create service instance completed"));
 				repoOrder.verifyNoMoreInteractions();
+
+				lowerOrderFlow.complete();
+				lowerOrderFlow.assertWasNotRequested();
+
+				higherOrderFlow.complete();
+				lowerOrderFlow.assertWasRequested();
 
 				InOrder createOrder = inOrder(createServiceInstanceWorkflow1, createServiceInstanceWorkflow2);
 				createOrder.verify(createServiceInstanceWorkflow2).buildResponse(eq(request),
@@ -261,10 +271,13 @@ class WorkflowServiceInstanceServiceTest {
 
 		DeleteServiceInstanceResponseBuilder responseBuilder = DeleteServiceInstanceResponse.builder();
 
+		TestPublisher<Void> lowerOrderFlow = TestPublisher.create();
+		TestPublisher<Void> higherOrderFlow = TestPublisher.create();
+
 		given(deleteServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceWorkflow1.delete(request))
-			.willReturn(Flux.empty());
+			.willReturn(lowerOrderFlow.flux());
 		given(deleteServiceInstanceWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -273,7 +286,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(deleteServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceWorkflow2.delete(request))
-			.willReturn(Flux.empty());
+			.willReturn(higherOrderFlow.flux());
 		given(deleteServiceInstanceWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.operation("working2")));
@@ -286,6 +299,12 @@ class WorkflowServiceInstanceServiceTest {
 				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("delete service instance completed"));
 				repoOrder.verifyNoMoreInteractions();
+
+				lowerOrderFlow.complete();
+				lowerOrderFlow.assertWasNotRequested();
+
+				higherOrderFlow.complete();
+				lowerOrderFlow.assertWasRequested();
 
 				InOrder deleteOrder = inOrder(deleteServiceInstanceWorkflow1, deleteServiceInstanceWorkflow2);
 				deleteOrder.verify(deleteServiceInstanceWorkflow2).buildResponse(eq(request),
@@ -421,10 +440,13 @@ class WorkflowServiceInstanceServiceTest {
 
 		UpdateServiceInstanceResponseBuilder responseBuilder = UpdateServiceInstanceResponse.builder();
 
+		TestPublisher<Void> lowerOrderFlow = TestPublisher.create();
+		TestPublisher<Void> higherOrderFlow = TestPublisher.create();
+
 		given(updateServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(updateServiceInstanceWorkflow1.update(request))
-			.willReturn(Flux.empty());
+			.willReturn(lowerOrderFlow.flux());
 		given(updateServiceInstanceWorkflow1.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -433,7 +455,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(updateServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(updateServiceInstanceWorkflow2.update(request))
-			.willReturn(Flux.empty());
+			.willReturn(higherOrderFlow.flux());
 		given(updateServiceInstanceWorkflow2.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.dashboardUrl("https://dashboard.example.com")
@@ -447,6 +469,12 @@ class WorkflowServiceInstanceServiceTest {
 				repoOrder.verify(serviceInstanceStateRepository)
 					.saveState(eq("foo"), eq(OperationState.SUCCEEDED), eq("update service instance completed"));
 				repoOrder.verifyNoMoreInteractions();
+
+				lowerOrderFlow.complete();
+				lowerOrderFlow.assertWasNotRequested();
+
+				higherOrderFlow.complete();
+				lowerOrderFlow.assertWasRequested();
 
 				InOrder updateOrder = inOrder(updateServiceInstanceWorkflow1, updateServiceInstanceWorkflow2);
 				updateOrder.verify(updateServiceInstanceWorkflow2).buildResponse(eq(request),

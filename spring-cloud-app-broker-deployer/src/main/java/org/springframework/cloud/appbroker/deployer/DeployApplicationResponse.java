@@ -20,7 +20,7 @@ public class DeployApplicationResponse {
 
 	private String name;
 
-	DeployApplicationResponse(String name) {
+	private DeployApplicationResponse(String name) {
 		this.name = name;
 	}
 
@@ -37,7 +37,6 @@ public class DeployApplicationResponse {
 		private String name;
 
 		DeployApplicationResponseBuilder() {
-
 		}
 
 		public DeployApplicationResponseBuilder name(String name) {

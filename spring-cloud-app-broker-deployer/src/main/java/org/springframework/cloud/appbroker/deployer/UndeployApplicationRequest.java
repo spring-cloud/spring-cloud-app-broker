@@ -20,7 +20,7 @@ public class UndeployApplicationRequest {
 
 	private String name;
 
-	UndeployApplicationRequest(String name) {
+	private UndeployApplicationRequest(String name) {
 		this.name = name;
 	}
 

@@ -48,7 +48,7 @@ public class DeployerClient {
 		return appDeployer.undeploy(UndeployApplicationRequest.builder()
 			.name(backingApplication.getName())
 			.build())
-			.map(UndeployApplicationResponse::getStatus);
+			.map(UndeployApplicationResponse::getName);
 	}
 
 }

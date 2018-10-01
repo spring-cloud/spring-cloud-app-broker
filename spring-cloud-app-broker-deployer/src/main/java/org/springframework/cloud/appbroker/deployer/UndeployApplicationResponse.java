@@ -18,35 +18,34 @@ package org.springframework.cloud.appbroker.deployer;
 
 public class UndeployApplicationResponse {
 
-	private String status;
+	private String name;
 
-	UndeployApplicationResponse(String status) {
-		this.status = status;
+	private UndeployApplicationResponse(String name) {
+		this.name = name;
 	}
 
 	public static UndeployApplicationResponseBuilder builder() {
 		return new UndeployApplicationResponseBuilder();
 	}
 
-	public String getStatus() {
-		return this.status;
+	public String getName() {
+		return this.name;
 	}
 
 	public static class UndeployApplicationResponseBuilder {
 
-		private String status;
+		private String name;
 
 		UndeployApplicationResponseBuilder() {
-
 		}
 
-		public UndeployApplicationResponseBuilder status(String status) {
-			this.status = status;
+		public UndeployApplicationResponseBuilder name(String name) {
+			this.name = name;
 			return this;
 		}
 
 		public UndeployApplicationResponse build() {
-			return new UndeployApplicationResponse(status);
+			return new UndeployApplicationResponse(name);
 		}
 	}
 }

@@ -33,7 +33,8 @@ public class DeployApplicationRequest {
 
 	private List<String> services;
 
-	DeployApplicationRequest(String name, String path, Map<String, String> properties, Map<String, String> environment, List<String> services) {
+	private DeployApplicationRequest(String name, String path, Map<String, String> properties,
+							 Map<String, String> environment, List<String> services) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;

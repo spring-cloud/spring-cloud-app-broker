@@ -152,7 +152,7 @@ class DeployerClientTest {
 		// given
 		when(appDeployer.undeploy(any()))
 			.thenReturn(Mono.just(UndeployApplicationResponse.builder()
-				.status("undeployed")
+				.name(APP_NAME)
 				.build()));
 
 		BackingApplication application = BackingApplication.builder()
@@ -163,7 +163,7 @@ class DeployerClientTest {
 		// when
 		StepVerifier.create(deployerClient.undeploy(application))
 			// then
-			.expectNext("undeployed")
+			.expectNext(APP_NAME)
 			.verifyComplete();
 
 		verify(appDeployer).undeploy(argThat(request -> APP_NAME.equals(request.getName())));

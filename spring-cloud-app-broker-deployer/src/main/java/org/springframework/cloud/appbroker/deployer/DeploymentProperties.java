@@ -19,30 +19,24 @@ package org.springframework.cloud.appbroker.deployer;
 import org.springframework.cloud.appbroker.deployer.util.ByteSizeUtils;
 
 public interface DeploymentProperties {
-
-	/**
-	 * Common prefix used for deployment properties.
-	 */
-	String PREFIX = "spring.cloud.deployer.";
-
 	/**
 	 * The deployment property for the count (number of app instances).
 	 * If not provided, a deployer should assume 1 instance.
 	 */
-	String COUNT_PROPERTY_KEY = PREFIX + "count";
+	String COUNT_PROPERTY_KEY = "count";
 
 	/**
 	 * The deployment property for the group to which an app belongs.
 	 * If not provided, a deployer should assume no group.
 	 */
-	String GROUP_PROPERTY_KEY = PREFIX + "group";
+	String GROUP_PROPERTY_KEY = "group";
 
 	/**
 	 * The deployment property that indicates if each app instance should have an index value
 	 * within a sequence from 0 to N-1, where N is the value of the {@value #COUNT_PROPERTY_KEY}
 	 * property. If not provided, a deployer should assume app instance indexing is not necessary.
 	 */
-	String INDEXED_PROPERTY_KEY = PREFIX + "indexed";
+	String INDEXED_PROPERTY_KEY = "indexed";
 
 	/**
 	 * The property to be set at each instance level to specify the sequence number
@@ -66,7 +60,7 @@ public interface DeploymentProperties {
 	 *
 	 * @see ByteSizeUtils
 	 */
-	String MEMORY_PROPERTY_KEY = PREFIX + "memory";
+	String MEMORY_PROPERTY_KEY = "memory";
 
 	/**
 	 * The deployment property for the disk setting for the container that will run the app.
@@ -80,7 +74,7 @@ public interface DeploymentProperties {
 	 *
 	 * @see ByteSizeUtils
 	 */
-	String DISK_PROPERTY_KEY = PREFIX + "disk";
+	String DISK_PROPERTY_KEY = "disk";
 
 	/**
 	 * The deployment property for the cpu setting for the container that will run the app.
@@ -88,5 +82,5 @@ public interface DeploymentProperties {
 	 * support setting cpu and will ignore this setting. Other platforms may require whole numbers and might
 	 * round up. Exactly how this property affects the deployments will vary between implementations.
 	 */
-	String CPU_PROPERTY_KEY = PREFIX + "cpu";
+	String CPU_PROPERTY_KEY = "cpu";
 }

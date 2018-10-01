@@ -31,38 +31,31 @@ import java.util.Set;
  * @author Greg Turnquist
  * @author Ilayaperumal Gopinathan
  */
+@SuppressWarnings("unused")
 public class CloudFoundryDeploymentProperties {
-	public static final String CLOUDFOUNDRY_PROPERTIES = "spring.cloud.deployer.cloudfoundry";
+	static final String HEALTHCHECK_PROPERTY_KEY = "health-check";
 
-	public static final String HEALTHCHECK_PROPERTY_KEY = CLOUDFOUNDRY_PROPERTIES + ".health-check";
+	static final String HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY = "health-check-http-endpoint";
 
-	public static final String HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY = CLOUDFOUNDRY_PROPERTIES + ".health-check-http-endpoint";
+	static final String HEALTHCHECK_TIMEOUT_PROPERTY_KEY = "health-check-timeout";
 
-	public static final String HEALTHCHECK_TIMEOUT_PROPERTY_KEY = CLOUDFOUNDRY_PROPERTIES + ".health-check-timeout";
+	static final String ROUTE_PATH_PROPERTY = "route-path";
 
-	public static final String ROUTE_PATH_PROPERTY = CLOUDFOUNDRY_PROPERTIES + ".route-path";
+	static final String ROUTE_PROPERTY = "route";
 
-	public static final String ROUTE_PROPERTY = CLOUDFOUNDRY_PROPERTIES + ".route";
+	static final String ROUTES_PROPERTY = "routes";
 
-	public static final String ROUTES_PROPERTY = CLOUDFOUNDRY_PROPERTIES + ".routes";
+	static final String NO_ROUTE_PROPERTY = "no-route";
 
-	public static final String NO_ROUTE_PROPERTY = CLOUDFOUNDRY_PROPERTIES + ".no-route";
+	static final String HOST_PROPERTY = "host";
 
-	public static final String HOST_PROPERTY = CLOUDFOUNDRY_PROPERTIES + ".host";
+	static final String DOMAIN_PROPERTY = "domain";
 
-	public static final String DOMAIN_PROPERTY = CLOUDFOUNDRY_PROPERTIES + ".domain";
+	static final String BUILDPACK_PROPERTY_KEY = "buildpack";
 
-	public static final String BUILDPACK_PROPERTY_KEY = CLOUDFOUNDRY_PROPERTIES + ".buildpack";
+	static final String JAVA_OPTS_PROPERTY_KEY = "javaOpts";
 
-	public static final String JAVA_OPTS_PROPERTY_KEY = CLOUDFOUNDRY_PROPERTIES + ".javaOpts";
-
-	public static final String USE_SPRING_APPLICATION_JSON_KEY = CLOUDFOUNDRY_PROPERTIES + ".use-spring-application-json";
-
-	/**
-	 * The names of services to bind to all applications deployed as a module.
-	 * This should typically contain a service capable of playing the role of a binding transport.
-	 */
-	private Set<String> services = new HashSet<>();
+	static final String USE_SPRING_APPLICATION_JSON_KEY = "use-spring-application-json";
 
 	/**
 	 * The host name to use as part of the route. Defaults to hostname derived by Cloud Foundry.
@@ -157,14 +150,6 @@ public class CloudFoundryDeploymentProperties {
 	private boolean deleteRoutes = true;
 
 	private String javaOpts;
-
-	public Set<String> getServices() {
-		return services;
-	}
-
-	public void setServices(Set<String> services) {
-		this.services = services;
-	}
 
 	public String getBuildpack() {
 		return buildpack;

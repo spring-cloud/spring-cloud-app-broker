@@ -22,7 +22,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -152,7 +151,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.name(request.getName())
 			.path(getApplication(appResource))
 			.environmentVariables(getEnvironmentVariables(request.getEnvironment()))
-			.services(servicesToBind(request.getServices()))
+			.services(request.getServices())
 			.disk(diskQuota(deploymentProperties))
 			.healthCheckType(healthCheck(deploymentProperties))
 			.healthCheckHttpEndpoint(healthCheckEndpoint(deploymentProperties))
@@ -270,13 +269,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return Optional.ofNullable(environment.get(USE_SPRING_APPLICATION_JSON_KEY))
 			.map(Boolean::valueOf)
 			.orElse(this.defaultDeploymentProperties.isUseSpringApplicationJson());
-	}
-
-	private Set<String> servicesToBind(List<String> services) {
-		Set<String> allServices = new HashSet<>();
-		allServices.addAll(this.defaultDeploymentProperties.getServices());
-		allServices.addAll(services);
-		return allServices;
 	}
 
 	private String domain(Map<String, String> properties) {

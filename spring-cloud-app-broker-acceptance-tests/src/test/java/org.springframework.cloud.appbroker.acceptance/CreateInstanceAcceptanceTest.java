@@ -37,8 +37,8 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=value2",
-		"spring.cloud.appbroker.services[0].apps[0].properties.spring.cloud.deployer.memory=2G",
-		"spring.cloud.appbroker.services[0].apps[0].properties.spring.cloud.deployer.count=2"
+		"spring.cloud.appbroker.services[0].apps[0].properties.memory=2G",
+		"spring.cloud.appbroker.services[0].apps[0].properties.count=2"
 	})
 	void shouldPushAppWhenCreateServiceCalled() {
 		// when a service instance is created

@@ -25,6 +25,7 @@ import java.util.Objects;
 
 public class BackingApplication {
 
+	private static final String VALUE_HIDDEN = "<value hidden>";
 	private String name;
 	private String path;
 	private Map<String, String> properties;
@@ -139,10 +140,17 @@ public class BackingApplication {
 			"name='" + name + '\'' +
 			", path='" + path + '\'' +
 			", properties=" + properties +
-			", environment=" + environment +
+			", environment=" + sanitizeEnvironment(environment) +
 			", services=" + services +
 			", parametersTransformers=" + parametersTransformers +
 			'}';
+	}
+
+	private Map<String, String> sanitizeEnvironment(Map<String, String> environment) {
+		HashMap<String, String> sanitizedEnvironment = new HashMap<>();
+		environment.forEach((key, value) -> sanitizedEnvironment.put(key, VALUE_HIDDEN));
+
+		return sanitizedEnvironment;
 	}
 
 	public static class BackingApplicationBuilder {

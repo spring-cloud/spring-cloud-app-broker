@@ -28,6 +28,7 @@ dependencies {
 	api("org.springframework:spring-core")
 	api("org.springframework:spring-context")
 	api("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
+	api("org.apache.commons:commons-text:1.4")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
 

@@ -78,7 +78,8 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 		updateServiceInstanceWorkflow = new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices,
 			backingAppDeploymentService,
-			parametersTransformationService);
+			parametersTransformationService
+		);
 	}
 
 	@Test
@@ -140,6 +141,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		return UpdateServiceInstanceRequest.builder()
 			.serviceDefinitionId(serviceName + "-id")
 			.planId(planName + "-id")
+			.serviceInstanceId(serviceName + "-" + planName + "-instance-id")
 			.serviceDefinition(ServiceDefinition.builder()
 				.id(serviceName + "-id")
 				.name(serviceName)

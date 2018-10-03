@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.extensions;
+package org.springframework.cloud.appbroker.extensions.support;
 
+import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.beanutils.DefaultBeanIntrospector;
+import org.apache.commons.beanutils.SuppressPropertiesBeanIntrospector;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 
@@ -29,10 +32,18 @@ public abstract class ConfigurationBeanUtils {
 	}
 
 	public static <T> void populate(T targetObject, Map<String, Object> properties) {
+		if (properties == null) {
+			return;
+		}
+		
 		T target = getTargetObject(targetObject);
 
 		try {
-			org.apache.commons.beanutils.BeanUtils.populate(target, properties);
+			BeanUtilsBean beanUtils = new BeanUtilsBean();
+			beanUtils.getPropertyUtils().addBeanIntrospector(DefaultBeanIntrospector.INSTANCE);
+			beanUtils.getPropertyUtils().addBeanIntrospector(new KebabCasePropertyBeanIntrospector());
+			beanUtils.getPropertyUtils().addBeanIntrospector(SuppressPropertiesBeanIntrospector.SUPPRESS_CLASS);
+			beanUtils.copyProperties(target, properties);
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			throw new IllegalArgumentException("Failed to populate target of type " + targetObject.getClass()
 				+ " with properties " + properties, e);

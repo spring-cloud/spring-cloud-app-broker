@@ -17,7 +17,6 @@
 package org.springframework.cloud.appbroker.extensions.parameters;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,20 +39,16 @@ public class EnvironmentMappingParametersTransformerFactory extends
 	private Mono<BackingApplication> transform(BackingApplication backingApplication,
 											   Map<String, Object> parameters,
 											   List<String> include) {
-		final Map<String, String> environment = new HashMap<>();
-		final Map<String, String> backingAppEnvironment = backingApplication.getEnvironment();
-		if (backingAppEnvironment != null) {
-			environment.putAll(backingAppEnvironment);
-		}
 		if (parameters != null) {
 			parameters.keySet().stream()
 				.filter(include::contains)
-				.forEach(key -> environment.put(key, parameters.get(key).toString()));
+				.forEach(key -> backingApplication.addEnvironment(key, parameters.get(key).toString()));
 		}
-		backingApplication.setEnvironment(environment);
+
 		return Mono.just(backingApplication);
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public static class Config {
 		private String include;
 

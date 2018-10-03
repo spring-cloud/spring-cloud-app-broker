@@ -169,7 +169,7 @@ class ParametersTransformationServiceTest {
 		private Mono<BackingApplication> doTransform(BackingApplication backingApplication,
 													 Map<String, Object> parameters) {
 			this.actualParameters = parameters;
-			backingApplication.getEnvironment().put(Integer.toString(backingApplication.getEnvironment().size()), getName());
+			backingApplication.addEnvironment(Integer.toString(backingApplication.getEnvironment().size()), getName());
 			return Mono.just(backingApplication);
 		}
 
@@ -177,11 +177,12 @@ class ParametersTransformationServiceTest {
 			return actualParameters;
 		}
 
-		public Config getActualConfig() {
+		Config getActualConfig() {
 			return actualConfig;
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public static class Config {
 		private String arg1;
 		private Integer arg2;

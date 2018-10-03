@@ -35,8 +35,8 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 	implements UpdateServiceInstanceWorkflow {
 	private final Logger log = Loggers.getLogger(AppDeploymentUpdateServiceInstanceWorkflow.class);
 
-	private BackingAppDeploymentService deploymentService;
-	private ParametersTransformationService parametersTransformationService;
+	private final BackingAppDeploymentService deploymentService;
+	private final ParametersTransformationService parametersTransformationService;
 
 	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
@@ -48,7 +48,8 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 
 	public Flux<Void> update(UpdateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-			.flatMap(backingApps -> parametersTransformationService.transformParameters(backingApps, request.getParameters()))
+			.flatMap(backingApps ->
+				parametersTransformationService.transformParameters(backingApps, request.getParameters()))
 			.flatMapMany(deploymentService::deploy)
 			.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
 			.doOnEach(s -> log.info("Finished deploying {}", s))

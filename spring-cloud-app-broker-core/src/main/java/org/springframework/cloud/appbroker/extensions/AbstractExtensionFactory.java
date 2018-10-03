@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.extensions;
 
+import org.springframework.cloud.appbroker.extensions.support.ConfigurationBeanUtils;
+
 import java.util.Map;
 import java.util.function.Consumer;
 

@@ -26,16 +26,16 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -45,11 +45,15 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
 
+	@Mock
+	private CredentialProviderService credentialProviderService;
+
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
+	private BackingApplications backingApps;
 
 	@BeforeEach
 	void setUp() {
-		BackingApplications backingApps = BackingApplications.builder()
+		backingApps = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()
 				.name("app1")
 				.path("http://myfiles/app1.jar")
@@ -68,21 +72,27 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
-		deleteServiceInstanceWorkflow = new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
+		deleteServiceInstanceWorkflow = new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices,
+			backingAppDeploymentService, credentialProviderService);
 	}
 
 	@Test
 	void deleteServiceInstanceSucceeds() {
-		given(this.backingAppDeploymentService.undeploy(any(BackingApplications.class)))
+		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
+
+		given(this.backingAppDeploymentService.undeploy(eq(backingApps)))
 			.willReturn(Flux.just("undeployed1", "undeployed2"));
+		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(backingApps));
 
 		StepVerifier
-			.create(deleteServiceInstanceWorkflow.delete(buildRequest("service1", "plan1")))
+			.create(deleteServiceInstanceWorkflow.delete(request))
 			.expectNext()
 			.expectNext()
 			.verifyComplete();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
+		verifyNoMoreInteractions(this.credentialProviderService);
 	}
 
 	@Test
@@ -92,12 +102,14 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.verifyComplete();
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
+		verifyNoMoreInteractions(this.credentialProviderService);
 	}
 
 	private DeleteServiceInstanceRequest buildRequest(String serviceName, String planName) {
 		return DeleteServiceInstanceRequest.builder()
 			.serviceDefinitionId(serviceName + "-id")
 			.planId(planName + "-id")
+			.serviceInstanceId(serviceName + "-" + planName + "-instance-id")
 			.serviceDefinition(ServiceDefinition.builder()
 				.id(serviceName + "-id")
 				.name(serviceName)

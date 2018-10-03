@@ -28,7 +28,4 @@ public interface AppDeployer {
 		return Mono.empty();
 	}
 
-	default Mono<GetApplicationStatusResponse> status(GetApplicationStatusRequest request) {
-		return Mono.empty();
-	}
 }

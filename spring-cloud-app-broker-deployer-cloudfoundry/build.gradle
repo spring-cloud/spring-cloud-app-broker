@@ -18,17 +18,15 @@ description = "Spring Cloud App Broker Deployer Cloud Foundry"
 
 ext {
 	reactorNettyVersion = '0.7.5.RELEASE'
-
-//	webflux defaults; must be overridden for org.cloudfoundry:cloudfoundry-client-reactor:3.9.0.RELEASE
-//	reactorVersion = '3.1.7.RELEASE'
-//	reactorNettyVersion = '0.7.7.RELEASE'
-
-	deployerCFVersion = '1.4.0.RELEASE'
+	cfJavaClientVersion = "3.9.0.RELEASE"
 }
 
 dependencies {
 	api project(":spring-cloud-app-broker-deployer")
-	api("org.springframework.cloud:spring-cloud-deployer-cloudfoundry:${deployerCFVersion}")
+	api("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
+	api("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
+	api("org.cloudfoundry:cloudfoundry-util:${cfJavaClientVersion}")
+
 	// fix the Boot version to prevent 1.5.x and 2.0.x on the classpath
 	implementation("org.springframework.boot:spring-boot-starter-validation:${springBootVersion}")
 

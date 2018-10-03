@@ -25,6 +25,7 @@ dependencyManagement {
 dependencies {
 	api project(":spring-cloud-app-broker-core")
 	api project(":spring-cloud-app-broker-deployer-cloudfoundry")
+	api("org.springframework.boot:spring-boot-autoconfigure")
 
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.springframework.boot:spring-boot-autoconfigure-processor")

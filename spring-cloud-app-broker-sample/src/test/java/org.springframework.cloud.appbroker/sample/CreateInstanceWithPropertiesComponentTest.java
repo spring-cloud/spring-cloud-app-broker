@@ -36,9 +36,9 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithPrope
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-	"spring.cloud.appbroker.services[0].apps[0].properties.spring.cloud.deployer.memory=2G",
-	"spring.cloud.appbroker.services[0].apps[0].properties.spring.cloud.deployer.count=2",
-	"spring.cloud.appbroker.services[0].apps[0].properties.spring.cloud.deployer.cloudfoundry.health-check-timeout=180"
+	"spring.cloud.appbroker.services[0].apps[0].properties.memory=2G",
+	"spring.cloud.appbroker.services[0].apps[0].properties.count=2",
+	"spring.cloud.appbroker.services[0].apps[0].properties.health-check-timeout=180"
 })
 class CreateInstanceWithPropertiesComponentTest extends WiremockComponentTest {
 	static final String APP_NAME = "app-with-properties";

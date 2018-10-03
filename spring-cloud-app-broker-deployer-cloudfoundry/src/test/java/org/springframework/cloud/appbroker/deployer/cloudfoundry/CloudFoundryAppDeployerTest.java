@@ -33,7 +33,6 @@ import reactor.test.StepVerifier;
 
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
-import org.springframework.cloud.deployer.spi.cloudfoundry.CloudFoundryDeploymentProperties;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -64,7 +63,6 @@ class CloudFoundryAppDeployerTest {
 
 	@BeforeEach
 	void setUp() {
-		NoOpAppNameGenerator applicationNameGenerator = new NoOpAppNameGenerator();
 		CloudFoundryDeploymentProperties deploymentProperties = new CloudFoundryDeploymentProperties();
 		deploymentProperties.setDisk(APP_MEMORY_STRING);
 
@@ -72,8 +70,8 @@ class CloudFoundryAppDeployerTest {
 		when(cloudFoundryOperations.applications()).thenReturn(applications);
 		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
 
-		appDeployer = new CloudFoundryAppDeployer(applicationNameGenerator,
-			deploymentProperties, cloudFoundryOperations, null, resourceLoader);
+		appDeployer = new CloudFoundryAppDeployer(
+			deploymentProperties, cloudFoundryOperations, resourceLoader);
 	}
 
 	@Test

@@ -17,5 +17,6 @@
 description = "Spring Cloud App Broker Deployer"
 
 dependencies {
+	api("org.springframework:spring-core:${springVersion}")
 	api("io.projectreactor:reactor-core:${reactorVersion}")
 }

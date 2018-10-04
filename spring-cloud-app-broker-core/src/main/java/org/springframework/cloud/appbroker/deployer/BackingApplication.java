@@ -147,6 +147,8 @@ public class BackingApplication {
 	}
 
 	private Map<String, String> sanitizeEnvironment(Map<String, String> environment) {
+		if (environment == null) return environment;
+
 		HashMap<String, String> sanitizedEnvironment = new HashMap<>();
 		environment.forEach((key, value) -> sanitizedEnvironment.put(key, VALUE_HIDDEN));
 

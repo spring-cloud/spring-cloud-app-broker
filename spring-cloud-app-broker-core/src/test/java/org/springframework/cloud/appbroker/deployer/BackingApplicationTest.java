@@ -25,5 +25,8 @@ class BackingApplicationTest {
 
 		assertThat(backingApp.getEnvironment().get("privateKey")).isEqualTo("secret-private-key");
 		assertThat(backingApp.getEnvironment().get("databasePassword")).isEqualTo("password");
+
+		backingApp.setEnvironment(null);
+		assertThat(backingApp.toString()).isNotEmpty();
 	}
 }

@@ -26,7 +26,7 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 	static final String SPRING_SECURITY_USER_NAME = "security.user.name";
 	static final String SPRING_SECURITY_USER_PASSWORD = "security.user.password";
 
-	private CredentialGenerator credentialGenerator;
+	private final CredentialGenerator credentialGenerator;
 
 	public SpringSecurityBasicAuthCredentialProviderFactory(CredentialGenerator credentialGenerator) {
 		super(Config.class);

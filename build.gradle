@@ -158,6 +158,14 @@ configure(allprojects) {
 		}
 	}
 
+	pmd {
+		ruleSetFiles = files("${project.rootDir}/ci/config/pmdRuleSet.xml")
+	}
+
+	pmdTest {
+		ruleSetFiles = files("${project.rootDir}/ci/config/pmdTestRuleSet.xml")
+	}
+
 	artifactory {
 		contextUrl = 'https://repo.spring.io'
 		publish {
@@ -304,14 +312,6 @@ configure(rootProject) {
 		archives docsZip
 		archives distZip
 	}
-}
-
-pmd {
-	ruleSetFiles = files("${project.rootDir}/ci/config/pmdRuleSet.xml")
-}
-
-pmdTest {
-	ruleSetFiles = files("${project.rootDir}/ci/config/pmdTestRuleSet.xml")
 }
 
 task codeCoverageReport(type: JacocoReport) {

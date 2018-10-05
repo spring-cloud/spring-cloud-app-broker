@@ -25,9 +25,9 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
  */
 public class ServiceInstanceState {
 
-	private OperationState operationState;
+	private final OperationState operationState;
 
-	private String description;
+	private final String description;
 
 	//TODO: consider a time stamp property
 

@@ -18,9 +18,9 @@ package org.springframework.cloud.appbroker.deployer;
 
 public class DeployApplicationResponse {
 
-	private String name;
+	private final String name;
 
-	private DeployApplicationResponse(String name) {
+	DeployApplicationResponse(String name) {
 		this.name = name;
 	}
 

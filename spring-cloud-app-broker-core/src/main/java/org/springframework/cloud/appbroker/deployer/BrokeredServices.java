@@ -22,10 +22,10 @@ import java.util.List;
 public class BrokeredServices extends ArrayList<BrokeredService> {
 	private static final long serialVersionUID = 6303127383252611352L;
 
-	public BrokeredServices() {
+	private BrokeredServices() {
 	}
 
-	private BrokeredServices(List<BrokeredService> brokeredServices) {
+	BrokeredServices(List<BrokeredService> brokeredServices) {
 		super.addAll(brokeredServices);
 	}
 
@@ -34,7 +34,7 @@ public class BrokeredServices extends ArrayList<BrokeredService> {
 	}
 
 	public static class BrokeredServicesBuilder {
-		private List<BrokeredService> brokeredServices = new ArrayList<>();
+		private final List<BrokeredService> brokeredServices = new ArrayList<>();
 
 		public BrokeredServicesBuilder service(BrokeredService brokeredService) {
 			this.brokeredServices.add(brokeredService);

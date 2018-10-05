@@ -26,8 +26,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ConfigurationBeanUtilsTest {
 	
-	private TestProperties targetObject = new TestProperties();
-	private Map<String, Object> properties = new HashMap<>();
+	private final TestProperties targetObject = new TestProperties();
+	private final Map<String, Object> properties = new HashMap<>();
 
 	@Test
 	void populateWithCamelCaseProperties() {
@@ -68,13 +68,13 @@ class ConfigurationBeanUtilsTest {
 	private void assertValuesPopulated(TestProperties targetObject) {
 		assertThat(targetObject.getStringValue()).isEqualTo("value");
 		assertThat(targetObject.getIntValue()).isEqualTo(41);
-		assertThat(targetObject.getBooleanValue()).isEqualTo(true);
+		assertThat(targetObject.isBooleanValue()).isEqualTo(true);
 	}
 
 	private void assertValuesNotPopulated(TestProperties targetObject) {
 		assertThat(targetObject.getStringValue()).isNull();
 		assertThat(targetObject.getIntValue()).isEqualTo(0);
-		assertThat(targetObject.getBooleanValue()).isEqualTo(false);
+		assertThat(targetObject.isBooleanValue()).isEqualTo(false);
 	}
 
 	@SuppressWarnings("unused")
@@ -99,7 +99,7 @@ class ConfigurationBeanUtilsTest {
 			this.intValue = intValue;
 		}
 
-		boolean getBooleanValue() {
+		boolean isBooleanValue() {
 			return booleanValue;
 		}
 

@@ -41,9 +41,6 @@ public class WiremockServerFixture {
 	@Value("${wiremock.cloudfoundry.api-url:}")
 	private String cfApiUrl;
 
-	@Value("${wiremock.cloudfoundry.access-token:an.access.token}")
-	private String accessToken;
-
 	private WireMockServer wiremockServer;
 
 	public void startWiremock() {

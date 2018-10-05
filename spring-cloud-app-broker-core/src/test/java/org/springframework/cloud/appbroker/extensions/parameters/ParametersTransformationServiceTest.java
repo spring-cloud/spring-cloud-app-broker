@@ -146,7 +146,7 @@ class ParametersTransformationServiceTest {
 	}
 
 	public static class TestFactory extends ParametersTransformerFactory<Config> {
-		private String name;
+		private final String name;
 
 		private Map<String, Object> actualParameters;
 		private Config actualConfig;
@@ -188,7 +188,7 @@ class ParametersTransformationServiceTest {
 		private String arg1;
 		private Integer arg2;
 
-		Config() {
+		private Config() {
 		}
 
 		Config(String arg1, Integer arg2) {
@@ -214,8 +214,12 @@ class ParametersTransformationServiceTest {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (!(o instanceof Config)) return false;
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof Config)) {
+				return false;
+			}
 			Config config = (Config) o;
 			return Objects.equals(arg2, config.arg2) &&
 				Objects.equals(arg1, config.arg1);

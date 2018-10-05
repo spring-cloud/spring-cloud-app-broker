@@ -67,7 +67,7 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	@ConfigurationProperties(PROPERTY_PREFIX + ".services")
 	public BrokeredServices brokeredServices() {
-		return new BrokeredServices();
+		return BrokeredServices.builder().build();
 	}
 
 	@Bean

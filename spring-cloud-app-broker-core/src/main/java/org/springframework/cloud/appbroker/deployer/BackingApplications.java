@@ -22,7 +22,11 @@ import java.util.List;
 public class BackingApplications extends ArrayList<BackingApplication> {
 	private static final long serialVersionUID = 159473836238657105L;
 
-	public BackingApplications() {
+	private BackingApplications() {
+	}
+
+	BackingApplications(List<BackingApplication> backingApplications) {
+		super.addAll(backingApplications);
 	}
 
 	public BackingApplications(BackingApplications backingApplicationsToCopy) {
@@ -30,16 +34,12 @@ public class BackingApplications extends ArrayList<BackingApplication> {
 			this.add(new BackingApplication(backingApplicationToCopy)));
 	}
 
-	private BackingApplications(List<BackingApplication> backingApplications) {
-		super.addAll(backingApplications);
-	}
-
 	public static BackingApplicationsBuilder builder() {
 		return new BackingApplicationsBuilder();
 	}
 
 	public static class BackingApplicationsBuilder {
-		private List<BackingApplication> backingApplications = new ArrayList<>();
+		private final List<BackingApplication> backingApplications = new ArrayList<>();
 
 		public BackingApplicationsBuilder backingApplication(BackingApplication backingApplication) {
 			this.backingApplications.add(backingApplication);

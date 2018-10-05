@@ -45,11 +45,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @EnableConfigurationProperties(AcceptanceTestProperties.class)
 class CloudFoundryAcceptanceTest {
 
-	@BeforeEach
-	void setUp(BrokerProperties brokerProperties) {
-		initializeBroker(brokerProperties.getProperties());
-	}
-
 	private static final String SAMPLE_BROKER_APP_NAME = "sample-broker";
 	private static final String SERVICE_BROKER_NAME = "sample-broker-name";
 	private static final String SERVICE_NAME = "example";
@@ -62,12 +57,17 @@ class CloudFoundryAcceptanceTest {
 	@Autowired
 	private AcceptanceTestProperties acceptanceTestProperties;
 
+	@BeforeEach
+	void setUp(BrokerProperties brokerProperties) {
+		initializeBroker(brokerProperties.getProperties());
+	}
+
 	@AfterEach
 	void tearDown() {
 		blockingSubscribe(cleanup());
 	}
 
-	void initializeBroker(String[] backingAppProperties) {
+	private void initializeBroker(String... backingAppProperties) {
 
 		blockingSubscribe(cloudFoundryService
 			.getOrCreateDefaultOrganization()

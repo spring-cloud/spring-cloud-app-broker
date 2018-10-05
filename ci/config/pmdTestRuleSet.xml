@@ -49,6 +49,7 @@
 	<rule ref="rulesets/java/naming.xml">
 		<exclude name="LongVariable" />
 		<exclude name="ShortVariable" />
+		<exclude name="ShortMethodName" />
 		<exclude name="AbstractNaming"/>
 	</rule>
 	<rule ref="rulesets/java/optimizations.xml">
@@ -56,6 +57,7 @@
 		<exclude name="MethodArgumentCouldBeFinal"/>
 	</rule>
 	<rule ref="rulesets/java/strictexception.xml">
+		<exclude name="AvoidThrowingRawExceptionTypes"/>
 		<exclude name="SignatureDeclareThrowsException"/>
 	</rule>
 	<rule ref="rulesets/java/strings.xml">

@@ -44,6 +44,7 @@ import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.util.ByteSizeUtils;
 import org.springframework.http.HttpStatus;
 import reactor.core.Exceptions;
@@ -59,26 +60,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.COUNT_PROPERTY_KEY;
-import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.DISK_PROPERTY_KEY;
-import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.GROUP_PROPERTY_KEY;
-import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.MEMORY_PROPERTY_KEY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.DOMAIN_PROPERTY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.HEALTHCHECK_TIMEOUT_PROPERTY_KEY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.HOST_PROPERTY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.ROUTES_PROPERTY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.ROUTE_PATH_PROPERTY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.ROUTE_PROPERTY;
-import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.USE_SPRING_APPLICATION_JSON_KEY;
-
+@SuppressWarnings("PMD.GodClass")
 public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware {
 
-	private static final Logger logger = LoggerFactory.getLogger(CloudFoundryAppDeployer.class);
+	private final Logger logger = LoggerFactory.getLogger(CloudFoundryAppDeployer.class);
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -175,10 +160,10 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			manifest.routes(routes);
 		}
 
-		if (getDockerImage(appResource) != null) {
-			manifest.docker(Docker.builder().image(getDockerImage(appResource)).build());
-		} else {
+		if (getDockerImage(appResource) == null) {
 			manifest.buildpack(buildpack(deploymentProperties));
+		} else {
+			manifest.docker(Docker.builder().image(getDockerImage(appResource)).build());
 		}
 		return manifest.build();
 	}
@@ -228,7 +213,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			envVariables.put("JAVA_OPTS", javaOpts(environment));
 		}
 
-		String group = environment.get(GROUP_PROPERTY_KEY);
+		String group = environment.get(DeploymentProperties.GROUP_PROPERTY_KEY);
 		if (StringUtils.hasText(group)) {
 			envVariables.put("SPRING_CLOUD_APPLICATION_GROUP", group);
 		}
@@ -240,16 +225,17 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Map<String, String> getApplicationEnvironment(Map<String, String> environment) {
-		Map<String, String> applicationProperties = getSanitizedApplicationEnvironment(environment);
+		Map<String, String> applicationEnvironment = getSanitizedApplicationEnvironment(environment);
 
 		if (!useSpringApplicationJson(environment)) {
-			return applicationProperties;
+			return applicationEnvironment;
 		}
 
 		try {
-			return Collections.singletonMap("SPRING_APPLICATION_JSON", OBJECT_MAPPER.writeValueAsString(applicationProperties));
+			return Collections.singletonMap("SPRING_APPLICATION_JSON",
+				OBJECT_MAPPER.writeValueAsString(applicationEnvironment));
 		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
+			throw new IllegalArgumentException("Error writing environment to SPRING_APPLICATION_JSON", e);
 		}
 	}
 
@@ -266,18 +252,18 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private boolean useSpringApplicationJson(Map<String, String> environment) {
-		return Optional.ofNullable(environment.get(USE_SPRING_APPLICATION_JSON_KEY))
+		return Optional.ofNullable(environment.get(CloudFoundryDeploymentProperties.USE_SPRING_APPLICATION_JSON_KEY))
 			.map(Boolean::valueOf)
 			.orElse(this.defaultDeploymentProperties.isUseSpringApplicationJson());
 	}
 
 	private String domain(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(DOMAIN_PROPERTY))
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY))
 			.orElse(this.defaultDeploymentProperties.getDomain());
 	}
 
 	private ApplicationHealthCheck healthCheck(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(HEALTHCHECK_PROPERTY_KEY))
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY))
 				.map(this::toApplicationHealthCheck)
 				.orElse(this.defaultDeploymentProperties.getHealthCheck());
 	}
@@ -292,30 +278,30 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private String healthCheckEndpoint(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY))
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY))
 				.orElse(this.defaultDeploymentProperties.getHealthCheckHttpEndpoint());
 	}
 
 	private Integer healthCheckTimeout(Map<String, String> properties) {
 		String timeoutString = properties
-				.getOrDefault(HEALTHCHECK_TIMEOUT_PROPERTY_KEY, this.defaultDeploymentProperties.getHealthCheckTimeout());
+				.getOrDefault(CloudFoundryDeploymentProperties.HEALTHCHECK_TIMEOUT_PROPERTY_KEY, this.defaultDeploymentProperties.getHealthCheckTimeout());
 		return Integer.parseInt(timeoutString);
 	}
 
 	private int instances(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(COUNT_PROPERTY_KEY))
+		return Optional.ofNullable(properties.get(DeploymentProperties.COUNT_PROPERTY_KEY))
 				.map(Integer::parseInt)
 				.orElse(this.defaultDeploymentProperties.getInstances());
 	}
 
 	private String host(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(HOST_PROPERTY))
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HOST_PROPERTY))
 			.orElse(this.defaultDeploymentProperties.getHost());
 	}
 
 	private String routePath(Map<String, String> properties) {
-		String routePath = properties.get(ROUTE_PATH_PROPERTY);
-		if (StringUtils.hasText(routePath) && !routePath.startsWith("/")) {
+		String routePath = properties.get(CloudFoundryDeploymentProperties.ROUTE_PATH_PROPERTY);
+		if (StringUtils.hasText(routePath) && routePath.charAt(0) != '/') {
 			throw new IllegalArgumentException(
 					"Cloud Foundry routes must start with \"/\". Route passed = [" + routePath + "].");
 		}
@@ -323,41 +309,41 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private String route(Map<String, String> properties) {
-		return properties.get(ROUTE_PROPERTY);
+		return properties.get(CloudFoundryDeploymentProperties.ROUTE_PROPERTY);
 	}
 
 	private Set<String> routes(Map<String, String> properties) {
 		Set<String> routes = new HashSet<>();
 		routes.addAll(this.defaultDeploymentProperties.getRoutes());
-		routes.addAll(StringUtils.commaDelimitedListToSet(properties.get(ROUTES_PROPERTY)));
+		routes.addAll(StringUtils.commaDelimitedListToSet(properties.get(CloudFoundryDeploymentProperties.ROUTES_PROPERTY)));
 		return routes;
 	}
 
 	private Boolean toggleNoRoute(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(NO_ROUTE_PROPERTY))
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY))
 				.map(Boolean::valueOf)
 				.orElse(null);
 	}
 
 	private int memory(Map<String, String> properties) {
 		String withUnit = properties
-				.getOrDefault(MEMORY_PROPERTY_KEY, this.defaultDeploymentProperties.getMemory());
+				.getOrDefault(DeploymentProperties.MEMORY_PROPERTY_KEY, this.defaultDeploymentProperties.getMemory());
 		return (int) ByteSizeUtils.parseToMebibytes(withUnit);
 	}
 
 	private int diskQuota(Map<String, String> properties) {
 		String withUnit = properties
-				.getOrDefault(DISK_PROPERTY_KEY, this.defaultDeploymentProperties.getDisk());
+				.getOrDefault(DeploymentProperties.DISK_PROPERTY_KEY, this.defaultDeploymentProperties.getDisk());
 		return (int) ByteSizeUtils.parseToMebibytes(withUnit);
 	}
 
 	private String buildpack(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(BUILDPACK_PROPERTY_KEY))
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY))
 				.orElse(this.defaultDeploymentProperties.getBuildpack());
 	}
 
 	private String javaOpts(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(JAVA_OPTS_PROPERTY_KEY))
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY))
 				.orElse(this.defaultDeploymentProperties.getJavaOpts());
 	}
 
@@ -395,10 +381,10 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	 */
 	private Path getApplication(Resource resource) {
 		try {
-			if (!resource.getURI().toString().startsWith("docker:")) {
-				return resource.getFile().toPath();
-			} else {
+			if (resource.getURI().toString().startsWith("docker:")) {
 				return null;
+			} else {
+				return resource.getFile().toPath();
 			}
 		} catch (IOException e) {
 			throw Exceptions.propagate(e);

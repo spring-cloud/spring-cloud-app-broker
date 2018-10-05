@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ExtensionLocator<T> {
-	private final HashMap<String, ExtensionFactory<T, ?>> factoriesByName = new HashMap<>();
+	private final Map<String, ExtensionFactory<T, ?>> factoriesByName = new HashMap<>();
 
 	public ExtensionLocator(List<? extends ExtensionFactory<T, ?>> factories) {
 		factories.forEach(parametersTransformer ->

@@ -26,7 +26,7 @@ public class CredentialProviderSpec {
 	private CredentialProviderSpec() {
 	}
 
-	private CredentialProviderSpec(String name, Map<String, Object> args) {
+	CredentialProviderSpec(String name, Map<String, Object> args) {
 		this.name = name;
 		this.args = args;
 	}
@@ -53,9 +53,9 @@ public class CredentialProviderSpec {
 
 	public static class CredentialProviderSpecBuilder {
 		private String name;
-		private Map<String, Object> args = new LinkedHashMap<>();
+		private final Map<String, Object> args = new LinkedHashMap<>();
 
-		private CredentialProviderSpecBuilder() {
+		CredentialProviderSpecBuilder() {
 		}
 
 		public CredentialProviderSpecBuilder name(String name) {

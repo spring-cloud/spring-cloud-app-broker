@@ -18,25 +18,25 @@ package org.springframework.cloud.appbroker.deployer;
 
 import org.springframework.cloud.appbroker.deployer.util.ByteSizeUtils;
 
-public interface DeploymentProperties {
+public class DeploymentProperties {
 	/**
 	 * The deployment property for the count (number of app instances).
 	 * If not provided, a deployer should assume 1 instance.
 	 */
-	String COUNT_PROPERTY_KEY = "count";
+	public static final String COUNT_PROPERTY_KEY = "count";
 
 	/**
 	 * The deployment property for the group to which an app belongs.
 	 * If not provided, a deployer should assume no group.
 	 */
-	String GROUP_PROPERTY_KEY = "group";
+	public static final String GROUP_PROPERTY_KEY = "group";
 
 	/**
 	 * The deployment property that indicates if each app instance should have an index value
 	 * within a sequence from 0 to N-1, where N is the value of the {@value #COUNT_PROPERTY_KEY}
 	 * property. If not provided, a deployer should assume app instance indexing is not necessary.
 	 */
-	String INDEXED_PROPERTY_KEY = "indexed";
+	public static final String INDEXED_PROPERTY_KEY = "indexed";
 
 	/**
 	 * The property to be set at each instance level to specify the sequence number
@@ -46,7 +46,7 @@ public interface DeploymentProperties {
 	 *
 	 * @see #INDEXED_PROPERTY_KEY
 	 */
-	String INSTANCE_INDEX_PROPERTY_KEY = "INSTANCE_INDEX";
+	public static final String INSTANCE_INDEX_PROPERTY_KEY = "INSTANCE_INDEX";
 
 	/**
 	 * The deployment property for the memory setting for the container that will run the app.
@@ -60,7 +60,7 @@ public interface DeploymentProperties {
 	 *
 	 * @see ByteSizeUtils
 	 */
-	String MEMORY_PROPERTY_KEY = "memory";
+	public static final String MEMORY_PROPERTY_KEY = "memory";
 
 	/**
 	 * The deployment property for the disk setting for the container that will run the app.
@@ -74,7 +74,7 @@ public interface DeploymentProperties {
 	 *
 	 * @see ByteSizeUtils
 	 */
-	String DISK_PROPERTY_KEY = "disk";
+	public static final String DISK_PROPERTY_KEY = "disk";
 
 	/**
 	 * The deployment property for the cpu setting for the container that will run the app.
@@ -82,5 +82,5 @@ public interface DeploymentProperties {
 	 * support setting cpu and will ignore this setting. Other platforms may require whole numbers and might
 	 * round up. Exactly how this property affects the deployments will vary between implementations.
 	 */
-	String CPU_PROPERTY_KEY = "cpu";
+	public static final String CPU_PROPERTY_KEY = "cpu";
 }

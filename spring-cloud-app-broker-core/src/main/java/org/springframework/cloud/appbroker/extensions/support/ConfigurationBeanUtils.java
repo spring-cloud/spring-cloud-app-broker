@@ -25,7 +25,10 @@ import org.springframework.aop.support.AopUtils;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-public abstract class ConfigurationBeanUtils {
+public final class ConfigurationBeanUtils {
+
+	private ConfigurationBeanUtils() {
+	}
 
 	public static <T> T instantiate(Class<T> cls) {
 		return org.springframework.beans.BeanUtils.instantiateClass(cls);
@@ -50,10 +53,10 @@ public abstract class ConfigurationBeanUtils {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked","PMD.AvoidCatchingGenericException"})
 	private static <T> T getTargetObject(Object candidate) {
 		try {
-			if (AopUtils.isAopProxy(candidate) && (candidate instanceof Advised)) {
+			if (AopUtils.isAopProxy(candidate) && candidate instanceof Advised) {
 				return (T) ((Advised) candidate).getTargetSource().getTarget();
 			}
 		}

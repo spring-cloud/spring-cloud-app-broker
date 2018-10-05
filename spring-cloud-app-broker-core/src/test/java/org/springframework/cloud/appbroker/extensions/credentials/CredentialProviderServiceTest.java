@@ -116,7 +116,7 @@ class CredentialProviderServiceTest {
 	}
 
 	public class TestFactory extends CredentialProviderFactory<Object> {
-		private String name;
+		private final String name;
 
 		TestFactory(String name) {
 			this.name = name;
@@ -132,13 +132,13 @@ class CredentialProviderServiceTest {
 			return new CredentialProvider() {
 				@Override
 				public Mono<BackingApplication> addCredentials(BackingApplication backingApplication, String serviceInstanceGuid) {
-					backingApplication.addEnvironment(name + "-added", "done");
+					backingApplication.addEnvironment(getName() + "-added", "done");
 					return Mono.just(backingApplication);
 				}
 
 				@Override
 				public Mono<BackingApplication> deleteCredentials(BackingApplication backingApplication, String serviceInstanceGuid) {
-					backingApplication.addEnvironment(name + "-deleted", "done");
+					backingApplication.addEnvironment(getName() + "-deleted", "done");
 					return Mono.just(backingApplication);
 				}
 			};

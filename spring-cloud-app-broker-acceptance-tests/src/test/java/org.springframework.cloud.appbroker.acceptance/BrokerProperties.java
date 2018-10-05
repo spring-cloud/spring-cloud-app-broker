@@ -18,9 +18,9 @@ package org.springframework.cloud.appbroker.acceptance;
 
 class BrokerProperties {
 
-	private String[] properties;
+	private final String[] properties;
 
-	BrokerProperties(String[] properties) {
+	BrokerProperties(String... properties) {
 		this.properties = properties;
 	}
 

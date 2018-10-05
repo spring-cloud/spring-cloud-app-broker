@@ -26,7 +26,7 @@ public class BrokeredService {
 	private BrokeredService() {
 	}
 
-	private BrokeredService(String serviceName, String planName, BackingApplications apps) {
+	BrokeredService(String serviceName, String planName, BackingApplications apps) {
 		this.serviceName = serviceName;
 		this.planName = planName;
 		this.apps = apps;
@@ -62,8 +62,12 @@ public class BrokeredService {
 
 	@Override
 	public final boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof BrokeredService)) return false;
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof BrokeredService)) {
+			return false;
+		}
 		BrokeredService that = (BrokeredService) o;
 		return Objects.equals(serviceName, that.serviceName) &&
 			Objects.equals(planName, that.planName) &&

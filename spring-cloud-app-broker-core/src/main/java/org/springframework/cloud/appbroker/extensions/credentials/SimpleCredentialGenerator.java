@@ -63,7 +63,7 @@ public class SimpleCredentialGenerator implements CredentialGenerator {
 			builder.append(SPECIAL_CHARACTERS);
 		}
 
-		if (builder.toString().length() == 0) {
+		if (builder.length() == 0) {
 			builder.append(UPPERCASE_ALPHA)
 				.append(LOWERCASE_ALPHA)
 				.append(DIGITS)

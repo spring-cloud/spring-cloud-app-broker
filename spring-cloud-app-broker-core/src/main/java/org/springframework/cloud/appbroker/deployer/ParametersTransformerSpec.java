@@ -26,7 +26,7 @@ public class ParametersTransformerSpec {
 	private ParametersTransformerSpec() {
 	}
 
-	private ParametersTransformerSpec(String name, Map<String, Object> args) {
+	ParametersTransformerSpec(String name, Map<String, Object> args) {
 		this.name = name;
 		this.args = args;
 	}
@@ -53,9 +53,9 @@ public class ParametersTransformerSpec {
 
 	public static class ParametersTransformerSpecBuilder {
 		private String name;
-		private Map<String, Object> args = new LinkedHashMap<>();
+		private final Map<String, Object> args = new LinkedHashMap<>();
 
-		private ParametersTransformerSpecBuilder() {
+		ParametersTransformerSpecBuilder() {
 		}
 
 		public ParametersTransformerSpecBuilder name(String name) {

@@ -38,30 +38,30 @@ public class BackingApplication {
 	public BackingApplication(BackingApplication backingApplicationToCopy) {
 		this.name = backingApplicationToCopy.name;
 		this.path = backingApplicationToCopy.path;
-		this.properties = backingApplicationToCopy.properties != null
-			? new HashMap<>(backingApplicationToCopy.properties)
-			: new HashMap<>();
-		this.environment = backingApplicationToCopy.environment != null
-			? new HashMap<>(backingApplicationToCopy.environment)
-			: new HashMap<>();
-		this.services = backingApplicationToCopy.services != null
-			? new ArrayList<>(backingApplicationToCopy.services)
-			: new ArrayList<>();
-		this.parametersTransformers = backingApplicationToCopy.parametersTransformers != null
-			? new ArrayList<>(backingApplicationToCopy.parametersTransformers)
-			: new ArrayList<>();
-		this.credentialProviders = backingApplicationToCopy.credentialProviders != null
-			? new ArrayList<>(backingApplicationToCopy.credentialProviders)
-			: new ArrayList<>();
+		this.properties = backingApplicationToCopy.properties == null
+			? new HashMap<>()
+			: new HashMap<>(backingApplicationToCopy.properties);
+		this.environment = backingApplicationToCopy.environment == null
+			? new HashMap<>()
+			: new HashMap<>(backingApplicationToCopy.environment);
+		this.services = backingApplicationToCopy.services == null
+			? new ArrayList<>()
+			: new ArrayList<>(backingApplicationToCopy.services);
+		this.parametersTransformers = backingApplicationToCopy.parametersTransformers == null
+			? new ArrayList<>()
+			: new ArrayList<>(backingApplicationToCopy.parametersTransformers);
+		this.credentialProviders = backingApplicationToCopy.credentialProviders == null
+			? new ArrayList<>()
+			: new ArrayList<>(backingApplicationToCopy.credentialProviders);
 	}
 
 	private BackingApplication() {
 	}
 
-	private BackingApplication(String name, String path, Map<String, String> properties,
-							   Map<String, String> environment, List<String> services,
-							   List<ParametersTransformerSpec> parametersTransformers,
-							   List<CredentialProviderSpec> credentialProviders) {
+	BackingApplication(String name, String path, Map<String, String> properties,
+					   Map<String, String> environment, List<String> services,
+					   List<ParametersTransformerSpec> parametersTransformers,
+					   List<CredentialProviderSpec> credentialProviders) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
@@ -141,8 +141,12 @@ public class BackingApplication {
 
 	@Override
 	public final boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof BackingApplication)) return false;
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof BackingApplication)) {
+			return false;
+		}
 		BackingApplication that = (BackingApplication) o;
 		return Objects.equals(name, that.name) &&
 			Objects.equals(path, that.path) &&
@@ -187,11 +191,11 @@ public class BackingApplication {
 
 		private String name;
 		private String path;
-		private Map<String, String> properties = new HashMap<>();
-		private Map<String, String> environment = new HashMap<>();
-		private List<String> services = new ArrayList<>();
-		private List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
-		private List<CredentialProviderSpec> credentialProviders = new ArrayList<>();
+		private final Map<String, String> properties = new HashMap<>();
+		private final Map<String, String> environment = new HashMap<>();
+		private final List<String> services = new ArrayList<>();
+		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
+		private final List<CredentialProviderSpec> credentialProviders = new ArrayList<>();
 
 		BackingApplicationBuilder() {
 		}

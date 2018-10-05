@@ -60,9 +60,9 @@ public class CloudFoundryService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CloudFoundryService.class);
 
-	private CloudFoundryOperations cloudFoundryOperations;
-	private CloudFoundryProperties cloudFoundryProperties;
-	private CloudFoundryClient cloudFoundryClient;
+	private final CloudFoundryOperations cloudFoundryOperations;
+	private final CloudFoundryProperties cloudFoundryProperties;
+	private final CloudFoundryClient cloudFoundryClient;
 
 	@Autowired
 	public CloudFoundryService(CloudFoundryOperations cloudFoundryOperations,
@@ -94,7 +94,7 @@ public class CloudFoundryService {
 						.build())));
 	}
 
-	public Mono<String> getApplicationRoute(String appName) {
+	private Mono<String> getApplicationRoute(String appName) {
 		return loggingMono(
 			cloudFoundryOperations
 				.applications()
@@ -105,7 +105,7 @@ public class CloudFoundryService {
 				.map(url -> "https://" + url));
 	}
 
-	public Mono<Void> pushAppBroker(String appName, Path appPath, String[] backingAppProperties) {
+	public Mono<Void> pushAppBroker(String appName, Path appPath, String... backingAppProperties) {
 		return loggingMono(
 			cloudFoundryOperations
 				.applications()
@@ -282,13 +282,15 @@ public class CloudFoundryService {
 		return catalogVariables;
 	}
 
-	private Map<String, String> backingAppEnvironmentVariables(String[] backingAppProperties) {
+	private Map<String, String> backingAppEnvironmentVariables(String... backingAppProperties) {
 		Map<String, String> backingAppVariables = new HashMap<>();
 		for (String appProperty : backingAppProperties) {
 			final String[] appPropertyKeyValue = appProperty.split("=");
-			if (appPropertyKeyValue.length != 2) {
-				throw new RuntimeException(format("Backing app property '%s' is incorrectly formatted", Arrays.toString(appPropertyKeyValue)));
-			} else backingAppVariables.put(appPropertyKeyValue[0], appPropertyKeyValue[1]);
+			if (appPropertyKeyValue.length == 2) {
+				backingAppVariables.put(appPropertyKeyValue[0], appPropertyKeyValue[1]);
+			} else {
+				throw new IllegalArgumentException(format("Backing app property '%s' is incorrectly formatted", Arrays.toString(appPropertyKeyValue)));
+			}
 		}
 		return backingAppVariables;
 	}
@@ -296,7 +298,9 @@ public class CloudFoundryService {
 	private <T> Mono<T> loggingMono(Mono<T> publisher) {
 		if (LOGGER.isDebugEnabled()) {
 			return publisher.log();
-		} else return publisher;
+		} else {
+			return publisher;
+		}
 	}
 
 }

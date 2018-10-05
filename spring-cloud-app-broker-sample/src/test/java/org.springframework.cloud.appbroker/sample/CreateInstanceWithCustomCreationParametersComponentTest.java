@@ -18,6 +18,8 @@ package org.springframework.cloud.appbroker.sample;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -122,7 +124,7 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 						objectMapper.readValue(parameters.get("firstKey").toString(), CustomInputParameters.class);
 					customOutputEnvironmentParameters.put("otherKey", customInputParameters.getSecondKey());
 					customOutputEnvironmentParameters.put("otherLabel", customInputParameters.getLabel());
-				} catch (Exception e) {
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 				return Collections.singletonMap("otherNestedKey", customOutputEnvironmentParameters.toString());
@@ -130,11 +132,11 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 		}
 
 		static class CustomInputParameters {
-			private CustomInputParameters() {
-			}
-
 			private String secondKey;
 			private String label;
+
+			private CustomInputParameters() {
+			}
 
 			String getSecondKey() {
 				return secondKey;

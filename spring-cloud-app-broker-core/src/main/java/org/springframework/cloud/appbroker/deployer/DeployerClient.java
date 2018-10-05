@@ -24,7 +24,7 @@ public class DeployerClient {
 
 	private final Logger log = Loggers.getLogger(DeployerClient.class);
 
-	private AppDeployer appDeployer;
+	private final AppDeployer appDeployer;
 
 	public DeployerClient(AppDeployer appDeployer) {
 		this.appDeployer = appDeployer;

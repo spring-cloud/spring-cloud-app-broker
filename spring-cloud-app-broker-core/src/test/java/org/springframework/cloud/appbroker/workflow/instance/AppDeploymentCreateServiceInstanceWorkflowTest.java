@@ -166,7 +166,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 					.name(planName)
 					.build())
 				.build())
-			.parameters(parameters != null ? parameters : new HashMap<>())
+			.parameters(parameters == null ? new HashMap<>() : parameters)
 			.build();
 	}
 }

@@ -18,9 +18,9 @@ package org.springframework.cloud.appbroker.deployer;
 
 public class UndeployApplicationRequest {
 
-	private String name;
+	private final String name;
 
-	private UndeployApplicationRequest(String name) {
+	UndeployApplicationRequest(String name) {
 		this.name = name;
 	}
 

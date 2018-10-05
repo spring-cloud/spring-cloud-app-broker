@@ -52,13 +52,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private final Logger log = Loggers.getLogger(WorkflowServiceInstanceService.class);
 
-	private List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows;
+	private final List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows;
 
-	private List<DeleteServiceInstanceWorkflow> deleteServiceInstanceWorkflows;
+	private final List<DeleteServiceInstanceWorkflow> deleteServiceInstanceWorkflows;
 
-	private List<UpdateServiceInstanceWorkflow> updateServiceInstanceWorkflows;
+	private final List<UpdateServiceInstanceWorkflow> updateServiceInstanceWorkflows;
 
-	private ServiceInstanceStateRepository stateRepository;
+	private final ServiceInstanceStateRepository stateRepository;
 
 	public WorkflowServiceInstanceService(ServiceInstanceStateRepository serviceInstanceStateRepository,
 										  List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows,

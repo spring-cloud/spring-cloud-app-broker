@@ -22,9 +22,7 @@ import org.cloudfoundry.reactor.ProxyConfiguration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import static org.springframework.cloud.appbroker.autoconfigure.CloudFoundryProperties.PROPERTY_PREFIX;
-
-@ConfigurationProperties(PROPERTY_PREFIX)
+@ConfigurationProperties(CloudFoundryProperties.PROPERTY_PREFIX)
 public class CloudFoundryProperties {
 
 	static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry";

@@ -24,19 +24,18 @@ import java.util.regex.Pattern;
  *
  * @author Eric Bottard
  */
-public class ByteSizeUtils {
-
-	private ByteSizeUtils() {
-
-	}
+public final class ByteSizeUtils {
 
 	private static final Pattern SIZE_PATTERN = Pattern.compile("(?<amount>\\d+)(?<unit>(m|g)?)", Pattern.CASE_INSENSITIVE);
+
+	private ByteSizeUtils() {
+	}
 
 	/**
 	 * Return the number of mebibytes (1024*1024) denoted by the given text, where an optional case-insensitive unit of
 	 * 'm' or 'g' can be used to mean mebi- or gebi- bytes, respectively. Lack of unit assumes mebibytes.
 	 */
-	public  static long parseToMebibytes(String text) {
+	public static long parseToMebibytes(String text) {
 		Matcher matcher = SIZE_PATTERN.matcher(text);
 		if (!matcher.matches()) {
 			throw new IllegalArgumentException(String.format("Could not parse '%s' as a byte size." +

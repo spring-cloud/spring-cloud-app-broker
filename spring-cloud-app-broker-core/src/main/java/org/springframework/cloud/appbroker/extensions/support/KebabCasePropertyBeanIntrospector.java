@@ -84,7 +84,7 @@ public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
 	 */
 	private String camelCasePropertyName(final Method m) {
 		final String methodName = m.getName().substring(WRITE_METHOD_PREFIX.length());
-		return (methodName.length() > 1) ?
+		return methodName.length() > 1 ?
 			Introspector.decapitalize(methodName) :
 			methodName.toLowerCase(Locale.ENGLISH);
 	}
@@ -101,7 +101,7 @@ public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
 		StringBuilder builder = new StringBuilder();
 		for (char c : methodName.toCharArray()) {
 			if (Character.isUpperCase(c)) {
-				builder.append("-").append(Character.toLowerCase(c));
+				builder.append('-').append(Character.toLowerCase(c));
 			} else {
 				builder.append(c);
 			}

@@ -23,18 +23,18 @@ import java.util.Map;
 
 public class DeployApplicationRequest {
 
-	private String name;
+	private final String name;
 
-	private String path;
+	private final String path;
 
-	private Map<String, String> properties;
+	private final Map<String, String> properties;
 
-	private Map<String, String> environment;
+	private final Map<String, String> environment;
 
-	private List<String> services;
+	private final List<String> services;
 
-	private DeployApplicationRequest(String name, String path, Map<String, String> properties,
-							 Map<String, String> environment, List<String> services) {
+	DeployApplicationRequest(String name, String path, Map<String, String> properties,
+									 Map<String, String> environment, List<String> services) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
@@ -72,14 +72,13 @@ public class DeployApplicationRequest {
 
 		private String path;
 
-		private Map<String, String> properties = new HashMap<>();
+		private final Map<String, String> properties = new HashMap<>();
 
-		private Map<String, String> environment = new HashMap<>();
+		private final Map<String, String> environment = new HashMap<>();
 
-		private List<String> services = new ArrayList<>();
+		private final List<String> services = new ArrayList<>();
 
 		DeployApplicationRequestBuilder() {
-
 		}
 
 		public DeployApplicationRequestBuilder name(String name) {

@@ -146,7 +146,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubCheckAppState(appName);
 	}
 
-	private void stubCreateAppMetadata(String appName, ContentPattern<?>[] appMetadataPatterns) {
+	private void stubCreateAppMetadata(String appName, ContentPattern<?>... appMetadataPatterns) {
 		MappingBuilder mappingBuilder = post(urlEqualTo("/v2/apps"))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + appName + "')]"));
 		for (ContentPattern<?> appMetadataPattern : appMetadataPatterns) {
@@ -159,7 +159,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@guid", appGuid(appName))))));
 	}
 
-	private void stubUpdateAppMetadata(String appName, ContentPattern<?>[] appMetadataPatterns) {
+	private void stubUpdateAppMetadata(String appName, ContentPattern<?>... appMetadataPatterns) {
 		MappingBuilder mappingBuilder = put(urlEqualTo("/v2/apps/" + appGuid(appName)))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + appName + "')]"));
 		for (ContentPattern<?> appMetadataPattern : appMetadataPatterns) {

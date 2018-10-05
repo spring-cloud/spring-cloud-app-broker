@@ -23,9 +23,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
@@ -53,6 +53,9 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 
 	@Mock
 	private ParametersTransformationService parametersTransformationService;
+
+	@Mock
+	private CredentialProviderService credentialProviderService;
 
 	private BackingApplications backingApps;
 
@@ -82,7 +85,8 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		createServiceInstanceWorkflow = new AppDeploymentCreateServiceInstanceWorkflow(
 			brokeredServices,
 			backingAppDeploymentService,
-			parametersTransformationService);
+			parametersTransformationService,
+			credentialProviderService);
 	}
 
 	@Test
@@ -94,6 +98,8 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.willReturn(Flux.just("app1", "app2"));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
+		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(backingApps));
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request))
@@ -103,6 +109,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.parametersTransformationService);
+		verifyNoMoreInteractions(this.credentialProviderService);
 	}
 
 	@Test
@@ -114,6 +121,8 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.willReturn(Flux.just("app1", "app2"));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
+		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(backingApps));
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request))
@@ -123,6 +132,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.parametersTransformationService);
+		verifyNoMoreInteractions(this.credentialProviderService);
 	}
 
 	@Test
@@ -135,6 +145,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.parametersTransformationService);
+		verifyNoMoreInteractions(this.credentialProviderService);
 	}
 
 	private CreateServiceInstanceRequest buildRequest(String serviceName, String planName) {
@@ -146,6 +157,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		return CreateServiceInstanceRequest.builder()
 			.serviceDefinitionId(serviceName + "-id")
 			.planId(planName + "-id")
+			.serviceInstanceId(serviceName + "-" + planName + "-instance-id")
 			.serviceDefinition(ServiceDefinition.builder()
 				.id(serviceName + "-id")
 				.name(serviceName)

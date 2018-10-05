@@ -26,12 +26,14 @@ import java.util.Objects;
 public class BackingApplication {
 
 	private static final String VALUE_HIDDEN = "<value hidden>";
+	
 	private String name;
 	private String path;
 	private Map<String, String> properties;
 	private Map<String, String> environment;
 	private List<String> services;
 	private List<ParametersTransformerSpec> parametersTransformers;
+	private List<CredentialProviderSpec> credentialProviders;
 
 	public BackingApplication(BackingApplication backingApplicationToCopy) {
 		this.name = backingApplicationToCopy.name;
@@ -48,6 +50,9 @@ public class BackingApplication {
 		this.parametersTransformers = backingApplicationToCopy.parametersTransformers != null
 			? new ArrayList<>(backingApplicationToCopy.parametersTransformers)
 			: new ArrayList<>();
+		this.credentialProviders = backingApplicationToCopy.credentialProviders != null
+			? new ArrayList<>(backingApplicationToCopy.credentialProviders)
+			: new ArrayList<>();
 	}
 
 	private BackingApplication() {
@@ -55,13 +60,15 @@ public class BackingApplication {
 
 	private BackingApplication(String name, String path, Map<String, String> properties,
 							   Map<String, String> environment, List<String> services,
-							   List<ParametersTransformerSpec> parametersTransformers) {
+							   List<ParametersTransformerSpec> parametersTransformers,
+							   List<CredentialProviderSpec> credentialProviders) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
 		this.environment = environment;
 		this.services = services;
 		this.parametersTransformers = parametersTransformers;
+		this.credentialProviders = credentialProviders;
 	}
 
 	public String getName() {
@@ -96,6 +103,10 @@ public class BackingApplication {
 		this.environment = environment;
 	}
 
+	public void addEnvironment(String key, String value) {
+		environment.put(key, value);
+	}
+
 	public List<String> getServices() {
 		return services;
 	}
@@ -112,6 +123,14 @@ public class BackingApplication {
 		this.parametersTransformers = parametersTransformers;
 	}
 
+	public List<CredentialProviderSpec> getCredentialProviders() {
+		return credentialProviders;
+	}
+
+	public void setCredentialProviders(List<CredentialProviderSpec> credentialProviders) {
+		this.credentialProviders = credentialProviders;
+	}
+
 	public static BackingApplicationBuilder builder() {
 		return new BackingApplicationBuilder();
 	}
@@ -126,12 +145,14 @@ public class BackingApplication {
 			Objects.equals(properties, that.properties) &&
 			Objects.equals(environment, that.environment) &&
 			Objects.equals(services, that.services) &&
-			Objects.equals(parametersTransformers, that.parametersTransformers);
+			Objects.equals(parametersTransformers, that.parametersTransformers) &&
+			Objects.equals(credentialProviders, that.credentialProviders);
 	}
 
 	@Override
 	public final int hashCode() {
-		return Objects.hash(name, path, properties, environment, services, parametersTransformers);
+		return Objects.hash(name, path, properties, environment, services,
+			parametersTransformers, credentialProviders);
 	}
 
 	@Override
@@ -143,11 +164,14 @@ public class BackingApplication {
 			", environment=" + sanitizeEnvironment(environment) +
 			", services=" + services +
 			", parametersTransformers=" + parametersTransformers +
+			", credentialProviders=" + credentialProviders +
 			'}';
 	}
 
 	private Map<String, String> sanitizeEnvironment(Map<String, String> environment) {
-		if (environment == null) return environment;
+		if (environment == null) {
+			return null;
+		}
 
 		HashMap<String, String> sanitizedEnvironment = new HashMap<>();
 		environment.forEach((key, value) -> sanitizedEnvironment.put(key, VALUE_HIDDEN));
@@ -163,6 +187,7 @@ public class BackingApplication {
 		private Map<String, String> environment = new HashMap<>();
 		private List<String> services = new ArrayList<>();
 		private List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
+		private List<CredentialProviderSpec> credentialProviders = new ArrayList<>();
 
 		BackingApplicationBuilder() {
 		}
@@ -202,13 +227,19 @@ public class BackingApplication {
 			return this;
 		}
 
-		public BackingApplicationBuilder parameterTransformers(ParametersTransformerSpec... parameterTransformer) {
-			this.parameterTransformers.addAll(Arrays.asList(parameterTransformer));
+		public BackingApplicationBuilder parameterTransformers(ParametersTransformerSpec... parameterTransformers) {
+			this.parameterTransformers.addAll(Arrays.asList(parameterTransformers));
+			return this;
+		}
+
+		public BackingApplicationBuilder credentialProviders(CredentialProviderSpec... credentialProviders) {
+			this.credentialProviders.addAll(Arrays.asList(credentialProviders));
 			return this;
 		}
 
 		public BackingApplication build() {
-			return new BackingApplication(name, path, properties, environment, services, parameterTransformers);
+			return new BackingApplication(name, path, properties, environment, services,
+				parameterTransformers, credentialProviders);
 		}
 	}
 }

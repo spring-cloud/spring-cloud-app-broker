@@ -18,11 +18,17 @@ package org.springframework.cloud.appbroker.autoconfigure;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderFactory;
+import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
+import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
@@ -78,24 +84,45 @@ public class AppBrokerAutoConfiguration {
 		return new ParametersTransformationService(transformers);
 	}
 
+	@ConditionalOnMissingBean(CredentialGenerator.class)
+	@Bean
+	public SimpleCredentialGenerator simpleCredentialGenerator() {
+		return new SimpleCredentialGenerator();
+	}
+
+	@Bean
+	public SpringSecurityBasicAuthCredentialProviderFactory springSecurityBasicAuthCredentialProvider(CredentialGenerator credentialGenerator) {
+		return new SpringSecurityBasicAuthCredentialProviderFactory(credentialGenerator);
+	}
+	
+	@Bean
+	public CredentialProviderService credentialProviderService(List<CredentialProviderFactory<?>> providers) {
+		return new CredentialProviderService(providers);
+	}
+
 	@Bean
 	public CreateServiceInstanceWorkflow appDeploymentCreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 																					BackingAppDeploymentService backingAppDeploymentService,
-																					ParametersTransformationService parametersTransformationService) {
-		return new AppDeploymentCreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService);
+																					ParametersTransformationService parametersTransformationService,
+																					CredentialProviderService credentialProviderService) {
+		return new AppDeploymentCreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService,
+			parametersTransformationService, credentialProviderService);
 	}
 
 	@Bean
 	public DeleteServiceInstanceWorkflow appDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
-																					BackingAppDeploymentService backingAppDeploymentService) {
-		return new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService);
+																					BackingAppDeploymentService backingAppDeploymentService,
+																					CredentialProviderService credentialProviderService) {
+		return new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService,
+			credentialProviderService);
 	}
 
 	@Bean
-	public UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow(BrokeredServices brokeredServices,
-																	   BackingAppDeploymentService backingAppDeploymentService,
-																	   ParametersTransformationService parametersTransformationService) {
-		return new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService);
+	public UpdateServiceInstanceWorkflow appDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
+																					BackingAppDeploymentService backingAppDeploymentService,
+																					ParametersTransformationService parametersTransformationService) {
+		return new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService,
+			parametersTransformationService);
 	}
 
 	@Bean

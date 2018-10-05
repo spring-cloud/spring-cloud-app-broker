@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
@@ -35,16 +36,21 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	private final Logger log = Loggers.getLogger(AppDeploymentDeleteServiceInstanceWorkflow.class);
 
 	private final BackingAppDeploymentService deploymentService;
+	private final CredentialProviderService credentialProviderService;
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
-													  BackingAppDeploymentService deploymentService) {
+													  BackingAppDeploymentService deploymentService,
+													  CredentialProviderService credentialProviderService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
+		this.credentialProviderService = credentialProviderService;
 	}
 
 	@Override
 	public Flux<Void> delete(DeleteServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+			.flatMap(backingApplications ->
+				credentialProviderService.deleteCredentials(backingApplications, request.getServiceInstanceId()))
 			.flatMapMany(deploymentService::undeploy)
 			.doOnRequest(l -> log.info("Undeploying applications {}", brokeredServices))
 			.doOnEach(s -> log.info("Finished undeploying {}", s))

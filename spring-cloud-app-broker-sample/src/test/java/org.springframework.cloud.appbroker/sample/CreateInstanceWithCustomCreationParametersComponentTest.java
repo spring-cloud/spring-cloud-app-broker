@@ -53,6 +53,7 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCusto
 })
 @ContextConfiguration(classes = CreateInstanceWithCustomCreationParametersComponentTest.CustomConfig.class)
 class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockComponentTest {
+
 	static final String APP_NAME = "app-with-request-create-params";
 
 	@Autowired

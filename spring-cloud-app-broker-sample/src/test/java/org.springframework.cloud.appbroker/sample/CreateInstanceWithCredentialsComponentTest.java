@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,26 +24,28 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
-
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.sample.DeleteInstanceComponentTest.APP_NAME_1;
-import static org.springframework.cloud.appbroker.sample.DeleteInstanceComponentTest.APP_NAME_2;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCredentialsComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
-	"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
-	"spring.cloud.appbroker.services[0].apps[1].name=" + APP_NAME_2
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].name=SpringSecurityBasicAuth",
+	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.length=14",
+	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-uppercase-alpha=true",
+	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-lowercase-alpha=true",
+	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-numeric=false",
+	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false"
 })
-class DeleteInstanceComponentTest extends WiremockComponentTest {
+class CreateInstanceWithCredentialsComponentTest extends WiremockComponentTest {
 
-	static final String APP_NAME_1 = "first-app";
-	static final String APP_NAME_2 = "second-app";
+	static final String APP_NAME = "app-with-credentials";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -52,20 +54,16 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void deleteAppsWhenTheyExist() {
-		cloudControllerFixture.stubAppExists(APP_NAME_1);
-		cloudControllerFixture.stubAppExists(APP_NAME_2);
+	void pushAppWithEnvironmentVariables() {
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
+		cloudControllerFixture.stubPushApp(APP_NAME,
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*security.user.name.*:.*[a-zA-Z]{14}.*/)]"),
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*security.user.password.*:.*[a-zA-Z]{14}.*/)]"));
 
-		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME_1);
-		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME_2);
-
-		cloudControllerFixture.stubDeleteApp(APP_NAME_1);
-		cloudControllerFixture.stubDeleteApp(APP_NAME_2);
-
-		// when the service instance is deleted
+		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.delete(brokerFixture.deleteServiceInstanceUrl(), "instance-id")
+			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
 			.statusCode(HttpStatus.ACCEPTED.value());
 
@@ -79,29 +77,5 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 
 		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
-	}
-
-	@Test
-	void deleteAppsWhenTheyDoNotExist() {
-		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
-		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
-
-		// when the service instance is deleted
-		given(brokerFixture.serviceInstanceRequest())
-			.when()
-			.delete(brokerFixture.deleteServiceInstanceUrl(), "instance-id")
-			.then()
-			.statusCode(HttpStatus.ACCEPTED.value());
-
-		// when the "last_operation" API is polled
-		given(brokerFixture.serviceInstanceRequest())
-			.when()
-			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
-			.then()
-			.statusCode(HttpStatus.OK.value())
-			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
-
-		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
-		assertThat(state).isEqualTo(OperationState.FAILED.toString());
 	}
 }

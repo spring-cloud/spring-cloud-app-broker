@@ -42,6 +42,7 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithServi
 	"spring.cloud.appbroker.services[0].apps[0].services[1]=" + SERVICE_INSTANCE_2_NAME
 })
 class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
+
 	static final String APP_NAME = "app-with-services";
 
 	static final String SERVICE_INSTANCE_1_NAME = "my-db-service";

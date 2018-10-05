@@ -41,6 +41,7 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithPrope
 	"spring.cloud.appbroker.services[0].apps[0].properties.health-check-timeout=180"
 })
 class CreateInstanceWithPropertiesComponentTest extends WiremockComponentTest {
+
 	static final String APP_NAME = "app-with-properties";
 
 	@Autowired

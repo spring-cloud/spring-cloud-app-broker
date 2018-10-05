@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.extensions.credentials;
 import org.apache.commons.lang3.tuple.Pair;
 
 public interface CredentialGenerator {
+
 	Pair<String, String> generateUser(String applicationId, String serviceInstanceId,
 									  int length, boolean includeUppercaseAlpha,
 									  boolean includeLowercaseAlpha, boolean includeNumeric,

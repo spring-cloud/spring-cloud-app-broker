@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class CredentialProviderService {
+
 	private final ExtensionLocator<CredentialProvider> locator;
 
 	public CredentialProviderService(List<CredentialProviderFactory<?>> factories) {

@@ -41,6 +41,7 @@ import static org.springframework.cloud.appbroker.sample.DeleteInstanceComponent
 	"spring.cloud.appbroker.services[0].apps[1].name=" + APP_NAME_2
 })
 class DeleteInstanceComponentTest extends WiremockComponentTest {
+
 	static final String APP_NAME_1 = "first-app";
 	static final String APP_NAME_2 = "second-app";
 

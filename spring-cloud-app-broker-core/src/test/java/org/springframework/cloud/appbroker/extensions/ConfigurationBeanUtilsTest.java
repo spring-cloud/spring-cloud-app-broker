@@ -25,6 +25,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ConfigurationBeanUtilsTest {
+	
 	private TestProperties targetObject = new TestProperties();
 	private Map<String, Object> properties = new HashMap<>();
 

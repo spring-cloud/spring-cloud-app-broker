@@ -29,6 +29,7 @@ import java.util.Collections;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CredentialProviderServiceTest {
+
 	@Test
 	void addAndDeleteCredentials() {
 		BackingApplication app1 = BackingApplication.builder()

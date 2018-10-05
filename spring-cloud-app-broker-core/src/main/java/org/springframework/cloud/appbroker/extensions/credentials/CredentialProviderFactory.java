@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.extensions.credentials;
 import org.springframework.cloud.appbroker.extensions.AbstractExtensionFactory;
 
 public abstract class CredentialProviderFactory<C> extends AbstractExtensionFactory<CredentialProvider, C> {
+
 	protected CredentialProviderFactory() {
 		super();
 	}

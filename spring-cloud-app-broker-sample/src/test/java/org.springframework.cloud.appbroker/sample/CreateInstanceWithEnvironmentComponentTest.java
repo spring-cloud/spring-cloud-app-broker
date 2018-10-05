@@ -40,6 +40,7 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithEnvir
 	"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=true",
 })
 class CreateInstanceWithEnvironmentComponentTest extends WiremockComponentTest {
+
 	static final String APP_NAME = "app-with-env";
 
 	@Autowired

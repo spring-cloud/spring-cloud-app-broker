@@ -34,6 +34,7 @@ import static org.springframework.cloud.appbroker.extensions.credentials.SpringS
 
 @ExtendWith(MockitoExtension.class)
 class SpringSecurityBasicAuthCredentialProviderFactoryTest {
+
 	@Mock
 	private CredentialGenerator credentialGenerator;
 

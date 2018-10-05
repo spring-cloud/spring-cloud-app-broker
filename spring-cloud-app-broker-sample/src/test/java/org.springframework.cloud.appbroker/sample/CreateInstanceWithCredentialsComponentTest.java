@@ -44,6 +44,7 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCrede
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false"
 })
 class CreateInstanceWithCredentialsComponentTest extends WiremockComponentTest {
+
 	static final String APP_NAME = "app-with-credentials";
 
 	@Autowired

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.security.SecureRandom;
 
 public class SimpleCredentialGenerator implements CredentialGenerator {
+
 	private static final String UPPERCASE_ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	private static final String LOWERCASE_ALPHA = "abcdefghijklmnopqrstuvwxyz";
 	private static final String DIGITS = "0123456789";

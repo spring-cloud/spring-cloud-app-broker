@@ -38,6 +38,7 @@ import java.util.Locale;
  * {@link DefaultBeanIntrospector} object.
  */
 public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
+
 	private static final String WRITE_METHOD_PREFIX = "set";
 
 	private final Log log = LogFactory.getLog(getClass());

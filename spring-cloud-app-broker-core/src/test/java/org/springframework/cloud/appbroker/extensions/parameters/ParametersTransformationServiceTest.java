@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 class ParametersTransformationServiceTest {
+
 	@Test
 	void transformParametersWithNoBackingApps() {
 		ParametersTransformationService service = new ParametersTransformationService(Collections.emptyList());

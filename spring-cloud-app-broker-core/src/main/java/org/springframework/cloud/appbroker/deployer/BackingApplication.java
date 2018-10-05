@@ -95,6 +95,10 @@ public class BackingApplication {
 		this.properties = properties;
 	}
 
+	public void addProperty(String key, String value) {
+		this.properties.put(key, value);
+	}
+
 	public Map<String, String> getEnvironment() {
 		return environment;
 	}

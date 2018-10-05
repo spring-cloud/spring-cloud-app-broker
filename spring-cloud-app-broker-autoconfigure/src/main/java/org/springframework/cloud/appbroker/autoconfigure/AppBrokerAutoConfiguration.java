@@ -32,6 +32,7 @@ import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurity
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
@@ -75,8 +76,13 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	public EnvironmentMappingParametersTransformerFactory simpleMappingParametersTransformerFactory() {
+	public EnvironmentMappingParametersTransformerFactory environmentMappingParametersTransformerFactory() {
 		return new EnvironmentMappingParametersTransformerFactory();
+	}
+
+	@Bean
+	public PropertyMappingParametersTransformerFactory propertyMappingParametersTransformerFactory() {
+		return new PropertyMappingParametersTransformerFactory();
 	}
 
 	@Bean

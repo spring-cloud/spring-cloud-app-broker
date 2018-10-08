@@ -74,15 +74,18 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+	private final CloudFoundryTargetProperties targetProperties;
 	private final CloudFoundryDeploymentProperties defaultDeploymentProperties;
 
 	private final CloudFoundryOperations operations;
 
 	private ResourceLoader resourceLoader;
 
-	public CloudFoundryAppDeployer(CloudFoundryDeploymentProperties deploymentProperties,
+	public CloudFoundryAppDeployer(CloudFoundryTargetProperties targetProperties,
+								   CloudFoundryDeploymentProperties deploymentProperties,
 								   CloudFoundryOperations operations,
 								   ResourceLoader resourceLoader) {
+		this.targetProperties = targetProperties;
 		this.defaultDeploymentProperties = deploymentProperties;
 		this.operations = operations;
 		this.resourceLoader = resourceLoader;
@@ -133,8 +136,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 										  .build();
 
 		Mono<Void> requestPushApplication = requestPushApplication(applicationManifestRequest);
-		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_KEY)) {
-			String space = deploymentProperties.get(DeploymentProperties.TARGET_KEY);
+		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
 			requestPushApplication = requestPushApplicationInSpace(applicationManifestRequest, space);
 		}
 
@@ -202,7 +205,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Mono<String> getOrganizationIdPublisher() {
 		OrganizationInfoRequest organizationInfoRequest =
-			OrganizationInfoRequest.builder().name(this.defaultDeploymentProperties.getDefaultOrg()).build();
+			OrganizationInfoRequest.builder().name(this.targetProperties.getDefaultOrg()).build();
 		return this.operations.organizations().get(organizationInfoRequest).map(OrganizationDetail::getId);
 	}
 
@@ -214,8 +217,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 		Map<String, String> deploymentProperties = request.getProperties();
 		Mono<Void> requestDeleteApplication;
-		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_KEY)) {
-			String space = deploymentProperties.get(DeploymentProperties.TARGET_KEY);
+		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
 			requestDeleteApplication = requestDeleteApplicationInSpace(appName, space)
 				.then(createSpaceOperations().delete(DeleteSpaceRequest.builder().name(space).build()));
 		} else {
@@ -259,7 +262,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return new DefaultSpaces(
 			((DefaultCloudFoundryOperations) this.operations).getCloudFoundryClientPublisher() ,
 			getOrganizationIdPublisher(),
-			Mono.just(this.defaultDeploymentProperties.getUsername()));
+			Mono.just(this.targetProperties.getUsername()));
 	}
 
 	private Map<String, String> getEnvironmentVariables(Map<String, String> environment) {
@@ -309,7 +312,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private boolean useSpringApplicationJson(Map<String, String> environment) {
-		return Optional.ofNullable(environment.get(CloudFoundryDeploymentProperties.USE_SPRING_APPLICATION_JSON_KEY))
+		return Optional.ofNullable(environment.get(DeploymentProperties.USE_SPRING_APPLICATION_JSON_KEY))
 			.map(Boolean::valueOf)
 			.orElse(this.defaultDeploymentProperties.isUseSpringApplicationJson());
 	}
@@ -348,11 +351,11 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private Integer instances(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(DeploymentProperties.COUNT_PROPERTY_KEY))
 			.map(Integer::parseInt)
-			.orElse(this.defaultDeploymentProperties.getInstances());
+			.orElse(this.defaultDeploymentProperties.getCount());
 	}
 
 	private String host(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HOST_PROPERTY))
+		return Optional.ofNullable(properties.get(DeploymentProperties.HOST_PROPERTY_KEY))
 			.orElse(this.defaultDeploymentProperties.getHost());
 	}
 

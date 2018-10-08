@@ -28,13 +28,16 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.appbroker.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryTargetProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CloudFoundryClientAutoConfigurationTest {
+class CloudFoundryAppDeployerAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-		.withConfiguration(AutoConfigurations.of(CloudFoundryClientAutoConfiguration.class));
+		.withConfiguration(AutoConfigurations.of(CloudFoundryAppDeployerAutoConfiguration.class));
 
 	@Test
 	void clientIsCreatedWithPasswordGrantConfiguration() {
@@ -45,15 +48,28 @@ class CloudFoundryClientAutoConfigurationTest {
 				"spring.cloud.appbroker.deployer.cloudfoundry.default-org=example-org",
 				"spring.cloud.appbroker.deployer.cloudfoundry.default-space=example-space",
 				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
-				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
+				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret",
+				"spring.cloud.appbroker.deployer.cloudfoundry.properties.memory=2G",
+				"spring.cloud.appbroker.deployer.cloudfoundry.properties.count=3",
+				"spring.cloud.appbroker.deployer.cloudfoundry.properties.buildpack=example-buildpack",
+				"spring.cloud.appbroker.deployer.cloudfoundry.properties.domain=example.com"
 			)
 			.run((context) -> {
-				assertThat(context).hasSingleBean(CloudFoundryProperties.class);
-				CloudFoundryProperties cloudFoundryProperties = context.getBean(CloudFoundryProperties.class);
-				assertThat(cloudFoundryProperties.getApiHost()).isEqualTo("api.example.com");
-				assertThat(cloudFoundryProperties.getApiPort()).isEqualTo(443);
-				assertThat(cloudFoundryProperties.getDefaultOrg()).isEqualTo("example-org");
-				assertThat(cloudFoundryProperties.getDefaultSpace()).isEqualTo("example-space");
+				assertThat(context).hasSingleBean(CloudFoundryTargetProperties.class);
+				CloudFoundryTargetProperties targetProperties = context.getBean(CloudFoundryTargetProperties.class);
+				assertThat(targetProperties.getApiHost()).isEqualTo("api.example.com");
+				assertThat(targetProperties.getApiPort()).isEqualTo(443);
+				assertThat(targetProperties.getDefaultOrg()).isEqualTo("example-org");
+				assertThat(targetProperties.getDefaultSpace()).isEqualTo("example-space");
+
+				assertThat(context).hasSingleBean(CloudFoundryDeploymentProperties.class);
+				CloudFoundryDeploymentProperties deploymentProperties = context.getBean(CloudFoundryDeploymentProperties.class);
+				assertThat(deploymentProperties.getMemory()).isEqualTo("2G");
+				assertThat(deploymentProperties.getCount()).isEqualTo(3);
+				assertThat(deploymentProperties.getBuildpack()).isEqualTo("example-buildpack");
+				assertThat(deploymentProperties.getDomain()).isEqualTo("example.com");
+
+				assertThat(context).hasSingleBean(AppDeployer.class);
 
 				assertThat(context).hasSingleBean(ReactorCloudFoundryClient.class);
 				assertThat(context).hasSingleBean(ReactorDopplerClient.class);
@@ -68,7 +84,8 @@ class CloudFoundryClientAutoConfigurationTest {
 	void clientIsNotCreatedWithoutConfiguration() {
 		this.contextRunner
 			.run((context) -> {
-				assertThat(context).doesNotHaveBean(CloudFoundryProperties.class);
+				assertThat(context).doesNotHaveBean(CloudFoundryTargetProperties.class);
+				assertThat(context).doesNotHaveBean(CloudFoundryDeploymentProperties.class);
 				assertThat(context).doesNotHaveBean(ReactorCloudFoundryClient.class);
 				assertThat(context).doesNotHaveBean(ReactorDopplerClient.class);
 				assertThat(context).doesNotHaveBean(ReactorUaaClient.class);

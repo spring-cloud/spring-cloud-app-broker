@@ -33,8 +33,10 @@ public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstan
 	}
 
 	private Mono<BackingApplication> apply(BackingApplication backingApplication, String serviceInstanceId) {
-		backingApplication.getProperties().put(DeploymentProperties.HOST_KEY, backingApplication.getName() + "-" + serviceInstanceId);
-		backingApplication.getProperties().put(DeploymentProperties.TARGET_KEY, serviceInstanceId);
+		backingApplication.addProperty(DeploymentProperties.HOST_PROPERTY_KEY,
+			backingApplication.getName() + "-" + serviceInstanceId);
+		backingApplication.addProperty(DeploymentProperties.TARGET_PROPERTY_KEY,
+			serviceInstanceId);
 
 		return Mono.just(backingApplication);
 	}

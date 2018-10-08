@@ -61,7 +61,7 @@ class CloudFoundryAppDeployerTest {
 
 	@Mock
 	private ResourceLoader resourceLoader;
-	
+
 	private CloudFoundryDeploymentProperties deploymentProperties;
 
 	@BeforeEach
@@ -76,7 +76,7 @@ class CloudFoundryAppDeployerTest {
 			.thenReturn(new FileSystemResource(APP_PATH));
 
 		appDeployer = new CloudFoundryAppDeployer(
-			deploymentProperties, cloudFoundryOperations, resourceLoader);
+			new CloudFoundryTargetProperties(), deploymentProperties, cloudFoundryOperations, resourceLoader);
 	}
 
 	@Test
@@ -110,7 +110,7 @@ class CloudFoundryAppDeployerTest {
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY, "/healthcheck")
 			.property(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY, "buildpack")
 			.property(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY, "domain")
-			.property(CloudFoundryDeploymentProperties.HOST_PROPERTY, "host")
+			.property(DeploymentProperties.HOST_PROPERTY_KEY, "host")
 			.property(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY, "true")
 			.build();
 
@@ -137,7 +137,7 @@ class CloudFoundryAppDeployerTest {
 
 	@Test
 	void deployAppWithDefaultProperties() {
-		deploymentProperties.setInstances(3);
+		deploymentProperties.setCount(3);
 		deploymentProperties.setMemory("2G");
 		deploymentProperties.setDisk("3G");
 		deploymentProperties.setBuildpack("buildpack");
@@ -173,7 +173,7 @@ class CloudFoundryAppDeployerTest {
 
 	@Test
 	void deployAppWithRequestOverridingDefaultProperties() {
-		deploymentProperties.setInstances(3);
+		deploymentProperties.setCount(3);
 		deploymentProperties.setMemory("2G");
 		deploymentProperties.setDisk("3G");
 		deploymentProperties.setBuildpack("buildpack1");
@@ -192,7 +192,7 @@ class CloudFoundryAppDeployerTest {
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY, "/healthcheck2")
 			.property(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY, "buildpack2")
 			.property(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY, "domain2")
-			.property(CloudFoundryDeploymentProperties.HOST_PROPERTY, "host2")
+			.property(DeploymentProperties.HOST_PROPERTY_KEY, "host2")
 			.property(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY, "true")
 			.build();
 

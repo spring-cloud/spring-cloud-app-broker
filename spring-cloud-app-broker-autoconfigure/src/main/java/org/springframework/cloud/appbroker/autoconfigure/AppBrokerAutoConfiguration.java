@@ -51,7 +51,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@AutoConfigureAfter(AppDeployerAutoConfiguration.class)
+@AutoConfigureAfter(CloudFoundryAppDeployerAutoConfiguration.class)
 @ConditionalOnBean(AppDeployer.class)
 public class AppBrokerAutoConfiguration {
 

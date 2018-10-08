@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.acceptance;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -117,8 +118,16 @@ class CloudFoundryAcceptanceTest {
 			.blockOptional();
 	}
 
+	Optional<ApplicationSummary> getApplicationSummaryByNameAndSpace(String appName, String space) {
+		return cloudFoundryService.getApplicationSummaryByName(appName, space).blockOptional();
+	}
+
 	ApplicationEnvironments getApplicationEnvironmentByName(String appName) {
 		return cloudFoundryService.getApplicationEnvironmentByAppName(appName).block();
+	}
+
+	List<String> getSpaces() {
+		return cloudFoundryService.getSpaces().block();
 	}
 
 	private Path getSampleBrokerAppPath() {

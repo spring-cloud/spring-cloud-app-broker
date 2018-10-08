@@ -156,6 +156,20 @@ configure(allprojects) {
 					"${result.skippedTestCount} skipped"
 			}
 		}
+
+		// print failed tests after the execution
+		def failedTests = []
+
+		afterTest { test, result ->
+			if (result.resultType == TestResult.ResultType.FAILURE) {
+				failedTests << test
+			}
+		}
+
+		afterSuite {
+			failedTests.each { test -> println "FAILED test: ${test.className} > ${test.name}" }
+		}
+
 	}
 
 	pmd {

@@ -16,43 +16,49 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
-import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
-import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse.CreateServiceInstanceResponseBuilder;
-import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Flux;
-import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
-
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
+
+import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse.CreateServiceInstanceResponseBuilder;
+import org.springframework.core.annotation.Order;
 
 @Order(0)
 public class AppDeploymentCreateServiceInstanceWorkflow
 	extends AppDeploymentInstanceWorkflow
 	implements CreateServiceInstanceWorkflow {
+
 	private final Logger log = Loggers.getLogger(AppDeploymentCreateServiceInstanceWorkflow.class);
 
 	private final BackingAppDeploymentService deploymentService;
 	private final ParametersTransformationService parametersTransformationService;
 	private final CredentialProviderService credentialProviderService;
+	private final TargetService targetService;
 
 	public AppDeploymentCreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
 													  ParametersTransformationService parametersTransformationService,
-													  CredentialProviderService credentialProviderService) {
+													  CredentialProviderService credentialProviderService,
+													  TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.parametersTransformationService = parametersTransformationService;
 		this.credentialProviderService = credentialProviderService;
+		this.targetService = targetService;
 	}
 
 	@Override
 	public Flux<Void> create(CreateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+			.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
 			.flatMap(backingApps ->
 				parametersTransformationService.transformParameters(backingApps, request.getParameters()))
 			.flatMap(backingApplications ->

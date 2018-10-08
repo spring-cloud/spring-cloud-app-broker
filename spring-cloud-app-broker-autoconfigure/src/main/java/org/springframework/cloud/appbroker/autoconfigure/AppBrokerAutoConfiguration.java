@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.autoconfigure;
 
+import java.util.List;
+
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,27 +27,28 @@ import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderFactory;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
 import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
+import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;
+import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreateServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentUpdateServiceInstanceWorkflow;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 @Configuration
 @AutoConfigureAfter(AppDeployerAutoConfiguration.class)
@@ -100,35 +103,45 @@ public class AppBrokerAutoConfiguration {
 	public SpringSecurityBasicAuthCredentialProviderFactory springSecurityBasicAuthCredentialProvider(CredentialGenerator credentialGenerator) {
 		return new SpringSecurityBasicAuthCredentialProviderFactory(credentialGenerator);
 	}
-	
+
 	@Bean
 	public CredentialProviderService credentialProviderService(List<CredentialProviderFactory<?>> providers) {
 		return new CredentialProviderService(providers);
 	}
 
 	@Bean
+	public SpacePerServiceInstance targetFactory() {
+		return new SpacePerServiceInstance();
+	}
+
+	@Bean
+	public TargetService targetService(List<TargetFactory<?>> targets) {
+		return new TargetService(targets);
+	}
+
+	@Bean
 	public CreateServiceInstanceWorkflow appDeploymentCreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 																					BackingAppDeploymentService backingAppDeploymentService,
 																					ParametersTransformationService parametersTransformationService,
-																					CredentialProviderService credentialProviderService) {
-		return new AppDeploymentCreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService,
-			parametersTransformationService, credentialProviderService);
+																					CredentialProviderService credentialProviderService,
+																					TargetService targetService) {
+		return new AppDeploymentCreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService, credentialProviderService, targetService);
 	}
 
 	@Bean
 	public DeleteServiceInstanceWorkflow appDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
 																					BackingAppDeploymentService backingAppDeploymentService,
-																					CredentialProviderService credentialProviderService) {
-		return new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService,
-			credentialProviderService);
+																					CredentialProviderService credentialProviderService,
+																					TargetService targetService) {
+		return new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, credentialProviderService, targetService);
 	}
 
 	@Bean
-	public UpdateServiceInstanceWorkflow appDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
-																					BackingAppDeploymentService backingAppDeploymentService,
-																					ParametersTransformationService parametersTransformationService) {
-		return new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService,
-			parametersTransformationService);
+	public UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow(BrokeredServices brokeredServices,
+																	   BackingAppDeploymentService backingAppDeploymentService,
+																	   ParametersTransformationService parametersTransformationService,
+																	   TargetService targetService) {
+		return new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService, targetService);
 	}
 
 	@Bean

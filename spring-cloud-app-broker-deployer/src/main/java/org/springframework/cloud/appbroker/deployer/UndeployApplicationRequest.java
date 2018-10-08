@@ -16,12 +16,16 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.Map;
+
 public class UndeployApplicationRequest {
 
 	private final String name;
+	private final Map<String, String> properties;
 
-	UndeployApplicationRequest(String name) {
+	private UndeployApplicationRequest(String name, Map<String, String> properties) {
 		this.name = name;
+		this.properties = properties;
 	}
 
 	public static UndeployApplicationRequestBuilder builder() {
@@ -32,9 +36,14 @@ public class UndeployApplicationRequest {
 		return name;
 	}
 
+	public Map<String, String> getProperties() {
+		return properties;
+	}
+
 	public static class UndeployApplicationRequestBuilder {
 
 		private String name;
+		private Map<String, String> properties;
 
 		UndeployApplicationRequestBuilder() {
 		}
@@ -44,8 +53,13 @@ public class UndeployApplicationRequest {
 			return this;
 		}
 
+		public UndeployApplicationRequestBuilder properties(Map<String, String> properties) {
+			this.properties = properties;
+			return this;
+		}
+
 		public UndeployApplicationRequest build() {
-			return new UndeployApplicationRequest(name);
+			return new UndeployApplicationRequest(name, properties);
 		}
 	}
 

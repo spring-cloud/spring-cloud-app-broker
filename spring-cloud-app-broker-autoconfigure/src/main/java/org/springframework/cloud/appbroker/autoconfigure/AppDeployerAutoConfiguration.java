@@ -34,9 +34,12 @@ public class AppDeployerAutoConfiguration {
 	@Bean
 	@ConditionalOnBean(CloudFoundryOperations.class)
 	public AppDeployer cloudFoundryAppDeployer(CloudFoundryOperations cloudFoundryOperations,
+											   CloudFoundryProperties cloudFoundryProperties,
 											   ResourceLoader resourceLoader) {
 		CloudFoundryDeploymentProperties cloudFoundryDeploymentProperties = new CloudFoundryDeploymentProperties();
-		return new CloudFoundryAppDeployer(cloudFoundryDeploymentProperties,
-			cloudFoundryOperations, resourceLoader);
+
+		cloudFoundryDeploymentProperties.setDefaultOrg(cloudFoundryProperties.getDefaultOrg());
+		cloudFoundryDeploymentProperties.setUsername(cloudFoundryProperties.getUsername());
+		return new CloudFoundryAppDeployer(cloudFoundryDeploymentProperties, cloudFoundryOperations, resourceLoader);
 	}
 }

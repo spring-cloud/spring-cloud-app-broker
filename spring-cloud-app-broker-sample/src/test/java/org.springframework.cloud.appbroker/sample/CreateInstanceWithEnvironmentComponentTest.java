@@ -29,19 +29,26 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.sample.CreateInstanceWithEnvironmentComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceWithEnvironmentComponentTest.APP_NAME_1;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceWithEnvironmentComponentTest.APP_NAME_2;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
 	"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
 	"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=true",
+	"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[1].name=" + APP_NAME_2,
+	"spring.cloud.appbroker.services[0].apps[1].properties.use-spring-application-json=false",
+	"spring.cloud.appbroker.services[0].apps[1].environment.ENV_VAR_3=value3",
+	"spring.cloud.appbroker.services[0].apps[1].environment.ENV_VAR_4=true",
 })
 class CreateInstanceWithEnvironmentComponentTest extends WiremockComponentTest {
 
-	static final String APP_NAME = "app-with-env";
+	static final String APP_NAME_1 = "app-with-env1";
+	static final String APP_NAME_2 = "app-with-env2";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -51,10 +58,15 @@ class CreateInstanceWithEnvironmentComponentTest extends WiremockComponentTest {
 
 	@Test
 	void pushAppWithEnvironmentVariables() {
-		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
-		cloudControllerFixture.stubPushApp(APP_NAME,
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
+		cloudControllerFixture.stubPushApp(APP_NAME_1,
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*ENV_VAR_1.*:.*value1.*/)]"),
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*ENV_VAR_2.*:.*true.*/)]"));
+
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
+		cloudControllerFixture.stubPushApp(APP_NAME_2,
+			matchingJsonPath("$.environment_json[?(@.ENV_VAR_3 == 'value3')]"),
+			matchingJsonPath("$.environment_json[?(@.ENV_VAR_4 == 'true')]"));
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

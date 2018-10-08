@@ -217,11 +217,63 @@ class CloudFoundryAppDeployerTest {
 		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
 	}
 
+	@Test
+	void deployAppWithEnvironmentUsingSpringAppJson() {
+		deploymentProperties.setUseSpringApplicationJson(true);
+
+		DeployApplicationRequest request = DeployApplicationRequest.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.property(CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY, "-Xms512m -Xmx1024m")
+			.environment("ENV_VAR_1", "value1")
+			.environment("ENV_VAR_2", "value2")
+			.build();
+
+		StepVerifier.create(appDeployer.deploy(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+
+		ApplicationManifest expectedManifest = baseManifest()
+			.name(APP_NAME)
+			.path(new File(APP_PATH).toPath())
+			.environmentVariable("JAVA_OPTS", "-Xms512m -Xmx1024m")
+			.environmentVariable("SPRING_APPLICATION_JSON", "{\"ENV_VAR_2\":\"value2\",\"ENV_VAR_1\":\"value1\"}")
+			.build();
+
+		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
+	}
+
+	@Test
+	void deployAppWithEnvironmentNotUsingSpringAppJson() {
+		deploymentProperties.setUseSpringApplicationJson(false);
+
+		DeployApplicationRequest request = DeployApplicationRequest.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.property(CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY, "-Xms512m -Xmx1024m")
+			.environment("ENV_VAR_1", "value1")
+			.environment("ENV_VAR_2", "value2")
+			.build();
+
+		StepVerifier.create(appDeployer.deploy(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+
+		ApplicationManifest expectedManifest = baseManifest()
+			.name(APP_NAME)
+			.path(new File(APP_PATH).toPath())
+			.environmentVariable("JAVA_OPTS", "-Xms512m -Xmx1024m")
+			.environmentVariable("ENV_VAR_1", "value1")
+			.environmentVariable("ENV_VAR_2", "value2")
+			.build();
+
+		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
+	}
+
 	private ApplicationManifest.Builder baseManifest() {
 		return ApplicationManifest.builder()
 			.environmentVariable("SPRING_APPLICATION_INDEX", "${vcap.application.instance_index}")
 			.environmentVariable("SPRING_CLOUD_APPLICATION_GUID", "${vcap.application.name}:${vcap.application.instance_index}")
-			.environmentVariable("SPRING_APPLICATION_JSON", "{}")
 			.services(new ArrayList<>());
 	}
 

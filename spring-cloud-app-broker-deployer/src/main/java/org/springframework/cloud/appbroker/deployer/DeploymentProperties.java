@@ -24,12 +24,6 @@ public class DeploymentProperties {
 	public static final String COUNT_PROPERTY_KEY = "count";
 
 	/**
-	 * The deployment property for the group to which an app belongs.
-	 * If not provided, a deployer should assume no group.
-	 */
-	public static final String GROUP_PROPERTY_KEY = "group";
-
-	/**
 	 * The deployment property for the memory setting for the container that will run the app.
 	 * The memory is specified in <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>,
 	 * by default, with optional case-insensitive trailing unit 'm' and 'g' being supported,

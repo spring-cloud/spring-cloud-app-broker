@@ -19,7 +19,6 @@ package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -152,7 +151,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		ApplicationManifest.Builder manifest = ApplicationManifest.builder()
 			.name(request.getName())
 			.path(getApplication(appResource))
-			.environmentVariables(getEnvironmentVariables(request.getEnvironment()))
+			.environmentVariables(getEnvironmentVariables(deploymentProperties, request.getEnvironment()))
 			.services(request.getServices())
 			.instances(instances(deploymentProperties))
 			.memory(memory(deploymentProperties))
@@ -265,17 +264,13 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			Mono.just(this.targetProperties.getUsername()));
 	}
 
-	private Map<String, String> getEnvironmentVariables(Map<String, String> environment) {
-		Map<String, String> envVariables = new HashMap<>(getApplicationEnvironment(environment));
+	private Map<String, String> getEnvironmentVariables(Map<String, String> properties,
+														Map<String, String> environment) {
+		Map<String, String> envVariables = getApplicationEnvironment(properties, environment);
 
-		String javaOpts = javaOpts(environment);
+		String javaOpts = javaOpts(properties);
 		if (StringUtils.hasText(javaOpts)) {
-			envVariables.put("JAVA_OPTS", javaOpts(environment));
-		}
-
-		String group = environment.get(DeploymentProperties.GROUP_PROPERTY_KEY);
-		if (StringUtils.hasText(group)) {
-			envVariables.put("SPRING_CLOUD_APPLICATION_GROUP", group);
+			envVariables.put("JAVA_OPTS", javaOpts);
 		}
 
 		envVariables.put("SPRING_CLOUD_APPLICATION_GUID", "${vcap.application.name}:${vcap.application.instance_index}");
@@ -284,35 +279,37 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return envVariables;
 	}
 
-	private Map<String, String> getApplicationEnvironment(Map<String, String> environment) {
+	private Map<String, String> getApplicationEnvironment(Map<String, String> properties,
+														  Map<String, String> environment) {
 		Map<String, String> applicationEnvironment = getSanitizedApplicationEnvironment(environment);
 
-		if (!useSpringApplicationJson(environment)) {
-			return applicationEnvironment;
+		if (!applicationEnvironment.isEmpty() && useSpringApplicationJson(properties)) {
+			try {
+				String jsonEnvironment = OBJECT_MAPPER.writeValueAsString(applicationEnvironment);
+				applicationEnvironment = new HashMap<>(1);
+				applicationEnvironment.put("SPRING_APPLICATION_JSON", jsonEnvironment);
+			} catch (JsonProcessingException e) {
+				throw new IllegalArgumentException("Error writing environment to SPRING_APPLICATION_JSON", e);
+			}
 		}
 
-		try {
-			return Collections.singletonMap("SPRING_APPLICATION_JSON",
-				OBJECT_MAPPER.writeValueAsString(applicationEnvironment));
-		} catch (JsonProcessingException e) {
-			throw new IllegalArgumentException("Error writing environment to SPRING_APPLICATION_JSON", e);
-		}
+		return applicationEnvironment;
 	}
 
 	private Map<String, String> getSanitizedApplicationEnvironment(Map<String, String> environment) {
-		Map<String, String> applicationProperties = new HashMap<>(environment);
+		Map<String, String> applicationEnvironment = new HashMap<>(environment);
 
 		// Remove server.port as CF assigns a port for us, and we don't want to override that
-		Optional.ofNullable(applicationProperties.remove("server.port"))
+		Optional.ofNullable(applicationEnvironment.remove("server.port"))
 			.ifPresent(port -> logger.warn("Ignoring 'server.port={}', " +
 				"as Cloud Foundry will assign a local dynamic port. " +
 				"Route to the app will use port 80.", port));
 
-		return applicationProperties;
+		return applicationEnvironment;
 	}
 
-	private boolean useSpringApplicationJson(Map<String, String> environment) {
-		return Optional.ofNullable(environment.get(DeploymentProperties.USE_SPRING_APPLICATION_JSON_KEY))
+	private boolean useSpringApplicationJson(Map<String, String> properties) {
+		return Optional.ofNullable(properties.get(DeploymentProperties.USE_SPRING_APPLICATION_JSON_KEY))
 			.map(Boolean::valueOf)
 			.orElse(this.defaultDeploymentProperties.isUseSpringApplicationJson());
 	}

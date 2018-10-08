@@ -76,37 +76,37 @@ public class CloudFoundryDeploymentProperties {
 	/**
 	 * The buildpack to use for deploying the application.
 	 */
-	private String buildpack = "https://github.com/cloudfoundry/java-buildpack.git#v4.7.1";
+	private String buildpack;
 
 	/**
 	 * The amount of memory to allocate, if not overridden per-app. Default unit is mebibytes, 'M' and 'G" suffixes supported.
 	 */
-	private String memory = "1024m";
+	private String memory;
 
 	/**
 	 * The amount of disk space to allocate, if not overridden per-app. Default unit is mebibytes, 'M' and 'G" suffixes supported.
 	 */
-	private String disk = "1024m";
+	private String disk;
 
 	/**
 	 * The type of health check to perform on deployed application, if not overridden per-app.  Defaults to PORT
 	 */
-	private ApplicationHealthCheck healthCheck = ApplicationHealthCheck.PORT;
+	private ApplicationHealthCheck healthCheck;
 
 	/**
 	 * The path that the http health check will use, defaults to @{code /health}
 	 */
-	private String healthCheckHttpEndpoint = "/health";
+	private String healthCheckHttpEndpoint;
 
 	/**
 	 * The timeout value for health checks in seconds.  Defaults to 120 seconds.
 	 */
-	private String healthCheckTimeout = "120";
+	private Integer healthCheckTimeout;
 
 	/**
 	 * The number of instances to run.
 	 */
-	private int instances = 1;
+	private Integer instances;
 
 	/**
 	 * Flag to enable prefixing the app name with a random prefix.
@@ -179,7 +179,7 @@ public class CloudFoundryDeploymentProperties {
 		this.disk = disk;
 	}
 
-	public int getInstances() {
+	public Integer getInstances() {
 		return instances;
 	}
 
@@ -235,11 +235,11 @@ public class CloudFoundryDeploymentProperties {
 		this.healthCheckHttpEndpoint = healthCheckHttpEndpoint;
 	}
 
-	public String getHealthCheckTimeout() {
+	public Integer getHealthCheckTimeout() {
 		return healthCheckTimeout;
 	}
 
-	public void setHealthCheckTimeout(String healthCheckTimeout) {
+	public void setHealthCheckTimeout(Integer healthCheckTimeout) {
 		this.healthCheckTimeout = healthCheckTimeout;
 	}
 

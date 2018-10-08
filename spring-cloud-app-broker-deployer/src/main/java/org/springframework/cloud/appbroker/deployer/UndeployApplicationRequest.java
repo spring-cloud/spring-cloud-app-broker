@@ -23,7 +23,7 @@ public class UndeployApplicationRequest {
 	private final String name;
 	private final Map<String, String> properties;
 
-	private UndeployApplicationRequest(String name, Map<String, String> properties) {
+	UndeployApplicationRequest(String name, Map<String, String> properties) {
 		this.name = name;
 		this.properties = properties;
 	}

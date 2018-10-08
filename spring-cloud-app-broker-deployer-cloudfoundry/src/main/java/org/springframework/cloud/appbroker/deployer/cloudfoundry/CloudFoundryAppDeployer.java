@@ -151,12 +151,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.path(getApplication(appResource))
 			.environmentVariables(getEnvironmentVariables(request.getEnvironment()))
 			.services(request.getServices())
+			.instances(instances(deploymentProperties))
+			.memory(memory(deploymentProperties))
 			.disk(diskQuota(deploymentProperties))
 			.healthCheckType(healthCheck(deploymentProperties))
 			.healthCheckHttpEndpoint(healthCheckEndpoint(deploymentProperties))
 			.timeout(healthCheckTimeout(deploymentProperties))
-			.instances(instances(deploymentProperties))
-			.memory(memory(deploymentProperties))
 			.noRoute(toggleNoRoute(deploymentProperties));
 
 		Optional.ofNullable(host(deploymentProperties)).ifPresent(manifest::host);
@@ -252,7 +252,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return new DefaultApplications(
 			((DefaultCloudFoundryOperations) this.operations).getCloudFoundryClientPublisher(),
 			((DefaultCloudFoundryOperations) this.operations).getDopplerClientPublisher(),
-			(this.operations).spaces().get(GetSpaceRequest.builder().name(space).build()).map(SpaceDetail::getId));
+			this.operations.spaces().get(GetSpaceRequest.builder().name(space).build()).map(SpaceDetail::getId));
 	}
 
 	private DefaultSpaces createSpaceOperations() {
@@ -321,8 +321,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private ApplicationHealthCheck healthCheck(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY))
-				.map(this::toApplicationHealthCheck)
-				.orElse(this.defaultDeploymentProperties.getHealthCheck());
+			.map(this::toApplicationHealthCheck)
+			.orElse(this.defaultDeploymentProperties.getHealthCheck());
 	}
 
 	private ApplicationHealthCheck toApplicationHealthCheck(String raw) {
@@ -336,19 +336,19 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private String healthCheckEndpoint(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY))
-				.orElse(this.defaultDeploymentProperties.getHealthCheckHttpEndpoint());
+			.orElse(this.defaultDeploymentProperties.getHealthCheckHttpEndpoint());
 	}
 
 	private Integer healthCheckTimeout(Map<String, String> properties) {
-		String timeoutString = properties
-				.getOrDefault(CloudFoundryDeploymentProperties.HEALTHCHECK_TIMEOUT_PROPERTY_KEY, this.defaultDeploymentProperties.getHealthCheckTimeout());
-		return Integer.parseInt(timeoutString);
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HEALTHCHECK_TIMEOUT_PROPERTY_KEY))
+			.map(Integer::parseInt)
+			.orElse(this.defaultDeploymentProperties.getHealthCheckTimeout());
 	}
 
-	private int instances(Map<String, String> properties) {
+	private Integer instances(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(DeploymentProperties.COUNT_PROPERTY_KEY))
-				.map(Integer::parseInt)
-				.orElse(this.defaultDeploymentProperties.getInstances());
+			.map(Integer::parseInt)
+			.orElse(this.defaultDeploymentProperties.getInstances());
 	}
 
 	private String host(Map<String, String> properties) {
@@ -382,30 +382,31 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.orElse(null);
 	}
 
-	private int memory(Map<String, String> properties) {
-		String withUnit = properties
-				.getOrDefault(DeploymentProperties.MEMORY_PROPERTY_KEY, this.defaultDeploymentProperties.getMemory());
-		return (int) ByteSizeUtils.parseToMebibytes(withUnit);
+	private Integer memory(Map<String, String> properties) {
+		return Optional.ofNullable(properties.get(DeploymentProperties.MEMORY_PROPERTY_KEY))
+			.map(ByteSizeUtils::parseToMebibytes)
+			.orElse(ByteSizeUtils.parseToMebibytes(defaultDeploymentProperties.getMemory()));
 	}
 
-	private int diskQuota(Map<String, String> properties) {
-		String withUnit = properties
-				.getOrDefault(DeploymentProperties.DISK_PROPERTY_KEY, this.defaultDeploymentProperties.getDisk());
-		return (int) ByteSizeUtils.parseToMebibytes(withUnit);
+	private Integer diskQuota(Map<String, String> properties) {
+		return Optional.ofNullable(properties.get(DeploymentProperties.DISK_PROPERTY_KEY))
+			.map(ByteSizeUtils::parseToMebibytes)
+			.orElse(ByteSizeUtils.parseToMebibytes(defaultDeploymentProperties.getDisk()));
 	}
 
 	private String buildpack(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY))
-				.orElse(this.defaultDeploymentProperties.getBuildpack());
+			.orElse(this.defaultDeploymentProperties.getBuildpack());
 	}
 
 	private String javaOpts(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY))
-				.orElse(this.defaultDeploymentProperties.getJavaOpts());
+			.orElse(this.defaultDeploymentProperties.getJavaOpts());
 	}
 
 	private Predicate<Throwable> isNotFoundError() {
-		return t -> t instanceof AbstractCloudFoundryException && ((AbstractCloudFoundryException) t).getStatusCode() == HttpStatus.NOT_FOUND.value();
+		return t -> t instanceof AbstractCloudFoundryException &&
+			((AbstractCloudFoundryException) t).getStatusCode() == HttpStatus.NOT_FOUND.value();
 	}
 
 	/**

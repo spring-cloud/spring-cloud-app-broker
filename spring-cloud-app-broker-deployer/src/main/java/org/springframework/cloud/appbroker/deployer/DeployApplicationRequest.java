@@ -123,9 +123,6 @@ public class DeployApplicationRequest {
 		}
 
 		public DeployApplicationRequestBuilder services(List<String> services) {
-			if (services == null) {
-				return this;
-			}
 			this.services.addAll(services);
 			return this;
 		}

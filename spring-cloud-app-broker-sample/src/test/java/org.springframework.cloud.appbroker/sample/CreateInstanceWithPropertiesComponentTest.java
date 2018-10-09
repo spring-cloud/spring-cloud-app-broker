@@ -32,6 +32,10 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.sample.CreateInstanceWithPropertiesComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
+	"spring.cloud.appbroker.deployer.cloudfoundry.properties.memory=1G",
+	"spring.cloud.appbroker.deployer.cloudfoundry.properties.count=1",
+	"spring.cloud.appbroker.deployer.cloudfoundry.properties.health-check=http",
+	"spring.cloud.appbroker.deployer.cloudfoundry.properties.health-check-http-endpoint=/myhealth",
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
@@ -56,7 +60,9 @@ class CreateInstanceWithPropertiesComponentTest extends WiremockComponentTest {
 		cloudControllerFixture.stubPushApp(APP_NAME,
 			matchingJsonPath("$.[?(@.memory == '2048')]"),
 			matchingJsonPath("$.[?(@.instances == '2')]"),
-			matchingJsonPath("$.[?(@.health_check_timeout == '180')]"));
+			matchingJsonPath("$.[?(@.health_check_timeout == '180')]"),
+			matchingJsonPath("$.[?(@.health_check_type == 'http')]"),
+			matchingJsonPath("$.[?(@.health_check_http_endpoint == '/myhealth')]"));
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

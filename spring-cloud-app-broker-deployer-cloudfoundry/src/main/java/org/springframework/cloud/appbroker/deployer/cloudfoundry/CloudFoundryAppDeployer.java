@@ -19,7 +19,6 @@ package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -74,15 +73,18 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+	private final CloudFoundryTargetProperties targetProperties;
 	private final CloudFoundryDeploymentProperties defaultDeploymentProperties;
 
 	private final CloudFoundryOperations operations;
 
 	private ResourceLoader resourceLoader;
 
-	public CloudFoundryAppDeployer(CloudFoundryDeploymentProperties deploymentProperties,
+	public CloudFoundryAppDeployer(CloudFoundryTargetProperties targetProperties,
+								   CloudFoundryDeploymentProperties deploymentProperties,
 								   CloudFoundryOperations operations,
 								   ResourceLoader resourceLoader) {
+		this.targetProperties = targetProperties;
 		this.defaultDeploymentProperties = deploymentProperties;
 		this.operations = operations;
 		this.resourceLoader = resourceLoader;
@@ -133,8 +135,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 										  .build();
 
 		Mono<Void> requestPushApplication = requestPushApplication(applicationManifestRequest);
-		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_KEY)) {
-			String space = deploymentProperties.get(DeploymentProperties.TARGET_KEY);
+		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
 			requestPushApplication = requestPushApplicationInSpace(applicationManifestRequest, space);
 		}
 
@@ -149,14 +151,14 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		ApplicationManifest.Builder manifest = ApplicationManifest.builder()
 			.name(request.getName())
 			.path(getApplication(appResource))
-			.environmentVariables(getEnvironmentVariables(request.getEnvironment()))
+			.environmentVariables(getEnvironmentVariables(deploymentProperties, request.getEnvironment()))
 			.services(request.getServices())
+			.instances(instances(deploymentProperties))
+			.memory(memory(deploymentProperties))
 			.disk(diskQuota(deploymentProperties))
 			.healthCheckType(healthCheck(deploymentProperties))
 			.healthCheckHttpEndpoint(healthCheckEndpoint(deploymentProperties))
 			.timeout(healthCheckTimeout(deploymentProperties))
-			.instances(instances(deploymentProperties))
-			.memory(memory(deploymentProperties))
 			.noRoute(toggleNoRoute(deploymentProperties));
 
 		Optional.ofNullable(host(deploymentProperties)).ifPresent(manifest::host);
@@ -202,7 +204,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Mono<String> getOrganizationIdPublisher() {
 		OrganizationInfoRequest organizationInfoRequest =
-			OrganizationInfoRequest.builder().name(this.defaultDeploymentProperties.getDefaultOrg()).build();
+			OrganizationInfoRequest.builder().name(this.targetProperties.getDefaultOrg()).build();
 		return this.operations.organizations().get(organizationInfoRequest).map(OrganizationDetail::getId);
 	}
 
@@ -214,8 +216,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 		Map<String, String> deploymentProperties = request.getProperties();
 		Mono<Void> requestDeleteApplication;
-		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_KEY)) {
-			String space = deploymentProperties.get(DeploymentProperties.TARGET_KEY);
+		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
 			requestDeleteApplication = requestDeleteApplicationInSpace(appName, space)
 				.then(createSpaceOperations().delete(DeleteSpaceRequest.builder().name(space).build()));
 		} else {
@@ -252,27 +254,23 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return new DefaultApplications(
 			((DefaultCloudFoundryOperations) this.operations).getCloudFoundryClientPublisher(),
 			((DefaultCloudFoundryOperations) this.operations).getDopplerClientPublisher(),
-			(this.operations).spaces().get(GetSpaceRequest.builder().name(space).build()).map(SpaceDetail::getId));
+			this.operations.spaces().get(GetSpaceRequest.builder().name(space).build()).map(SpaceDetail::getId));
 	}
 
 	private DefaultSpaces createSpaceOperations() {
 		return new DefaultSpaces(
 			((DefaultCloudFoundryOperations) this.operations).getCloudFoundryClientPublisher() ,
 			getOrganizationIdPublisher(),
-			Mono.just(this.defaultDeploymentProperties.getUsername()));
+			Mono.just(this.targetProperties.getUsername()));
 	}
 
-	private Map<String, String> getEnvironmentVariables(Map<String, String> environment) {
-		Map<String, String> envVariables = new HashMap<>(getApplicationEnvironment(environment));
+	private Map<String, String> getEnvironmentVariables(Map<String, String> properties,
+														Map<String, String> environment) {
+		Map<String, String> envVariables = getApplicationEnvironment(properties, environment);
 
-		String javaOpts = javaOpts(environment);
+		String javaOpts = javaOpts(properties);
 		if (StringUtils.hasText(javaOpts)) {
-			envVariables.put("JAVA_OPTS", javaOpts(environment));
-		}
-
-		String group = environment.get(DeploymentProperties.GROUP_PROPERTY_KEY);
-		if (StringUtils.hasText(group)) {
-			envVariables.put("SPRING_CLOUD_APPLICATION_GROUP", group);
+			envVariables.put("JAVA_OPTS", javaOpts);
 		}
 
 		envVariables.put("SPRING_CLOUD_APPLICATION_GUID", "${vcap.application.name}:${vcap.application.instance_index}");
@@ -281,35 +279,37 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return envVariables;
 	}
 
-	private Map<String, String> getApplicationEnvironment(Map<String, String> environment) {
+	private Map<String, String> getApplicationEnvironment(Map<String, String> properties,
+														  Map<String, String> environment) {
 		Map<String, String> applicationEnvironment = getSanitizedApplicationEnvironment(environment);
 
-		if (!useSpringApplicationJson(environment)) {
-			return applicationEnvironment;
+		if (!applicationEnvironment.isEmpty() && useSpringApplicationJson(properties)) {
+			try {
+				String jsonEnvironment = OBJECT_MAPPER.writeValueAsString(applicationEnvironment);
+				applicationEnvironment = new HashMap<>(1);
+				applicationEnvironment.put("SPRING_APPLICATION_JSON", jsonEnvironment);
+			} catch (JsonProcessingException e) {
+				throw new IllegalArgumentException("Error writing environment to SPRING_APPLICATION_JSON", e);
+			}
 		}
 
-		try {
-			return Collections.singletonMap("SPRING_APPLICATION_JSON",
-				OBJECT_MAPPER.writeValueAsString(applicationEnvironment));
-		} catch (JsonProcessingException e) {
-			throw new IllegalArgumentException("Error writing environment to SPRING_APPLICATION_JSON", e);
-		}
+		return applicationEnvironment;
 	}
 
 	private Map<String, String> getSanitizedApplicationEnvironment(Map<String, String> environment) {
-		Map<String, String> applicationProperties = new HashMap<>(environment);
+		Map<String, String> applicationEnvironment = new HashMap<>(environment);
 
 		// Remove server.port as CF assigns a port for us, and we don't want to override that
-		Optional.ofNullable(applicationProperties.remove("server.port"))
+		Optional.ofNullable(applicationEnvironment.remove("server.port"))
 			.ifPresent(port -> logger.warn("Ignoring 'server.port={}', " +
 				"as Cloud Foundry will assign a local dynamic port. " +
 				"Route to the app will use port 80.", port));
 
-		return applicationProperties;
+		return applicationEnvironment;
 	}
 
-	private boolean useSpringApplicationJson(Map<String, String> environment) {
-		return Optional.ofNullable(environment.get(CloudFoundryDeploymentProperties.USE_SPRING_APPLICATION_JSON_KEY))
+	private boolean useSpringApplicationJson(Map<String, String> properties) {
+		return Optional.ofNullable(properties.get(DeploymentProperties.USE_SPRING_APPLICATION_JSON_KEY))
 			.map(Boolean::valueOf)
 			.orElse(this.defaultDeploymentProperties.isUseSpringApplicationJson());
 	}
@@ -321,8 +321,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private ApplicationHealthCheck healthCheck(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY))
-				.map(this::toApplicationHealthCheck)
-				.orElse(this.defaultDeploymentProperties.getHealthCheck());
+			.map(this::toApplicationHealthCheck)
+			.orElse(this.defaultDeploymentProperties.getHealthCheck());
 	}
 
 	private ApplicationHealthCheck toApplicationHealthCheck(String raw) {
@@ -336,23 +336,23 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private String healthCheckEndpoint(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY))
-				.orElse(this.defaultDeploymentProperties.getHealthCheckHttpEndpoint());
+			.orElse(this.defaultDeploymentProperties.getHealthCheckHttpEndpoint());
 	}
 
 	private Integer healthCheckTimeout(Map<String, String> properties) {
-		String timeoutString = properties
-				.getOrDefault(CloudFoundryDeploymentProperties.HEALTHCHECK_TIMEOUT_PROPERTY_KEY, this.defaultDeploymentProperties.getHealthCheckTimeout());
-		return Integer.parseInt(timeoutString);
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HEALTHCHECK_TIMEOUT_PROPERTY_KEY))
+			.map(Integer::parseInt)
+			.orElse(this.defaultDeploymentProperties.getHealthCheckTimeout());
 	}
 
-	private int instances(Map<String, String> properties) {
+	private Integer instances(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(DeploymentProperties.COUNT_PROPERTY_KEY))
-				.map(Integer::parseInt)
-				.orElse(this.defaultDeploymentProperties.getInstances());
+			.map(Integer::parseInt)
+			.orElse(this.defaultDeploymentProperties.getCount());
 	}
 
 	private String host(Map<String, String> properties) {
-		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.HOST_PROPERTY))
+		return Optional.ofNullable(properties.get(DeploymentProperties.HOST_PROPERTY_KEY))
 			.orElse(this.defaultDeploymentProperties.getHost());
 	}
 
@@ -382,30 +382,31 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.orElse(null);
 	}
 
-	private int memory(Map<String, String> properties) {
-		String withUnit = properties
-				.getOrDefault(DeploymentProperties.MEMORY_PROPERTY_KEY, this.defaultDeploymentProperties.getMemory());
-		return (int) ByteSizeUtils.parseToMebibytes(withUnit);
+	private Integer memory(Map<String, String> properties) {
+		return Optional.ofNullable(properties.get(DeploymentProperties.MEMORY_PROPERTY_KEY))
+			.map(ByteSizeUtils::parseToMebibytes)
+			.orElse(ByteSizeUtils.parseToMebibytes(defaultDeploymentProperties.getMemory()));
 	}
 
-	private int diskQuota(Map<String, String> properties) {
-		String withUnit = properties
-				.getOrDefault(DeploymentProperties.DISK_PROPERTY_KEY, this.defaultDeploymentProperties.getDisk());
-		return (int) ByteSizeUtils.parseToMebibytes(withUnit);
+	private Integer diskQuota(Map<String, String> properties) {
+		return Optional.ofNullable(properties.get(DeploymentProperties.DISK_PROPERTY_KEY))
+			.map(ByteSizeUtils::parseToMebibytes)
+			.orElse(ByteSizeUtils.parseToMebibytes(defaultDeploymentProperties.getDisk()));
 	}
 
 	private String buildpack(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY))
-				.orElse(this.defaultDeploymentProperties.getBuildpack());
+			.orElse(this.defaultDeploymentProperties.getBuildpack());
 	}
 
 	private String javaOpts(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY))
-				.orElse(this.defaultDeploymentProperties.getJavaOpts());
+			.orElse(this.defaultDeploymentProperties.getJavaOpts());
 	}
 
 	private Predicate<Throwable> isNotFoundError() {
-		return t -> t instanceof AbstractCloudFoundryException && ((AbstractCloudFoundryException) t).getStatusCode() == HttpStatus.NOT_FOUND.value();
+		return t -> t instanceof AbstractCloudFoundryException &&
+			((AbstractCloudFoundryException) t).getStatusCode() == HttpStatus.NOT_FOUND.value();
 	}
 
 	/**

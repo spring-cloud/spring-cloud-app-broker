@@ -40,10 +40,9 @@ class AppBrokerAutoConfigurationTest {
 		.withConfiguration(AutoConfigurations.of(AppBrokerAutoConfiguration.class));
 
 	@Test
-	void servicesAreCreatedWithAppDeployerConfigured() {
+	void servicesAreCreatedWithCloudFoundryConfigured() {
 		this.contextRunner
-			.withConfiguration(AutoConfigurations.of(AppDeployerAutoConfiguration.class,
-				CloudFoundryClientAutoConfiguration.class))
+			.withConfiguration(AutoConfigurations.of(CloudFoundryAppDeployerAutoConfiguration.class))
 			.withPropertyValues(
 				"spring.cloud.appbroker.services[0].service-name=service1",
 				"spring.cloud.appbroker.services[0].plan-name=service1-plan1",

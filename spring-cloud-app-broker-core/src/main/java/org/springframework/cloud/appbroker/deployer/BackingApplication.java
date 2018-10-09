@@ -60,7 +60,7 @@ public class BackingApplication {
 	private BackingApplication() {
 	}
 
-	private BackingApplication(String name, String path,
+	BackingApplication(String name, String path,
 					   Map<String, String> properties,
 					   Map<String, String> environment,
 					   List<String> services,

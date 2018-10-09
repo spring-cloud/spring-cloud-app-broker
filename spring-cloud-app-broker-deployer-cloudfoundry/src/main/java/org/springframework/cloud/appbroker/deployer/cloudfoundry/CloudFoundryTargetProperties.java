@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.autoconfigure;
+package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
 import java.net.URI;
 
 import org.cloudfoundry.reactor.ProxyConfiguration;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-@ConfigurationProperties(CloudFoundryProperties.PROPERTY_PREFIX)
-public class CloudFoundryProperties {
-
-	static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry";
+public class CloudFoundryTargetProperties {
 
 	private String apiHost;
 	private Integer apiPort;

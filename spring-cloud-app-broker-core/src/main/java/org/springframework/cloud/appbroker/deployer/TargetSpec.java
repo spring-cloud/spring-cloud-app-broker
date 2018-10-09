@@ -23,7 +23,7 @@ public class TargetSpec {
 	private TargetSpec() {
 	}
 
-	private TargetSpec(String name) {
+	TargetSpec(String name) {
 		this.name = name;
 	}
 
@@ -44,7 +44,7 @@ public class TargetSpec {
 
 		private String name;
 
-		private TargetSpecBuilder() {
+		TargetSpecBuilder() {
 		}
 
 		public TargetSpecBuilder name(String name) {

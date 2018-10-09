@@ -281,7 +281,7 @@ public class CloudFoundryService {
 		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.default-org", cloudFoundryProperties.getDefaultOrg());
 		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.default-space", cloudFoundryProperties.getDefaultSpace());
 		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.skip-ssl-validation", String.valueOf(cloudFoundryProperties.isSkipSslValidation()));
-		deployerVariables.put("spring.cloud.appbroker.apps[0].cloudfoundry.skip-ssl-validation", String.valueOf(cloudFoundryProperties.isSkipSslValidation()));
+		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.properties.memory", "1024M");
 		return deployerVariables;
 	}
 

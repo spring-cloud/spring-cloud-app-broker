@@ -17,8 +17,9 @@
 description = "Spring Cloud App Broker Deployer Cloud Foundry"
 
 ext {
-	reactorNettyVersion = '0.7.5.RELEASE'
-	cfJavaClientVersion = "3.9.0.RELEASE"
+	reactorCoreVersion = '3.2.0.RELEASE'
+	reactorNettyVersion = '0.8.0.RELEASE'
+	cfJavaClientVersion = '3.13.0.RELEASE'
 }
 
 dependencies {
@@ -26,6 +27,8 @@ dependencies {
 	api("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
 	api("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
 	api("org.cloudfoundry:cloudfoundry-util:${cfJavaClientVersion}")
+	api("io.projectreactor:reactor-core:${reactorCoreVersion}")
+	api("io.projectreactor.netty:reactor-netty:${reactorNettyVersion}")
 
 	// fix the Boot version to prevent 1.5.x and 2.0.x on the classpath
 	implementation("org.springframework.boot:spring-boot-starter-validation:${springBootVersion}")

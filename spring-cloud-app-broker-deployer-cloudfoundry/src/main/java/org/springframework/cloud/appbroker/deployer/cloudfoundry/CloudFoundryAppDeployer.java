@@ -32,20 +32,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cloudfoundry.AbstractCloudFoundryException;
 import org.cloudfoundry.UnknownCloudFoundryException;
+import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.spaces.CreateSpaceRequest;
+import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.DefaultApplications;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.organizations.OrganizationDetail;
 import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
-import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
-import org.cloudfoundry.operations.spaces.DefaultSpaces;
-import org.cloudfoundry.operations.spaces.DeleteSpaceRequest;
 import org.cloudfoundry.operations.spaces.GetSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceDetail;
 import org.slf4j.Logger;
@@ -73,20 +72,23 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-	private final CloudFoundryTargetProperties targetProperties;
 	private final CloudFoundryDeploymentProperties defaultDeploymentProperties;
 
 	private final CloudFoundryOperations operations;
+	private final CloudFoundryClient client;
+	private final CloudFoundryTargetProperties targetProperties;
 
 	private ResourceLoader resourceLoader;
 
-	public CloudFoundryAppDeployer(CloudFoundryTargetProperties targetProperties,
-								   CloudFoundryDeploymentProperties deploymentProperties,
+	public CloudFoundryAppDeployer(CloudFoundryDeploymentProperties deploymentProperties,
 								   CloudFoundryOperations operations,
+								   CloudFoundryClient client,
+								   CloudFoundryTargetProperties targetProperties,
 								   ResourceLoader resourceLoader) {
-		this.targetProperties = targetProperties;
 		this.defaultDeploymentProperties = deploymentProperties;
 		this.operations = operations;
+		this.client = client;
+		this.targetProperties = targetProperties;
 		this.resourceLoader = resourceLoader;
 	}
 
@@ -134,10 +136,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 										  .startupTimeout(this.defaultDeploymentProperties.getStartupTimeout())
 										  .build();
 
-		Mono<Void> requestPushApplication = requestPushApplication(applicationManifestRequest);
+		Mono<Void> requestPushApplication;
 		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
 			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
-			requestPushApplication = requestPushApplicationInSpace(applicationManifestRequest, space);
+			requestPushApplication = pushManifestInSpace(applicationManifestRequest, space);
+		} else {
+			requestPushApplication = pushManifest(applicationManifestRequest);
 		}
 
 		return requestPushApplication
@@ -184,84 +188,99 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return manifest.build();
 	}
 
-	private Mono<Void> requestPushApplication(PushApplicationManifestRequest request) {
+	private Mono<Void> pushManifest(PushApplicationManifestRequest request) {
 		return this.operations.applications()
 			.pushManifest(request);
 	}
 
-	private Mono<Void> requestPushApplicationInSpace(PushApplicationManifestRequest request, String space) {
-		return createSpaceOperations()
-			.create(CreateSpaceRequest.builder().name(space).build())
-			.then(createCloudFoundryOperationsForSpace(space).applications().pushManifest(request));
+	private Mono<Void> pushManifestInSpace(PushApplicationManifestRequest request, String spaceName) {
+		return createSpace(spaceName)
+			.then(createCloudFoundryOperationsForSpace(spaceName)
+				.applications()
+				.pushManifest(request));
 	}
 
-	private DefaultCloudFoundryOperations createCloudFoundryOperationsForSpace(String space) {
-		return DefaultCloudFoundryOperations
-			.builder()
-			.from((DefaultCloudFoundryOperations) this.operations)
-			.space(space).build();
+	private Mono<Void> createSpace(String spaceName) {
+		return getDefaultOrganizationId()
+			.flatMap(orgId -> this.client.spaces()
+				.create(CreateSpaceRequest.builder()
+					.organizationId(orgId)
+					.name(spaceName)
+					.build())
+				.doOnSuccess(response -> logger.info("Created space {}", spaceName))
+				.then(Mono.empty()));
 	}
 
-	private Mono<String> getOrganizationIdPublisher() {
-		OrganizationInfoRequest organizationInfoRequest =
-			OrganizationInfoRequest.builder().name(this.targetProperties.getDefaultOrg()).build();
-		return this.operations.organizations().get(organizationInfoRequest).map(OrganizationDetail::getId);
+	private Mono<String> getDefaultOrganizationId() {
+		return this.operations.organizations()
+			.get(OrganizationInfoRequest.builder()
+				.name(targetProperties.getDefaultOrg())
+				.build())
+			.map(OrganizationDetail::getId);
 	}
 
 	@Override
 	public Mono<UndeployApplicationResponse> undeploy(UndeployApplicationRequest request) {
-		String appName = request.getName();
-
 		logger.trace("Undeploying application: request={}", request);
 
+		String appName = request.getName();
 		Map<String, String> deploymentProperties = request.getProperties();
+
 		Mono<Void> requestDeleteApplication;
 		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
 			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
-			requestDeleteApplication = requestDeleteApplicationInSpace(appName, space)
-				.then(createSpaceOperations().delete(DeleteSpaceRequest.builder().name(space).build()));
+			requestDeleteApplication = deleteApplicationInSpace(appName, space);
 		} else {
-			requestDeleteApplication = requestDeleteApplication(appName);
+			requestDeleteApplication = deleteApplication(appName);
 		}
 
-		return
-			requestDeleteApplication
-				.timeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiTimeout()))
-				.doOnSuccess(v -> logger.info("Successfully undeployed app {}", appName))
-				.doOnError(logError(String.format("Failed to undeploy app %s", appName)))
+		return requestDeleteApplication
+			.timeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiTimeout()))
+			.doOnSuccess(v -> logger.info("Successfully undeployed app {}", appName))
+			.doOnError(logError(String.format("Failed to undeploy app %s", appName)))
 			.then(Mono.just(UndeployApplicationResponse.builder()
 				.name(appName)
 				.build()));
 	}
 
-	private Mono<Void> requestDeleteApplication(String name) {
+	private Mono<Void> deleteApplication(String name) {
 		return this.operations.applications()
 			.delete(DeleteApplicationRequest.builder()
-				.deleteRoutes(defaultDeploymentProperties.isDeleteRoutes())
+				.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
 				.name(name)
 				.build());
 	}
 
-	private Mono<Void> requestDeleteApplicationInSpace(String name, String space) {
-		return createSpaceApplications(space)
+	private Mono<Void> deleteApplicationInSpace(String name, String spaceName) {
+		return createCloudFoundryOperationsForSpace(spaceName).applications()
 			.delete(DeleteApplicationRequest.builder()
-				.deleteRoutes(defaultDeploymentProperties.isDeleteRoutes())
+				.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
 				.name(name)
-				.build());
+				.build())
+			.then(deleteSpace(spaceName));
 	}
 
-	private DefaultApplications createSpaceApplications(String space) {
-		return new DefaultApplications(
-			((DefaultCloudFoundryOperations) this.operations).getCloudFoundryClientPublisher(),
-			((DefaultCloudFoundryOperations) this.operations).getDopplerClientPublisher(),
-			this.operations.spaces().get(GetSpaceRequest.builder().name(space).build()).map(SpaceDetail::getId));
+	private Mono<Void> deleteSpace(String spaceName) {
+		return getSpaceIdFromName(spaceName)
+			.flatMap(spaceId -> this.client.spaces()
+				.delete(DeleteSpaceRequest.builder()
+					.spaceId(spaceId)
+					.build())
+				.then(Mono.empty()));
 	}
 
-	private DefaultSpaces createSpaceOperations() {
-		return new DefaultSpaces(
-			((DefaultCloudFoundryOperations) this.operations).getCloudFoundryClientPublisher() ,
-			getOrganizationIdPublisher(),
-			Mono.just(this.targetProperties.getUsername()));
+	private Mono<String> getSpaceIdFromName(String spaceName) {
+		return this.operations.spaces().get(GetSpaceRequest.builder()
+			.name(spaceName)
+			.build())
+			.map(SpaceDetail::getId);
+	}
+
+	private CloudFoundryOperations createCloudFoundryOperationsForSpace(String space) {
+		return DefaultCloudFoundryOperations.builder()
+			.from((DefaultCloudFoundryOperations) this.operations)
+			.space(space)
+			.build();
 	}
 
 	private Map<String, String> getEnvironmentVariables(Map<String, String> properties,

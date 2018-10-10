@@ -22,6 +22,7 @@ import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
+import org.cloudfoundry.reactor.tokenprovider.ClientCredentialsGrantTokenProvider;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.junit.jupiter.api.Test;
@@ -61,6 +62,8 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				assertThat(targetProperties.getApiPort()).isEqualTo(443);
 				assertThat(targetProperties.getDefaultOrg()).isEqualTo("example-org");
 				assertThat(targetProperties.getDefaultSpace()).isEqualTo("example-space");
+				assertThat(targetProperties.getUsername()).isEqualTo("user");
+				assertThat(targetProperties.getPassword()).isEqualTo("secret");
 
 				assertThat(context).hasSingleBean(CloudFoundryDeploymentProperties.class);
 				CloudFoundryDeploymentProperties deploymentProperties = context.getBean(CloudFoundryDeploymentProperties.class);
@@ -77,6 +80,38 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				assertThat(context).hasSingleBean(CloudFoundryOperations.class);
 				assertThat(context).hasSingleBean(DefaultConnectionContext.class);
 				assertThat(context).hasSingleBean(PasswordGrantTokenProvider.class);
+			});
+	}
+
+	@Test
+	void clientIsCreatedWithCredentialsGrantConfiguration() {
+		this.contextRunner
+			.withPropertyValues(
+				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.api-port=443",
+				"spring.cloud.appbroker.deployer.cloudfoundry.default-org=example-org",
+				"spring.cloud.appbroker.deployer.cloudfoundry.default-space=example-space",
+				"spring.cloud.appbroker.deployer.cloudfoundry.client-id=oauth-client",
+				"spring.cloud.appbroker.deployer.cloudfoundry.client-secret=secret"
+			)
+			.run((context) -> {
+				assertThat(context).hasSingleBean(CloudFoundryTargetProperties.class);
+				CloudFoundryTargetProperties targetProperties = context.getBean(CloudFoundryTargetProperties.class);
+				assertThat(targetProperties.getApiHost()).isEqualTo("api.example.com");
+				assertThat(targetProperties.getApiPort()).isEqualTo(443);
+				assertThat(targetProperties.getDefaultOrg()).isEqualTo("example-org");
+				assertThat(targetProperties.getDefaultSpace()).isEqualTo("example-space");
+				assertThat(targetProperties.getClientId()).isEqualTo("oauth-client");
+				assertThat(targetProperties.getClientSecret()).isEqualTo("secret");
+
+				assertThat(context).hasSingleBean(AppDeployer.class);
+
+				assertThat(context).hasSingleBean(ReactorCloudFoundryClient.class);
+				assertThat(context).hasSingleBean(ReactorDopplerClient.class);
+				assertThat(context).hasSingleBean(ReactorUaaClient.class);
+				assertThat(context).hasSingleBean(CloudFoundryOperations.class);
+				assertThat(context).hasSingleBean(DefaultConnectionContext.class);
+				assertThat(context).hasSingleBean(ClientCredentialsGrantTokenProvider.class);
 			});
 	}
 

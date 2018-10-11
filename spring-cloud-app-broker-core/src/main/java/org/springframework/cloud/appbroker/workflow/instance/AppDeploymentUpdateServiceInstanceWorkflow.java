@@ -39,21 +39,17 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 
 	private final BackingAppDeploymentService deploymentService;
 	private final ParametersTransformationService parametersTransformationService;
-	private final TargetService targetService;
 
 	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
-													  ParametersTransformationService parametersTransformationService,
-													  TargetService targetService) {
+													  ParametersTransformationService parametersTransformationService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.parametersTransformationService = parametersTransformationService;
-		this.targetService = targetService;
 	}
 
 	public Flux<Void> update(UpdateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-			.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
 			.flatMap(backingApps ->
 				parametersTransformationService.transformParameters(backingApps, request.getParameters()))
 			.flatMapMany(deploymentService::deploy)

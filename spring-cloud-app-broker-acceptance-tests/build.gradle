@@ -16,18 +16,25 @@
 
 description = "Spring Cloud App Broker Acceptance Tests"
 
+ext {
+	springBootVersion = '2.0.3.RELEASE'
+	reactorCoreVersion = '3.2.0.RELEASE'
+	reactorNettyVersion = '0.8.0.RELEASE'
+	cfJavaClientVersion = '3.13.0.RELEASE'
+}
+
 dependencies {
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
 
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-webflux:2.0.3.RELEASE")
-	testImplementation("org.springframework.boot:spring-boot-starter-test:2.0.3.RELEASE")
-	testImplementation("org.cloudfoundry:cloudfoundry-client-reactor:3.12.0.RELEASE")
-	testImplementation("org.cloudfoundry:cloudfoundry-operations:3.12.0.RELEASE")
-	testImplementation("io.projectreactor:reactor-core:3.1.8.RELEASE")
-	testImplementation("io.projectreactor.ipc:reactor-netty:0.7.8.RELEASE")
+	testImplementation("org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}")
+	testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+	testImplementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
+	testImplementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
+	testImplementation("io.projectreactor:reactor-core:${reactorCoreVersion}")
+	testImplementation("io.projectreactor.netty:reactor-netty:${reactorNettyVersion}")
 }
 
 test {

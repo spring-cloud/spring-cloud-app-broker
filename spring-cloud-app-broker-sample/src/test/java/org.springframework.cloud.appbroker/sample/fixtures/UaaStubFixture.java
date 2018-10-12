@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.sample.fixtures;
 
 import org.springframework.boot.test.context.TestComponent;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -27,12 +28,64 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 public class UaaStubFixture extends WiremockStubFixture {
 	public void stubCommonUaaRequests() {
 		stubRetrieveAccessToken();
+		stubRetrieveTokenKeys();
 	}
 
+	/**
+	 * {
+	 *  "jti": "9fd596e1fcd34c12a3f74695e8951b70",
+	 *  "sub": "9f1a1425-a7ab-4e38-b2b9-d6f221b16cea",
+	 *  "scope": [
+	 *   "openid",
+	 *   "routing.router_groups.write",
+	 *   "network.write",
+	 *   "scim.read",
+	 *   "cloud_controller.admin",
+	 *   "uaa.user",
+	 *   "routing.router_groups.read",
+	 *   "cloud_controller.read",
+	 *   "password.write",
+	 *   "cloud_controller.write",
+	 *   "network.admin",
+	 *   "doppler.firehose",
+	 *   "scim.write"
+	 *  ],
+	 *  "client_id": "cf",
+	 *  "cid": "cf",
+	 *  "azp": "cf",
+	 *  "grant_type": "password",
+	 *  "user_id": "9f1a1425-a7ab-4e38-b2b9-d6f221b16cea",
+	 *  "origin": "uaa",
+	 *  "user_name": "admin",
+	 *  "email": "admin",
+	 *  "rev_sig": "c594512e",
+	 *  "iat": 1539188141,
+	 *  "exp": 1539195341,
+	 *  "iss": "https://uaa.system.example.com/oauth/token",
+	 *  "zid": "uaa",
+	 *  "aud": [
+	 *   "cloud_controller",
+	 *   "scim",
+	 *   "password",
+	 *   "cf",
+	 *   "uaa",
+	 *   "openid",
+	 *   "doppler",
+	 *   "network",
+	 *   "routing.router_groups"
+	 *  ]
+	 * }
+	 */
 	private void stubRetrieveAccessToken() {
 		stubFor(post(urlPathEqualTo("/oauth/token"))
 			.willReturn(ok()
 				.withBody(uaa("put-oauth-token"))));
+	}
+
+	private void stubRetrieveTokenKeys() {
+		stubFor(get(urlPathEqualTo("/token_keys"))
+			.willReturn(ok()
+				.withBody(uaa("get-token-keys"))));
 	}
 
 	private String uaa(String fileRoot) {

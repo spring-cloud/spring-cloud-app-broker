@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 import java.io.File;
 import java.util.ArrayList;
 
+import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -45,6 +46,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("UnassignedFluxMonoInstance")
 @ExtendWith(MockitoExtension.class)
 class CloudFoundryAppDeployerTest {
 
@@ -60,6 +62,9 @@ class CloudFoundryAppDeployerTest {
 	private CloudFoundryOperations cloudFoundryOperations;
 
 	@Mock
+	private CloudFoundryClient cloudFoundryClient;
+
+	@Mock
 	private ResourceLoader resourceLoader;
 
 	private CloudFoundryDeploymentProperties deploymentProperties;
@@ -67,6 +72,7 @@ class CloudFoundryAppDeployerTest {
 	@BeforeEach
 	void setUp() {
 		deploymentProperties = new CloudFoundryDeploymentProperties();
+		CloudFoundryTargetProperties targetProperties = new CloudFoundryTargetProperties();
 
 		when(applications.pushManifest(any()))
 			.thenReturn(Mono.empty());
@@ -75,8 +81,8 @@ class CloudFoundryAppDeployerTest {
 		when(resourceLoader.getResource(APP_PATH))
 			.thenReturn(new FileSystemResource(APP_PATH));
 
-		appDeployer = new CloudFoundryAppDeployer(
-			new CloudFoundryTargetProperties(), deploymentProperties, cloudFoundryOperations, resourceLoader);
+		appDeployer = new CloudFoundryAppDeployer(deploymentProperties,
+			cloudFoundryOperations, cloudFoundryClient, targetProperties, resourceLoader);
 	}
 
 	@Test

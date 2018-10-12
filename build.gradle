@@ -117,8 +117,8 @@ configure(allprojects) {
 		"-Xlint:rawtypes",
 		"-Xlint:deprecation",
 		"-Xlint:unchecked",
-		"-Xlint:-options",
-		"-Werror"
+		"-Xlint:-options"
+//		"-Werror"
 	]
 
 	sourceSets.test.resources.srcDirs = [

@@ -18,14 +18,15 @@ package org.springframework.cloud.appbroker.autoconfigure;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.doppler.DopplerClient;
-import org.cloudfoundry.operations.CloudFoundryOperations;
 
+import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.ConnectionContext;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
+import org.cloudfoundry.reactor.tokenprovider.ClientCredentialsGrantTokenProvider;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.UaaClient;
@@ -50,7 +51,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 
 	@Bean
 	@ConfigurationProperties(PROPERTY_PREFIX + ".properties")
-	public CloudFoundryDeploymentProperties cloudFoundryDeploymentProperties() {
+	CloudFoundryDeploymentProperties cloudFoundryDeploymentProperties() {
 		return new CloudFoundryDeploymentProperties();
 	}
 
@@ -61,11 +62,13 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	@Bean
-	public AppDeployer cloudFoundryAppDeployer(CloudFoundryOperations cloudFoundryOperations,
-											   CloudFoundryTargetProperties targetProperties,
-											   CloudFoundryDeploymentProperties deploymentProperties,
-											   ResourceLoader resourceLoader) {
-		return new CloudFoundryAppDeployer(targetProperties, deploymentProperties, cloudFoundryOperations, resourceLoader);
+	AppDeployer cloudFoundryAppDeployer(CloudFoundryDeploymentProperties deploymentProperties,
+										CloudFoundryOperations cloudFoundryOperations,
+										CloudFoundryClient cloudFoundryClient,
+										CloudFoundryTargetProperties targetProperties,
+										ResourceLoader resourceLoader) {
+		return new CloudFoundryAppDeployer(deploymentProperties, cloudFoundryOperations, cloudFoundryClient,
+			targetProperties, resourceLoader);
 	}
 
 	@Bean
@@ -109,10 +112,21 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	@Bean
 	@ConditionalOnProperty({CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".username",
 		CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".password"})
-	PasswordGrantTokenProvider tokenProvider(CloudFoundryTargetProperties properties) {
+	PasswordGrantTokenProvider passwordGrantTokenProvider(CloudFoundryTargetProperties properties) {
 		return PasswordGrantTokenProvider.builder()
 			.password(properties.getPassword())
 			.username(properties.getUsername())
+			.build();
+	}
+
+	@Bean
+	@ConditionalOnProperty({CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".client-id",
+		CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".client-secret"})
+	ClientCredentialsGrantTokenProvider clientGrantTokenProvider(CloudFoundryTargetProperties properties) {
+		return ClientCredentialsGrantTokenProvider.builder()
+			.clientId(properties.getClientId())
+			.clientSecret(properties.getClientSecret())
+			.identityZoneSubdomain(properties.getIdentityZoneSubdomain())
 			.build();
 	}
 

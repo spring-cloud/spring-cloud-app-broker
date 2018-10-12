@@ -26,10 +26,13 @@ public class CloudFoundryTargetProperties {
 	private Integer apiPort;
 	private String defaultOrg;
 	private String defaultSpace;
+	private String username;
 	private String password;
+	private String clientId;
+	private String clientSecret;
 	private boolean secure = true;
 	private boolean skipSslValidation;
-	private String username;
+	private String identityZoneSubdomain;
 
 	public String getApiHost() {
 		return apiHost;
@@ -63,6 +66,14 @@ public class CloudFoundryTargetProperties {
 		this.defaultSpace = defaultSpace;
 	}
 
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 	public String getPassword() {
 		return password;
 	}
@@ -71,16 +82,28 @@ public class CloudFoundryTargetProperties {
 		this.password = password;
 	}
 
-	public ProxyConfiguration getProxyConfiguration() {
-		return null;
+	public String getClientId() {
+		return clientId;
 	}
 
-	public String getUsername() {
-		return username;
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public String getClientSecret() {
+		return clientSecret;
+	}
+
+	public void setClientSecret(String clientSecret) {
+		this.clientSecret = clientSecret;
+	}
+
+	public String getIdentityZoneSubdomain() {
+		return identityZoneSubdomain;
+	}
+
+	public void setIdentityZoneSubdomain(String identityZoneSubdomain) {
+		this.identityZoneSubdomain = identityZoneSubdomain;
 	}
 
 	public boolean isSecure() {
@@ -99,9 +122,12 @@ public class CloudFoundryTargetProperties {
 		this.skipSslValidation = skipSslValidation;
 	}
 
+	public ProxyConfiguration getProxyConfiguration() {
+		return null;
+	}
+
 	private static String parseApiHost(String api) {
 		final URI uri = URI.create(api);
 		return uri.getHost() == null ? api : uri.getHost();
 	}
-
 }

@@ -45,7 +45,7 @@ configure(allprojects) {
 	apply plugin: "com.jfrog.artifactory"
 
 	ext {
-		openServiceBrokerVersion = "3.0.0.M1"
+		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
 		springVersion = "5.0.7.RELEASE"
 		reactorVersion = "3.1.8.RELEASE"
 		junitJupiterVersion = "5.2.0"

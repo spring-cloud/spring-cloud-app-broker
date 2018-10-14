@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
@@ -34,8 +33,8 @@ import org.cloudfoundry.operations.applications.GetApplicationEnvironmentsReques
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.organizations.CreateOrganizationRequest;
-import org.cloudfoundry.operations.organizations.DefaultOrganizations;
 import org.cloudfoundry.operations.organizations.OrganizationSummary;
+import org.cloudfoundry.operations.organizations.Organizations;
 import org.cloudfoundry.operations.serviceadmin.CreateServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.DeleteServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.EnableServiceAccessRequest;
@@ -44,14 +43,13 @@ import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
-import org.cloudfoundry.operations.spaces.DefaultSpaces;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
+import org.cloudfoundry.operations.spaces.Spaces;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static java.lang.String.format;
@@ -63,22 +61,20 @@ public class CloudFoundryService {
 
 	private final CloudFoundryOperations cloudFoundryOperations;
 	private final CloudFoundryProperties cloudFoundryProperties;
-	private final CloudFoundryClient cloudFoundryClient;
 
-	@Autowired
 	public CloudFoundryService(CloudFoundryOperations cloudFoundryOperations,
-							   CloudFoundryProperties cloudFoundryProperties,
-							   CloudFoundryClient cloudFoundryClient) {
+							   CloudFoundryProperties cloudFoundryProperties) {
 		this.cloudFoundryOperations = cloudFoundryOperations;
 		this.cloudFoundryProperties = cloudFoundryProperties;
-		this.cloudFoundryClient = cloudFoundryClient;
 	}
 
 	public Mono<Void> enableServiceBrokerAccess(String serviceName) {
 		return loggingMono(
 			cloudFoundryOperations
 				.serviceAdmin()
-				.enableServiceAccess(EnableServiceAccessRequest.builder().serviceName(serviceName).build()));
+				.enableServiceAccess(EnableServiceAccessRequest.builder()
+					.serviceName(serviceName)
+					.build()));
 	}
 
 	public Mono<Void> createServiceBroker(String brokerName, String sampleBrokerAppName) {
@@ -86,8 +82,7 @@ public class CloudFoundryService {
 			getApplicationRoute(sampleBrokerAppName)
 				.flatMap(url -> cloudFoundryOperations
 					.serviceAdmin()
-					.create(CreateServiceBrokerRequest
-						.builder()
+					.create(CreateServiceBrokerRequest.builder()
 						.name(brokerName)
 						.username("user")
 						.password("password")
@@ -106,7 +101,7 @@ public class CloudFoundryService {
 				.map(url -> "https://" + url));
 	}
 
-	public Mono<Void> pushAppBroker(String appName, Path appPath, String... backingAppProperties) {
+	public Mono<Void> pushBrokerApp(String appName, Path appPath, String... backingAppProperties) {
 		return loggingMono(
 			cloudFoundryOperations
 				.applications()
@@ -124,17 +119,15 @@ public class CloudFoundryService {
 					.build()));
 	}
 
-	public Mono<Void> deleteBackingApp(String appName) {
-		return loggingMono(
-			cloudFoundryOperations
+	public Mono<Void> deleteApp(String appName) {
+		return loggingMono(cloudFoundryOperations
 				.applications()
 				.delete(DeleteApplicationRequest.builder().name(appName).build()))
 			.onErrorResume(e -> Mono.empty());
 	}
 
 	public Mono<Void> deleteServiceBroker(String brokerName) {
-		return loggingMono(
-			cloudFoundryOperations
+		return loggingMono(cloudFoundryOperations
 				.serviceAdmin()
 				.delete(DeleteServiceBrokerRequest.builder().name(brokerName).build()))
 			.onErrorResume(e -> Mono.empty());
@@ -205,7 +198,7 @@ public class CloudFoundryService {
 			.applications()
 			.list()
 			.filter(applicationSummary -> applicationSummary.getName().equals(appName))
-		).next();
+		).single();
 	}
 
 	public Mono<ApplicationEnvironments> getApplicationEnvironmentByAppName(String appName) {
@@ -226,10 +219,11 @@ public class CloudFoundryService {
 	public Mono<SpaceSummary> getOrCreateDefaultSpace() {
 		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
 
-		DefaultSpaces spaceOperations = new DefaultSpaces(
-			Mono.just(cloudFoundryClient),
-			getOrCreateDefaultOrganization().map(OrganizationSummary::getId),
-			Mono.just(cloudFoundryProperties.getUsername()));
+		Spaces spaceOperations = DefaultCloudFoundryOperations.builder()
+			.from((DefaultCloudFoundryOperations) this.cloudFoundryOperations)
+			.organization(cloudFoundryProperties.getDefaultOrg())
+			.build()
+			.spaces();
 
 		final String defaultSpace = cloudFoundryProperties.getDefaultSpace();
 		return loggingMono(
@@ -244,13 +238,10 @@ public class CloudFoundryService {
 	}
 
 	public Mono<OrganizationSummary> getOrCreateDefaultOrganization() {
-		DefaultOrganizations organizationOperations = new DefaultOrganizations(
-			Mono.just(cloudFoundryClient),
-			Mono.just(cloudFoundryProperties.getUsername()));
+		Organizations organizationOperations = cloudFoundryOperations.organizations();
 
 		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
-		return loggingMono(
-			getDefaultOrg(organizationOperations)
+		return loggingMono(getDefaultOrg(organizationOperations)
 				.switchIfEmpty(organizationOperations
 					.create(CreateOrganizationRequest
 						.builder()
@@ -259,15 +250,15 @@ public class CloudFoundryService {
 					.then(getDefaultOrg(organizationOperations))));
 	}
 
-	private DefaultCloudFoundryOperations createOperationsForSpace(String space, String defaultOrg) {
+	private CloudFoundryOperations createOperationsForSpace(String space, String defaultOrg) {
 		return DefaultCloudFoundryOperations.builder()
-											.cloudFoundryClient(cloudFoundryClient)
-											.organization(defaultOrg)
-											.space(space)
-											.build();
+			.from((DefaultCloudFoundryOperations) cloudFoundryOperations)
+			.organization(defaultOrg)
+			.space(space)
+			.build();
 	}
 
-	private Mono<OrganizationSummary> getDefaultOrg(DefaultOrganizations orgOperations) {
+	private Mono<OrganizationSummary> getDefaultOrg(Organizations orgOperations) {
 		return orgOperations
 			.list()
 			.filter(r -> r
@@ -276,7 +267,7 @@ public class CloudFoundryService {
 			.next();
 	}
 
-	private Mono<SpaceSummary> getDefaultSpace(DefaultSpaces spaceOperations) {
+	private Mono<SpaceSummary> getDefaultSpace(Spaces spaceOperations) {
 		return spaceOperations
 			.list()
 			.filter(r -> r
@@ -286,16 +277,31 @@ public class CloudFoundryService {
 	}
 
 	private Map<String, String> appBrokerDeployerEnvironmentVariables() {
-
 		Map<String, String> deployerVariables = new HashMap<>();
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.api-host", cloudFoundryProperties.getApiHost());
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.api-port", String.valueOf(cloudFoundryProperties.getApiPort()));
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.username", cloudFoundryProperties.getUsername());
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.password", cloudFoundryProperties.getPassword());
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.default-org", cloudFoundryProperties.getDefaultOrg());
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.default-space", cloudFoundryProperties.getDefaultSpace());
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.skip-ssl-validation", String.valueOf(cloudFoundryProperties.isSkipSslValidation()));
+		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.api-host",
+			cloudFoundryProperties.getApiHost());
+		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.api-port",
+			String.valueOf(cloudFoundryProperties.getApiPort()));
+		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.default-org",
+			cloudFoundryProperties.getDefaultOrg());
+		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.default-space",
+			cloudFoundryProperties.getDefaultSpace());
+		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.skip-ssl-validation",
+			String.valueOf(cloudFoundryProperties.isSkipSslValidation()));
 		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.properties.memory", "1024M");
+
+		if (cloudFoundryProperties.getUsername() == null || cloudFoundryProperties.getPassword() == null) {
+			deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.client-id",
+				CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_ID);
+			deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.client-secret",
+				CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET);
+		} else {
+			deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.username",
+				cloudFoundryProperties.getUsername());
+			deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.password",
+				cloudFoundryProperties.getPassword());
+		}
+
 		return deployerVariables;
 	}
 
@@ -320,9 +326,9 @@ public class CloudFoundryService {
 			final String[] appPropertyKeyValue = appProperty.split("=");
 			if (appPropertyKeyValue.length == 2) {
 				backingAppVariables.put(appPropertyKeyValue[0], appPropertyKeyValue[1]);
-			}
-			else {
-				throw new IllegalArgumentException(format("Backing app property '%s' is incorrectly formatted", Arrays.toString(appPropertyKeyValue)));
+			} else {
+				throw new IllegalArgumentException(format("Backing app property '%s' is incorrectly formatted",
+					Arrays.toString(appPropertyKeyValue)));
 			}
 		}
 		return backingAppVariables;

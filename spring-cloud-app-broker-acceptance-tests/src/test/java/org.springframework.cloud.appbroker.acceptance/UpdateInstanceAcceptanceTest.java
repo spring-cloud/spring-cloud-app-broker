@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_SAMPLE_APP_UPDATE = "broker-sample-app-update";
+	private static final String BROKER_SAMPLE_APP_UPDATE = "app-update";
 
 	@Test
 	@AppBrokerTestProperties({

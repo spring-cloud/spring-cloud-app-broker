@@ -26,25 +26,29 @@ import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
+import org.cloudfoundry.reactor.tokenprovider.ClientCredentialsGrantTokenProvider;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.UaaClient;
+import org.cloudfoundry.uaa.UaaException;
+import org.cloudfoundry.uaa.clients.Clients;
+import org.cloudfoundry.uaa.clients.CreateClientRequest;
+import org.cloudfoundry.uaa.clients.DeleteClientRequest;
+import org.cloudfoundry.uaa.tokens.GrantType;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import reactor.core.publisher.Mono;
 
 @Configuration
 @EnableConfigurationProperties(CloudFoundryProperties.class)
 public class CloudFoundryClientConfiguration {
 
-	@Bean
-	ReactorCloudFoundryClient cloudFoundryClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
-		return ReactorCloudFoundryClient.builder()
-			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
-			.build();
-	}
+	static final String ACCEPTANCE_TEST_OAUTH_CLIENT_ID = "acceptance-test-client";
+	static final String ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET = "acceptance-test-client-secret";
+	private static final String[] ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES =
+		{"openid", "cloud_controller.admin", "cloud_controller.read", "cloud_controller.write"};
 
 	@Bean
 	CloudFoundryOperations cloudFoundryOperations(CloudFoundryProperties properties, CloudFoundryClient client,
@@ -59,7 +63,15 @@ public class CloudFoundryClientConfiguration {
 	}
 
 	@Bean
-	DefaultConnectionContext connectionContext(CloudFoundryProperties properties) {
+	CloudFoundryClient cloudFoundryClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+		return ReactorCloudFoundryClient.builder()
+			.connectionContext(connectionContext)
+			.tokenProvider(tokenProvider)
+			.build();
+	}
+
+	@Bean
+	ConnectionContext connectionContext(CloudFoundryProperties properties) {
 		return DefaultConnectionContext.builder()
 			.apiHost(properties.getApiHost())
 			.port(Optional.ofNullable(properties.getApiPort()))
@@ -69,8 +81,16 @@ public class CloudFoundryClientConfiguration {
 	}
 
 	@Bean
-	ReactorDopplerClient dopplerClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+	DopplerClient dopplerClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
 		return ReactorDopplerClient.builder()
+			.connectionContext(connectionContext)
+			.tokenProvider(tokenProvider)
+			.build();
+	}
+
+	@Bean
+	UaaClient uaaClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+		return ReactorUaaClient.builder()
 			.connectionContext(connectionContext)
 			.tokenProvider(tokenProvider)
 			.build();
@@ -79,7 +99,7 @@ public class CloudFoundryClientConfiguration {
 	@Bean
 	@ConditionalOnProperty({CloudFoundryProperties.PROPERTY_PREFIX + ".username",
 		CloudFoundryProperties.PROPERTY_PREFIX + ".password"})
-	PasswordGrantTokenProvider tokenProvider(CloudFoundryProperties properties) {
+	PasswordGrantTokenProvider passwordTokenProvider(CloudFoundryProperties properties) {
 		return PasswordGrantTokenProvider.builder()
 			.password(properties.getPassword())
 			.username(properties.getUsername())
@@ -87,10 +107,40 @@ public class CloudFoundryClientConfiguration {
 	}
 
 	@Bean
-	ReactorUaaClient uaaClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+	@ConditionalOnProperty({CloudFoundryProperties.PROPERTY_PREFIX + ".client-id",
+		CloudFoundryProperties.PROPERTY_PREFIX + ".client-secret"})
+	ClientCredentialsGrantTokenProvider clientTokenProvider(ConnectionContext connectionContext,
+															CloudFoundryProperties properties) {
+
+		Clients uaaClients = buildTempUaaClient(connectionContext, properties).clients();
+
+		uaaClients.delete(DeleteClientRequest.builder()
+			.clientId(ACCEPTANCE_TEST_OAUTH_CLIENT_ID)
+			.build())
+			.onErrorResume(UaaException.class, e -> Mono.empty())
+			.then(uaaClients.create(CreateClientRequest.builder()
+				.clientId(ACCEPTANCE_TEST_OAUTH_CLIENT_ID)
+				.clientSecret(ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET)
+				.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
+				.authorities(ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES)
+				.build()))
+			.block();
+
+		return ClientCredentialsGrantTokenProvider.builder()
+			.clientId(ACCEPTANCE_TEST_OAUTH_CLIENT_ID)
+			.clientSecret(ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET)
+			.identityZoneSubdomain(properties.getIdentityZoneSubdomain())
+			.build();
+	}
+
+	private UaaClient buildTempUaaClient(ConnectionContext connectionContext, CloudFoundryProperties properties) {
 		return ReactorUaaClient.builder()
 			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
+			.tokenProvider(ClientCredentialsGrantTokenProvider.builder()
+				.clientId(properties.getClientId())
+				.clientSecret(properties.getClientSecret())
+				.identityZoneSubdomain(properties.getIdentityZoneSubdomain())
+				.build())
 			.build();
 	}
 

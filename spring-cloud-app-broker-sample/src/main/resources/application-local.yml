@@ -40,3 +40,7 @@ spring:
           default-org: test
           default-space: development
           skip-ssl-validation: true
+
+logging:
+  level:
+    cloudfoundry-client: DEBUG

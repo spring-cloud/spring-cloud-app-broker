@@ -60,7 +60,7 @@ class CloudFoundryAcceptanceTest {
 
 	@BeforeEach
 	void setUp(BrokerProperties brokerProperties) {
-		initializeBroker(brokerProperties.getProperties());
+		blockingSubscribe(initializeBroker(brokerProperties.getProperties()));
 	}
 
 	@AfterEach
@@ -68,14 +68,13 @@ class CloudFoundryAcceptanceTest {
 		blockingSubscribe(cleanup());
 	}
 
-	private void initializeBroker(String... backingAppProperties) {
-
-		blockingSubscribe(cloudFoundryService
+	private Mono<Void> initializeBroker(String... backingAppProperties) {
+		return cloudFoundryService
 			.getOrCreateDefaultOrganization()
 			.then(cloudFoundryService.getOrCreateDefaultSpace())
 			.then(cloudFoundryService.pushAppBroker(SAMPLE_BROKER_APP_NAME, getSampleBrokerAppPath(), backingAppProperties))
 			.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, SAMPLE_BROKER_APP_NAME))
-			.then(cloudFoundryService.enableServiceBrokerAccess(SERVICE_NAME)));
+			.then(cloudFoundryService.enableServiceBrokerAccess(SERVICE_NAME));
 	}
 
 	private Mono<Void> cleanup() {
@@ -119,11 +118,15 @@ class CloudFoundryAcceptanceTest {
 	}
 
 	Optional<ApplicationSummary> getApplicationSummaryByNameAndSpace(String appName, String space) {
-		return cloudFoundryService.getApplicationSummaryByName(appName, space).blockOptional();
+		return cloudFoundryService.getApplicationSummaryByNameAndSpace(appName, space).blockOptional();
 	}
 
 	ApplicationEnvironments getApplicationEnvironmentByName(String appName) {
 		return cloudFoundryService.getApplicationEnvironmentByAppName(appName).block();
+	}
+
+	ApplicationEnvironments getApplicationEnvironmentByNameAndSpace(String appName, String space) {
+		return cloudFoundryService.getApplicationEnvironmentByAppNameAndSpace(appName, space).block();
 	}
 
 	List<String> getSpaces() {
@@ -134,7 +137,7 @@ class CloudFoundryAcceptanceTest {
 		return Paths.get(acceptanceTestProperties.getSampleBrokerAppPath(), "");
 	}
 
-	private <T> void blockingSubscribe(Mono<? super T> publisher){
+	private <T> void blockingSubscribe(Mono<? super T> publisher) {
 		CountDownLatch latch = new CountDownLatch(1);
 		publisher.subscribe(System.out::println, t -> {
 			t.printStackTrace();

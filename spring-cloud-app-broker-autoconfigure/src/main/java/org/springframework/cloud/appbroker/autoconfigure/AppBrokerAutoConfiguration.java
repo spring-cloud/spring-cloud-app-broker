@@ -139,8 +139,9 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	public UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 																	   BackingAppDeploymentService backingAppDeploymentService,
-																	   ParametersTransformationService parametersTransformationService) {
-		return new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService);
+																	   ParametersTransformationService parametersTransformationService,
+																	   TargetService targetService) {
+		return new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService, targetService);
 	}
 
 	@Bean

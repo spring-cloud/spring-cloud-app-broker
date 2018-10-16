@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.cloudfoundry.operations.applications.ApplicationSummary;
@@ -25,45 +24,41 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CreateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
+class CreateInstanceWithMultipleAppsAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_SAMPLE_APP_CREATE_WITH_TARGET = "app-with-target";
-	private static final String BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER = "app-other";
+	private static final String BROKER_SAMPLE_APP_CREATE_1 = "broker-app-create-1";
+	private static final String BROKER_SAMPLE_APP_CREATE_2 = "broker-app-create-2";
 
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE_1,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.services[0].apps[0].target.name=SpacePerServiceInstance",
-		"spring.cloud.appbroker.services[0].apps[1].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER,
+		"spring.cloud.appbroker.services[0].apps[1].name=" + BROKER_SAMPLE_APP_CREATE_2,
 		"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
-		"spring.cloud.appbroker.services[0].apps[1].target.name=SpacePerServiceInstance"
 	})
-	void shouldCreateMultipleAppsInSpace() {
-		// when a service instance is created with targets
+	void shouldPushMultipleAppsWhenCreateServiceCalled() {
+		// when a service instance is created
 		createServiceInstance();
+
 		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance();
 		assertThat(serviceInstance).isNotEmpty();
 
-		// then backing applications are deployed in a space named as the service instance id
-		String space = serviceInstance.orElseThrow(RuntimeException::new).getId();
-
-		Optional<ApplicationSummary> backingApplication =
-			getApplicationSummaryByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, space);
-		assertThat(backingApplication).isNotEmpty();
-
-		Optional<ApplicationSummary> backingApplicationOther =
-			getApplicationSummaryByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER, space);
-		assertThat(backingApplicationOther).isNotEmpty();
+		// then the backing applications are deployed
+		Optional<ApplicationSummary> backingApplication1 = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE_1);
+		assertThat(backingApplication1).isNotEmpty();
+		Optional<ApplicationSummary> backingApplication2 = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE_2);
+		assertThat(backingApplication2).isNotEmpty();
 
 		// when the service instance is deleted
 		deleteServiceInstance();
 
-		// then the space is deleted
-		List<String> spaces = getSpaces();
-		assertThat(spaces).doesNotContain(space);
+		// then the backing applications are deleted
+		Optional<ApplicationSummary> backingApplication1AfterDelete = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE_1);
+		assertThat(backingApplication1AfterDelete).isEmpty();
+		Optional<ApplicationSummary> backingApplication2AfterDelete = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE_2);
+		assertThat(backingApplication2AfterDelete).isEmpty();
 	}
 
 }

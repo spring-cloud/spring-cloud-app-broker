@@ -128,14 +128,16 @@ public class CloudFoundryService {
 		return loggingMono(
 			cloudFoundryOperations
 				.applications()
-				.delete(DeleteApplicationRequest.builder().name(appName).build()));
+				.delete(DeleteApplicationRequest.builder().name(appName).build()))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	public Mono<Void> deleteServiceBroker(String brokerName) {
 		return loggingMono(
 			cloudFoundryOperations
 				.serviceAdmin()
-				.delete(DeleteServiceBrokerRequest.builder().name(brokerName).build()));
+				.delete(DeleteServiceBrokerRequest.builder().name(brokerName).build()))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	public Mono<Void> deleteServiceInstance(String serviceInstanceName) {
@@ -144,7 +146,8 @@ public class CloudFoundryService {
 				.flatMap(si ->
 					cloudFoundryOperations
 						.services()
-						.deleteInstance(DeleteServiceInstanceRequest.builder().name(si.getName()).build())));
+						.deleteInstance(DeleteServiceInstanceRequest.builder().name(si.getName()).build())))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	private Mono<ServiceInstanceSummary> getServiceInstanceFromList(String serviceInstanceName) {
@@ -196,13 +199,9 @@ public class CloudFoundryService {
 		return this.cloudFoundryOperations.spaces().list().map(SpaceSummary::getName).collectList();
 	}
 
-	public Mono<ApplicationSummary> getApplicationSummaryByName(String appName, String space) {
+	public Mono<ApplicationSummary> getApplicationSummaryByNameAndSpace(String appName, String space) {
 		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
-		return loggingFlux(DefaultCloudFoundryOperations.builder()
-			.cloudFoundryClient(cloudFoundryClient)
-			.organization(defaultOrg)
-			.space(space)
-			.build()
+		return loggingFlux(createOperationsForSpace(space, defaultOrg)
 			.applications()
 			.list()
 			.filter(applicationSummary -> applicationSummary.getName().equals(appName))
@@ -216,6 +215,13 @@ public class CloudFoundryService {
 				.getEnvironments(GetApplicationEnvironmentsRequest.builder().name(appName).build()));
 	}
 
+	public Mono<ApplicationEnvironments> getApplicationEnvironmentByAppNameAndSpace(String appName, String space) {
+		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
+		return loggingMono(
+			createOperationsForSpace(space, defaultOrg)
+				.applications()
+				.getEnvironments(GetApplicationEnvironmentsRequest.builder().name(appName).build()));
+	}
 
 	public Mono<SpaceSummary> getOrCreateDefaultSpace() {
 		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
@@ -251,6 +257,14 @@ public class CloudFoundryService {
 						.organizationName(defaultOrg)
 						.build())
 					.then(getDefaultOrg(organizationOperations))));
+	}
+
+	private DefaultCloudFoundryOperations createOperationsForSpace(String space, String defaultOrg) {
+		return DefaultCloudFoundryOperations.builder()
+											.cloudFoundryClient(cloudFoundryClient)
+											.organization(defaultOrg)
+											.space(space)
+											.build();
 	}
 
 	private Mono<OrganizationSummary> getDefaultOrg(DefaultOrganizations orgOperations) {
@@ -306,7 +320,8 @@ public class CloudFoundryService {
 			final String[] appPropertyKeyValue = appProperty.split("=");
 			if (appPropertyKeyValue.length == 2) {
 				backingAppVariables.put(appPropertyKeyValue[0], appPropertyKeyValue[1]);
-			} else {
+			}
+			else {
 				throw new IllegalArgumentException(format("Backing app property '%s' is incorrectly formatted", Arrays.toString(appPropertyKeyValue)));
 			}
 		}

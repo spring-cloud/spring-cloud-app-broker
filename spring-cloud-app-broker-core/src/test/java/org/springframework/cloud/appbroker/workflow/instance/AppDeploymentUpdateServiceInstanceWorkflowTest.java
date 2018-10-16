@@ -34,6 +34,7 @@ import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
@@ -51,6 +52,9 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 	@Mock
 	private ParametersTransformationService parametersTransformationService;
+
+	@Mock
+	private TargetService targetService;
 
 	private BackingApplications backingApps;
 	private AppDeploymentUpdateServiceInstanceWorkflow updateServiceInstanceWorkflow;
@@ -78,10 +82,11 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 									.build())
 			.build();
 
-		updateServiceInstanceWorkflow = new AppDeploymentUpdateServiceInstanceWorkflow(
-			brokeredServices,
+		updateServiceInstanceWorkflow = new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices,
 			backingAppDeploymentService,
-			parametersTransformationService);
+			parametersTransformationService,
+			targetService)
+		;
 	}
 
 	@Test
@@ -91,6 +96,8 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
 			.willReturn(Flux.just("app1", "app2"));
+		given(this.targetService.add(eq(backingApps), eq("service-instance-id")))
+			.willReturn(Mono.just(backingApps));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
 
@@ -102,6 +109,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.parametersTransformationService);
+		verifyNoMoreInteractions(this.targetService);
 	}
 
 	@Test
@@ -113,6 +121,8 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			.willReturn(Flux.just("app1", "app2"));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
+		given(this.targetService.add(eq(backingApps), eq("service-instance-id")))
+			.willReturn(Mono.just(backingApps));
 
 		StepVerifier
 			.create(updateServiceInstanceWorkflow.update(request))
@@ -122,6 +132,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.parametersTransformationService);
+		verifyNoMoreInteractions(this.targetService);
 	}
 
 	@Test
@@ -132,6 +143,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.parametersTransformationService);
+		verifyNoMoreInteractions(this.targetService);
 	}
 
 	private UpdateServiceInstanceRequest buildRequest(String serviceName, String planName) {

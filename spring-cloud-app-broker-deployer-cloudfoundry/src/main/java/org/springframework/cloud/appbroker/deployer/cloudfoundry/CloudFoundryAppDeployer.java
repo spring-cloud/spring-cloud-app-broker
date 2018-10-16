@@ -201,14 +201,18 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<Void> createSpace(String spaceName) {
-		return getDefaultOrganizationId()
+		Mono<String> createSpacePublisher = getDefaultOrganizationId()
 			.flatMap(orgId -> this.client.spaces()
-				.create(CreateSpaceRequest.builder()
-					.organizationId(orgId)
-					.name(spaceName)
-					.build())
-				.doOnSuccess(response -> logger.info("Created space {}", spaceName))
-				.then(Mono.empty()));
+										 .create(CreateSpaceRequest.builder()
+																   .organizationId(orgId)
+																   .name(spaceName)
+																   .build())
+										 .doOnSuccess(response -> logger.info("Created space {}", spaceName))
+										 .doOnError(e -> logger.warn(String.format("Error creating space %s. Exception Message %s", spaceName, e.getMessage())))
+										 .onErrorResume(e -> Mono.empty())
+										 .then(Mono.empty()));
+		return getSpaceIdFromName(spaceName)
+			.switchIfEmpty(createSpacePublisher).then();
 	}
 
 	private Mono<String> getDefaultOrganizationId() {
@@ -252,16 +256,22 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<Void> deleteApplicationInSpace(String name, String spaceName) {
-		return createCloudFoundryOperationsForSpace(spaceName).applications()
-			.delete(DeleteApplicationRequest.builder()
-				.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
-				.name(name)
-				.build())
-			.then(deleteSpace(spaceName));
+		return getSpaceIdFromName(spaceName)
+			.doOnError(error -> logger.warn("Unable get space name: {} ", spaceName))
+			.then(createCloudFoundryOperationsForSpace(spaceName)
+				.applications()
+				.delete(DeleteApplicationRequest.builder()
+												.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
+												.name(name)
+												.build())
+				.doOnError(error -> logger.warn("Unable delete application: {} ", name))
+				.then(deleteSpace(spaceName)))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	private Mono<Void> deleteSpace(String spaceName) {
 		return getSpaceIdFromName(spaceName)
+			.doOnError(error -> logger.warn("Unable get space name: {} ", spaceName))
 			.flatMap(spaceId -> this.client.spaces()
 				.delete(DeleteSpaceRequest.builder()
 					.spaceId(spaceId)
@@ -270,10 +280,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<String> getSpaceIdFromName(String spaceName) {
-		return this.operations.spaces().get(GetSpaceRequest.builder()
-			.name(spaceName)
-			.build())
-			.map(SpaceDetail::getId);
+		return this.operations.spaces()
+							  .get(GetSpaceRequest.builder()
+												  .name(spaceName)
+												  .build())
+							  .map(SpaceDetail::getId)
+							  .onErrorResume(e -> Mono.empty());
 	}
 
 	private CloudFoundryOperations createCloudFoundryOperationsForSpace(String space) {

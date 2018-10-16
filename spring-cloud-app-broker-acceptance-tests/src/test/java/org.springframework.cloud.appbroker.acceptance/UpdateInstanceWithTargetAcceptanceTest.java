@@ -16,19 +16,22 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
+import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.util.DelayUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CreateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
+class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	private static final String BROKER_SAMPLE_APP_CREATE_WITH_TARGET = "app-with-target";
-	private static final String BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER = "app-other";
 
 	@Test
 	@AppBrokerTestProperties({
@@ -37,33 +40,45 @@ class CreateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		"spring.cloud.appbroker.services[0].apps[0].target.name=SpacePerServiceInstance",
-		"spring.cloud.appbroker.services[0].apps[1].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER,
-		"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
-		"spring.cloud.appbroker.services[0].apps[1].target.name=SpacePerServiceInstance"
+		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1"
 	})
-	void shouldCreateMultipleAppsInSpace() {
-		// when a service instance is created with targets
+	void shouldCreateAppInTargetWhenAddingNewProperties() {
+		// when a service instance is created
 		createServiceInstance();
 		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance();
 		assertThat(serviceInstance).isNotEmpty();
 
-		// then backing applications are deployed in a space named as the service instance id
-		String space = serviceInstance.orElseThrow(RuntimeException::new).getId();
-
+		// then a backing application is deployed in a space named as the service instance id
+		String serviceInstanceId = serviceInstance.orElseThrow(RuntimeException::new).getId();
+		String spaceName = serviceInstanceId;
 		Optional<ApplicationSummary> backingApplication =
-			getApplicationSummaryByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, space);
+			getApplicationSummaryByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, spaceName);
 		assertThat(backingApplication).isNotEmpty();
 
-		Optional<ApplicationSummary> backingApplicationOther =
-			getApplicationSummaryByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER, space);
-		assertThat(backingApplicationOther).isNotEmpty();
+		// and has its route with the service instance id appended to it
+		ApplicationSummary applicationSummary = backingApplication.orElseThrow(RuntimeException::new);
+		assertThat(applicationSummary.getUrls()).isNotEmpty();
+		assertThat(applicationSummary.getUrls().get(0)).startsWith(BROKER_SAMPLE_APP_CREATE_WITH_TARGET + "-" + spaceName);
+
+		// when the service instance is updated
+		updateServiceInstance(Collections.singletonMap("parameter2", "config2"));
+
+		getServiceInstanceMono()
+			.filter(summary -> summary.getLastOperation().contains("completed"))
+			.repeatWhenEmpty(DelayUtils.exponentialBackOff(Duration.ofSeconds(2), Duration.ofSeconds(15), Duration.ofMinutes(5)))
+			.blockOptional();
+
+		// then the service instance has the initial parameters
+		ApplicationEnvironments backingApplicationAfterUpdate =
+			getApplicationEnvironmentByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, spaceName);
+		assertThat((String) backingApplicationAfterUpdate.getUserProvided().get("SPRING_APPLICATION_JSON")).contains("parameter1");
 
 		// when the service instance is deleted
 		deleteServiceInstance();
 
 		// then the space is deleted
 		List<String> spaces = getSpaces();
-		assertThat(spaces).doesNotContain(space);
+		assertThat(spaces).doesNotContain(spaceName);
 	}
 
 }

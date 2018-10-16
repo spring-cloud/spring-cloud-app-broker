@@ -42,6 +42,7 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=config2",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=config3",
+		"spring.cloud.appbroker.services[0].apps[0].environment.parameter4=config4",
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=EnvironmentMapping",
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=parameter1,parameter3"
 	})
@@ -76,6 +77,11 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		assertThat(applicationEnvironments.getUserProvided().get("SPRING_APPLICATION_JSON")).asString()
 			.contains("\"parameter1\":\"value1\"")
 			.contains("\"parameter2\":\"config2\"")
-			.contains("\"parameter3\":\"value3\"");
+			.contains("\"parameter3\":\"value3\"")
+			.contains("\"parameter4\":\"config4\"");
+
+		// and the backing application contains the initial parameters
+		assertThat(applicationEnvironments.getUserProvided().get("SPRING_APPLICATION_JSON")).asString()
+			.contains("\"parameter4\":\"config4\"");
 	}
 }

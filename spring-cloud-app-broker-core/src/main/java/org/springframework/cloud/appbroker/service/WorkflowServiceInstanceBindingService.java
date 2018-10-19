@@ -32,6 +32,9 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceRouteBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceRouteBindingResponse.CreateServiceInstanceRouteBindingResponseBuilder;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.CollectionUtils;
@@ -45,16 +48,23 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 
 	private final List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows = new ArrayList<>();
 
+	private final List<DeleteServiceInstanceBindingWorkflow> deleteServiceInstanceBindingWorkflows = new ArrayList<>();
+
 	public WorkflowServiceInstanceBindingService(List<CreateServiceInstanceAppBindingWorkflow> createServiceInstanceAppBindingWorkflows,
-												 List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows) {
+												 List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows,
+												 List<DeleteServiceInstanceBindingWorkflow> deleteServiceInstanceBindingWorkflows) {
 		if (!CollectionUtils.isEmpty(createServiceInstanceAppBindingWorkflows)) {
 			this.createServiceInstanceAppBindingWorkflows.addAll(createServiceInstanceAppBindingWorkflows);
 		}
 		if (!CollectionUtils.isEmpty(createServiceInstanceRouteBindingWorkflows)) {
 			this.createServiceInstanceRouteBindingWorkflows.addAll(createServiceInstanceRouteBindingWorkflows);
 		}
+		if (!CollectionUtils.isEmpty(deleteServiceInstanceBindingWorkflows)) {
+			this.deleteServiceInstanceBindingWorkflows.addAll(deleteServiceInstanceBindingWorkflows);
+		}
 		AnnotationAwareOrderComparator.sort(this.createServiceInstanceAppBindingWorkflows);
 		AnnotationAwareOrderComparator.sort(this.createServiceInstanceRouteBindingWorkflows);
+		AnnotationAwareOrderComparator.sort(this.deleteServiceInstanceBindingWorkflows);
 	}
 
 	@Override
@@ -103,9 +113,9 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 
 	private Mono<Void> create(CreateServiceInstanceBindingRequest request) {
 		return invokeCreateWorkflows(request)
-				.doOnRequest(l -> log.info("Creating service instance {}", request))
-				.doOnComplete(() -> log.info("Finished creating service instance {}", request))
-				.doOnError(e -> log.info("Error creating service instance {} with error {}", request, e))
+				.doOnRequest(l -> log.info("Creating service instance binding {}", request))
+				.doOnComplete(() -> log.info("Finished creating service instance binding {}", request))
+				.doOnError(e -> log.info("Error creating service instance binding {} with error {}", request, e))
 			.then();
 	}
 
@@ -123,6 +133,40 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 			}
 			return Flux.empty();
 		});
+	}
+
+	@Override
+	public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(DeleteServiceInstanceBindingRequest request) {
+		return invokeDeleteResponseBuilders(request)
+			.publishOn(Schedulers.parallel())
+			.doOnNext(response -> delete(request)
+				.subscribe());
+	}
+
+	private Mono<DeleteServiceInstanceBindingResponse> invokeDeleteResponseBuilders(DeleteServiceInstanceBindingRequest request) {
+		AtomicReference<DeleteServiceInstanceBindingResponseBuilder> responseBuilder =
+			new AtomicReference<>(DeleteServiceInstanceBindingResponse.builder());
+
+		return Flux.fromIterable(deleteServiceInstanceBindingWorkflows)
+			.filterWhen(workflow -> workflow.accept(request))
+			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
+				.doOnNext(responseBuilder::set))
+			.last(responseBuilder.get())
+			.map(DeleteServiceInstanceBindingResponseBuilder::build);
+	}
+
+	private Mono<Void> delete(DeleteServiceInstanceBindingRequest request) {
+		return invokeDeleteWorkflows(request)
+				.doOnRequest(l -> log.info("Deleting service instance binding {}", request))
+				.doOnComplete(() -> log.info("Finished deleting service instance binding {}", request))
+				.doOnError(e -> log.info("Error deleting service instance binding {} with error {}", request, e))
+				.then();
+	}
+
+	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceBindingRequest request) {
+		return Flux.fromIterable(deleteServiceInstanceBindingWorkflows)
+			.filterWhen(workflow -> workflow.accept(request))
+			.concatMap(workflow -> workflow.delete(request));
 	}
 
 }

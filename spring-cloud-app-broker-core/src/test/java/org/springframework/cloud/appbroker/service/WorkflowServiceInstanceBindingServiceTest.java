@@ -36,6 +36,9 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceRouteBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceRouteBindingResponse.CreateServiceInstanceRouteBindingResponseBuilder;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -63,18 +66,25 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Mock
 	private HighOrderCreateServiceRouteBindingInstanceWorkflow createServiceInstanceRouteBindingWorkflow2;
 
+	@Mock
+	private LowOrderDeleteServiceInstanceBindingWorkflow deleteServiceInstanceBindingWorkflow1;
+
+	@Mock
+	private HighOrderDeleteServiceInstanceBindingWorkflow deleteServiceInstanceBindingWorkflow2;
+
 	private WorkflowServiceInstanceBindingService workflowServiceInstanceBindingService;
 
 	@BeforeEach
 	void setUp() {
 		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(
 			Arrays.asList(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2),
-			Arrays.asList(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2));
+			Arrays.asList(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2),
+			Arrays.asList(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2));
 	}
 
 	@Test
 	void createServiceInstanceAppBindingWithNoWorkflows() {
-		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(null, null);
+		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(null, null, null);
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-id")
@@ -93,7 +103,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void createServiceInstanceRouteBindingWithNoWorkflows() {
-		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(null, null);
+		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(null, null, null);
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-id")
@@ -421,6 +431,163 @@ class WorkflowServiceInstanceBindingServiceTest {
 			.verifyComplete();
 	}
 
+	@Test
+	void deleteServiceInstanceBindingsWithNoWorkflows() {
+		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(null, null, null);
+
+		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
+			.serviceInstanceId("instance-id")
+			.bindingId("binding-id")
+			.build();
+
+		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
+			.assertNext(response -> {
+				assertThat(response).isNotNull();
+				assertThat(response).isInstanceOf(DeleteServiceInstanceBindingResponse.class);
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteServiceInstanceBinding() {
+		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
+			.serviceInstanceId("instance-id")
+			.bindingId("binding-id")
+			.build();
+
+		DeleteServiceInstanceBindingResponseBuilder responseBuilder = DeleteServiceInstanceBindingResponse.builder();
+
+		TestPublisher<Void> lowerOrderFlow = TestPublisher.create();
+		TestPublisher<Void> higherOrderFlow = TestPublisher.create();
+
+		given(deleteServiceInstanceBindingWorkflow1.accept(request))
+			.willReturn(Mono.just(true));
+		given(deleteServiceInstanceBindingWorkflow1.delete(request))
+			.willReturn(lowerOrderFlow.flux());
+		given(deleteServiceInstanceBindingWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder
+				.async(true)
+				.operation("working1")));
+
+		given(deleteServiceInstanceBindingWorkflow2.accept(request))
+			.willReturn(Mono.just(true));
+		given(deleteServiceInstanceBindingWorkflow2.delete(request))
+			.willReturn(higherOrderFlow.flux());
+		given(deleteServiceInstanceBindingWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder
+				.operation("working2")));
+
+		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
+			.assertNext(response -> {
+				lowerOrderFlow.complete();
+				lowerOrderFlow.assertWasNotRequested();
+
+				higherOrderFlow.complete();
+				lowerOrderFlow.assertWasRequested();
+
+				InOrder deleteOrder = inOrder(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).buildResponse(eq(request),
+					any(DeleteServiceInstanceBindingResponseBuilder.class));
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).buildResponse(eq(request),
+					any(DeleteServiceInstanceBindingResponseBuilder.class));
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).delete(request);
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).delete(request);
+				deleteOrder.verifyNoMoreInteractions();
+
+				assertThat(response).isNotNull();
+				assertThat(response.isAsync()).isTrue();
+				assertThat(response.getOperation()).isEqualTo("working2");
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteServiceInstanceBindingWithAsyncError() {
+		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
+			.serviceInstanceId("instance-id")
+			.bindingId("binding-id")
+			.build();
+
+		DeleteServiceInstanceBindingResponseBuilder responseBuilder = DeleteServiceInstanceBindingResponse.builder();
+
+		given(deleteServiceInstanceBindingWorkflow1.accept(request))
+			.willReturn(Mono.just(true));
+		given(deleteServiceInstanceBindingWorkflow1.delete(request))
+			.willReturn(Flux.error(new RuntimeException("delete foo binding error")));
+		given(deleteServiceInstanceBindingWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
+
+		given(deleteServiceInstanceBindingWorkflow2.accept(request))
+			.willReturn(Mono.just(true));
+		given(deleteServiceInstanceBindingWorkflow2.delete(request))
+			.willReturn(Flux.empty());
+		given(deleteServiceInstanceBindingWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
+
+		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
+			.assertNext(response -> {
+				InOrder deleteOrder = inOrder(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).buildResponse(eq(request),
+					any(DeleteServiceInstanceBindingResponseBuilder.class));
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).buildResponse(eq(request),
+					any(DeleteServiceInstanceBindingResponseBuilder.class));
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).delete(request);
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).delete(request);
+				deleteOrder.verifyNoMoreInteractions();
+
+				assertThat(response).isNotNull();
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteServiceInstanceBindingWithResponseError() {
+		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
+			.serviceInstanceId("foo")
+			.bindingId("bar")
+			.build();
+
+		DeleteServiceInstanceBindingResponseBuilder responseBuilder = DeleteServiceInstanceBindingResponse.builder();
+
+		given(deleteServiceInstanceBindingWorkflow1.accept(request))
+			.willReturn(Mono.just(true));
+		given(deleteServiceInstanceBindingWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
+			.willReturn(Mono.error(new ServiceBrokerException("delete foo binding error")));
+
+		given(deleteServiceInstanceBindingWorkflow2.accept(request))
+			.willReturn(Mono.just(true));
+		given(deleteServiceInstanceBindingWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
+			.willReturn(Mono.just(responseBuilder));
+
+		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
+			.expectErrorSatisfies(e -> assertThat(e)
+				.isInstanceOf(ServiceBrokerException.class)
+				.hasMessage("delete foo binding error"))
+			.verify();
+	}
+
+	@Test
+	void deleteServiceInstanceBindingWithNoAcceptsDoesNothing() {
+		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
+			.serviceInstanceId("foo")
+			.bindingId("bar")
+			.build();
+
+		given(deleteServiceInstanceBindingWorkflow1.accept(request))
+			.willReturn(Mono.just(false));
+
+		given(deleteServiceInstanceBindingWorkflow2.accept(request))
+			.willReturn(Mono.just(false));
+
+		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
+			.assertNext(response -> {
+				verifyNoMoreInteractions(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
+
+				assertThat(response).isNotNull();
+			})
+			.verifyComplete();
+	}
+
 	@Order(Ordered.HIGHEST_PRECEDENCE)
 	private interface HighOrderCreateServiceAppBindingInstanceWorkflow extends CreateServiceInstanceAppBindingWorkflow {
 	}
@@ -435,6 +602,14 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Order
 	private interface LowOrderCreateServiceInstanceRouteBindingWorkflow extends CreateServiceInstanceRouteBindingWorkflow {
+	}
+
+	@Order(Ordered.HIGHEST_PRECEDENCE)
+	private interface HighOrderDeleteServiceInstanceBindingWorkflow extends DeleteServiceInstanceBindingWorkflow {
+	}
+
+	@Order
+	private interface LowOrderDeleteServiceInstanceBindingWorkflow extends DeleteServiceInstanceBindingWorkflow {
 	}
 
 }

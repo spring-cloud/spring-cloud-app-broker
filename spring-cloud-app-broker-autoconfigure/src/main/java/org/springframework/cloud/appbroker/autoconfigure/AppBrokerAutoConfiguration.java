@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.autoconfigure;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -38,11 +39,17 @@ import org.springframework.cloud.appbroker.extensions.parameters.PropertyMapping
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
 import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
+import org.springframework.cloud.appbroker.service.CreateServiceInstanceRouteBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.service.DeleteServiceInstanceBindingWorkflow;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceBindingService;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
+import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceBindingStateRepository;
 import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
+import org.springframework.cloud.appbroker.state.ServiceInstanceBindingStateRepository;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
@@ -76,6 +83,11 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	public ServiceInstanceStateRepository serviceInstanceStateRepository() {
 		return new InMemoryServiceInstanceStateRepository();
+	}
+
+	@Bean
+	public ServiceInstanceBindingStateRepository serviceInstanceBindingStateRepository() {
+		return new InMemoryServiceInstanceBindingStateRepository();
 	}
 
 	@Bean
@@ -150,5 +162,17 @@ public class AppBrokerAutoConfiguration {
 																 List<DeleteServiceInstanceWorkflow> deleteWorkflows,
 																 List<UpdateServiceInstanceWorkflow> updateWorkflows) {
 		return new WorkflowServiceInstanceService(stateRepository, createWorkflows, deleteWorkflows, updateWorkflows);
+	}
+
+	@Bean
+	public WorkflowServiceInstanceBindingService serviceInstanceBindingService(
+			ServiceInstanceBindingStateRepository stateRepository,
+			@Autowired(required = false) List<CreateServiceInstanceAppBindingWorkflow> createServiceInstanceAppBindingWorkflows,
+			@Autowired(required = false) List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows,
+			@Autowired(required = false) List<DeleteServiceInstanceBindingWorkflow> deleteServiceInstanceBindingWorkflows) {
+		return new WorkflowServiceInstanceBindingService(stateRepository,
+				createServiceInstanceAppBindingWorkflows,
+				createServiceInstanceRouteBindingWorkflows,
+				deleteServiceInstanceBindingWorkflows);
 	}
 }

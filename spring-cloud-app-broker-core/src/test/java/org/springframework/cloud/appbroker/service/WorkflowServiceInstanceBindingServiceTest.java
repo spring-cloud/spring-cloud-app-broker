@@ -29,6 +29,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
 
+import org.springframework.cloud.appbroker.state.ServiceInstanceBindingStateRepository;
+import org.springframework.cloud.appbroker.state.ServiceInstanceState;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.binding.BindResource;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
@@ -46,13 +48,18 @@ import org.springframework.core.annotation.Order;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class WorkflowServiceInstanceBindingServiceTest {
+
+	@Mock
+	private ServiceInstanceBindingStateRepository stateRepository;
 
 	@Mock
 	private LowOrderCreateServiceInstanceAppBindingWorkflow createServiceInstanceAppBindingWorkflow1;
@@ -76,7 +83,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(
+		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(stateRepository,
 			Arrays.asList(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2),
 			Arrays.asList(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2),
 			Arrays.asList(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2));
@@ -84,10 +91,16 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void createServiceInstanceAppBindingWithNoWorkflows() {
-		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(null, null, null);
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed")));
+
+		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(
+				this.stateRepository, null, null, null);
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("foo-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.bindResource(BindResource.builder()
 				.appGuid("foo-guid")
 				.build())
@@ -95,6 +108,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
+				repoOrder.verifyNoMoreInteractions();
+
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(CreateServiceInstanceAppBindingResponse.class);
 			})
@@ -103,10 +123,16 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void createServiceInstanceRouteBindingWithNoWorkflows() {
-		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(null, null, null);
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed")));
+
+		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(
+				this.stateRepository, null, null, null);
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("foo-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.bindResource(BindResource.builder()
 				.route("foo-route")
 				.build())
@@ -114,6 +140,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
+				repoOrder.verifyNoMoreInteractions();
+
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(CreateServiceInstanceRouteBindingResponse.class);
 			})
@@ -122,8 +155,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void createServiceInstanceAppBinding() {
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed")));
+
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("foo-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.bindResource(BindResource.builder()
 				.appGuid("foo-guid")
 				.build())
@@ -154,6 +192,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
+				repoOrder.verifyNoMoreInteractions();
+
 				lowerOrderFlow.complete();
 				lowerOrderFlow.assertWasNotRequested();
 
@@ -181,8 +226,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void createServiceInstanceRouteBinding() {
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed")));
+
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("foo-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.bindResource(BindResource.builder()
 				.route("foo-route")
 				.build())
@@ -213,6 +263,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
+				repoOrder.verifyNoMoreInteractions();
+				
 				lowerOrderFlow.complete();
 				lowerOrderFlow.assertWasNotRequested();
 
@@ -239,15 +296,19 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void createServiceInstanceAppBindingWithAsyncError() {
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance binding failed")));
+
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("foo-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.bindResource(BindResource.builder()
 				.appGuid("foo-guid")
 				.build())
 			.build();
 
-		CreateServiceInstanceAppBindingResponseBuilder responseBuilder = CreateServiceInstanceAppBindingResponse.builder()
-			.operation(OperationState.IN_PROGRESS.toString());
+		CreateServiceInstanceAppBindingResponseBuilder responseBuilder = CreateServiceInstanceAppBindingResponse.builder();
 
 		given(createServiceInstanceAppBindingWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
@@ -265,6 +326,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.FAILED), eq("create foo error"));
+				repoOrder.verifyNoMoreInteractions();
+
 				InOrder createOrder = inOrder(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2);
 				createOrder.verify(createServiceInstanceAppBindingWorkflow2).buildResponse(eq(request),
 					any(CreateServiceInstanceAppBindingResponseBuilder.class));
@@ -276,22 +344,25 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(CreateServiceInstanceAppBindingResponse.class);
-				assertThat(response.getOperation()).isEqualTo(OperationState.IN_PROGRESS.toString());
 			})
 			.verifyComplete();
 	}
 
 	@Test
 	void createServiceInstanceRouteBindingWithAsyncError() {
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance binding failed")));
+
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("foo-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.bindResource(BindResource.builder()
 				.route("foo-route")
 				.build())
 			.build();
 
-		CreateServiceInstanceRouteBindingResponseBuilder responseBuilder = CreateServiceInstanceRouteBindingResponse.builder()
-			.operation(OperationState.IN_PROGRESS.toString());
+		CreateServiceInstanceRouteBindingResponseBuilder responseBuilder = CreateServiceInstanceRouteBindingResponse.builder();
 
 		given(createServiceInstanceRouteBindingWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
@@ -309,6 +380,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.FAILED), eq("create foo error"));
+				repoOrder.verifyNoMoreInteractions();
+
 				InOrder createOrder = inOrder(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2);
 				createOrder.verify(createServiceInstanceRouteBindingWorkflow2).buildResponse(eq(request),
 					any(CreateServiceInstanceRouteBindingResponseBuilder.class));
@@ -320,7 +398,6 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(CreateServiceInstanceRouteBindingResponse.class);
-				assertThat(response.getOperation()).isEqualTo(OperationState.IN_PROGRESS.toString());
 			})
 			.verifyComplete();
 	}
@@ -383,8 +460,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void createServiceInstanceAppBindingWithNoAcceptsDoesNothing() {
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed")));
+
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("foo-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.bindResource(BindResource.builder()
 				.appGuid("foo-guid")
 				.build())
@@ -398,6 +480,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
+				repoOrder.verifyNoMoreInteractions();
+
 				verifyNoMoreInteractions(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2);
 
 				assertThat(response).isNotNull();
@@ -408,8 +497,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void createServiceInstanceRouteBindingWithNoAcceptsDoesNothing() {
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed")));
+
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("foo-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.bindResource(BindResource.builder()
 				.route("foo-route")
 				.build())
@@ -423,6 +517,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
+				repoOrder.verifyNoMoreInteractions();
+
 				verifyNoMoreInteractions(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2);
 
 				assertThat(response).isNotNull();
@@ -433,15 +534,27 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void deleteServiceInstanceBindingsWithNoWorkflows() {
-		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(null, null, null);
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance completed")));
+
+		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(
+				this.stateRepository, null, null, null);
 
 		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("instance-id")
-			.bindingId("binding-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.build();
 
 		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("delete service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("delete service instance binding completed"));
+				repoOrder.verifyNoMoreInteractions();
+
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(DeleteServiceInstanceBindingResponse.class);
 			})
@@ -450,9 +563,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void deleteServiceInstanceBinding() {
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance binding started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance binding completed")));
+
 		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("instance-id")
-			.bindingId("binding-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.build();
 
 		DeleteServiceInstanceBindingResponseBuilder responseBuilder = DeleteServiceInstanceBindingResponse.builder();
@@ -479,6 +596,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("delete service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("delete service instance binding completed"));
+				repoOrder.verifyNoMoreInteractions();
+
 				lowerOrderFlow.complete();
 				lowerOrderFlow.assertWasNotRequested();
 
@@ -503,9 +627,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void deleteServiceInstanceBindingWithAsyncError() {
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "delete service instance failed")));
+
 		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("instance-id")
-			.bindingId("binding-id")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.build();
 
 		DeleteServiceInstanceBindingResponseBuilder responseBuilder = DeleteServiceInstanceBindingResponse.builder();
@@ -526,6 +654,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("delete service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.FAILED), eq("delete foo binding error"));
+				repoOrder.verifyNoMoreInteractions();
+
 				InOrder deleteOrder = inOrder(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
 				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).buildResponse(eq(request),
 					any(DeleteServiceInstanceBindingResponseBuilder.class));
@@ -568,9 +703,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 	@Test
 	void deleteServiceInstanceBindingWithNoAcceptsDoesNothing() {
+		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance binding started")))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance binding completed")));
+
 		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
-			.serviceInstanceId("foo")
-			.bindingId("bar")
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
 			.build();
 
 		given(deleteServiceInstanceBindingWorkflow1.accept(request))
@@ -581,6 +720,13 @@ class WorkflowServiceInstanceBindingServiceTest {
 
 		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("delete service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("delete service instance binding completed"));
+				repoOrder.verifyNoMoreInteractions();
+
 				verifyNoMoreInteractions(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
 
 				assertThat(response).isNotNull();

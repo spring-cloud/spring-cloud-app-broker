@@ -26,6 +26,8 @@ import reactor.core.scheduler.Schedulers;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
+import org.springframework.cloud.appbroker.state.ServiceInstanceBindingStateRepository;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
@@ -35,6 +37,9 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder;
+import org.springframework.cloud.servicebroker.model.binding.GetLastServiceBindingOperationRequest;
+import org.springframework.cloud.servicebroker.model.binding.GetLastServiceBindingOperationResponse;
+import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.CollectionUtils;
@@ -44,15 +49,20 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 
 	private final Logger log = Loggers.getLogger(WorkflowServiceInstanceBindingService.class);
 
+	private final ServiceInstanceBindingStateRepository stateRepository;
+
 	private final List<CreateServiceInstanceAppBindingWorkflow> createServiceInstanceAppBindingWorkflows = new ArrayList<>();
 
 	private final List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows = new ArrayList<>();
 
 	private final List<DeleteServiceInstanceBindingWorkflow> deleteServiceInstanceBindingWorkflows = new ArrayList<>();
 
-	public WorkflowServiceInstanceBindingService(List<CreateServiceInstanceAppBindingWorkflow> createServiceInstanceAppBindingWorkflows,
-												 List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows,
-												 List<DeleteServiceInstanceBindingWorkflow> deleteServiceInstanceBindingWorkflows) {
+	public WorkflowServiceInstanceBindingService(
+			ServiceInstanceBindingStateRepository serviceInstanceBindingStateRepository,
+			List<CreateServiceInstanceAppBindingWorkflow> createServiceInstanceAppBindingWorkflows,
+			List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows,
+			List<DeleteServiceInstanceBindingWorkflow> deleteServiceInstanceBindingWorkflows) {
+		this.stateRepository = serviceInstanceBindingStateRepository;
 		if (!CollectionUtils.isEmpty(createServiceInstanceAppBindingWorkflows)) {
 			this.createServiceInstanceAppBindingWorkflows.addAll(createServiceInstanceAppBindingWorkflows);
 		}
@@ -112,11 +122,18 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	}
 
 	private Mono<Void> create(CreateServiceInstanceBindingRequest request) {
-		return invokeCreateWorkflows(request)
+		return stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
+			OperationState.IN_PROGRESS, "create service instance binding started")
+			.thenMany(invokeCreateWorkflows(request)
 				.doOnRequest(l -> log.info("Creating service instance binding {}", request))
 				.doOnComplete(() -> log.info("Finished creating service instance binding {}", request))
-				.doOnError(e -> log.info("Error creating service instance binding {} with error {}", request, e))
-			.then();
+				.doOnError(e -> log.info("Error creating service instance binding {} with error {}", request, e)))
+			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
+				OperationState.SUCCEEDED, "create service instance binding completed")
+				.then())
+			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
+				OperationState.FAILED, e.getMessage())
+				.then());
 	}
 
 	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceBindingRequest request) {
@@ -156,17 +173,34 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	}
 
 	private Mono<Void> delete(DeleteServiceInstanceBindingRequest request) {
-		return invokeDeleteWorkflows(request)
+		return stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
+			OperationState.IN_PROGRESS, "delete service instance binding started")
+			.thenMany(invokeDeleteWorkflows(request)
 				.doOnRequest(l -> log.info("Deleting service instance binding {}", request))
 				.doOnComplete(() -> log.info("Finished deleting service instance binding {}", request))
-				.doOnError(e -> log.info("Error deleting service instance binding {} with error {}", request, e))
-				.then();
+				.doOnError(e -> log.info("Error deleting service instance binding {} with error {}", request, e)))
+			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
+				OperationState.SUCCEEDED, "delete service instance binding completed")
+				.then())
+			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
+				OperationState.FAILED, e.getMessage())
+				.then());
 	}
 
 	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceBindingRequest request) {
 		return Flux.fromIterable(deleteServiceInstanceBindingWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
 			.concatMap(workflow -> workflow.delete(request));
+	}
+
+	@Override
+	public Mono<GetLastServiceBindingOperationResponse> getLastOperation(GetLastServiceBindingOperationRequest request) {
+		return stateRepository.getState(request.getServiceInstanceId(), request.getBindingId())
+			.doOnError(e -> Mono.error(new ServiceInstanceBindingDoesNotExistException(request.getBindingId())))
+			.map(serviceInstanceState -> GetLastServiceBindingOperationResponse.builder()
+				.operationState(serviceInstanceState.getOperationState())
+				.description(serviceInstanceState.getDescription())
+				.build());
 	}
 
 }

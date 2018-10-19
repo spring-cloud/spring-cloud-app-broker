@@ -26,7 +26,10 @@ import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceBindingService;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
+import org.springframework.cloud.appbroker.state.ServiceInstanceBindingStateRepository;
+import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
@@ -92,11 +95,14 @@ class AppBrokerAutoConfigurationTest {
 
 				assertThat(context).hasSingleBean(DeployerClient.class);
 				assertThat(context).hasSingleBean(BrokeredServices.class);
+				assertThat(context).hasSingleBean(ServiceInstanceStateRepository.class);
+				assertThat(context).hasSingleBean(ServiceInstanceBindingStateRepository.class);
 				assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
 				assertThat(context).hasSingleBean(ParametersTransformationService.class);
 				assertThat(context).hasSingleBean(CredentialProviderService.class);
 				assertThat(context).hasSingleBean(TargetService.class);
 				assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);
+				assertThat(context).hasSingleBean(WorkflowServiceInstanceBindingService.class);
 				assertThat(context).hasSingleBean(AppDeploymentCreateServiceInstanceWorkflow.class);
 				assertThat(context).hasSingleBean(AppDeploymentDeleteServiceInstanceWorkflow.class);
 				assertThat(context).hasSingleBean(AppDeploymentUpdateServiceInstanceWorkflow.class);

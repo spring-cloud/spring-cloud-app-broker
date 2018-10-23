@@ -31,6 +31,9 @@ ext {
 	wiremockVersion = "2.18.0"
 }
 
+// don't publish the jar for the sample project
+configurations.archives.artifacts.clear()
+
 // The latest version of jetty-server is not compatible with the latest version of wiremock yet;
 // override the version managed by Spring Boot to a wiremock-compatible version
 ext['jetty.version'] = "9.4.8.v20171121"

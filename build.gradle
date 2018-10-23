@@ -28,7 +28,7 @@ buildscript {
 }
 
 configure(allprojects) {
-	group = "org.springframework.cloud.appbroker"
+	group = "org.springframework.cloud"
 
 	apply plugin: "java-library"
 	apply plugin: "maven"
@@ -286,6 +286,7 @@ configure(rootProject) {
 			project.sourceSets.main.compileClasspath
 		})
 
+		exclude 'org/springframework/cloud/appbroker/sample/**'
 		maxMemory = "1024m"
 		destinationDir = new File(buildDir, "api")
 	}

@@ -16,6 +16,9 @@
 
 description = "Spring Cloud App Broker Acceptance Tests"
 
+// don't publish the jar for the acceptance tests project
+configurations.archives.artifacts.clear()
+
 ext {
 	springBootVersion = '2.0.3.RELEASE'
 	reactorCoreVersion = '3.2.0.RELEASE'

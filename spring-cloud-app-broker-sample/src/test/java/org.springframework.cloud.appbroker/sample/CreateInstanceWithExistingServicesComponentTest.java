@@ -29,9 +29,9 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.sample.CreateInstanceWithServicesComponentTest.APP_NAME;
-import static org.springframework.cloud.appbroker.sample.CreateInstanceWithServicesComponentTest.SERVICE_INSTANCE_1_NAME;
-import static org.springframework.cloud.appbroker.sample.CreateInstanceWithServicesComponentTest.SERVICE_INSTANCE_2_NAME;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceWithExistingServicesComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceWithExistingServicesComponentTest.SERVICE_INSTANCE_1_NAME;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceWithExistingServicesComponentTest.SERVICE_INSTANCE_2_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -41,7 +41,7 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithServi
 	"spring.cloud.appbroker.services[0].apps[0].services[0]=" + SERVICE_INSTANCE_1_NAME,
 	"spring.cloud.appbroker.services[0].apps[0].services[1]=" + SERVICE_INSTANCE_2_NAME
 })
-class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
+class CreateInstanceWithExistingServicesComponentTest extends WiremockComponentTest {
 
 	static final String APP_NAME = "app-with-services";
 

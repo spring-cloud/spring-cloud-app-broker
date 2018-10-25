@@ -38,8 +38,8 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithExist
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-	"spring.cloud.appbroker.services[0].apps[0].services[0]=" + SERVICE_INSTANCE_1_NAME,
-	"spring.cloud.appbroker.services[0].apps[0].services[1]=" + SERVICE_INSTANCE_2_NAME
+	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + SERVICE_INSTANCE_1_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].services[1].service-instance-name=" + SERVICE_INSTANCE_2_NAME
 })
 class CreateInstanceWithExistingServicesComponentTest extends WiremockComponentTest {
 

@@ -31,7 +31,7 @@ public class BackingApplication {
 	private String path;
 	private Map<String, String> properties;
 	private Map<String, String> environment;
-	private List<String> services;
+	private List<ServicesSpec> services;
 	private List<ParametersTransformerSpec> parametersTransformers;
 	private List<CredentialProviderSpec> credentialProviders;
 	private TargetSpec target;
@@ -63,7 +63,7 @@ public class BackingApplication {
 	BackingApplication(String name, String path,
 					   Map<String, String> properties,
 					   Map<String, String> environment,
-					   List<String> services,
+					   List<ServicesSpec> services,
 					   List<ParametersTransformerSpec> parametersTransformers,
 					   List<CredentialProviderSpec> credentialProviders,
 					   TargetSpec target) {
@@ -117,11 +117,11 @@ public class BackingApplication {
 		environment.put(key, value);
 	}
 
-	public List<String> getServices() {
+	public List<ServicesSpec> getServices() {
 		return services;
 	}
 
-	public void setServices(List<String> services) {
+	public void setServices(List<ServicesSpec> services) {
 		this.services = services;
 	}
 
@@ -209,7 +209,7 @@ public class BackingApplication {
 		private String path;
 		private final Map<String, String> properties = new HashMap<>();
 		private final Map<String, String> environment = new HashMap<>();
-		private final List<String> services = new ArrayList<>();
+		private final List<ServicesSpec> services = new ArrayList<>();
 		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
 		private final List<CredentialProviderSpec> credentialProviders = new ArrayList<>();
 		private TargetSpec target;
@@ -247,7 +247,7 @@ public class BackingApplication {
 			return this;
 		}
 
-		public BackingApplicationBuilder services(String... services) {
+		public BackingApplicationBuilder services(ServicesSpec... services) {
 			this.services.addAll(Arrays.asList(services));
 			return this;
 		}

@@ -105,11 +105,15 @@ class DeployerClientTest {
 		// given
 		setupAppDeployer();
 
-		BackingApplication application = BackingApplication.builder()
-			.name(APP_NAME)
-			.path(APP_PATH)
-			.services("my-db-service")
-			.build();
+		BackingApplication application =
+			BackingApplication
+				.builder()
+				.name(APP_NAME)
+				.path(APP_PATH)
+				.services(ServicesSpec.builder()
+									  .serviceInstanceName("my-db-service")
+									  .build())
+				.build();
 
 		// when
 		StepVerifier.create(deployerClient.deploy(application))

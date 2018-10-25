@@ -21,7 +21,7 @@ class CreateInstanceWithExistingServicesAcceptanceTest extends CloudFoundryAccep
 		"spring.cloud.appbroker.services[0].plan-name=standard",
 		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_APP_SERVICES,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.services[0].apps[0].services[0]=" + SI_1_NAME
+		"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + SI_1_NAME
 	})
 	void shouldPushAppWithServicesBind() {
 		// given that a service instance of the specified service exists

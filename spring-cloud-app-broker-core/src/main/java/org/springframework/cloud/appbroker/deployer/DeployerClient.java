@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.stream.Collectors;
+
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
@@ -36,7 +38,7 @@ public class DeployerClient {
 			.path(backingApplication.getPath())
 			.properties(backingApplication.getProperties())
 			.environment(backingApplication.getEnvironment())
-			.services(backingApplication.getServices())
+			.services(backingApplication.getServices().stream().map(ServicesSpec::getServiceInstanceName).collect(Collectors.toList()))
 			.build())
 			.doOnRequest(l -> log.info("Deploying application {}", backingApplication.getName()))
 			.doOnSuccess(d -> log.info("Finished deploying application {}", backingApplication.getName()))

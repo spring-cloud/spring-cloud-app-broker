@@ -28,6 +28,9 @@ import reactor.test.StepVerifier;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingService;
+import org.springframework.cloud.appbroker.deployer.BackingServices;
+import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
@@ -53,30 +56,49 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	@Mock
 	private CredentialProviderService credentialProviderService;
 
-	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
+	@Mock
+	private BackingServicesProvisionService backingServicesProvisionService;
+
 	private BackingApplications backingApps;
+	private BackingServices backingServices;
+
+	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
 	@BeforeEach
 	void setUp() {
 		backingApps = BackingApplications
 			.builder()
-			.backingApplication(BackingApplication.builder()
-												  .name("app1")
-												  .path("http://myfiles/app1.jar")
-												  .build())
-			.backingApplication(BackingApplication.builder()
-												  .name("app2")
-												  .path("http://myfiles/app2.jar")
-												  .build())
+			.backingApplication(BackingApplication
+				.builder()
+				.name("app1")
+				.path("http://myfiles/app1.jar")
+				.build())
+			.backingApplication(BackingApplication
+				.builder()
+				.name("app2")
+				.path("http://myfiles/app2.jar")
+				.build())
+			.build();
+
+		backingServices = BackingServices
+			.builder()
+			.backingService(BackingService
+				.builder()
+				.name("my-service")
+				.plan("a-plan")
+				.serviceInstanceName("my-service-instance")
+				.build())
 			.build();
 
 		BrokeredServices brokeredServices = BrokeredServices
 			.builder()
-			.service(BrokeredService.builder()
-									.serviceName("service1")
-									.planName("plan1")
-									.apps(backingApps)
-									.build())
+			.service(BrokeredService
+				.builder()
+				.serviceName("service1")
+				.planName("plan1")
+				.apps(backingApps)
+				.services(backingServices)
+				.build())
 			.build();
 
 		deleteServiceInstanceWorkflow =
@@ -84,7 +106,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				brokeredServices,
 				backingAppDeploymentService,
 				credentialProviderService,
-				targetService);
+				targetService,
+				backingServicesProvisionService);
 	}
 
 	@Test
@@ -97,6 +120,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.willReturn(Mono.just(backingApps));
 		given(this.targetService.add(eq(backingApps), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
+		given(this.backingServicesProvisionService.deleteServiceInstance(eq(backingServices)))
+			.willReturn(Flux.just("my-service-instance"));
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request))
@@ -104,9 +129,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		verifyNoMoreInteractions(this.backingAppDeploymentService);
-		verifyNoMoreInteractions(this.credentialProviderService);
-		verifyNoMoreInteractions(this.targetService);
+		verifyNoMoreInteractionsWithServices();
 	}
 
 	@Test
@@ -115,6 +138,11 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.create(deleteServiceInstanceWorkflow.delete(buildRequest("unsupported-service", "plan1")))
 			.verifyComplete();
 
+		verifyNoMoreInteractionsWithServices();
+	}
+
+	private void verifyNoMoreInteractionsWithServices() {
+		verifyNoMoreInteractions(this.backingServicesProvisionService);
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.credentialProviderService);
 		verifyNoMoreInteractions(this.targetService);

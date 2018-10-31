@@ -22,6 +22,7 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
@@ -42,33 +43,38 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 	private final ParametersTransformationService parametersTransformationService;
 	private final CredentialProviderService credentialProviderService;
 	private final TargetService targetService;
+	private final BackingServicesProvisionService backingServicesProvisionService;
 
 	public AppDeploymentCreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
 													  ParametersTransformationService parametersTransformationService,
 													  CredentialProviderService credentialProviderService,
-													  TargetService targetService) {
+													  TargetService targetService,
+													  BackingServicesProvisionService backingServicesProvisionService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.parametersTransformationService = parametersTransformationService;
 		this.credentialProviderService = credentialProviderService;
 		this.targetService = targetService;
+		this.backingServicesProvisionService = backingServicesProvisionService;
 	}
 
 	@Override
 	public Flux<Void> create(CreateServiceInstanceRequest request) {
-		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-			.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
-			.flatMap(backingApps ->
-				parametersTransformationService.transformParameters(backingApps, request.getParameters()))
-			.flatMap(backingApplications ->
-				credentialProviderService.addCredentials(backingApplications, request.getServiceInstanceId()))
-			.flatMapMany(deploymentService::deploy)
-			.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
-			.doOnEach(s -> log.info("Finished deploying {}", s))
-			.doOnComplete(() -> log.info("Finished deploying applications {}", brokeredServices))
-			.doOnError(e -> log.info("Error deploying applications {} with error {}", brokeredServices, e))
-			.flatMap(apps -> Flux.empty());
+		return
+			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
+				.flatMapMany(backingServicesProvisionService::createServiceInstance)
+				.thenMany(
+					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+						.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
+						.flatMap(backingApps -> parametersTransformationService.transformParameters(backingApps, request.getParameters()))
+						.flatMap(backingApplications -> credentialProviderService.addCredentials(backingApplications, request.getServiceInstanceId()))
+						.flatMapMany(deploymentService::deploy)
+						.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
+						.doOnEach(s -> log.info("Finished deploying {}", s))
+						.doOnComplete(() -> log.info("Finished deploying applications {}", brokeredServices))
+						.doOnError(e -> log.info("Error deploying applications {} with error {}", brokeredServices, e))
+						.flatMap(apps -> Flux.empty()));
 	}
 
 	@Override

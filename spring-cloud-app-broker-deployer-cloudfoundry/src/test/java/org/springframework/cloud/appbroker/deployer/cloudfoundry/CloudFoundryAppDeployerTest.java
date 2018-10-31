@@ -25,18 +25,26 @@ import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.services.ServiceInstanceType;
+import org.cloudfoundry.operations.services.Services;
+import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -48,6 +56,7 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("UnassignedFluxMonoInstance")
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class CloudFoundryAppDeployerTest {
 
 	private static final String APP_NAME = "test-app";
@@ -57,6 +66,9 @@ class CloudFoundryAppDeployerTest {
 
 	@Mock
 	private Applications applications;
+
+	@Mock
+	private Services services;
 
 	@Mock
 	private CloudFoundryOperations cloudFoundryOperations;
@@ -80,6 +92,9 @@ class CloudFoundryAppDeployerTest {
 			.thenReturn(applications);
 		when(resourceLoader.getResource(APP_PATH))
 			.thenReturn(new FileSystemResource(APP_PATH));
+
+		when(cloudFoundryOperations.services())
+			.thenReturn(services);
 
 		appDeployer = new CloudFoundryAppDeployer(deploymentProperties,
 			cloudFoundryOperations, cloudFoundryClient, targetProperties, resourceLoader);
@@ -274,6 +289,46 @@ class CloudFoundryAppDeployerTest {
 			.build();
 
 		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
+	}
+
+	@Test
+	void deleteServiceInstanceShouldUnbindServices() {
+		when(services.deleteInstance(
+			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest.builder()
+																			 .name("service-instance-name")
+																			 .build()))
+			.thenReturn(Mono.empty());
+
+		when(services.getInstance(GetServiceInstanceRequest.builder().name("service-instance-name").build()))
+			.thenReturn(Mono.just(ServiceInstance.builder()
+												 .id("siid")
+												 .type(ServiceInstanceType.MANAGED)
+												 .name("service-instance-name")
+												 .applications("app1", "app2")
+												 .build()));
+
+		when(services.unbind(UnbindServiceInstanceRequest.builder()
+														 .serviceInstanceName("service-instance-name")
+														 .applicationName("app1")
+														 .build()))
+			.thenReturn(Mono.empty());
+
+		when(services.unbind(UnbindServiceInstanceRequest.builder()
+														 .serviceInstanceName("service-instance-name")
+														 .applicationName("app2")
+														 .build()))
+			.thenReturn(Mono.empty());
+
+		DeleteServiceInstanceRequest request =
+			DeleteServiceInstanceRequest.builder()
+										.name("service-instance-name")
+										.build();
+
+		StepVerifier.create(
+			appDeployer.deleteServiceInstance(request))
+					.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
+					.verifyComplete();
+
 	}
 
 	private ApplicationManifest.Builder baseManifest() {

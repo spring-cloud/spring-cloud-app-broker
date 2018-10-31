@@ -54,4 +54,23 @@ public class DeployerClient {
 			.map(UndeployApplicationResponse::getName);
 	}
 
+	Mono<String> createServiceInstance(BackingService backingService) {
+		return appDeployer.createServiceInstance(CreateServiceInstanceRequest.builder()
+															  .serviceInstanceName(backingService.getServiceInstanceName())
+															  .name(backingService.getName())
+															  .plan(backingService.getPlan())
+															  .parameters(backingService.getParameters())
+															  .build())
+						  .doOnRequest(l -> log.info("Creating backing service {}", backingService.getName()))
+						  .doOnSuccess(d -> log.info("Finished creating backing service {}", backingService.getName()))
+						  .doOnError(e -> log.info("Error creating backing service {} with error {}", backingService.getName(), e))
+						  .map(CreateServiceInstanceResponse::getName);
+	}
+
+	Mono<String> deleteServiceInstance(BackingService backingService) {
+		return appDeployer.deleteServiceInstance(DeleteServiceInstanceRequest.builder()
+																			 .name(backingService.getServiceInstanceName())
+																			 .build())
+						  .map(DeleteServiceInstanceResponse::getName);
+	}
 }

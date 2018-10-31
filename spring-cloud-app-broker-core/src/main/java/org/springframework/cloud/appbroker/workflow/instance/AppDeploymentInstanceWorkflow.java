@@ -16,14 +16,17 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import java.util.List;
+
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingService;
+import org.springframework.cloud.appbroker.deployer.BackingServices;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
-import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 class AppDeploymentInstanceWorkflow {
 
@@ -44,10 +47,23 @@ class AppDeploymentInstanceWorkflow {
 			Mono.justOrEmpty(findBackingApplications(serviceDefinition, planId)));
 	}
 
+	Mono<List<BackingService>> getBackingServicesForService(ServiceDefinition serviceDefinition, String planId) {
+		return Mono.defer(() ->
+			Mono.justOrEmpty(findBackingServices(serviceDefinition, planId)));
+	}
+
 	private BackingApplications findBackingApplications(ServiceDefinition serviceDefinition,
 														String planId) {
 		BrokeredService brokeredService = findBrokeredService(serviceDefinition, planId);
 		return brokeredService == null ? null : new BackingApplications(brokeredService.getApps());
+	}
+
+	private BackingServices findBackingServices(ServiceDefinition serviceDefinition,
+												String planId) {
+		BrokeredService brokeredService = findBrokeredService(serviceDefinition, planId);
+		return brokeredService == null || brokeredService.getServices() == null
+			? null
+			: new BackingServices(brokeredService.getServices());
 	}
 
 	private BrokeredService findBrokeredService(ServiceDefinition serviceDefinition,
@@ -55,14 +71,14 @@ class AppDeploymentInstanceWorkflow {
 		String serviceName = serviceDefinition.getName();
 
 		String planName = serviceDefinition.getPlans().stream()
-			.filter(plan -> plan.getId().equals(planId))
-			.findFirst().get().getName();
+										   .filter(plan -> plan.getId().equals(planId))
+										   .findFirst().get().getName();
 
 		return brokeredServices.stream()
-			.filter(brokeredService ->
-				brokeredService.getServiceName().equals(serviceName)
-					&& brokeredService.getPlanName().equals(planName))
-			.findFirst()
-			.orElse(null);
+							   .filter(brokeredService ->
+								   brokeredService.getServiceName().equals(serviceName)
+									   && brokeredService.getPlanName().equals(planName))
+							   .findFirst()
+							   .orElse(null);
 	}
 }

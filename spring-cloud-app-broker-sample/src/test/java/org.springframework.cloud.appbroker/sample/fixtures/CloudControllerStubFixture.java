@@ -291,6 +291,32 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@guid", serviceInstanceName + "-GUID")))));
 	}
 
+	public void stubServiceInstanceDoesNotExists(String serviceInstanceName) {
+		stubFor(get(urlEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/service_instances" +
+			"?q=name:" + serviceInstanceName +
+			"&page=1" +
+			"&return_user_provided_service_instances=true"))
+			.willReturn(ok()
+				.withBody(cc("list-space-service_instances-empty"))));
+	}
+
+	public void stubServiceExists(String serviceName) {
+		stubFor(get(urlEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/services" +
+			"?q=label:" + serviceName +
+			"&page=1"))
+			.willReturn(ok()
+				.withBody(cc("list-space-services"))));
+
+		stubFor(get(urlEqualTo("/v2/service_plans?q=service_guid:SERVICE-ID&page=1"))
+			.willReturn(ok()
+				.withBody(cc("list-service-plans"))));
+	}
+	public void stubCreateServiceInstance(String serviceInstanceName) {
+		stubFor(post(urlEqualTo("/v2/service_instances?accepts_incomplete=true"))
+			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + serviceInstanceName + "')]"))
+			.willReturn(ok()));
+	}
+
 	public void stubCreateServiceBinding(String appName, String serviceInstanceName) {
 		String serviceInstanceGuid = serviceInstanceName + "-GUID";
 		String serviceBindingGuid = appGuid(appName) + "-" + serviceInstanceGuid;

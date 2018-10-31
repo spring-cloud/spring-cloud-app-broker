@@ -28,4 +28,12 @@ public interface AppDeployer {
 		return Mono.empty();
 	}
 
+	default Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
+		return Mono.empty();
+	}
+
+	default Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
+		return Mono.empty();
+	}
+
 }

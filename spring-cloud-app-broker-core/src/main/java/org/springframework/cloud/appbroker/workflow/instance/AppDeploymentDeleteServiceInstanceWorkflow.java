@@ -22,6 +22,7 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
@@ -40,29 +41,35 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	private final BackingAppDeploymentService deploymentService;
 	private final CredentialProviderService credentialProviderService;
 	private final TargetService targetService;
+	private final BackingServicesProvisionService backingServicesProvisionService;
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
 													  CredentialProviderService credentialProviderService,
-													  TargetService targetService) {
+													  TargetService targetService,
+													  BackingServicesProvisionService backingServicesProvisionService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.credentialProviderService = credentialProviderService;
 		this.targetService = targetService;
+		this.backingServicesProvisionService = backingServicesProvisionService;
 	}
 
 	@Override
 	public Flux<Void> delete(DeleteServiceInstanceRequest request) {
-		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-			.flatMap(backingApplications ->
-				credentialProviderService.deleteCredentials(backingApplications, request.getServiceInstanceId()))
-			.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
-			.flatMapMany(deploymentService::undeploy)
-			.doOnRequest(l -> log.info("Undeploying applications {}", brokeredServices))
-			.doOnEach(s -> log.info("Finished undeploying {}", s))
-			.doOnComplete(() -> log.info("Finished undeploying applications {}", brokeredServices))
-			.doOnError(e -> log.info("Error undeploying applications {} with error {}", brokeredServices, e))
-			.flatMap(apps -> Flux.empty());
+		return
+			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
+				.flatMapMany(backingServicesProvisionService::deleteServiceInstance)
+				.thenMany(
+					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+						.flatMap(backingApplications -> credentialProviderService.deleteCredentials(backingApplications, request.getServiceInstanceId()))
+						.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
+						.flatMapMany(deploymentService::undeploy)
+						.doOnRequest(l -> log.info("Undeploying applications {}", brokeredServices))
+						.doOnEach(s -> log.info("Finished undeploying {}", s))
+						.doOnComplete(() -> log.info("Finished undeploying applications {}", brokeredServices))
+						.doOnError(e -> log.info("Error undeploying applications {} with error {}", brokeredServices, e))
+						.flatMap(apps -> Flux.empty()));
 	}
 
 	@Override

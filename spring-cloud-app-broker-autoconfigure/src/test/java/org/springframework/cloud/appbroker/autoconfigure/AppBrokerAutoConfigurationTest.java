@@ -22,6 +22,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
@@ -101,6 +102,7 @@ class AppBrokerAutoConfigurationTest {
 				assertThat(context).hasSingleBean(ParametersTransformationService.class);
 				assertThat(context).hasSingleBean(CredentialProviderService.class);
 				assertThat(context).hasSingleBean(TargetService.class);
+				assertThat(context).hasSingleBean(BackingServicesProvisionService.class);
 				assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);
 				assertThat(context).hasSingleBean(WorkflowServiceInstanceBindingService.class);
 				assertThat(context).hasSingleBean(AppDeploymentCreateServiceInstanceWorkflow.class);

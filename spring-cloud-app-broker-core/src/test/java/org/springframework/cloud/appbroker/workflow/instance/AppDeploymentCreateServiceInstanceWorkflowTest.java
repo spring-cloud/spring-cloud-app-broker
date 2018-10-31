@@ -31,6 +31,9 @@ import reactor.test.StepVerifier;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingService;
+import org.springframework.cloud.appbroker.deployer.BackingServices;
+import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
@@ -62,7 +65,11 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	@Mock
 	private TargetService targetService;
 
+	@Mock
+	private BackingServicesProvisionService backingServicesProvisionService;
+
 	private BackingApplications backingApps;
+	private BackingServices backingServices;
 
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
 
@@ -82,6 +89,16 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
+		backingServices = BackingServices
+			.builder()
+			.backingService(BackingService
+				.builder()
+				.name("my-service")
+				.plan("a-plan")
+				.serviceInstanceName("my-service-instance")
+				.build())
+			.build();
+
 		BrokeredServices brokeredServices = BrokeredServices
 			.builder()
 			.service(BrokeredService
@@ -89,6 +106,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 				.serviceName("service1")
 				.planName("plan1")
 				.apps(backingApps)
+				.services(backingServices)
 				.build())
 			.build();
 
@@ -97,7 +115,8 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			backingAppDeploymentService,
 			parametersTransformationService,
 			credentialProviderService,
-			targetService);
+			targetService,
+			backingServicesProvisionService);
 	}
 
 	@Test
@@ -105,14 +124,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	void createServiceInstanceSucceeds() {
 		CreateServiceInstanceRequest request = buildRequest("service1", "plan1");
 
-		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
-			.willReturn(Flux.just("app1", "app2"));
-		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
-			.willReturn(Mono.just(backingApps));
-		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
-		given(this.targetService.add(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
+		setupMocks(request);
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request))
@@ -121,6 +133,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.verifyComplete();
 
 		verify(backingAppDeploymentService).deploy(backingApps);
+		verify(backingServicesProvisionService).createServiceInstance(backingServices);
 
 		verifyNoMoreInteractionsWithServices();
 	}
@@ -130,14 +143,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		CreateServiceInstanceRequest request = buildRequest("service1", "plan1",
 			singletonMap("ENV_VAR_1", "value from parameters"));
 
-		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
-			.willReturn(Flux.just("app1", "app2"));
-		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
-			.willReturn(Mono.just(backingApps));
-		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
-		given(this.targetService.add(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
+		setupMocks(request);
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request))
@@ -155,14 +161,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		CreateServiceInstanceRequest request = buildRequest("service1", "plan1",
 			singletonMap("ENV_VAR_1", "value from parameters"));
 
-		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
-			.willReturn(Flux.just("app1", "app2"));
-		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
-			.willReturn(Mono.just(backingApps));
-		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
-		given(this.targetService.add(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
+		setupMocks(request);
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request))
@@ -187,11 +186,25 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		verifyNoMoreInteractionsWithServices();
 	}
 
+	private void setupMocks(CreateServiceInstanceRequest request) {
+		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
+			.willReturn(Flux.just("app1", "app2"));
+		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
+			.willReturn(Mono.just(backingApps));
+		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(backingApps));
+		given(this.targetService.add(eq(backingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(backingApps));
+		given(this.backingServicesProvisionService.createServiceInstance(eq(backingServices)))
+			.willReturn(Flux.just("my-service-instance"));
+	}
+
 	private void verifyNoMoreInteractionsWithServices() {
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.parametersTransformationService);
 		verifyNoMoreInteractions(this.credentialProviderService);
 		verifyNoMoreInteractions(this.targetService);
+		verifyNoMoreInteractions(this.backingServicesProvisionService);
 	}
 
 	private CreateServiceInstanceRequest buildRequest(String serviceName, String planName) {

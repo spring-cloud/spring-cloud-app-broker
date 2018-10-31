@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
@@ -132,20 +133,38 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
+	public BackingServicesProvisionService backingServicesProvisionService(DeployerClient deployerClient) {
+		return new BackingServicesProvisionService(deployerClient);
+	}
+
+	@Bean
 	public CreateServiceInstanceWorkflow appDeploymentCreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 																					BackingAppDeploymentService backingAppDeploymentService,
 																					ParametersTransformationService parametersTransformationService,
 																					CredentialProviderService credentialProviderService,
-																					TargetService targetService) {
-		return new AppDeploymentCreateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService, credentialProviderService, targetService);
+																					TargetService targetService,
+																					BackingServicesProvisionService backingServicesProvisionService) {
+		return new AppDeploymentCreateServiceInstanceWorkflow(
+			brokeredServices,
+			backingAppDeploymentService,
+			parametersTransformationService,
+			credentialProviderService,
+			targetService,
+			backingServicesProvisionService);
 	}
 
 	@Bean
 	public DeleteServiceInstanceWorkflow appDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
 																					BackingAppDeploymentService backingAppDeploymentService,
 																					CredentialProviderService credentialProviderService,
-																					TargetService targetService) {
-		return new AppDeploymentDeleteServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, credentialProviderService, targetService);
+																					TargetService targetService,
+																					BackingServicesProvisionService backingServicesProvisionService) {
+		return new AppDeploymentDeleteServiceInstanceWorkflow(
+			brokeredServices,
+			backingAppDeploymentService,
+			credentialProviderService,
+			targetService,
+			backingServicesProvisionService);
 	}
 
 	@Bean

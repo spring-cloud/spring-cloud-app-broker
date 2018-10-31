@@ -19,17 +19,20 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.Objects;
 
 public class BrokeredService {
+
 	private String serviceName;
 	private String planName;
 	private BackingApplications apps;
+	private BackingServices services;
 
 	private BrokeredService() {
 	}
 
-	BrokeredService(String serviceName, String planName, BackingApplications apps) {
+	BrokeredService(String serviceName, String planName, BackingApplications apps, BackingServices services) {
 		this.serviceName = serviceName;
 		this.planName = planName;
 		this.apps = apps;
+		this.services = services;
 	}
 
 	public String getServiceName() {
@@ -56,6 +59,14 @@ public class BrokeredService {
 		this.apps = apps;
 	}
 
+	public BackingServices getServices() {
+		return services;
+	}
+
+	public void setServices(BackingServices services) {
+		this.services = services;
+	}
+
 	public static BrokeredServiceBuilder builder() {
 		return new BrokeredServiceBuilder();
 	}
@@ -71,12 +82,13 @@ public class BrokeredService {
 		BrokeredService that = (BrokeredService) o;
 		return Objects.equals(serviceName, that.serviceName) &&
 			Objects.equals(planName, that.planName) &&
-			Objects.equals(apps, that.apps);
+			Objects.equals(apps, that.apps) &&
+			Objects.equals(services, that.services);
 	}
 
 	@Override
 	public final int hashCode() {
-		return Objects.hash(serviceName, planName, apps);
+		return Objects.hash(serviceName, planName, apps, services);
 	}
 
 	@Override
@@ -85,13 +97,16 @@ public class BrokeredService {
 			"serviceName='" + serviceName + '\'' +
 			", planName='" + planName + '\'' +
 			", apps=" + apps +
+			", services=" + services +
 			'}';
 	}
 
 	public static class BrokeredServiceBuilder {
+
 		private String id;
 		private String planId;
 		private BackingApplications backingApplications;
+		private BackingServices backingServices;
 
 		public BrokeredServiceBuilder serviceName(String id) {
 			this.id = id;
@@ -108,8 +123,13 @@ public class BrokeredService {
 			return this;
 		}
 
+		public BrokeredServiceBuilder services(BackingServices backingServices) {
+			this.backingServices = backingServices;
+			return this;
+		}
+
 		public BrokeredService build() {
-			return new BrokeredService(id, planId, backingApplications);
+			return new BrokeredService(id, planId, backingApplications, backingServices);
 		}
 	}
 }

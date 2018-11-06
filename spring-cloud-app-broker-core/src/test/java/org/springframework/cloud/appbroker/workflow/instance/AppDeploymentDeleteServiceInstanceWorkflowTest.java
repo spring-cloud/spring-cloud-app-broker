@@ -33,6 +33,7 @@ import org.springframework.cloud.appbroker.deployer.BackingServices;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
@@ -61,6 +62,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 	private BackingApplications backingApps;
 	private BackingServices backingServices;
+	private TargetSpec targetSpec;
 
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
@@ -98,6 +100,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.planName("plan1")
 				.apps(backingApps)
 				.services(backingServices)
+				.target(targetSpec)
 				.build())
 			.build();
 
@@ -118,7 +121,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.willReturn(Flux.just("undeployed1", "undeployed2"));
 		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
-		given(this.targetService.add(eq(backingApps), eq("service-instance-id")))
+		given(this.targetService.add(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
 		given(this.backingServicesProvisionService.deleteServiceInstance(eq(backingServices)))
 			.willReturn(Flux.just("my-service-instance"));

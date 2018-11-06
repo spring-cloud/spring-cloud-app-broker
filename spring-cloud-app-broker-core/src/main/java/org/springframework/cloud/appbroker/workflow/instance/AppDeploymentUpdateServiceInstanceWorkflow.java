@@ -53,7 +53,7 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 
 	public Flux<Void> update(UpdateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-			.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
+			.flatMap(backingApps -> targetService.add(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()), request.getServiceInstanceId()))
 			.flatMap(backingApps ->
 				parametersTransformationService.transformParameters(backingApps, request.getParameters()))
 			.flatMapMany(deploymentService::deploy)

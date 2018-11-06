@@ -33,6 +33,7 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
@@ -57,6 +58,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	private TargetService targetService;
 
 	private BackingApplications backingApps;
+	private TargetSpec targetSpec;
 	private AppDeploymentUpdateServiceInstanceWorkflow updateServiceInstanceWorkflow;
 
 	@BeforeEach
@@ -79,6 +81,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 									.serviceName("service1")
 									.planName("plan1")
 									.apps(backingApps)
+									.target(targetSpec)
 									.build())
 			.build();
 
@@ -96,7 +99,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
 			.willReturn(Flux.just("app1", "app2"));
-		given(this.targetService.add(eq(backingApps), eq("service-instance-id")))
+		given(this.targetService.add(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
@@ -121,7 +124,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			.willReturn(Flux.just("app1", "app2"));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
-		given(this.targetService.add(eq(backingApps), eq("service-instance-id")))
+		given(this.targetService.add(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
 
 		StepVerifier

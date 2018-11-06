@@ -36,7 +36,7 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithTarge
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-	"spring.cloud.appbroker.services[0].apps[0].target.name=SpacePerServiceInstance"
+	"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance"
 })
 class CreateInstanceWithTargetComponentTest extends WiremockComponentTest {
 

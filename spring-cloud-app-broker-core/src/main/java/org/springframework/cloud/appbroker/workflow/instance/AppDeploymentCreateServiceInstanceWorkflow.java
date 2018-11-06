@@ -66,7 +66,7 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 				.flatMapMany(backingServicesProvisionService::createServiceInstance)
 				.thenMany(
 					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-						.flatMap(backingApps -> targetService.add(backingApps, request.getServiceInstanceId()))
+						.flatMap(backingApps -> targetService.add(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()) , request.getServiceInstanceId()))
 						.flatMap(backingApps -> parametersTransformationService.transformParameters(backingApps, request.getParameters()))
 						.flatMap(backingApplications -> credentialProviderService.addCredentials(backingApplications, request.getServiceInstanceId()))
 						.flatMapMany(deploymentService::deploy)

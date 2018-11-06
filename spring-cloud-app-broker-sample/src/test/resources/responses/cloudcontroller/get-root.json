@@ -4,13 +4,13 @@
 			"href": "http://localhost"
 		},
 		"cloud_controller_v2": {
-			"href": "http://localhost",
+			"href": "http://localhost/v2",
 			"meta": {
 				"version": "2.103.0"
 			}
 		},
 		"cloud_controller_v3": {
-			"href": "http://localhost",
+			"href": "http://localhost/v3",
 			"meta": {
 				"version": "3.38.0"
 			}

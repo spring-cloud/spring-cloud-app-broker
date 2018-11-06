@@ -34,7 +34,6 @@ public class BackingApplication {
 	private List<ServicesSpec> services;
 	private List<ParametersTransformerSpec> parametersTransformers;
 	private List<CredentialProviderSpec> credentialProviders;
-	private TargetSpec target;
 
 	public BackingApplication(BackingApplication backingApplicationToCopy) {
 		this.name = backingApplicationToCopy.name;
@@ -54,7 +53,6 @@ public class BackingApplication {
 		this.credentialProviders = backingApplicationToCopy.credentialProviders == null
 			? new ArrayList<>()
 			: new ArrayList<>(backingApplicationToCopy.credentialProviders);
-		this.target = backingApplicationToCopy.target;
 	}
 
 	private BackingApplication() {
@@ -65,8 +63,7 @@ public class BackingApplication {
 					   Map<String, String> environment,
 					   List<ServicesSpec> services,
 					   List<ParametersTransformerSpec> parametersTransformers,
-					   List<CredentialProviderSpec> credentialProviders,
-					   TargetSpec target) {
+					   List<CredentialProviderSpec> credentialProviders) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
@@ -74,7 +71,6 @@ public class BackingApplication {
 		this.services = services;
 		this.parametersTransformers = parametersTransformers;
 		this.credentialProviders = credentialProviders;
-		this.target = target;
 	}
 
 	public String getName() {
@@ -140,15 +136,6 @@ public class BackingApplication {
 	public void setCredentialProviders(List<CredentialProviderSpec> credentialProviders) {
 		this.credentialProviders = credentialProviders;
 	}
-
-	public TargetSpec getTarget() {
-		return target;
-	}
-
-	public void setTarget(TargetSpec target) {
-		this.target = target;
-	}
-
 	public static BackingApplicationBuilder builder() {
 		return new BackingApplicationBuilder();
 	}
@@ -168,14 +155,13 @@ public class BackingApplication {
 			Objects.equals(environment, that.environment) &&
 			Objects.equals(services, that.services) &&
 			Objects.equals(parametersTransformers, that.parametersTransformers) &&
-			Objects.equals(credentialProviders, that.credentialProviders) &&
-			Objects.equals(target, that.target);
+			Objects.equals(credentialProviders, that.credentialProviders);
 	}
 
 	@Override
 	public final int hashCode() {
 		return Objects.hash(name, path, properties, environment, services,
-			parametersTransformers, credentialProviders, target);
+			parametersTransformers, credentialProviders);
 	}
 
 	@Override
@@ -188,7 +174,6 @@ public class BackingApplication {
 			", services=" + services +
 			", parametersTransformers=" + parametersTransformers +
 			", credentialProviders=" + credentialProviders +
-			", target=" + target +
 			'}';
 	}
 
@@ -212,7 +197,6 @@ public class BackingApplication {
 		private final List<ServicesSpec> services = new ArrayList<>();
 		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
 		private final List<CredentialProviderSpec> credentialProviders = new ArrayList<>();
-		private TargetSpec target;
 
 		BackingApplicationBuilder() {
 		}
@@ -262,14 +246,9 @@ public class BackingApplication {
 			return this;
 		}
 
-		public BackingApplicationBuilder target(TargetSpec targetSpec) {
-			this.target = targetSpec;
-			return this;
-		}
-
 		public BackingApplication build() {
 			return new BackingApplication(name, path, properties, environment, services,
-				parameterTransformers, credentialProviders, target);
+				parameterTransformers, credentialProviders);
 		}
 	}
 }

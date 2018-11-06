@@ -26,6 +26,7 @@ import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServices;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 
 class AppDeploymentInstanceWorkflow {
@@ -40,6 +41,11 @@ class AppDeploymentInstanceWorkflow {
 		return getBackingApplicationsForService(serviceDefinition, planId)
 			.map(backingApplications -> !backingApplications.isEmpty())
 			.defaultIfEmpty(false);
+	}
+
+	TargetSpec getTargetForService(ServiceDefinition serviceDefinition, String planId) {
+		BrokeredService brokeredService = findBrokeredService(serviceDefinition, planId);
+		return brokeredService == null ? null : brokeredService.getTarget();
 	}
 
 	Mono<List<BackingApplication>> getBackingApplicationsForService(ServiceDefinition serviceDefinition, String planId) {

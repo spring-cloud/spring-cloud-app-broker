@@ -35,11 +35,11 @@ public class TargetService {
 	}
 
 	public Mono<List<BackingApplication>> add(List<BackingApplication> backingApplications,
+											  TargetSpec targetSpec,
 											  String serviceInstanceId) {
 
 		return Flux.fromIterable(backingApplications)
 				   .flatMap(backingApplication -> {
-					   TargetSpec targetSpec = backingApplication.getTarget();
 					   if (targetSpec != null) {
 						   Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
 						   return target.apply(backingApplication, serviceInstanceId);

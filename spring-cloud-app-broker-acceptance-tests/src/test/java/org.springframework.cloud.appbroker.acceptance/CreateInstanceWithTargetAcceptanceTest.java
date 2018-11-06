@@ -36,10 +36,9 @@ class CreateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 		"spring.cloud.appbroker.services[0].plan-name=standard",
 		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.services[0].apps[0].target.name=SpacePerServiceInstance",
 		"spring.cloud.appbroker.services[0].apps[1].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER,
 		"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
-		"spring.cloud.appbroker.services[0].apps[1].target.name=SpacePerServiceInstance"
+		"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance"
 	})
 	void shouldCreateMultipleAppsInSpace() {
 		// when a service instance is created with targets

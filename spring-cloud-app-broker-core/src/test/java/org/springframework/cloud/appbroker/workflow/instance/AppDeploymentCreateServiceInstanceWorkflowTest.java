@@ -36,6 +36,7 @@ import org.springframework.cloud.appbroker.deployer.BackingServices;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
@@ -70,6 +71,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 
 	private BackingApplications backingApps;
 	private BackingServices backingServices;
+	private TargetSpec targetSpec;
 
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
 
@@ -107,6 +109,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 				.planName("plan1")
 				.apps(backingApps)
 				.services(backingServices)
+				.target(targetSpec)
 				.build())
 			.build();
 
@@ -170,7 +173,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.verifyComplete();
 
 		final String expectedServiceId = "service-instance-id";
-		verify(targetService).add(backingApps, expectedServiceId);
+		verify(targetService).add(backingApps, targetSpec, expectedServiceId);
 
 		verifyNoMoreInteractionsWithServices();
 	}
@@ -193,7 +196,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.willReturn(Mono.just(backingApps));
 		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
-		given(this.targetService.add(eq(backingApps), eq(request.getServiceInstanceId())))
+		given(this.targetService.add(eq(backingApps), eq(targetSpec), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
 		given(this.backingServicesProvisionService.createServiceInstance(eq(backingServices)))
 			.willReturn(Flux.just("my-service-instance"));

@@ -39,8 +39,8 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 		"spring.cloud.appbroker.services[0].plan-name=standard",
 		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.services[0].apps[0].target.name=SpacePerServiceInstance",
-		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1"
+		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
+		"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance"
 	})
 	void shouldCreateAppInTargetWhenAddingNewProperties() {
 		// when a service instance is created

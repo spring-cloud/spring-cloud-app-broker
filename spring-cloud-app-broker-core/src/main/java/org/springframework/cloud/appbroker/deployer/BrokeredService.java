@@ -24,15 +24,17 @@ public class BrokeredService {
 	private String planName;
 	private BackingApplications apps;
 	private BackingServices services;
+	private TargetSpec target;
 
 	private BrokeredService() {
 	}
 
-	BrokeredService(String serviceName, String planName, BackingApplications apps, BackingServices services) {
+	BrokeredService(String serviceName, String planName, BackingApplications apps, BackingServices services, TargetSpec target) {
 		this.serviceName = serviceName;
 		this.planName = planName;
 		this.apps = apps;
 		this.services = services;
+		this.target = target;
 	}
 
 	public String getServiceName() {
@@ -67,6 +69,14 @@ public class BrokeredService {
 		this.services = services;
 	}
 
+	public TargetSpec getTarget() {
+		return target;
+	}
+
+	public void setTarget(TargetSpec target) {
+		this.target = target;
+	}
+
 	public static BrokeredServiceBuilder builder() {
 		return new BrokeredServiceBuilder();
 	}
@@ -83,12 +93,13 @@ public class BrokeredService {
 		return Objects.equals(serviceName, that.serviceName) &&
 			Objects.equals(planName, that.planName) &&
 			Objects.equals(apps, that.apps) &&
-			Objects.equals(services, that.services);
+			Objects.equals(services, that.services) &&
+			Objects.equals(target, that.target);
 	}
 
 	@Override
 	public final int hashCode() {
-		return Objects.hash(serviceName, planName, apps, services);
+		return Objects.hash(serviceName, planName, apps, services, target);
 	}
 
 	@Override
@@ -98,6 +109,7 @@ public class BrokeredService {
 			", planName='" + planName + '\'' +
 			", apps=" + apps +
 			", services=" + services +
+			", target=" + target +
 			'}';
 	}
 
@@ -107,6 +119,7 @@ public class BrokeredService {
 		private String planId;
 		private BackingApplications backingApplications;
 		private BackingServices backingServices;
+		private TargetSpec target;
 
 		public BrokeredServiceBuilder serviceName(String id) {
 			this.id = id;
@@ -128,8 +141,13 @@ public class BrokeredService {
 			return this;
 		}
 
+		public BrokeredServiceBuilder target(TargetSpec target) {
+			this.target = target;
+			return this;
+		}
+
 		public BrokeredService build() {
-			return new BrokeredService(id, planId, backingApplications, backingServices);
+			return new BrokeredService(id, planId, backingApplications, backingServices, target);
 		}
 	}
 }

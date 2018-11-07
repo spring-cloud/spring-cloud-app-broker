@@ -183,6 +183,15 @@ public class CloudFoundryService {
 			getServiceInstanceFromList(serviceInstanceName));
 	}
 
+	public Mono<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName, String space) {
+		return loggingMono(
+			createOperationsForSpace(space)
+				.services()
+				.listInstances()
+				.filter(si -> si.getName().equals(serviceInstanceName))
+				.next());
+	}
+
 	public Mono<List<ApplicationSummary>> getApplications() {
 		return loggingMono(
 			cloudFoundryOperations.applications().list().collectList());
@@ -193,8 +202,7 @@ public class CloudFoundryService {
 	}
 
 	public Mono<ApplicationSummary> getApplicationSummaryByNameAndSpace(String appName, String space) {
-		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
-		return loggingFlux(createOperationsForSpace(space, defaultOrg)
+		return loggingFlux(createOperationsForSpace(space)
 			.applications()
 			.list()
 			.filter(applicationSummary -> applicationSummary.getName().equals(appName))
@@ -209,9 +217,8 @@ public class CloudFoundryService {
 	}
 
 	public Mono<ApplicationEnvironments> getApplicationEnvironmentByAppNameAndSpace(String appName, String space) {
-		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
 		return loggingMono(
-			createOperationsForSpace(space, defaultOrg)
+			createOperationsForSpace(space)
 				.applications()
 				.getEnvironments(GetApplicationEnvironmentsRequest.builder().name(appName).build()));
 	}
@@ -250,7 +257,8 @@ public class CloudFoundryService {
 					.then(getDefaultOrg(organizationOperations))));
 	}
 
-	private CloudFoundryOperations createOperationsForSpace(String space, String defaultOrg) {
+	private CloudFoundryOperations createOperationsForSpace(String space) {
+		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
 		return DefaultCloudFoundryOperations.builder()
 			.from((DefaultCloudFoundryOperations) cloudFoundryOperations)
 			.organization(defaultOrg)

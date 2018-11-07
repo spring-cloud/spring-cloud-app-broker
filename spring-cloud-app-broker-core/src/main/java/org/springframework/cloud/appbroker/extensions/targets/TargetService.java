@@ -18,11 +18,13 @@ package org.springframework.cloud.appbroker.extensions.targets;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.appbroker.extensions.ExtensionLocator;
 
@@ -34,20 +36,37 @@ public class TargetService {
 		locator = new ExtensionLocator<>(factories);
 	}
 
-	public Mono<List<BackingApplication>> add(List<BackingApplication> backingApplications,
-											  TargetSpec targetSpec,
-											  String serviceInstanceId) {
-
+	public Mono<List<BackingApplication>> addToBackingApplications(List<BackingApplication> backingApplications,
+																   TargetSpec targetSpec,
+																   String serviceInstanceId) {
 		return Flux.fromIterable(backingApplications)
 				   .flatMap(backingApplication -> {
 					   if (targetSpec != null) {
 						   Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
-						   return target.apply(backingApplication, serviceInstanceId);
+						   Map<String, String> properties = target.apply(backingApplication.getProperties(), backingApplication.getName(), serviceInstanceId);
+						   backingApplication.setProperties(properties);
 					   }
 					   return Mono.just(backingApplication);
 
 				   })
 				   .collectList();
+	}
+
+
+	public Mono<List<BackingService>> addToBackingServices(List<BackingService> backingServices,
+														   TargetSpec targetSpec,
+														   String serviceInstanceId) {
+		return Flux.fromIterable(backingServices)
+				   .flatMap(backingService -> {
+					   if (targetSpec != null) {
+						   Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
+						   Map<String, String> properties = target.apply(backingService.getProperties(), backingService.getName(), serviceInstanceId);
+						   backingService.setProperties(properties);
+					   }
+					   return Mono.just(backingService);
+				   })
+				   .collectList();
+
 	}
 
 }

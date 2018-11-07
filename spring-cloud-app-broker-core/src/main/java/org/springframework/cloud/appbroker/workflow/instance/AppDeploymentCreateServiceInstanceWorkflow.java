@@ -63,10 +63,11 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 	public Flux<Void> create(CreateServiceInstanceRequest request) {
 		return
 			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
-				.flatMapMany(backingServicesProvisionService::createServiceInstance)
+				.flatMapMany(backingService -> targetService.addToBackingServices(backingService, getTargetForService(request.getServiceDefinition(), request.getPlanId()) , request.getServiceInstanceId()))
+				.flatMap(backingServicesProvisionService::createServiceInstance)
 				.thenMany(
 					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-						.flatMap(backingApps -> targetService.add(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()) , request.getServiceInstanceId()))
+						.flatMap(backingApps -> targetService.addToBackingApplications(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()) , request.getServiceInstanceId()))
 						.flatMap(backingApps -> parametersTransformationService.transformParameters(backingApps, request.getParameters()))
 						.flatMap(backingApplications -> credentialProviderService.addCredentials(backingApplications, request.getServiceInstanceId()))
 						.flatMapMany(deploymentService::deploy)

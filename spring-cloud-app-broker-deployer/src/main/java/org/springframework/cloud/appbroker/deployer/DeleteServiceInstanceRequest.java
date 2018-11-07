@@ -16,12 +16,16 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.Map;
+
 public class DeleteServiceInstanceRequest {
 
 	private final String name;
+	private final Map<String, String> properties;
 
-	DeleteServiceInstanceRequest(String name) {
+	DeleteServiceInstanceRequest(String name, Map<String, String> properties) {
 		this.name = name;
+		this.properties = properties;
 	}
 
 	public static DeleteServiceInstanceRequestBuilder builder() {
@@ -32,9 +36,14 @@ public class DeleteServiceInstanceRequest {
 		return name;
 	}
 
+	public Map<String, String> getProperties() {
+		return properties;
+	}
+
 	public static class DeleteServiceInstanceRequestBuilder {
 
 		private String name;
+		private Map<String, String> properties;
 
 		DeleteServiceInstanceRequestBuilder() {
 		}
@@ -44,8 +53,13 @@ public class DeleteServiceInstanceRequest {
 			return this;
 		}
 
+		public DeleteServiceInstanceRequestBuilder properties(Map<String, String> properties) {
+			this.properties = properties;
+			return this;
+		}
+
 		public DeleteServiceInstanceRequest build() {
-			return new DeleteServiceInstanceRequest(name);
+			return new DeleteServiceInstanceRequest(name, properties);
 		}
 
 	}

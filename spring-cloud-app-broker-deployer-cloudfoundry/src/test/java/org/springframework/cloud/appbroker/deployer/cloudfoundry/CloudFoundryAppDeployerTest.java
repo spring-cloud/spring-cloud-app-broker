@@ -30,6 +30,7 @@ import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
 import org.cloudfoundry.operations.services.Services;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
+import org.cloudfoundry.operations.spaces.Spaces;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,12 +43,14 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.CreateServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -71,6 +74,9 @@ class CloudFoundryAppDeployerTest {
 	private Services services;
 
 	@Mock
+	private Spaces spaces;
+
+	@Mock
 	private CloudFoundryOperations cloudFoundryOperations;
 
 	@Mock
@@ -86,15 +92,12 @@ class CloudFoundryAppDeployerTest {
 		deploymentProperties = new CloudFoundryDeploymentProperties();
 		CloudFoundryTargetProperties targetProperties = new CloudFoundryTargetProperties();
 
-		when(applications.pushManifest(any()))
-			.thenReturn(Mono.empty());
-		when(cloudFoundryOperations.applications())
-			.thenReturn(applications);
-		when(resourceLoader.getResource(APP_PATH))
-			.thenReturn(new FileSystemResource(APP_PATH));
+		when(applications.pushManifest(any())).thenReturn(Mono.empty());
+		when(cloudFoundryOperations.applications()).thenReturn(applications);
+		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
 
-		when(cloudFoundryOperations.services())
-			.thenReturn(services);
+		when(cloudFoundryOperations.services()).thenReturn(services);
+		when(cloudFoundryOperations.spaces()).thenReturn(spaces);
 
 		appDeployer = new CloudFoundryAppDeployer(deploymentProperties,
 			cloudFoundryOperations, cloudFoundryClient, targetProperties, resourceLoader);
@@ -322,6 +325,7 @@ class CloudFoundryAppDeployerTest {
 		DeleteServiceInstanceRequest request =
 			DeleteServiceInstanceRequest.builder()
 										.name("service-instance-name")
+										.properties(emptyMap())
 										.build();
 
 		StepVerifier.create(
@@ -329,6 +333,31 @@ class CloudFoundryAppDeployerTest {
 					.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
 					.verifyComplete();
 
+	}
+
+	@Test
+	void createServiceInstance() {
+		when(services.createInstance(
+			org.cloudfoundry.operations.services.CreateServiceInstanceRequest.builder()
+																			 .serviceInstanceName("service-instance-name")
+																			 .serviceName("db-service")
+																			 .planName("standard")
+																			 .parameters(emptyMap())
+																			 .build()))
+			.thenReturn(Mono.empty());
+
+		CreateServiceInstanceRequest request =
+			CreateServiceInstanceRequest.builder()
+										.serviceInstanceName("service-instance-name")
+										.name("db-service")
+										.plan("standard")
+										.parameters(emptyMap())
+										.build();
+
+		StepVerifier.create(
+			appDeployer.createServiceInstance(request))
+					.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
+					.verifyComplete();
 	}
 
 	private ApplicationManifest.Builder baseManifest() {

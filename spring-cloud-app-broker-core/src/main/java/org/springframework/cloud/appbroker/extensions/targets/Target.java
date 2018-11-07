@@ -16,11 +16,9 @@
 
 package org.springframework.cloud.appbroker.extensions.targets;
 
-import reactor.core.publisher.Mono;
-
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import java.util.Map;
 
 public interface Target {
 
-	Mono<BackingApplication> apply(BackingApplication backingApplication, String serviceInstanceId);
+	Map<String, String> apply(Map<String, String> properties, String name, String serviceInstanceId);
 }

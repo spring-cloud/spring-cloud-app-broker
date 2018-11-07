@@ -44,7 +44,7 @@ class TargetServiceTest {
 		BackingApplication backingApplication = BackingApplication.builder().name("app-name").build();
 
 		//when add gets called
-		List<BackingApplication> updatedBackingApplications = targetService.add(singletonList(backingApplication), targetSpec, "service-id").block();
+		List<BackingApplication> updatedBackingApplications = targetService.addToBackingApplications(singletonList(backingApplication), targetSpec, "service-id").block();
 
 		//then a host and space are added
 		BackingApplication updatedBackingApplication = updatedBackingApplications.get(0);
@@ -60,7 +60,7 @@ class TargetServiceTest {
 		BackingApplication backingApplication2 = BackingApplication.builder().name("app-name2").build();
 
 		//when add gets called
-		List<BackingApplication> updatedBackingApplications = targetService.add(Lists.list(backingApplication1, backingApplication2), targetSpec, "service-id").block();
+		List<BackingApplication> updatedBackingApplications = targetService.addToBackingApplications(Lists.list(backingApplication1, backingApplication2), targetSpec, "service-id").block();
 
 		//then a host and space are added
 		BackingApplication updatedBackingApplication1 = updatedBackingApplications.get(0);

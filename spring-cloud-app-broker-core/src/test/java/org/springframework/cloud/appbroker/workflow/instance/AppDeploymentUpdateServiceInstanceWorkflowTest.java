@@ -75,6 +75,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 												  .build())
 			.build();
 
+		targetSpec = TargetSpec.builder().name("TargetSpace").build();
 		BrokeredServices brokeredServices = BrokeredServices
 			.builder()
 			.service(BrokeredService.builder()
@@ -88,8 +89,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		updateServiceInstanceWorkflow = new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices,
 			backingAppDeploymentService,
 			parametersTransformationService,
-			targetService)
-		;
+			targetService);
 	}
 
 	@Test
@@ -99,7 +99,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
 			.willReturn(Flux.just("app1", "app2"));
-		given(this.targetService.add(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
+		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
@@ -124,7 +124,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			.willReturn(Flux.just("app1", "app2"));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
-		given(this.targetService.add(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
+		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
 
 		StepVerifier

@@ -92,6 +92,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
+		targetSpec = TargetSpec.builder().name("TargetSpace").build();
 		BrokeredServices brokeredServices = BrokeredServices
 			.builder()
 			.service(BrokeredService
@@ -121,8 +122,10 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.willReturn(Flux.just("undeployed1", "undeployed2"));
 		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
-		given(this.targetService.add(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
+		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
+		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq("service-instance-id")))
+			.willReturn(Mono.just(backingServices));
 		given(this.backingServicesProvisionService.deleteServiceInstance(eq(backingServices)))
 			.willReturn(Flux.just("my-service-instance"));
 

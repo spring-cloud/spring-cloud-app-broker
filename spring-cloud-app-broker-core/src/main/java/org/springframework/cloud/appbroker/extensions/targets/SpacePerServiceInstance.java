@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.appbroker.extensions.targets;
 
-import reactor.core.publisher.Mono;
+import java.util.Map;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 
 public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstance.Config> {
@@ -32,13 +31,11 @@ public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstan
 		return this::apply;
 	}
 
-	private Mono<BackingApplication> apply(BackingApplication backingApplication, String serviceInstanceId) {
-		backingApplication.addProperty(DeploymentProperties.HOST_PROPERTY_KEY,
-			backingApplication.getName() + "-" + serviceInstanceId);
-		backingApplication.addProperty(DeploymentProperties.TARGET_PROPERTY_KEY,
-			serviceInstanceId);
+	private Map<String, String> apply(Map<String, String> properties, String name, String serviceInstanceId) {
+		properties.put(DeploymentProperties.HOST_PROPERTY_KEY, name + "-" + serviceInstanceId);
+		properties.put(DeploymentProperties.TARGET_PROPERTY_KEY, serviceInstanceId);
 
-		return Mono.just(backingApplication);
+		return properties;
 	}
 
 	static class Config {

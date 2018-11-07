@@ -26,15 +26,17 @@ public class BackingService {
 	private String name;
 	private String plan;
 	private Map<String, String> parameters;
+	private Map<String, String> properties;
 
 	private BackingService() {
 	}
 
-	BackingService(String serviceInstanceName, String name, String plan, Map<String, String> parameters) {
+	BackingService(String serviceInstanceName, String name, String plan, Map<String, String> parameters, Map<String, String> properties) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.name = name;
 		this.plan = plan;
 		this.parameters = parameters;
+		this.properties = properties;
 	}
 
 	BackingService(BackingService backingServiceToCopy) {
@@ -44,6 +46,9 @@ public class BackingService {
 		this.parameters = backingServiceToCopy.parameters == null
 			? new HashMap<>()
 			: new HashMap<>(backingServiceToCopy.parameters);
+		this.properties = backingServiceToCopy.properties == null
+			? new HashMap<>()
+			: new HashMap<>(backingServiceToCopy.properties);
 	}
 
 	public String getServiceInstanceName() {
@@ -78,6 +83,14 @@ public class BackingService {
 		this.parameters = parameters;
 	}
 
+	public Map<String, String> getProperties() {
+		return properties;
+	}
+
+	public void setProperties(Map<String, String> properties) {
+		this.properties = properties;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -90,12 +103,13 @@ public class BackingService {
 		return Objects.equals(serviceInstanceName, that.serviceInstanceName) &&
 			Objects.equals(name, that.name) &&
 			Objects.equals(plan, that.plan) &&
-			Objects.equals(parameters, that.parameters);
+			Objects.equals(parameters, that.parameters) &&
+			Objects.equals(properties, that.properties);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(serviceInstanceName, name, plan, parameters);
+		return Objects.hash(serviceInstanceName, name, plan, parameters, properties);
 	}
 
 	@Override
@@ -105,6 +119,7 @@ public class BackingService {
 			", name='" + name + '\'' +
 			", plan='" + plan + '\'' +
 			", parameters=" + parameters +
+			", properties=" + properties +
 			'}';
 	}
 
@@ -118,12 +133,13 @@ public class BackingService {
 		private String name;
 		private String plan;
 		private Map<String, String> parameters = new HashMap<>();
+		private Map<String, String> properties = new HashMap<>();
 
 		BackingServiceBuilder() {
 		}
 
 		public BackingService build() {
-			return new BackingService(serviceInstanceName, name, plan, parameters);
+			return new BackingService(serviceInstanceName, name, plan, parameters, properties);
 		}
 
 		public BackingServiceBuilder serviceInstanceName(String serviceInstanceName) {
@@ -143,6 +159,11 @@ public class BackingService {
 
 		public BackingServiceBuilder parameters(Map<String, String> parameters) {
 			this.parameters = parameters;
+			return this;
+		}
+
+		public BackingServiceBuilder properties(Map<String, String> properties) {
+			this.properties = properties;
 			return this;
 		}
 	}

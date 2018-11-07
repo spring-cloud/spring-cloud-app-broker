@@ -146,12 +146,20 @@ class CloudFoundryAcceptanceTest {
 		return getServiceInstanceMono(serviceInstanceName).blockOptional();
 	}
 
+	Optional<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName, String space) {
+		return getServiceInstanceMono(serviceInstanceName, space).blockOptional();
+	}
+
 	Mono<ServiceInstanceSummary> getServiceInstanceMono() {
 		return getServiceInstanceMono(SERVICE_INSTANCE_NAME);
 	}
 
 	private Mono<ServiceInstanceSummary> getServiceInstanceMono(String serviceInstanceName) {
 		return cloudFoundryService.getServiceInstance(serviceInstanceName);
+	}
+
+	private Mono<ServiceInstanceSummary> getServiceInstanceMono(String serviceInstanceName, String space) {
+		return cloudFoundryService.getServiceInstance(serviceInstanceName, space);
 	}
 
 	Optional<ApplicationSummary> getApplicationSummaryByName(String appName) {

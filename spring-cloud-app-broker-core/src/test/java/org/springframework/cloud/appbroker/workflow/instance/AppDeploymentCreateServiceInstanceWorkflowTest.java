@@ -101,6 +101,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
+		targetSpec = TargetSpec.builder().name("TargetSpace").build();
 		BrokeredServices brokeredServices = BrokeredServices
 			.builder()
 			.service(BrokeredService
@@ -173,7 +174,8 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.verifyComplete();
 
 		final String expectedServiceId = "service-instance-id";
-		verify(targetService).add(backingApps, targetSpec, expectedServiceId);
+		verify(targetService).addToBackingServices(backingServices, targetSpec, expectedServiceId);
+		verify(targetService).addToBackingApplications(backingApps, targetSpec, expectedServiceId);
 
 		verifyNoMoreInteractionsWithServices();
 	}
@@ -196,8 +198,10 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.willReturn(Mono.just(backingApps));
 		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
-		given(this.targetService.add(eq(backingApps), eq(targetSpec), eq(request.getServiceInstanceId())))
+		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
+		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(backingServices));
 		given(this.backingServicesProvisionService.createServiceInstance(eq(backingServices)))
 			.willReturn(Flux.just("my-service-instance"));
 	}

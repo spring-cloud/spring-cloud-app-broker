@@ -60,6 +60,7 @@ public class DeployerClient {
 															  .name(backingService.getName())
 															  .plan(backingService.getPlan())
 															  .parameters(backingService.getParameters())
+															  .properties(backingService.getProperties())
 															  .build())
 						  .doOnRequest(l -> log.info("Creating backing service {}", backingService.getName()))
 						  .doOnSuccess(d -> log.info("Finished creating backing service {}", backingService.getName()))
@@ -70,6 +71,7 @@ public class DeployerClient {
 	Mono<String> deleteServiceInstance(BackingService backingService) {
 		return appDeployer.deleteServiceInstance(DeleteServiceInstanceRequest.builder()
 																			 .name(backingService.getServiceInstanceName())
+																			 .properties(backingService.getProperties())
 																			 .build())
 						  .map(DeleteServiceInstanceResponse::getName);
 	}

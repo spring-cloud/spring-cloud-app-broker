@@ -59,11 +59,12 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	public Flux<Void> delete(DeleteServiceInstanceRequest request) {
 		return
 			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
-				.flatMapMany(backingServicesProvisionService::deleteServiceInstance)
+				.flatMapMany(backingService -> targetService.addToBackingServices(backingService, getTargetForService(request.getServiceDefinition(), request.getPlanId()) , request.getServiceInstanceId()))
+				.flatMap(backingServicesProvisionService::deleteServiceInstance)
 				.thenMany(
 					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
 						.flatMap(backingApplications -> credentialProviderService.deleteCredentials(backingApplications, request.getServiceInstanceId()))
-						.flatMap(backingApps -> targetService.add(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()),  request.getServiceInstanceId()))
+						.flatMap(backingApps -> targetService.addToBackingApplications(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()),  request.getServiceInstanceId()))
 						.flatMapMany(deploymentService::undeploy)
 						.doOnRequest(l -> log.info("Undeploying applications {}", brokeredServices))
 						.doOnEach(s -> log.info("Finished undeploying {}", s))

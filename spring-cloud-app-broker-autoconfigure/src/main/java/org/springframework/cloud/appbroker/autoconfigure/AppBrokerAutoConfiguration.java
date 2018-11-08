@@ -34,6 +34,7 @@ import org.springframework.cloud.appbroker.extensions.credentials.CredentialProv
 import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
 import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.parameters.ParameterMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
@@ -99,6 +100,11 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	public PropertyMappingParametersTransformerFactory propertyMappingParametersTransformerFactory() {
 		return new PropertyMappingParametersTransformerFactory();
+	}
+
+	@Bean
+	public ParameterMappingParametersTransformerFactory parameterMappingParametersTransformerFactory() {
+		return new ParameterMappingParametersTransformerFactory();
 	}
 
 	@Bean

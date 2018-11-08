@@ -4,5 +4,8 @@
 	"support": "https://support.pivotal.io",
 	"version": 0,
 	"description": "",
-	"authorization_endpoint": "http://localhost"
+	"authorization_endpoint": "http://localhost",
+	"min_cli_version": "6.23.0",
+	"min_recommended_cli_version": "6.23.0",
+	"api_version": "2.98.0"
 }

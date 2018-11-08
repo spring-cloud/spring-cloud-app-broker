@@ -69,12 +69,14 @@ class CloudFoundryAcceptanceTest {
 	}
 
 	private Mono<Void> initializeBroker(String... backingAppProperties) {
-		return cloudFoundryService
-			.getOrCreateDefaultOrganization()
-			.then(cloudFoundryService.getOrCreateDefaultSpace())
-			.then(cloudFoundryService.pushBrokerApp(SAMPLE_BROKER_APP_NAME, getSampleBrokerAppPath(), backingAppProperties))
-			.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, SAMPLE_BROKER_APP_NAME))
-			.then(cloudFoundryService.enableServiceBrokerAccess(SERVICE_NAME));
+		return cleanup()
+			.then(
+				cloudFoundryService
+					.getOrCreateDefaultOrganization()
+					.then(cloudFoundryService.getOrCreateDefaultSpace())
+					.then(cloudFoundryService.pushBrokerApp(SAMPLE_BROKER_APP_NAME, getSampleBrokerAppPath(), backingAppProperties))
+					.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, SAMPLE_BROKER_APP_NAME))
+					.then(cloudFoundryService.enableServiceBrokerAccess(SERVICE_NAME)));
 	}
 
 	private Mono<Void> cleanup() {

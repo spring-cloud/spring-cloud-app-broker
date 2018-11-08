@@ -20,12 +20,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.cloud.appbroker.extensions.ExtensionLocator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
+import org.springframework.cloud.appbroker.extensions.ExtensionLocator;
 
 public class ParametersTransformationService {
 
@@ -35,6 +36,7 @@ public class ParametersTransformationService {
 		locator = new ExtensionLocator<>(factories);
 	}
 
+	// TODO unchecked? where magic happens
 	public Mono<List<BackingApplication>> transformParameters(List<BackingApplication> backingApplications,
 															  Map<String, Object> parameters) {
 		return Flux.fromIterable(backingApplications)
@@ -55,5 +57,28 @@ public class ParametersTransformationService {
 		return backingApplication.getParametersTransformers() == null
 			? Collections.emptyList()
 			: backingApplication.getParametersTransformers();
+	}
+
+	// TODO any way to generalise?
+	public Mono<List<BackingService>> transformParametersForServices(List<BackingService> backingServices,
+																	 Map<String, Object> parameters) {
+		return Flux.fromIterable(backingServices)
+				   .flatMap(backingService -> {
+					   List<ParametersTransformerSpec> specs = getTransformerSpecsForService(backingService);
+
+					   return Flux.fromIterable(specs)
+								  .flatMap(spec -> {
+									  ParametersTransformer transformer = locator.getByName(spec.getName(), spec.getArgs());
+									  return transformer.transform(backingService, parameters);
+								  })
+								  .then(Mono.just(backingService));
+				   })
+				   .collectList();
+	}
+
+	private List<ParametersTransformerSpec> getTransformerSpecsForService(BackingService backingService) {
+		return backingService.getParametersTransformers() == null
+			? Collections.emptyList()
+			: backingService.getParametersTransformers();
 	}
 }

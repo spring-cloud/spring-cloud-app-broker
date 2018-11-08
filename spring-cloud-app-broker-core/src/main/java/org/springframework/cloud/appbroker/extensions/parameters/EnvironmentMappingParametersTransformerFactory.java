@@ -32,8 +32,9 @@ public class EnvironmentMappingParametersTransformerFactory extends
 
 	@Override
 	public ParametersTransformer create(Config config) {
-		return (backingApplication, parameters) ->
-			transform(backingApplication, parameters, config.getIncludes());
+		// TODO better than cast?
+		return (ParametersTransformer<BackingApplication>) (backingType, parameters) ->
+			transform(backingType, parameters, config.getIncludes());
 	}
 
 	private Mono<BackingApplication> transform(BackingApplication backingApplication,

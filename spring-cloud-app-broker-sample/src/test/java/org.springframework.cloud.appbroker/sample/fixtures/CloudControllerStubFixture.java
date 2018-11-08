@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.sample.fixtures;
 
+import java.util.Map;
+
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
 
@@ -311,9 +313,17 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(ok()
 				.withBody(cc("list-service-plans"))));
 	}
+
 	public void stubCreateServiceInstance(String serviceInstanceName) {
 		stubFor(post(urlEqualTo("/v2/service_instances?accepts_incomplete=true"))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + serviceInstanceName + "')]"))
+			.willReturn(ok()));
+	}
+
+	public void stubCreateServiceInstanceWithParameters(String serviceInstanceName, Map<String, Object> params) {
+		stubFor(post(urlEqualTo("/v2/service_instances?accepts_incomplete=true"))
+			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + serviceInstanceName + "')]"))
+			.withRequestBody(matchingJsonPath("$.[?(@.parameters.size() == " + params.size() + ")]"))
 			.willReturn(ok()));
 	}
 

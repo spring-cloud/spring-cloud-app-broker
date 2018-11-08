@@ -24,13 +24,13 @@ public class CreateServiceInstanceRequest {
 	private final String serviceInstanceName;
 	private final String name;
 	private final String plan;
-	private final Map<String, String> parameters;
+	private final Map<String, Object> parameters;
 	private final Map<String, String> properties;
 
 	CreateServiceInstanceRequest(String serviceInstanceName,
 								 String name,
 								 String plan,
-								 Map<String, String> parameters,
+								 Map<String, Object> parameters,
 								 Map<String, String> properties) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.name = name;
@@ -57,7 +57,7 @@ public class CreateServiceInstanceRequest {
 		return plan;
 	}
 
-	public Map<String, String> getParameters() {
+	public Map<String, Object> getParameters() {
 		return parameters;
 	}
 
@@ -70,7 +70,7 @@ public class CreateServiceInstanceRequest {
 		private String serviceInstanceName;
 		private String name;
 		private String plan;
-		private final Map<String, String> parameters = new HashMap<>();
+		private final Map<String, Object> parameters = new HashMap<>();
 		private final Map<String, String> properties = new HashMap<>();
 
 		CreateServiceInstanceRequestBuilder() {
@@ -96,7 +96,7 @@ public class CreateServiceInstanceRequest {
 			return this;
 		}
 
-		public CreateServiceInstanceRequestBuilder parameters(Map<String, String> parameters) {
+		public CreateServiceInstanceRequestBuilder parameters(Map<String, Object> parameters) {
 			if (parameters == null) {
 				return this;
 			}

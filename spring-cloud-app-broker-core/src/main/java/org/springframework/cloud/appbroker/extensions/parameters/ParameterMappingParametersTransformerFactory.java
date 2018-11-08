@@ -16,40 +16,42 @@
 
 package org.springframework.cloud.appbroker.extensions.parameters;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import reactor.core.publisher.Mono;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class PropertyMappingParametersTransformerFactory extends
-	ParametersTransformerFactory<PropertyMappingParametersTransformerFactory.Config> {
+import reactor.core.publisher.Mono;
 
-	public PropertyMappingParametersTransformerFactory() {
+import org.springframework.cloud.appbroker.deployer.BackingService;
+
+public class ParameterMappingParametersTransformerFactory extends
+	ParametersTransformerFactory<ParameterMappingParametersTransformerFactory.Config> {
+
+	public ParameterMappingParametersTransformerFactory() {
 		super(Config.class);
 	}
 
 	@Override
 	public ParametersTransformer create(Config config) {
-		// TODO better than cast?
-		return (backingApplication, parameters) ->
-			transform((BackingApplication)backingApplication, parameters, config.getIncludes());
+		return (ParametersTransformer<BackingService>) (backingType, parameters) ->
+			transform(backingType, parameters, config.getIncludes());
 	}
 
-	private Mono<BackingApplication> transform(BackingApplication backingApplication,
-											   Map<String, Object> parameters,
-											   List<String> include) {
+	private Mono<BackingService> transform(BackingService backingService,
+										   Map<String, Object> parameters,
+										   List<String> include) {
 		if (parameters != null) {
 			parameters.keySet().stream()
-				.filter(include::contains)
-				.forEach(key -> backingApplication.addProperty(key, parameters.get(key).toString()));
+					  .filter(include::contains)
+					  .forEach(key -> backingService.addParameter(key, parameters.get(key).toString()));
 		}
-		return Mono.just(backingApplication);
+
+		return Mono.just(backingService);
 	}
 
 	@SuppressWarnings("WeakerAccess")
 	public static class Config {
+
 		private String include;
 
 		public Config() {

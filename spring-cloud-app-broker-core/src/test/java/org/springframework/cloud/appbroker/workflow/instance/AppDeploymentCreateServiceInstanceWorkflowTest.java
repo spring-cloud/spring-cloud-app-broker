@@ -196,6 +196,8 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.willReturn(Flux.just("app1", "app2"));
 		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
+		given(this.parametersTransformationService.transformParametersForServices(eq(backingServices), eq(request.getParameters())))
+			.willReturn(Mono.just(backingServices));
 		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
 		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq(request.getServiceInstanceId())))

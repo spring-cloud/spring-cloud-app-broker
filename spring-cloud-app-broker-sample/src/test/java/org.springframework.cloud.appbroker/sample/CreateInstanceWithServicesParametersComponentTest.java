@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.appbroker.sample;
 
+import java.util.Collections;
 import java.util.HashMap;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +76,7 @@ class CreateInstanceWithServicesParametersComponentTest extends WiremockComponen
 		// will create with filtered parameters and bind the service instance
 		HashMap<String, Object> expectedCreationParameters = new HashMap<>();
 		expectedCreationParameters.put("paramA", "valueA");
-		expectedCreationParameters.put("paramC", "valueC");
+		expectedCreationParameters.put("paramC", Collections.singletonMap("paramC1", "valueC1"));
 
 		cloudControllerFixture.stubCreateServiceInstanceWithParameters(SERVICE_INSTANCE_1_NAME, expectedCreationParameters);
 		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, SERVICE_INSTANCE_1_NAME);
@@ -84,7 +86,7 @@ class CreateInstanceWithServicesParametersComponentTest extends WiremockComponen
 		HashMap<String, Object> creationParameters = new HashMap<>();
 		creationParameters.put("paramA", "valueA");
 		creationParameters.put("paramB", "valueB");
-		creationParameters.put("paramC", "valueC");
+		creationParameters.put("paramC", Collections.singletonMap("paramC1", "valueC1"));
 
 		given(brokerFixture.serviceInstanceRequest(creationParameters))
 			.when()

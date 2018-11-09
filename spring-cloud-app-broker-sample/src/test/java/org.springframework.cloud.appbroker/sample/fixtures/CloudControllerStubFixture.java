@@ -19,12 +19,15 @@ package org.springframework.cloud.appbroker.sample.fixtures;
 import java.util.Map;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.ContentPattern;
+import org.json.JSONObject;
 
 import org.springframework.boot.test.context.TestComponent;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
@@ -34,6 +37,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 @TestComponent
 public class CloudControllerStubFixture extends WiremockStubFixture {
@@ -323,7 +327,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	public void stubCreateServiceInstanceWithParameters(String serviceInstanceName, Map<String, Object> params) {
 		stubFor(post(urlEqualTo("/v2/service_instances?accepts_incomplete=true"))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + serviceInstanceName + "')]"))
-			.withRequestBody(matchingJsonPath("$.[?(@.parameters.size() == " + params.size() + ")]"))
+			.withRequestBody(matchingJsonPath("$.parameters", equalToJson(new JSONObject(params).toString())))
 			.willReturn(ok()));
 	}
 

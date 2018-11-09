@@ -42,7 +42,7 @@ public class ParameterMappingParametersTransformerFactory extends
 		if (parameters != null) {
 			parameters.keySet().stream()
 					  .filter(include::contains)
-					  .forEach(key -> backingService.addParameter(key, parameters.get(key).toString()));
+					  .forEach(key -> backingService.addParameter(key, parameters.get(key)));
 		}
 
 		return Mono.just(backingService);

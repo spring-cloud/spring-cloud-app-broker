@@ -18,7 +18,7 @@ package org.springframework.cloud.appbroker.extensions.parameters;
 
 import org.springframework.cloud.appbroker.extensions.AbstractExtensionFactory;
 
-public abstract class ParametersTransformerFactory<C> extends AbstractExtensionFactory<ParametersTransformer, C> {
+public abstract class ParametersTransformerFactory<B, C> extends AbstractExtensionFactory<ParametersTransformer<B>, C> {
 	protected ParametersTransformerFactory() {
 		super();
 	}
@@ -28,7 +28,7 @@ public abstract class ParametersTransformerFactory<C> extends AbstractExtensionF
 	}
 
 	@Override
-	public abstract ParametersTransformer create(C config);
+	public abstract ParametersTransformer<B> create(C config);
 
 	public String getName() {
 		return getShortName(ParametersTransformerFactory.class);

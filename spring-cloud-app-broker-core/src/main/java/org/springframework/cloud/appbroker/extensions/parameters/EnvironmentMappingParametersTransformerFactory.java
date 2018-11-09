@@ -20,21 +20,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+
 public class EnvironmentMappingParametersTransformerFactory extends
-	ParametersTransformerFactory<EnvironmentMappingParametersTransformerFactory.Config> {
+	ParametersTransformerFactory<BackingApplication, EnvironmentMappingParametersTransformerFactory.Config> {
 
 	public EnvironmentMappingParametersTransformerFactory() {
 		super(Config.class);
 	}
 
 	@Override
-	public ParametersTransformer create(Config config) {
-		// TODO better than cast?
-		return (ParametersTransformer<BackingApplication>) (backingType, parameters) ->
-			transform(backingType, parameters, config.getIncludes());
+	public ParametersTransformer<BackingApplication> create(Config config) {
+		return (backingType, parameters) -> transform(backingType, parameters, config.getIncludes());
 	}
 
 	private Mono<BackingApplication> transform(BackingApplication backingApplication,
@@ -42,8 +41,8 @@ public class EnvironmentMappingParametersTransformerFactory extends
 											   List<String> include) {
 		if (parameters != null) {
 			parameters.keySet().stream()
-				.filter(include::contains)
-				.forEach(key -> backingApplication.addEnvironment(key, parameters.get(key).toString()));
+					  .filter(include::contains)
+					  .forEach(key -> backingApplication.addEnvironment(key, parameters.get(key).toString()));
 		}
 
 		return Mono.just(backingApplication);
@@ -51,6 +50,7 @@ public class EnvironmentMappingParametersTransformerFactory extends
 
 	@SuppressWarnings("WeakerAccess")
 	public static class Config {
+
 		private String include;
 
 		public Config() {

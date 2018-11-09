@@ -23,7 +23,7 @@ import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
@@ -38,12 +38,12 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 	private final Logger log = Loggers.getLogger(AppDeploymentUpdateServiceInstanceWorkflow.class);
 
 	private final BackingAppDeploymentService deploymentService;
-	private final ParametersTransformationService parametersTransformationService;
+	private final BackingApplicationsParametersTransformationService parametersTransformationService;
 	private final TargetService targetService;
 
 	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
-													  ParametersTransformationService parametersTransformationService,
+													  BackingApplicationsParametersTransformationService parametersTransformationService,
 													  TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;

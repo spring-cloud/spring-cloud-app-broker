@@ -97,11 +97,11 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 	@Configuration
 	static class CustomConfig {
 		@Bean
-		public ParametersTransformerFactory<Object> parametersTransformer() {
+		public ParametersTransformerFactory<BackingApplication, Object> parametersTransformer() {
 			return new CustomMappingParametersTransformerFactory();
 		}
 
-		public class CustomMappingParametersTransformerFactory extends ParametersTransformerFactory<Object> {
+		public class CustomMappingParametersTransformerFactory extends ParametersTransformerFactory<BackingApplication, Object> {
 			CustomMappingParametersTransformerFactory() {
 				super();
 			}

@@ -25,16 +25,15 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.appbroker.deployer.BackingService;
 
 public class ParameterMappingParametersTransformerFactory extends
-	ParametersTransformerFactory<ParameterMappingParametersTransformerFactory.Config> {
+	ParametersTransformerFactory<BackingService, ParameterMappingParametersTransformerFactory.Config> {
 
 	public ParameterMappingParametersTransformerFactory() {
 		super(Config.class);
 	}
 
 	@Override
-	public ParametersTransformer create(Config config) {
-		return (ParametersTransformer<BackingService>) (backingType, parameters) ->
-			transform(backingType, parameters, config.getIncludes());
+	public ParametersTransformer<BackingService> create(Config config) {
+		return (backingType, parameters) -> transform(backingType, parameters, config.getIncludes());
 	}
 
 	private Mono<BackingService> transform(BackingService backingService,

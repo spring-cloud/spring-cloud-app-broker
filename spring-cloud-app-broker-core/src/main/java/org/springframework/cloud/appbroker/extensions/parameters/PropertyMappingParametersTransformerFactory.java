@@ -16,25 +16,24 @@
 
 package org.springframework.cloud.appbroker.extensions.parameters;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import reactor.core.publisher.Mono;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+
 public class PropertyMappingParametersTransformerFactory extends
-	ParametersTransformerFactory<PropertyMappingParametersTransformerFactory.Config> {
+	ParametersTransformerFactory<BackingApplication, PropertyMappingParametersTransformerFactory.Config> {
 
 	public PropertyMappingParametersTransformerFactory() {
 		super(Config.class);
 	}
 
 	@Override
-	public ParametersTransformer create(Config config) {
-		// TODO better than cast?
-		return (backingApplication, parameters) ->
-			transform((BackingApplication)backingApplication, parameters, config.getIncludes());
+	public ParametersTransformer<BackingApplication> create(Config config) {
+		return (backingApplication, parameters) -> transform(backingApplication, parameters, config.getIncludes());
 	}
 
 	private Mono<BackingApplication> transform(BackingApplication backingApplication,
@@ -42,14 +41,15 @@ public class PropertyMappingParametersTransformerFactory extends
 											   List<String> include) {
 		if (parameters != null) {
 			parameters.keySet().stream()
-				.filter(include::contains)
-				.forEach(key -> backingApplication.addProperty(key, parameters.get(key).toString()));
+					  .filter(include::contains)
+					  .forEach(key -> backingApplication.addProperty(key, parameters.get(key).toString()));
 		}
 		return Mono.just(backingApplication);
 	}
 
 	@SuppressWarnings("WeakerAccess")
 	public static class Config {
+
 		private String include;
 
 		public Config() {

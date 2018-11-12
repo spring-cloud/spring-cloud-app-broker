@@ -19,7 +19,6 @@ package org.springframework.cloud.appbroker.sample;
 import java.util.Collections;
 import java.util.HashMap;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;

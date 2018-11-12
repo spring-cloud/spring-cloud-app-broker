@@ -26,7 +26,6 @@ import org.springframework.boot.test.context.TestComponent;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
@@ -325,7 +324,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	public void stubCreateServiceInstanceWithParameters(String serviceInstanceName, Map<String, Object> params) {
 		stubFor(post(urlEqualTo("/v2/service_instances?accepts_incomplete=true"))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + serviceInstanceName + "')]"))
-			.withRequestBody(matchingJsonPath("$.parameters", equalToJson(new JSONObject(params).toString())))
+			.withRequestBody(matchingJsonPath("$.[?(@.parameters == " + new JSONObject(params) + ")]"))
 			.willReturn(ok()));
 	}
 

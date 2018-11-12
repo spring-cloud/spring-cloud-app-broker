@@ -39,12 +39,6 @@ jobs:
           fi
 
     - run:
-        name: "Queue until all other builds finished"
-        command: |
-          cd ~/repo/ci/scripts
-          ./wait-for-other-builds-to-finish.sh 60
-
-    - run:
         name: "Download dependencies"
         command: ./gradlew assemble
 
@@ -79,6 +73,12 @@ jobs:
     - store_test_results:
         path: ~/junit/
         destination: testartifacts
+
+    - run:
+        name: "Queue until all other builds finished"
+        command: |
+          cd ~/repo/ci/scripts
+          ./wait-for-other-builds-to-finish.sh 60
 
     - run:
         name: "Start BOSH Lite"

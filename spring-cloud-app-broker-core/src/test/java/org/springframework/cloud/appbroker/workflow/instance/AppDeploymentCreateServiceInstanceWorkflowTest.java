@@ -38,7 +38,8 @@ import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
@@ -58,7 +59,10 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	private BackingAppDeploymentService backingAppDeploymentService;
 
 	@Mock
-	private ParametersTransformationService parametersTransformationService;
+	private BackingApplicationsParametersTransformationService backingApplicationsParametersTransformationService;
+
+	@Mock
+	private BackingServicesParametersTransformationService backingServicesParametersTransformationService;
 
 	@Mock
 	private CredentialProviderService credentialProviderService;
@@ -117,7 +121,8 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		createServiceInstanceWorkflow = new AppDeploymentCreateServiceInstanceWorkflow(
 			brokeredServices,
 			backingAppDeploymentService,
-			parametersTransformationService,
+			backingApplicationsParametersTransformationService,
+			backingServicesParametersTransformationService,
 			credentialProviderService,
 			targetService,
 			backingServicesProvisionService);
@@ -155,7 +160,8 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		verify(parametersTransformationService).transformParameters(backingApps, singletonMap("ENV_VAR_1", "value from parameters"));
+		verify(backingApplicationsParametersTransformationService)
+			.transformParameters(backingApps, singletonMap("ENV_VAR_1", "value from parameters"));
 
 		verifyNoMoreInteractionsWithServices();
 	}
@@ -194,8 +200,10 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	private void setupMocks(CreateServiceInstanceRequest request) {
 		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
 			.willReturn(Flux.just("app1", "app2"));
-		given(this.parametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
+		given(this.backingApplicationsParametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
+		given(this.backingServicesParametersTransformationService.transformParameters(eq(backingServices), eq(request.getParameters())))
+			.willReturn(Mono.just(backingServices));
 		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
 		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq(request.getServiceInstanceId())))
@@ -208,7 +216,8 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 
 	private void verifyNoMoreInteractionsWithServices() {
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
-		verifyNoMoreInteractions(this.parametersTransformationService);
+		verifyNoMoreInteractions(this.backingApplicationsParametersTransformationService);
+		verifyNoMoreInteractions(this.backingServicesParametersTransformationService);
 		verifyNoMoreInteractions(this.credentialProviderService);
 		verifyNoMoreInteractions(this.targetService);
 		verifyNoMoreInteractions(this.backingServicesProvisionService);

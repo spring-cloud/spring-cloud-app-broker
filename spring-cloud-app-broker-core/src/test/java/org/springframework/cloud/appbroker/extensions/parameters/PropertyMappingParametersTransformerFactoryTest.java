@@ -27,7 +27,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PropertyMappingParametersTransformerFactoryTest {
-	private ParametersTransformer transformer;
+	private ParametersTransformer<BackingApplication> transformer;
 
 	@BeforeEach
 	void setUp() {

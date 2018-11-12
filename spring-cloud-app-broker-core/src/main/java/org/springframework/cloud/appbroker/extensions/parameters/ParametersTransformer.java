@@ -18,10 +18,11 @@ package org.springframework.cloud.appbroker.extensions.parameters;
 
 import java.util.Map;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import reactor.core.publisher.Mono;
 
 @FunctionalInterface
-public interface ParametersTransformer {
-	Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters);
+public interface ParametersTransformer<T> {
+
+	Mono<T> transform(T backingType, Map<String, Object> parameters);
+
 }

@@ -34,14 +34,15 @@ import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class ParametersTransformationServiceTest {
+class BackingApplicationsParametersTransformationServiceTest {
 
 	@Test
 	void transformParametersWithNoBackingApps() {
-		ParametersTransformationService service = new ParametersTransformationService(Collections.emptyList());
+		BackingApplicationsParametersTransformationService service =
+			new BackingApplicationsParametersTransformationService(Collections.emptyList());
 
 		BackingApplications backingApplications = BackingApplications.builder()
-			.build();
+																	 .build();
 
 		StepVerifier
 			.create(service.transformParameters(backingApplications, new HashMap<>()))
@@ -51,9 +52,11 @@ class ParametersTransformationServiceTest {
 
 	@Test
 	void transformParametersWithNoTransformers() {
-		ParametersTransformationService service = new ParametersTransformationService(Collections.emptyList());
+		BackingApplicationsParametersTransformationService service =
+			new BackingApplicationsParametersTransformationService(Collections.emptyList());
 
-		BackingApplications backingApplications = BackingApplications.builder()
+		BackingApplications backingApplications = BackingApplications
+			.builder()
 			.backingApplication(BackingApplication.builder().build())
 			.build();
 
@@ -65,14 +68,17 @@ class ParametersTransformationServiceTest {
 
 	@Test
 	void transformParametersWithUnknownTransformer() {
-		ParametersTransformationService service = new ParametersTransformationService(Collections.emptyList());
+		BackingApplicationsParametersTransformationService service =
+			new BackingApplicationsParametersTransformationService(Collections.emptyList());
 
-		BackingApplications backingApplications = BackingApplications.builder()
-			.backingApplication(BackingApplication.builder()
+		BackingApplications backingApplications = BackingApplications
+			.builder()
+			.backingApplication(BackingApplication
+				.builder()
 				.name("misconfigured-app")
 				.parameterTransformers(ParametersTransformerSpec.builder()
-					.name("unknown-transformer")
-					.build())
+																.name("unknown-transformer")
+																.build())
 				.build())
 			.build();
 
@@ -91,32 +97,37 @@ class ParametersTransformationServiceTest {
 		parameters.put("key2", "value2");
 
 		BackingApplication app1 = BackingApplication.builder()
-			.name("app1")
-			.parameterTransformers(ParametersTransformerSpec.builder()
-				.name("transformer1")
-				.build())
-			.build();
-		BackingApplication app2 = BackingApplication.builder()
+													.name("app1")
+													.parameterTransformers(ParametersTransformerSpec
+														.builder()
+														.name("transformer1")
+														.build())
+													.build();
+		BackingApplication app2 = BackingApplication
+			.builder()
 			.name("app2")
-			.parameterTransformers(ParametersTransformerSpec.builder()
+			.parameterTransformers(ParametersTransformerSpec
+					.builder()
 					.name("transformer1")
 					.arg("arg1", "value1")
 					.arg("arg2", 5)
 					.build(),
-				ParametersTransformerSpec.builder()
+				ParametersTransformerSpec
+					.builder()
 					.name("transformer2")
 					.build())
 			.build();
 		BackingApplications backingApplications = BackingApplications.builder()
-			.backingApplication(app1)
-			.backingApplication(app2)
-			.build();
+																	 .backingApplication(app1)
+																	 .backingApplication(app2)
+																	 .build();
 
 		TestFactory factory1 = new TestFactory("transformer1");
 		TestFactory factory2 = new TestFactory("transformer2");
 
-		ParametersTransformationService service = new ParametersTransformationService(
-			Arrays.asList(factory1, factory2));
+		BackingApplicationsParametersTransformationService service =
+			new BackingApplicationsParametersTransformationService(
+				Arrays.asList(factory1, factory2));
 
 		StepVerifier
 			.create(service.transformParameters(backingApplications, parameters))
@@ -129,9 +140,9 @@ class ParametersTransformationServiceTest {
 				app2ExpectedTransformedEnvironment.put("1", "transformer2");
 
 				assertAll("unexpected transformation results",
-						  () -> assertThat(transformedBackingApplications.size()).isEqualTo(backingApplications.size()),
-						  () -> assertThat(transformedBackingApplications.get(0).getEnvironment()).isEqualTo(app1ExpectedTransformedEnvironment),
-						  () -> assertThat(transformedBackingApplications.get(1).getEnvironment()).isEqualTo(app2ExpectedTransformedEnvironment)
+					() -> assertThat(transformedBackingApplications.size()).isEqualTo(backingApplications.size()),
+					() -> assertThat(transformedBackingApplications.get(0).getEnvironment()).isEqualTo(app1ExpectedTransformedEnvironment),
+					() -> assertThat(transformedBackingApplications.get(1).getEnvironment()).isEqualTo(app2ExpectedTransformedEnvironment)
 				);
 
 				return true;
@@ -145,7 +156,8 @@ class ParametersTransformationServiceTest {
 		assertThat(factory2.getActualConfig()).isEqualTo(new Config(null, null));
 	}
 
-	public static class TestFactory extends ParametersTransformerFactory<Config> {
+	public static class TestFactory extends ParametersTransformerFactory<BackingApplication, Config> {
+
 		private final String name;
 
 		private Map<String, Object> actualParameters;
@@ -162,7 +174,7 @@ class ParametersTransformationServiceTest {
 		}
 
 		@Override
-		public ParametersTransformer create(Config config) {
+		public ParametersTransformer<BackingApplication> create(Config config) {
 			this.actualConfig = config;
 			return this::doTransform;
 		}
@@ -185,6 +197,7 @@ class ParametersTransformationServiceTest {
 
 	@SuppressWarnings("unused")
 	public static class Config {
+
 		private String arg1;
 		private Integer arg2;
 

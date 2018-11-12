@@ -26,13 +26,14 @@ import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionServ
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
+import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceBindingService;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.state.ServiceInstanceBindingStateRepository;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreateServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentUpdateServiceInstanceWorkflow;
 
@@ -99,7 +100,8 @@ class AppBrokerAutoConfigurationTest {
 				assertThat(context).hasSingleBean(ServiceInstanceStateRepository.class);
 				assertThat(context).hasSingleBean(ServiceInstanceBindingStateRepository.class);
 				assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
-				assertThat(context).hasSingleBean(ParametersTransformationService.class);
+				assertThat(context).hasSingleBean(BackingApplicationsParametersTransformationService.class);
+				assertThat(context).hasSingleBean(BackingServicesParametersTransformationService.class);
 				assertThat(context).hasSingleBean(CredentialProviderService.class);
 				assertThat(context).hasSingleBean(TargetService.class);
 				assertThat(context).hasSingleBean(BackingServicesProvisionService.class);

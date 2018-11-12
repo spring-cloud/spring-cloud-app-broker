@@ -20,35 +20,36 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.cloud.appbroker.extensions.ExtensionLocator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
+import org.springframework.cloud.appbroker.extensions.ExtensionLocator;
 
-public class ParametersTransformationService {
+public class BackingApplicationsParametersTransformationService {
 
-	private final ExtensionLocator<ParametersTransformer> locator;
+	private final ExtensionLocator<ParametersTransformer<BackingApplication>> locator;
 
-	public ParametersTransformationService(List<ParametersTransformerFactory<?>> factories) {
+	public BackingApplicationsParametersTransformationService(
+		List<ParametersTransformerFactory<BackingApplication, ?>> factories) {
 		locator = new ExtensionLocator<>(factories);
 	}
 
 	public Mono<List<BackingApplication>> transformParameters(List<BackingApplication> backingApplications,
 															  Map<String, Object> parameters) {
 		return Flux.fromIterable(backingApplications)
-			.flatMap(backingApplication -> {
-				List<ParametersTransformerSpec> specs = getTransformerSpecsForApplication(backingApplication);
+				   .flatMap(backingApplication -> {
+					   List<ParametersTransformerSpec> specs = getTransformerSpecsForApplication(backingApplication);
 
-				return Flux.fromIterable(specs)
-					.flatMap(spec -> {
-						ParametersTransformer transformer = locator.getByName(spec.getName(), spec.getArgs());
-						return transformer.transform(backingApplication, parameters);
-					})
-					.then(Mono.just(backingApplication));
-			})
-			.collectList();
+					   return Flux.fromIterable(specs)
+								  .flatMap(spec -> {
+									  ParametersTransformer<BackingApplication> transformer = locator.getByName(spec.getName(), spec.getArgs());
+									  return transformer.transform(backingApplication, parameters);
+								  })
+								  .then(Mono.just(backingApplication));
+				   })
+				   .collectList();
 	}
 
 	private List<ParametersTransformerSpec> getTransformerSpecsForApplication(BackingApplication backingApplication) {

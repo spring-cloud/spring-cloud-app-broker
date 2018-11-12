@@ -22,29 +22,30 @@ import java.util.Map;
 
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingService;
 
-public class PropertyMappingParametersTransformerFactory extends
-	ParametersTransformerFactory<BackingApplication, PropertyMappingParametersTransformerFactory.Config> {
+public class ParameterMappingParametersTransformerFactory extends
+	ParametersTransformerFactory<BackingService, ParameterMappingParametersTransformerFactory.Config> {
 
-	public PropertyMappingParametersTransformerFactory() {
+	public ParameterMappingParametersTransformerFactory() {
 		super(Config.class);
 	}
 
 	@Override
-	public ParametersTransformer<BackingApplication> create(Config config) {
-		return (backingApplication, parameters) -> transform(backingApplication, parameters, config.getIncludes());
+	public ParametersTransformer<BackingService> create(Config config) {
+		return (backingType, parameters) -> transform(backingType, parameters, config.getIncludes());
 	}
 
-	private Mono<BackingApplication> transform(BackingApplication backingApplication,
-											   Map<String, Object> parameters,
-											   List<String> include) {
+	private Mono<BackingService> transform(BackingService backingService,
+										   Map<String, Object> parameters,
+										   List<String> include) {
 		if (parameters != null) {
 			parameters.keySet().stream()
 					  .filter(include::contains)
-					  .forEach(key -> backingApplication.addProperty(key, parameters.get(key).toString()));
+					  .forEach(key -> backingService.addParameter(key, parameters.get(key)));
 		}
-		return Mono.just(backingApplication);
+
+		return Mono.just(backingService);
 	}
 
 	@SuppressWarnings("WeakerAccess")

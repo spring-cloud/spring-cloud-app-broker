@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -25,18 +28,25 @@ public class BackingService {
 	private String serviceInstanceName;
 	private String name;
 	private String plan;
-	private Map<String, String> parameters;
+	private Map<String, Object> parameters;
 	private Map<String, String> properties;
+	private List<ParametersTransformerSpec> parametersTransformers;
 
 	private BackingService() {
 	}
 
-	BackingService(String serviceInstanceName, String name, String plan, Map<String, String> parameters, Map<String, String> properties) {
+	BackingService(String serviceInstanceName,
+				   String name,
+				   String plan,
+				   Map<String, Object> parameters,
+				   Map<String, String> properties,
+				   List<ParametersTransformerSpec> parametersTransformers) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.name = name;
 		this.plan = plan;
 		this.parameters = parameters;
 		this.properties = properties;
+		this.parametersTransformers = parametersTransformers;
 	}
 
 	BackingService(BackingService backingServiceToCopy) {
@@ -49,6 +59,9 @@ public class BackingService {
 		this.properties = backingServiceToCopy.properties == null
 			? new HashMap<>()
 			: new HashMap<>(backingServiceToCopy.properties);
+		this.parametersTransformers = backingServiceToCopy.parametersTransformers == null
+			? new ArrayList<>()
+			: new ArrayList<>(backingServiceToCopy.parametersTransformers);
 	}
 
 	public String getServiceInstanceName() {
@@ -75,11 +88,11 @@ public class BackingService {
 		this.plan = plan;
 	}
 
-	public Map<String, String> getParameters() {
+	public Map<String, Object> getParameters() {
 		return parameters;
 	}
 
-	public void setParameters(Map<String, String> parameters) {
+	public void setParameters(Map<String, Object> parameters) {
 		this.parameters = parameters;
 	}
 
@@ -89,6 +102,18 @@ public class BackingService {
 
 	public void setProperties(Map<String, String> properties) {
 		this.properties = properties;
+	}
+
+	public List<ParametersTransformerSpec> getParametersTransformers() {
+		return parametersTransformers;
+	}
+
+	public void setParametersTransformers(List<ParametersTransformerSpec> parametersTransformers) {
+		this.parametersTransformers = parametersTransformers;
+	}
+
+	public void addParameter(String key, Object value) {
+		parameters.put(key, value);
 	}
 
 	@Override
@@ -104,12 +129,13 @@ public class BackingService {
 			Objects.equals(name, that.name) &&
 			Objects.equals(plan, that.plan) &&
 			Objects.equals(parameters, that.parameters) &&
-			Objects.equals(properties, that.properties);
+			Objects.equals(properties, that.properties) &&
+			Objects.equals(parametersTransformers, that.parametersTransformers);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(serviceInstanceName, name, plan, parameters, properties);
+		return Objects.hash(serviceInstanceName, name, plan, parameters, properties, parametersTransformers);
 	}
 
 	@Override
@@ -120,6 +146,7 @@ public class BackingService {
 			", plan='" + plan + '\'' +
 			", parameters=" + parameters +
 			", properties=" + properties +
+			", parametersTransformers=" + parametersTransformers +
 			'}';
 	}
 
@@ -132,14 +159,15 @@ public class BackingService {
 		private String serviceInstanceName;
 		private String name;
 		private String plan;
-		private Map<String, String> parameters = new HashMap<>();
+		private Map<String, Object> parameters = new HashMap<>();
 		private Map<String, String> properties = new HashMap<>();
+		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
 
 		BackingServiceBuilder() {
 		}
 
 		public BackingService build() {
-			return new BackingService(serviceInstanceName, name, plan, parameters, properties);
+			return new BackingService(serviceInstanceName, name, plan, parameters, properties, parameterTransformers);
 		}
 
 		public BackingServiceBuilder serviceInstanceName(String serviceInstanceName) {
@@ -157,7 +185,7 @@ public class BackingService {
 			return this;
 		}
 
-		public BackingServiceBuilder parameters(Map<String, String> parameters) {
+		public BackingServiceBuilder parameters(Map<String, Object> parameters) {
 			this.parameters = parameters;
 			return this;
 		}
@@ -166,6 +194,12 @@ public class BackingService {
 			this.properties = properties;
 			return this;
 		}
+
+		public BackingServiceBuilder parameterTransformers(ParametersTransformerSpec... parameterTransformers) {
+			this.parameterTransformers.addAll(Arrays.asList(parameterTransformers));
+			return this;
+		}
+
 	}
 
 }

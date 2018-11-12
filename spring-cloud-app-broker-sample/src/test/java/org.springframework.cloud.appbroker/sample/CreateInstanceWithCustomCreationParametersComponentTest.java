@@ -16,28 +16,28 @@
 
 package org.springframework.cloud.appbroker.sample;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformer;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.sample.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.sample.fixtures.OpenServiceBrokerApiFixture;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformer;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import reactor.core.publisher.Mono;
-
 
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static io.restassured.RestAssured.given;
@@ -97,17 +97,17 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 	@Configuration
 	static class CustomConfig {
 		@Bean
-		public ParametersTransformerFactory<Object> parametersTransformer() {
+		public ParametersTransformerFactory<BackingApplication, Object> parametersTransformer() {
 			return new CustomMappingParametersTransformerFactory();
 		}
 
-		public class CustomMappingParametersTransformerFactory extends ParametersTransformerFactory<Object> {
+		public class CustomMappingParametersTransformerFactory extends ParametersTransformerFactory<BackingApplication, Object> {
 			CustomMappingParametersTransformerFactory() {
 				super();
 			}
 
 			@Override
-			public ParametersTransformer create(Object config) {
+			public ParametersTransformer<BackingApplication> create(Object config) {
 				return this::transform;
 			}
 

@@ -25,6 +25,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
@@ -33,8 +35,10 @@ import org.springframework.cloud.appbroker.extensions.credentials.CredentialProv
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
 import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory;
+import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
-import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.ParameterMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
@@ -102,8 +106,20 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	public ParametersTransformationService parametersTransformerService(List<ParametersTransformerFactory<?>> transformers) {
-		return new ParametersTransformationService(transformers);
+	public ParameterMappingParametersTransformerFactory parameterMappingParametersTransformerFactory() {
+		return new ParameterMappingParametersTransformerFactory();
+	}
+
+	@Bean
+	public BackingApplicationsParametersTransformationService backingApplicationsParametersTransformationService(
+		List<ParametersTransformerFactory<BackingApplication, ?>> transformers) {
+		return new BackingApplicationsParametersTransformationService(transformers);
+	}
+
+	@Bean
+	public BackingServicesParametersTransformationService backingServicesParametersTransformationService(
+		List<ParametersTransformerFactory<BackingService, ?>> transformers) {
+		return new BackingServicesParametersTransformationService(transformers);
 	}
 
 	@ConditionalOnMissingBean(CredentialGenerator.class)
@@ -140,14 +156,16 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	public CreateServiceInstanceWorkflow appDeploymentCreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 																					BackingAppDeploymentService backingAppDeploymentService,
-																					ParametersTransformationService parametersTransformationService,
+																					BackingApplicationsParametersTransformationService applicationsParametersTransformationService,
+																					BackingServicesParametersTransformationService servicesParametersTransformationService,
 																					CredentialProviderService credentialProviderService,
 																					TargetService targetService,
 																					BackingServicesProvisionService backingServicesProvisionService) {
 		return new AppDeploymentCreateServiceInstanceWorkflow(
 			brokeredServices,
 			backingAppDeploymentService,
-			parametersTransformationService,
+			applicationsParametersTransformationService,
+			servicesParametersTransformationService,
 			credentialProviderService,
 			targetService,
 			backingServicesProvisionService);
@@ -170,7 +188,7 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	public UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 																	   BackingAppDeploymentService backingAppDeploymentService,
-																	   ParametersTransformationService parametersTransformationService,
+																	   BackingApplicationsParametersTransformationService parametersTransformationService,
 																	   TargetService targetService) {
 		return new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService, targetService);
 	}

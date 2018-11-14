@@ -32,6 +32,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryTargetProperties;
+import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -73,6 +74,7 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				assertThat(deploymentProperties.getDomain()).isEqualTo("example.com");
 
 				assertThat(context).hasSingleBean(AppDeployer.class);
+				assertThat(context).hasSingleBean(OAuth2Client.class);
 
 				assertThat(context).hasSingleBean(ReactorCloudFoundryClient.class);
 				assertThat(context).hasSingleBean(ReactorDopplerClient.class);

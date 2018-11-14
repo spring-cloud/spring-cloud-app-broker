@@ -1,0 +1,9 @@
+{
+	"client_id" : "foo",
+	"name" : "Foo Client Name",
+	"client_secret" : "fooclientsecret",
+	"scope" : ["uaa.none"],
+	"authorities" : ["cloud_controller.read","cloud_controller.write","openid"],
+	"authorized_grant_types" : ["client_credentials"],
+	"access_token_validity": 43200
+}

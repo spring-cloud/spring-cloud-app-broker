@@ -35,6 +35,7 @@ import org.springframework.cloud.appbroker.extensions.credentials.CredentialProv
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
 import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory;
+import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
@@ -44,6 +45,7 @@ import org.springframework.cloud.appbroker.extensions.parameters.PropertyMapping
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
 import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceRouteBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
@@ -131,6 +133,12 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	public SpringSecurityBasicAuthCredentialProviderFactory springSecurityBasicAuthCredentialProvider(CredentialGenerator credentialGenerator) {
 		return new SpringSecurityBasicAuthCredentialProviderFactory(credentialGenerator);
+	}
+
+	@Bean
+	public SpringSecurityOAuth2CredentialProviderFactory springSecurityOAuth2CredentialProvider(CredentialGenerator credentialGenerator,
+																								OAuth2Client oAuth2Client) {
+		return new SpringSecurityOAuth2CredentialProviderFactory(credentialGenerator, oAuth2Client);
 	}
 
 	@Bean

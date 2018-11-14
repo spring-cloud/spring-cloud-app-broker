@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.sample.fixtures;
 
 import org.springframework.boot.test.context.TestComponent;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -86,6 +87,18 @@ public class UaaStubFixture extends WiremockStubFixture {
 		stubFor(get(urlPathEqualTo("/token_keys"))
 			.willReturn(ok()
 				.withBody(uaa("get-token-keys"))));
+	}
+
+	public void stubCreateClient() {
+		stubFor(post(urlPathEqualTo("/oauth/clients"))
+			.willReturn(ok()
+				.withBody(uaa("post-oauth-clients"))));
+	}
+
+	public void stubDeleteClient(String clientId) {
+		stubFor(delete(urlPathEqualTo("/oauth/clients/" + clientId))
+			.willReturn(ok()
+				.withBody(uaa("delete-oauth-clients"))));
 	}
 
 	private String uaa(String fileRoot) {

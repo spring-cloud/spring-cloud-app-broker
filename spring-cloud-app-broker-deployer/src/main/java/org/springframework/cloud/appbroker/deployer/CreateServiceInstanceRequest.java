@@ -39,8 +39,6 @@ public class CreateServiceInstanceRequest {
 		this.properties = properties;
 	}
 
-
-
 	public static CreateServiceInstanceRequestBuilder builder() {
 		return new CreateServiceInstanceRequestBuilder();
 	}

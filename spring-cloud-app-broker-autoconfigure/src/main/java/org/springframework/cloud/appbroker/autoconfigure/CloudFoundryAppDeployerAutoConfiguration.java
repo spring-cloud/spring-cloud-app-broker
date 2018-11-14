@@ -34,8 +34,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryAppDeployer;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryOAuth2Client;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryTargetProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -69,6 +71,11 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 										ResourceLoader resourceLoader) {
 		return new CloudFoundryAppDeployer(deploymentProperties, cloudFoundryOperations, cloudFoundryClient,
 			targetProperties, resourceLoader);
+	}
+
+	@Bean
+	OAuth2Client cloudFoundryOAuth2Client(UaaClient uaaClient) {
+		return new CloudFoundryOAuth2Client(uaaClient);
 	}
 
 	@Bean

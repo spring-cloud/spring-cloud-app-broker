@@ -29,7 +29,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCredentialsComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.sample.CreateInstanceWithBasicAuthCredentialsComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -43,7 +43,7 @@ import static org.springframework.cloud.appbroker.sample.CreateInstanceWithCrede
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-numeric=false",
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false"
 })
-class CreateInstanceWithCredentialsComponentTest extends WiremockComponentTest {
+class CreateInstanceWithBasicAuthCredentialsComponentTest extends WiremockComponentTest {
 
 	static final String APP_NAME = "app-with-credentials";
 
@@ -54,7 +54,7 @@ class CreateInstanceWithCredentialsComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void pushAppWithEnvironmentVariables() {
+	void pushAppWithCredentials() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME,
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*security.user.name.*:.*[a-zA-Z]{14}.*/)]"),

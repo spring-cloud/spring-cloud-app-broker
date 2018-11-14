@@ -21,7 +21,7 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import reactor.core.publisher.Mono;
 
 public class SpringSecurityBasicAuthCredentialProviderFactory extends
-	CredentialProviderFactory<SpringSecurityBasicAuthCredentialProviderFactory.Config> {
+	CredentialProviderFactory<CredentialGenerationConfig> {
 
 	static final String SPRING_SECURITY_USER_NAME = "security.user.name";
 	static final String SPRING_SECURITY_USER_PASSWORD = "security.user.password";
@@ -29,12 +29,12 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 	private final CredentialGenerator credentialGenerator;
 
 	public SpringSecurityBasicAuthCredentialProviderFactory(CredentialGenerator credentialGenerator) {
-		super(Config.class);
+		super(CredentialGenerationConfig.class);
 		this.credentialGenerator = credentialGenerator;
 	}
 
 	@Override
-	public CredentialProvider create(Config config) {
+	public CredentialProvider create(CredentialGenerationConfig config) {
 		return new CredentialProvider() {
 			@Override
 			public Mono<BackingApplication> addCredentials(BackingApplication backingApplication,
@@ -52,7 +52,7 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 		};
 	}
 
-	private void generateCredentials(Config config,
+	private void generateCredentials(CredentialGenerationConfig config,
 									 BackingApplication backingApplication,
 									 String serviceInstanceGuid) {
 		Pair<String, String> user =
@@ -62,54 +62,5 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 
 		backingApplication.addEnvironment(SPRING_SECURITY_USER_NAME, user.getLeft());
 		backingApplication.addEnvironment(SPRING_SECURITY_USER_PASSWORD, user.getRight());
-	}
-
-	@SuppressWarnings("WeakerAccess")
-	public static class Config {
-		private int length;
-		private boolean includeUppercaseAlpha = true;
-		private boolean includeLowercaseAlpha = true;
-		private boolean includeNumeric = true;
-		private boolean includeSpecial = true;
-
-		public int getLength() {
-			return length;
-		}
-
-		public void setLength(int length) {
-			this.length = length;
-		}
-
-		public boolean isIncludeUppercaseAlpha() {
-			return includeUppercaseAlpha;
-		}
-
-		public void setIncludeUppercaseAlpha(boolean includeUppercaseAlpha) {
-			this.includeUppercaseAlpha = includeUppercaseAlpha;
-		}
-
-		public boolean isIncludeLowercaseAlpha() {
-			return includeLowercaseAlpha;
-		}
-
-		public void setIncludeLowercaseAlpha(boolean includeLowercaseAlpha) {
-			this.includeLowercaseAlpha = includeLowercaseAlpha;
-		}
-
-		public boolean isIncludeNumeric() {
-			return includeNumeric;
-		}
-
-		public void setIncludeNumeric(boolean includeNumeric) {
-			this.includeNumeric = includeNumeric;
-		}
-
-		public boolean isIncludeSpecial() {
-			return includeSpecial;
-		}
-
-		public void setIncludeSpecial(boolean includeSpecial) {
-			this.includeSpecial = includeSpecial;
-		}
 	}
 }

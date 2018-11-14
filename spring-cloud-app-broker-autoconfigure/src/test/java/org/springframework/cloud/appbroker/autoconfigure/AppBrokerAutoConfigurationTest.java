@@ -26,8 +26,14 @@ import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionServ
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
+import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory;
+import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.parameters.ParameterMappingParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceBindingService;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
@@ -97,16 +103,30 @@ class AppBrokerAutoConfigurationTest {
 
 				assertThat(context).hasSingleBean(DeployerClient.class);
 				assertThat(context).hasSingleBean(BrokeredServices.class);
+
 				assertThat(context).hasSingleBean(ServiceInstanceStateRepository.class);
 				assertThat(context).hasSingleBean(ServiceInstanceBindingStateRepository.class);
+
 				assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
-				assertThat(context).hasSingleBean(BackingApplicationsParametersTransformationService.class);
-				assertThat(context).hasSingleBean(BackingServicesParametersTransformationService.class);
-				assertThat(context).hasSingleBean(CredentialProviderService.class);
-				assertThat(context).hasSingleBean(TargetService.class);
 				assertThat(context).hasSingleBean(BackingServicesProvisionService.class);
+
+				assertThat(context).hasSingleBean(BackingApplicationsParametersTransformationService.class);
+				assertThat(context).hasSingleBean(EnvironmentMappingParametersTransformerFactory.class);
+				assertThat(context).hasSingleBean(PropertyMappingParametersTransformerFactory.class);
+				assertThat(context).hasSingleBean(ParameterMappingParametersTransformerFactory.class);
+
+				assertThat(context).hasSingleBean(BackingServicesParametersTransformationService.class);
+
+				assertThat(context).hasSingleBean(CredentialProviderService.class);
+				assertThat(context).hasSingleBean(SpringSecurityBasicAuthCredentialProviderFactory.class);
+				assertThat(context).hasSingleBean(SpringSecurityOAuth2CredentialProviderFactory.class);
+
+				assertThat(context).hasSingleBean(TargetService.class);
+				assertThat(context).hasSingleBean(SpacePerServiceInstance.class);
+
 				assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);
 				assertThat(context).hasSingleBean(WorkflowServiceInstanceBindingService.class);
+
 				assertThat(context).hasSingleBean(AppDeploymentCreateServiceInstanceWorkflow.class);
 				assertThat(context).hasSingleBean(AppDeploymentDeleteServiceInstanceWorkflow.class);
 				assertThat(context).hasSingleBean(AppDeploymentUpdateServiceInstanceWorkflow.class);

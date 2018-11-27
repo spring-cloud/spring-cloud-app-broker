@@ -355,7 +355,3 @@ task codeCoverageReport(type: JacocoReport) {
 codeCoverageReport.dependsOn {
 	subprojects*.test
 }
-
-task wrapper(type: Wrapper) {
-	gradleVersion = "4.9"
-}

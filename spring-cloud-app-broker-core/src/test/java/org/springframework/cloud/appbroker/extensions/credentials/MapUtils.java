@@ -19,7 +19,10 @@ package org.springframework.cloud.appbroker.extensions.credentials;
 import java.util.Arrays;
 import java.util.Map;
 
-class MapUtils {
+final class MapUtils {
+	private MapUtils() {
+	}
+
 	@SuppressWarnings("unchecked")
 	static Map<String, Object> getNestedMap(Map<String, Object> map, String... keys) {
 		if (keys.length > 0 && map.containsKey(keys[0])) {

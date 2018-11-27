@@ -25,12 +25,20 @@ import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientResponse;
 import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class SpringSecurityOAuth2CredentialProviderFactory extends
 	CredentialProviderFactory<SpringSecurityOAuth2CredentialProviderFactory.Config> {
 
-	private static final String SPRING_SECURITY_CLIENT_REGISTRATION = "spring.security.oauth2.client.registration.";
-	private static final String SPRING_SECURITY_CLIENT_ID = ".client-id";
-	private static final String SPRING_SECURITY_CLIENT_SECRET = ".client-secret";
+	static final String SPRING_KEY = "spring";
+	static final String SPRING_SECURITY_KEY = "security";
+	static final String SPRING_SECURITY_OAUTH2_KEY = "oauth2";
+	static final String SPRING_SECURITY_CLIENT_KEY = "client";
+	static final String SPRING_SECURITY_REGISTRATION_KEY = "registration";
+	static final String SPRING_SECURITY_CLIENT_ID_KEY = "client-id";
+	static final String SPRING_SECURITY_CLIENT_SECRET_KEY = "client-secret";
 
 	private final CredentialGenerator credentialGenerator;
 	private final OAuth2Client oAuth2Client;
@@ -49,6 +57,7 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 			public Mono<BackingApplication> addCredentials(BackingApplication backingApplication,
 														   String serviceInstanceGuid) {
 				return generateCredentials(config, backingApplication, serviceInstanceGuid)
+					.flatMap(client -> addClientToEnvironment(config, backingApplication, client))
 					.flatMap(client -> createOAuth2Client(config, client))
 					.flatMap(response -> Mono.just(backingApplication));
 			}
@@ -74,10 +83,22 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 
 		Pair<String, String> client = Pair.of(id, secret);
 
-		backingApplication.addEnvironment(springSecurityClientIdKey(config.getRegistration()),
-			client.getLeft());
-		backingApplication.addEnvironment(springSecurityClientSecretKey(config.getRegistration()),
-			client.getRight());
+		return Mono.just(client);
+	}
+
+	private Mono<Pair<String, String>> addClientToEnvironment(Config config,
+															  BackingApplication backingApplication,
+															  Pair<String, String> client) {
+		Map<String, String> clientProperties = new HashMap<>(2);
+		clientProperties.put(SPRING_SECURITY_CLIENT_ID_KEY, client.getLeft());
+		clientProperties.put(SPRING_SECURITY_CLIENT_SECRET_KEY, client.getRight());
+
+		backingApplication.addEnvironment(SPRING_KEY,
+			Collections.singletonMap(SPRING_SECURITY_KEY,
+				Collections.singletonMap(SPRING_SECURITY_OAUTH2_KEY,
+				Collections.singletonMap(SPRING_SECURITY_CLIENT_KEY,
+				Collections.singletonMap(SPRING_SECURITY_REGISTRATION_KEY,
+				Collections.singletonMap(config.getRegistration(), clientProperties))))));
 
 		return Mono.just(client);
 	}
@@ -128,18 +149,6 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 			.build();
 
 		return oAuth2Client.deleteClient(request);
-	}
-
-	String springSecurityClientIdKey(String registration) {
-		return SPRING_SECURITY_CLIENT_REGISTRATION
-			+ registration
-			+ SPRING_SECURITY_CLIENT_ID;
-	}
-
-	String springSecurityClientSecretKey(String registration) {
-		return SPRING_SECURITY_CLIENT_REGISTRATION
-			+ registration
-			+ SPRING_SECURITY_CLIENT_SECRET;
 	}
 
 	@SuppressWarnings("WeakerAccess")

@@ -132,10 +132,10 @@ class BackingApplicationsParametersTransformationServiceTest {
 		StepVerifier
 			.create(service.transformParameters(backingApplications, parameters))
 			.expectNextMatches(transformedBackingApplications -> {
-				Map<String, String> app1ExpectedTransformedEnvironment = new HashMap<>(app1.getEnvironment());
+				Map<String, Object> app1ExpectedTransformedEnvironment = new HashMap<>(app1.getEnvironment());
 				app1ExpectedTransformedEnvironment.put("0", "transformer1");
 
-				Map<String, String> app2ExpectedTransformedEnvironment = new HashMap<>(app2.getEnvironment());
+				Map<String, Object> app2ExpectedTransformedEnvironment = new HashMap<>(app2.getEnvironment());
 				app2ExpectedTransformedEnvironment.put("0", "transformer1");
 				app2ExpectedTransformedEnvironment.put("1", "transformer2");
 

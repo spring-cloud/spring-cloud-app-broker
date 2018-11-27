@@ -17,6 +17,8 @@
 package org.springframework.cloud.appbroker.acceptance.fixtures.cf;
 
 import java.util.Optional;
+
+import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.doppler.DopplerClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
@@ -47,8 +49,10 @@ public class CloudFoundryClientConfiguration {
 
 	static final String ACCEPTANCE_TEST_OAUTH_CLIENT_ID = "acceptance-test-client";
 	static final String ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET = "acceptance-test-client-secret";
-	private static final String[] ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES =
-		{"openid", "cloud_controller.admin", "cloud_controller.read", "cloud_controller.write"};
+	private static final String[] ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES = {
+		"openid", "cloud_controller.admin", "cloud_controller.read", "cloud_controller.write",
+		"clients.read", "clients.write"
+	};
 
 	@Bean
 	CloudFoundryOperations cloudFoundryOperations(CloudFoundryProperties properties, CloudFoundryClient client,
@@ -118,6 +122,7 @@ public class CloudFoundryClientConfiguration {
 			.clientId(ACCEPTANCE_TEST_OAUTH_CLIENT_ID)
 			.build())
 			.onErrorResume(UaaException.class, e -> Mono.empty())
+			.onErrorResume(UnknownCloudFoundryException.class, e -> Mono.empty())
 			.then(uaaClients.create(CreateClientRequest.builder()
 				.clientId(ACCEPTANCE_TEST_OAUTH_CLIENT_ID)
 				.clientSecret(ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET)

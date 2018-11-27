@@ -116,7 +116,7 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 				return Mono.just(backingApplication);
 			}
 
-			private Map<String, String> createEnvironmentMap(Map<String, Object> parameters) {
+			private Map<String, Object> createEnvironmentMap(Map<String, Object> parameters) {
 				ObjectMapper objectMapper = new ObjectMapper();
 				ObjectNode customOutputEnvironmentParameters = objectMapper.createObjectNode();
 				try {
@@ -127,7 +127,7 @@ class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockCo
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				return Collections.singletonMap("otherNestedKey", customOutputEnvironmentParameters.toString());
+				return Collections.singletonMap("otherNestedKey", customOutputEnvironmentParameters);
 			}
 		}
 

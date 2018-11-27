@@ -21,12 +21,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.cloudfoundry.operations.applications.ApplicationEnvironments;
+import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.util.DelayUtils;
 import org.junit.jupiter.api.Test;
 
+import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -52,12 +53,13 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 		// and a backing application is deployed
 		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_UPDATE);
-		assertThat(backingApplication).isNotEmpty();
-		ApplicationEnvironments applicationEnvironments = getApplicationEnvironmentByName(BROKER_SAMPLE_APP_UPDATE);
-		assertThat(applicationEnvironments.getUserProvided().get("SPRING_APPLICATION_JSON")).asString()
-			.contains("\"parameter1\":\"config1\"")
-			.contains("\"parameter2\":\"config2\"")
-			.contains("\"parameter3\":\"config3\"");
+		assertThat(backingApplication).hasValueSatisfying(app ->
+			assertThat(app.getRunningInstances()).isEqualTo(1));
+
+		DocumentContext json = getSpringAppJsonByName(BROKER_SAMPLE_APP_UPDATE);
+		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("config1");
+		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
+		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("config3");
 
 		// when the service instance is updated
 		Map<String, Object> parameters = new HashMap<>();
@@ -73,15 +75,17 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		assertThat(serviceInstanceSummary).isNotEmpty();
 
 		// the backing application is updated with the new parameters
-		applicationEnvironments = getApplicationEnvironmentByName(BROKER_SAMPLE_APP_UPDATE);
-		assertThat(applicationEnvironments.getUserProvided().get("SPRING_APPLICATION_JSON")).asString()
-			.contains("\"parameter1\":\"value1\"")
-			.contains("\"parameter2\":\"config2\"")
-			.contains("\"parameter3\":\"value3\"")
-			.contains("\"parameter4\":\"config4\"");
+		json = getSpringAppJsonByName(BROKER_SAMPLE_APP_UPDATE);
+		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("value1");
+		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
+		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("value3");
+		assertThat(json).jsonPathAsString("$.parameter4").isEqualTo("config4");
 
-		// and the backing application contains the initial parameters
-		assertThat(applicationEnvironments.getUserProvided().get("SPRING_APPLICATION_JSON")).asString()
-			.contains("\"parameter4\":\"config4\"");
+		// when the service instance is deleted
+		deleteServiceInstance();
+
+		// then the backing application is deleted
+		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(BROKER_SAMPLE_APP_UPDATE);
+		assertThat(backingApplicationAfterDeletion).isEmpty();
 	}
 }

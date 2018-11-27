@@ -305,9 +305,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.build();
 	}
 
-	private Map<String, String> getEnvironmentVariables(Map<String, String> properties,
-														Map<String, String> environment) {
-		Map<String, String> envVariables = getApplicationEnvironment(properties, environment);
+	private Map<String, Object> getEnvironmentVariables(Map<String, String> properties,
+														Map<String, Object> environment) {
+		Map<String, Object> envVariables = getApplicationEnvironment(properties, environment);
 
 		String javaOpts = javaOpts(properties);
 		if (StringUtils.hasText(javaOpts)) {
@@ -320,9 +320,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return envVariables;
 	}
 
-	private Map<String, String> getApplicationEnvironment(Map<String, String> properties,
-														  Map<String, String> environment) {
-		Map<String, String> applicationEnvironment = getSanitizedApplicationEnvironment(environment);
+	private Map<String, Object> getApplicationEnvironment(Map<String, String> properties,
+														  Map<String, Object> environment) {
+		Map<String, Object> applicationEnvironment = getSanitizedApplicationEnvironment(environment);
 
 		if (!applicationEnvironment.isEmpty() && useSpringApplicationJson(properties)) {
 			try {
@@ -337,8 +337,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return applicationEnvironment;
 	}
 
-	private Map<String, String> getSanitizedApplicationEnvironment(Map<String, String> environment) {
-		Map<String, String> applicationEnvironment = new HashMap<>(environment);
+	private Map<String, Object> getSanitizedApplicationEnvironment(Map<String, Object> environment) {
+		Map<String, Object> applicationEnvironment = new HashMap<>(environment);
 
 		// Remove server.port as CF assigns a port for us, and we don't want to override that
 		Optional.ofNullable(applicationEnvironment.remove("server.port"))

@@ -33,19 +33,21 @@ class CreateInstanceWithExistingServicesAcceptanceTest extends CloudFoundryAccep
 
 		// then a backing application is deployed
 		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_APP_SERVICES);
-		assertThat(backingApplication).isNotEmpty();
+		assertThat(backingApplication).hasValueSatisfying(app ->
+			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		// and the service bind to it
 		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_1_NAME);
-		assertThat(serviceInstance).isNotEmpty();
-		assertThat(serviceInstance.get().getApplications()).contains(BROKER_APP_SERVICES);
+		assertThat(serviceInstance).hasValueSatisfying(summary ->
+			assertThat(summary.getApplications()).contains(BROKER_APP_SERVICES));
 
 		// when the service instance is deleted
 		deleteServiceInstance();
 
 		// service has no applications bind to it
 		Optional<ServiceInstanceSummary> serviceInstanceAfterDeletion = getServiceInstance(SI_1_NAME);
-		assertThat(serviceInstanceAfterDeletion.get().getApplications()).isEmpty();
+		assertThat(serviceInstanceAfterDeletion).hasValueSatisfying(summary ->
+			assertThat(summary.getApplications()).isEmpty());
 	}
 
 	@Override

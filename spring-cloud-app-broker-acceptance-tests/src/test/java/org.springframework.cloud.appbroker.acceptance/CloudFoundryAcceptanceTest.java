@@ -19,17 +19,29 @@ package org.springframework.cloud.appbroker.acceptance;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.cloud.appbroker.acceptance.fixtures.uaa.UaaService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -40,7 +52,10 @@ import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryCl
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@SpringBootTest(classes = {CloudFoundryClientConfiguration.class, CloudFoundryService.class})
+@SpringBootTest(classes = {
+	CloudFoundryClientConfiguration.class,
+	CloudFoundryService.class,
+	UaaService.class})
 @ExtendWith(SpringExtension.class)
 @ExtendWith(BrokerPropertiesParameterResolver.class)
 @EnableConfigurationProperties(AcceptanceTestProperties.class)
@@ -56,11 +71,37 @@ class CloudFoundryAcceptanceTest {
 	private CloudFoundryService cloudFoundryService;
 
 	@Autowired
+	private UaaService uaaService;
+
+	@Autowired
 	private AcceptanceTestProperties acceptanceTestProperties;
 
 	@BeforeEach
 	void setUp(BrokerProperties brokerProperties) {
 		blockingSubscribe(initializeBroker(brokerProperties.getProperties()));
+	}
+
+	@BeforeEach
+	void configureJsonPath() {
+		Configuration.setDefaults(new Configuration.Defaults() {
+			private final JsonProvider jacksonJsonProvider = new JacksonJsonProvider();
+			private final MappingProvider jacksonMappingProvider = new JacksonMappingProvider();
+
+			@Override
+			public JsonProvider jsonProvider() {
+				return jacksonJsonProvider;
+			}
+
+			@Override
+			public MappingProvider mappingProvider() {
+				return jacksonMappingProvider;
+			}
+
+			@Override
+			public Set<Option> options() {
+				return EnumSet.noneOf(Option.class);
+			}
+		});
 	}
 
 	@AfterEach
@@ -181,12 +222,23 @@ class CloudFoundryAcceptanceTest {
 		return cloudFoundryService.getApplicationEnvironmentByAppName(appName).block();
 	}
 
+	DocumentContext getSpringAppJsonByName(String appName) {
+		ApplicationEnvironments env = getApplicationEnvironmentByName(appName);
+		String saj = (String) env.getUserProvided().get("SPRING_APPLICATION_JSON");
+		return JsonPath.parse(saj);
+	}
+
 	ApplicationEnvironments getApplicationEnvironmentByNameAndSpace(String appName, String space) {
 		return cloudFoundryService.getApplicationEnvironmentByAppNameAndSpace(appName, space).block();
 	}
 
 	List<String> getSpaces() {
 		return cloudFoundryService.getSpaces().block();
+	}
+
+	Optional<GetClientResponse> getUaaClient(String clientId) {
+		return uaaService.getUaaClient(clientId)
+			.blockOptional();
 	}
 
 	private Path getSampleBrokerAppPath() {

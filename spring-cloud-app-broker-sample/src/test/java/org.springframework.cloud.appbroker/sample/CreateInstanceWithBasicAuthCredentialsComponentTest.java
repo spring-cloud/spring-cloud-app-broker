@@ -57,8 +57,8 @@ class CreateInstanceWithBasicAuthCredentialsComponentTest extends WiremockCompon
 	void pushAppWithCredentials() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME,
-			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*security.user.name.*:.*[a-zA-Z]{14}.*/)]"),
-			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*security.user.password.*:.*[a-zA-Z]{14}.*/)]"));
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*security.*user.*name.*:.*[a-zA-Z]{14}.*/)]"),
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*security.*user.*password.*:.*[a-zA-Z]{14}.*/)]"));
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

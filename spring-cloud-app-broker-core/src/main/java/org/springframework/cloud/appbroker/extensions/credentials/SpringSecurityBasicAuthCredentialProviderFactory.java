@@ -20,11 +20,17 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class SpringSecurityBasicAuthCredentialProviderFactory extends
 	CredentialProviderFactory<CredentialGenerationConfig> {
 
-	static final String SPRING_SECURITY_USER_NAME = "security.user.name";
-	static final String SPRING_SECURITY_USER_PASSWORD = "security.user.password";
+	static final String SPRING_SECURITY_KEY = "security";
+	static final String SPRING_SECURITY_USER_KEY = "user";
+	static final String SPRING_SECURITY_USER_NAME_KEY = "name";
+	static final String SPRING_SECURITY_USER_PASSWORD_KEY = "password";
 
 	private final CredentialGenerator credentialGenerator;
 
@@ -39,7 +45,8 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 			@Override
 			public Mono<BackingApplication> addCredentials(BackingApplication backingApplication,
 														   String serviceInstanceGuid) {
-				generateCredentials(config, backingApplication, serviceInstanceGuid);
+				Pair<String, String> user = generateCredentials(config, backingApplication, serviceInstanceGuid);
+				addUserToEnvironment(backingApplication, user);
 				return Mono.just(backingApplication);
 			}
 
@@ -52,15 +59,20 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 		};
 	}
 
-	private void generateCredentials(CredentialGenerationConfig config,
-									 BackingApplication backingApplication,
-									 String serviceInstanceGuid) {
-		Pair<String, String> user =
-			credentialGenerator.generateUser(backingApplication.getName(), serviceInstanceGuid,
+	private Pair<String, String> generateCredentials(CredentialGenerationConfig config,
+													 BackingApplication backingApplication,
+													 String serviceInstanceGuid) {
+		return credentialGenerator.generateUser(backingApplication.getName(), serviceInstanceGuid,
 				config.getLength(), config.isIncludeUppercaseAlpha(), config.isIncludeLowercaseAlpha(),
 				config.isIncludeNumeric(), config.isIncludeSpecial());
+	}
 
-		backingApplication.addEnvironment(SPRING_SECURITY_USER_NAME, user.getLeft());
-		backingApplication.addEnvironment(SPRING_SECURITY_USER_PASSWORD, user.getRight());
+	private void addUserToEnvironment(BackingApplication backingApplication, Pair<String, String> user) {
+		Map<String, String> userProperties = new HashMap<>(2);
+		userProperties.put(SPRING_SECURITY_USER_NAME_KEY, user.getLeft());
+		userProperties.put(SPRING_SECURITY_USER_PASSWORD_KEY, user.getRight());
+
+		backingApplication.addEnvironment(SPRING_SECURITY_KEY,
+				Collections.singletonMap(SPRING_SECURITY_USER_KEY, userProperties));
 	}
 }

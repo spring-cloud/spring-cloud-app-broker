@@ -30,7 +30,7 @@ public class BackingApplication {
 	private String name;
 	private String path;
 	private Map<String, String> properties;
-	private Map<String, String> environment;
+	private Map<String, Object> environment;
 	private List<ServicesSpec> services;
 	private List<ParametersTransformerSpec> parametersTransformers;
 	private List<CredentialProviderSpec> credentialProviders;
@@ -60,7 +60,7 @@ public class BackingApplication {
 
 	BackingApplication(String name, String path,
 					   Map<String, String> properties,
-					   Map<String, String> environment,
+					   Map<String, Object> environment,
 					   List<ServicesSpec> services,
 					   List<ParametersTransformerSpec> parametersTransformers,
 					   List<CredentialProviderSpec> credentialProviders) {
@@ -101,15 +101,15 @@ public class BackingApplication {
 		this.properties.put(key, value);
 	}
 
-	public Map<String, String> getEnvironment() {
+	public Map<String, Object> getEnvironment() {
 		return environment;
 	}
 
-	public void setEnvironment(Map<String, String> environment) {
+	public void setEnvironment(Map<String, Object> environment) {
 		this.environment = environment;
 	}
 
-	public void addEnvironment(String key, String value) {
+	public void addEnvironment(String key, Object value) {
 		environment.put(key, value);
 	}
 
@@ -177,12 +177,12 @@ public class BackingApplication {
 			'}';
 	}
 
-	private Map<String, String> sanitizeEnvironment(Map<String, String> environment) {
+	private Map<String, Object> sanitizeEnvironment(Map<String, Object> environment) {
 		if (environment == null) {
 			return null;
 		}
 
-		HashMap<String, String> sanitizedEnvironment = new HashMap<>();
+		HashMap<String, Object> sanitizedEnvironment = new HashMap<>();
 		environment.forEach((key, value) -> sanitizedEnvironment.put(key, VALUE_HIDDEN));
 
 		return sanitizedEnvironment;
@@ -193,7 +193,7 @@ public class BackingApplication {
 		private String name;
 		private String path;
 		private final Map<String, String> properties = new HashMap<>();
-		private final Map<String, String> environment = new HashMap<>();
+		private final Map<String, Object> environment = new HashMap<>();
 		private final List<ServicesSpec> services = new ArrayList<>();
 		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
 		private final List<CredentialProviderSpec> credentialProviders = new ArrayList<>();

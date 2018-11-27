@@ -29,12 +29,12 @@ public class DeployApplicationRequest {
 
 	private final Map<String, String> properties;
 
-	private final Map<String, String> environment;
+	private final Map<String, Object> environment;
 
 	private final List<String> services;
 
 	DeployApplicationRequest(String name, String path, Map<String, String> properties,
-									 Map<String, String> environment, List<String> services) {
+							 Map<String, Object> environment, List<String> services) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
@@ -58,7 +58,7 @@ public class DeployApplicationRequest {
 		return properties;
 	}
 
-	public Map<String, String> getEnvironment() {
+	public Map<String, Object> getEnvironment() {
 		return environment;
 	}
 
@@ -74,7 +74,7 @@ public class DeployApplicationRequest {
 
 		private final Map<String, String> properties = new HashMap<>();
 
-		private final Map<String, String> environment = new HashMap<>();
+		private final Map<String, Object> environment = new HashMap<>();
 
 		private final List<String> services = new ArrayList<>();
 
@@ -109,7 +109,7 @@ public class DeployApplicationRequest {
 			return this;
 		}
 
-		public DeployApplicationRequestBuilder environment(Map<String, String> environment) {
+		public DeployApplicationRequestBuilder environment(Map<String, Object> environment) {
 			if (environment == null) {
 				return this;
 			}

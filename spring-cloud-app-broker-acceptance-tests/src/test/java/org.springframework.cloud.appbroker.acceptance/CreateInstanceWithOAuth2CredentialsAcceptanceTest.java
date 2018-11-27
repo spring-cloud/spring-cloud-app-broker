@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,41 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
-import java.util.Optional;
-
 import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.uaa.clients.GetClientResponse;
+import org.cloudfoundry.uaa.tokens.GrantType;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
 
 import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
+class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_SAMPLE_APP_CREATE = "broker-sample-app-create";
+	private static final String BROKER_SAMPLE_APP_CREATE = "broker-sample-app-create-oauth2";
 
 	@Test
+	@Disabled("This test can only be run with a Cloud Foundry user or client that has 'client.write' authority, " +
+		"so it should not be run in CI")
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
 		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		
-		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
-		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=value2",
-		"spring.cloud.appbroker.services[0].apps[0].properties.memory=2G",
-		"spring.cloud.appbroker.services[0].apps[0].properties.count=2",
-
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].name=SpringSecurityBasicAuth",
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.length=14",
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-uppercase-alpha=true",
+		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].name=SpringSecurityOAuth2",
+		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.registration=sample-app-client",
+		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.grant-types=[\"client_credentials\"]",
+		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.authorities=[\"uaa.resource\"]",
+		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.length=12",
+		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-uppercase-alpha=false",
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-lowercase-alpha=true",
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-numeric=false",
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false",
+		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false"
 	})
 	void shouldPushAppWhenCreateServiceCalled() {
 		// when a service instance is created
@@ -57,18 +60,29 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		assertThat(serviceInstance).hasValueSatisfying(value ->
 			assertThat(value.getLastOperation()).contains("completed"));
 
+		String serviceInstanceGuid = serviceInstance
+			.map(ServiceInstanceSummary::getId)
+			.orElse("unknown");
+
 		// then a backing application is deployed
 		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
-			assertThat(app.getInstances()).isEqualTo(2);
-			assertThat(app.getRunningInstances()).isEqualTo(2);
-			assertThat(app.getMemoryLimit()).isEqualTo(2048);
+			assertThat(app.getRunningInstances()).isEqualTo(1);
 		});
 
 		// and has the environment variables
 		DocumentContext json = getSpringAppJsonByName(BROKER_SAMPLE_APP_CREATE);
-		assertEnvironmentVariablesSet(json);
-		assertBasicAuthCredentialsProvided(json);
+		assertThat(json).jsonPathAsString("$.spring.security.oauth2.client.registration.sample-app-client.client-id")
+			.isEqualTo(uaaClientId(serviceInstanceGuid));
+		assertThat(json).jsonPathAsString("$.spring.security.oauth2.client.registration.sample-app-client.client-secret")
+			.matches("[a-zA-Z]{12}");
+
+		// and a UAA client is created
+		Optional<GetClientResponse> uaaClient = getUaaClient(uaaClientId(serviceInstanceGuid));
+		assertThat(uaaClient).hasValueSatisfying(client -> {
+			assertThat(client.getAuthorities()).contains("uaa.resource");
+			assertThat(client.getAuthorizedGrantTypes()).contains(GrantType.CLIENT_CREDENTIALS);
+		});
 
 		// when the service instance is deleted
 		deleteServiceInstance();
@@ -76,17 +90,13 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		// then the backing application is deleted
 		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
 		assertThat(backingApplicationAfterDeletion).isEmpty();
+
+		// and the UAA client is deleted
+		Optional<GetClientResponse> uaaClientAfterDeletion = getUaaClient(uaaClientId(serviceInstanceGuid));
+		assertThat(uaaClientAfterDeletion).isEmpty();
 	}
 
-	private void assertEnvironmentVariablesSet(DocumentContext json) {
-		assertThat(json).jsonPathAsString("$.ENV_VAR_1").isEqualTo("value1");
-		assertThat(json).jsonPathAsString("$.ENV_VAR_2").isEqualTo("value2");
-	}
-
-	private void assertBasicAuthCredentialsProvided(DocumentContext json) {
-		assertThat(json).jsonPathAsString("$.security.user.name")
-			.matches("[a-zA-Z]{14}");
-		assertThat(json).jsonPathAsString("$.security.user.password")
-			.matches("[a-zA-Z]{14}");
+	private String uaaClientId(String serviceInstanceGuid) {
+		return BROKER_SAMPLE_APP_CREATE + "-" + serviceInstanceGuid;
 	}
 }

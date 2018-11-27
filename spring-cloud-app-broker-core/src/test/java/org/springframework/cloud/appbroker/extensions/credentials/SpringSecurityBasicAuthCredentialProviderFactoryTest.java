@@ -25,12 +25,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import reactor.test.StepVerifier;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_NAME;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_PASSWORD;
+import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_KEY;
+import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_KEY;
+import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_NAME_KEY;
+import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_PASSWORD_KEY;
 
 @ExtendWith(MockitoExtension.class)
 class SpringSecurityBasicAuthCredentialProviderFactoryTest {
@@ -53,6 +57,7 @@ class SpringSecurityBasicAuthCredentialProviderFactoryTest {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	void addCredentials() {
 		BackingApplication backingApplication = BackingApplication.builder()
 			.build();
@@ -66,8 +71,13 @@ class SpringSecurityBasicAuthCredentialProviderFactoryTest {
 			.expectNext(backingApplication)
 			.verifyComplete();
 
-		assertThat(backingApplication.getEnvironment()).containsEntry(SPRING_SECURITY_USER_NAME, "username");
-		assertThat(backingApplication.getEnvironment()).containsEntry(SPRING_SECURITY_USER_PASSWORD, "password");
+		Map<String, Object> environment = backingApplication.getEnvironment();
+		Map<String, Object> userProperties = MapUtils.getNestedMap(environment,
+			SPRING_SECURITY_KEY, SPRING_SECURITY_USER_KEY);
+
+		assertThat(userProperties)
+			.containsEntry(SPRING_SECURITY_USER_NAME_KEY, "username")
+			.containsEntry(SPRING_SECURITY_USER_PASSWORD_KEY, "password");
 	}
 
 	@Test

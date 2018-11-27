@@ -65,9 +65,9 @@ class CreateInstanceWithOAuth2CredentialsComponentTest extends WiremockComponent
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME,
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ " +
-				"/.*spring.security.oauth2.client.registration.example-app-client.client-id.*:.*test-client.*/)]"),
+				"/.*spring.*security.*oauth2.*client.*registration.*example-app-client.*client-id.*:.*test-client.*/)]"),
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ " +
-				"/.*spring.security.oauth2.client.registration.example-app-client.client-secret.*:.*[a-zA-Z]{14}.*/)]"));
+				"/.*spring.*security.*oauth2.*client.*registration.*example-app-client.*client-secret.*:.*[a-zA-Z]{14}.*/)]"));
 
 		uaaStubFixture.stubCreateClient();
 

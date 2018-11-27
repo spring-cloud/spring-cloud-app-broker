@@ -31,6 +31,7 @@ dependencies {
 
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
+	testImplementation("com.revinate:assertj-json:1.2.0")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}")
 	testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")

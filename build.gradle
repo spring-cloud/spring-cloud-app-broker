@@ -88,6 +88,17 @@ configure(allprojects) {
 		}
 	}
 
+	ext.javadocLinks = [
+		"http://docs.oracle.com/javase/8/docs/api/",
+		"http://docs.spring.io/spring/docs/${springVersion}/javadoc-api/",
+	] as String[]
+}
+
+subprojects {
+	apply from: "${rootProject.projectDir}/publish-maven.gradle"
+}
+
+configure(subprojects - [project(":spring-cloud-starter-app-broker")]) {
 	compileJava {
 		sourceCompatibility=1.8
 		targetCompatibility=1.8
@@ -129,11 +140,6 @@ configure(allprojects) {
 	tasks.withType(Test).all {
 		systemProperty("java.awt.headless", "true")
 	}
-
-	ext.javadocLinks = [
-		"http://docs.oracle.com/javase/8/docs/api/",
-		"http://docs.spring.io/spring/docs/${springVersion}/javadoc-api/",
-	] as String[]
 
 	test {
 		// enable JUnit 5
@@ -193,22 +199,18 @@ configure(allprojects) {
 			}
 		}
 	}
-}
-
-subprojects { subproject ->
-	apply from: "${rootProject.projectDir}/publish-maven.gradle"
 
 	jar {
 		manifest.attributes["Created-By"] =
 				"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
-		manifest.attributes["Implementation-Title"] = subproject.name
-		manifest.attributes["Implementation-Version"] = subproject.version
+		manifest.attributes["Implementation-Title"] = project.name
+		manifest.attributes["Implementation-Version"] = project.version
 
 		from("${rootProject.projectDir}/src/dist") {
 			include "license.txt"
 			include "notice.txt"
 			into "META-INF"
-			expand(copyright: new Date().format("yyyy"), version: subproject.version)
+			expand(copyright: new Date().format("yyyy"), version: project.version)
 		}
 	}
 

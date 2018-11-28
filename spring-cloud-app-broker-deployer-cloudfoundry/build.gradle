@@ -16,29 +16,28 @@
 
 description = "Spring Cloud App Broker Deployer Cloud Foundry"
 
-ext {
-	reactorCoreVersion = '3.2.0.RELEASE'
-	reactorNettyVersion = '0.8.0.RELEASE'
-	cfJavaClientVersion = '3.13.0.RELEASE'
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+	}
 }
 
 dependencies {
-	api project(":spring-cloud-app-broker-deployer")
-	api("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
-	api("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
-	api("org.cloudfoundry:cloudfoundry-util:${cfJavaClientVersion}")
-	api("io.projectreactor:reactor-core:${reactorCoreVersion}")
-	api("io.projectreactor.netty:reactor-netty:${reactorNettyVersion}")
+	implementation project(":spring-cloud-app-broker-deployer")
+	implementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
+	implementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
+	implementation("io.projectreactor:reactor-core")
+	implementation("io.projectreactor.ipc:reactor-netty")
+	api("org.immutables:value:${immutablesVersion}")
 
-	// fix the Boot version to prevent 1.5.x and 2.0.x on the classpath
-	implementation("org.springframework.boot:spring-boot-starter-validation:${springBootVersion}")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
-	testImplementation("org.springframework:spring-test:${springVersion}")
-	testImplementation("io.projectreactor:reactor-test:${reactorVersion}")
-	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-	testImplementation("org.assertj:assertj-core:${assertjVersion}")
-	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+	testImplementation("org.springframework:spring-test")
+	testImplementation("io.projectreactor:reactor-test")
+	testImplementation("org.junit.jupiter:junit-jupiter-api")
+	testImplementation("org.assertj:assertj-core")
+	testImplementation("org.mockito:mockito-core")
 	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 }

@@ -27,12 +27,12 @@ buildscript {
 
 description = "Spring Cloud App Broker Sample"
 
+// don't publish the jar for the sample project
+configurations.archives.artifacts.clear()
+
 ext {
 	wiremockVersion = "2.18.0"
 }
-
-// don't publish the jar for the sample project
-configurations.archives.artifacts.clear()
 
 // The latest version of jetty-server is not compatible with the latest version of wiremock yet;
 // override the version managed by Spring Boot to a wiremock-compatible version
@@ -42,6 +42,10 @@ apply plugin: 'org.springframework.boot'
 
 dependencies {
 	implementation project(":spring-cloud-app-broker-autoconfigure")
+	implementation project(":spring-cloud-app-broker-core")
+	implementation project(":spring-cloud-app-broker-deployer")
+	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")
+	implementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
 
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("org.springframework.cloud:spring-cloud-starter-open-service-broker:${openServiceBrokerVersion}")

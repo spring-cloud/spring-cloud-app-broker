@@ -16,24 +16,31 @@
 
 description = "Spring Cloud App Broker Core"
 
+ext {
+	junitJupiterVersion = "5.1.1"
+	assertjVersion = "3.9.1"
+}
+
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework:spring-framework-bom:${springVersion}"
+		mavenBom "io.projectreactor:reactor-bom:${reactorVersion}"
 	}
 }
 
 dependencies {
-	api project(":spring-cloud-app-broker-deployer")
+	implementation project(":spring-cloud-app-broker-deployer")
 
-	api("org.springframework:spring-core")
-	api("org.springframework:spring-context")
-	api("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
+	implementation("org.springframework:spring-core")
+	implementation("org.springframework:spring-context")
+	implementation("io.projectreactor:reactor-core")
+	implementation("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
 	api("org.apache.commons:commons-text:1.4")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
 
 	testImplementation("org.springframework:spring-test")
-	testImplementation("io.projectreactor:reactor-test:${reactorVersion}")
+	testImplementation("io.projectreactor:reactor-test")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 	testImplementation("org.mockito:mockito-core:${mockitoVersion}")

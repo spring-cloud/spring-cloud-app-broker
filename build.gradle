@@ -37,7 +37,6 @@ configure(allprojects) {
 	apply plugin: "jacoco"
 	apply plugin: "pmd"
 	apply plugin: "propdeps"
-	apply plugin: "propdeps-maven"
 	apply plugin: "propdeps-idea"
 	apply plugin: "propdeps-eclipse"
 	apply plugin: "io.spring.dependency-management"
@@ -45,13 +44,21 @@ configure(allprojects) {
 	apply plugin: "com.jfrog.artifactory"
 
 	ext {
+		springBootVersion = project.findProperty("springBootVersion") ?: "2.0.5.RELEASE"
+		springVersion = project.findProperty("springVersion") ?: "5.0.9.RELEASE"
+		reactorVersion = project.findProperty("reactorVersion") ?: "Bismuth-SR14"
 		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
-		springVersion = "5.0.7.RELEASE"
-		reactorVersion = "3.1.8.RELEASE"
-		junitJupiterVersion = "5.2.0"
-		assertjVersion = "3.10.0"
-		mockitoVersion = "2.19.0"
+		cfJavaClientVersion = "3.13.0.RELEASE"
+		mockitoVersion = "2.23.4"
+		immutablesVersion = "2.7.3"
 	}
+
+	//override managed Spring Boot versions
+	if (project.hasProperty("springVersion")) {
+		ext['spring-framework.version'] = ext.springVersion
+	}
+	ext['reactor-bom.version'] = ext.reactorVersion
+	ext['mockito.version'] = ext.mockitoVersion
 
 	repositories {
 //		mavenLocal()
@@ -59,14 +66,7 @@ configure(allprojects) {
 		maven { url "https://repo.spring.io/libs-snapshot" }
 	}
 
-	if (!project.hasProperty("springVersion")) {
-		ext.springVersion = "5.0.7.RELEASE"
-	}
-	if (!project.hasProperty("springBootVersion")) {
-		ext.springBootVersion = "2.0.3.RELEASE"
-	}
-
-	if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion")) {
+	if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion") || project.hasProperty("reactorVersion")) {
 		repositories {
 			maven { url "https://repo.spring.io/libs-snapshot" }
 		}
@@ -117,8 +117,8 @@ configure(allprojects) {
 		"-Xlint:rawtypes",
 		"-Xlint:deprecation",
 		"-Xlint:unchecked",
-		"-Xlint:-options"
-//		"-Werror"
+		"-Xlint:-options",
+		"-Werror"
 	]
 
 	sourceSets.test.resources.srcDirs = [

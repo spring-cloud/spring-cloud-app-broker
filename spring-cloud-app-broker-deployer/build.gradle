@@ -16,7 +16,13 @@
 
 description = "Spring Cloud App Broker Deployer"
 
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+	}
+}
+
 dependencies {
-	api("org.springframework:spring-core:${springVersion}")
-	api("io.projectreactor:reactor-core:${reactorVersion}")
+	implementation("org.springframework:spring-core")
+	implementation("io.projectreactor:reactor-core")
 }

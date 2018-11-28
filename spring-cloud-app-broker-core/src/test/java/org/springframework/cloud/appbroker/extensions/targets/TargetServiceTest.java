@@ -60,7 +60,7 @@ class TargetServiceTest {
 		BackingApplication backingApplication2 = BackingApplication.builder().name("app-name2").build();
 
 		//when add gets called
-		List<BackingApplication> updatedBackingApplications = targetService.addToBackingApplications(Lists.list(backingApplication1, backingApplication2), targetSpec, "service-id").block();
+		List<BackingApplication> updatedBackingApplications = targetService.addToBackingApplications(Lists.newArrayList(backingApplication1, backingApplication2), targetSpec, "service-id").block();
 
 		//then a host and space are added
 		BackingApplication updatedBackingApplication1 = updatedBackingApplications.get(0);

@@ -21,12 +21,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.cloudfoundry.operations.applications.ApplicationEnvironments;
+import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.util.DelayUtils;
 import org.junit.jupiter.api.Test;
 
+import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -46,19 +47,20 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 		// when a service instance is created
 		createServiceInstance();
 		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance();
-		assertThat(serviceInstance).isNotEmpty();
+		assertThat(serviceInstance).hasValueSatisfying(value ->
+			assertThat(value.getLastOperation()).contains("completed"));
 
 		// then a backing application is deployed in a space named as the service instance id
-		String serviceInstanceId = serviceInstance.orElseThrow(RuntimeException::new).getId();
-		String spaceName = serviceInstanceId;
+		String spaceName = serviceInstance.orElseThrow(RuntimeException::new).getId();
 		Optional<ApplicationSummary> backingApplication =
 			getApplicationSummaryByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, spaceName);
-		assertThat(backingApplication).isNotEmpty();
+		assertThat(backingApplication).hasValueSatisfying(app -> {
+			assertThat(app.getRunningInstances()).isEqualTo(1);
 
-		// and has its route with the service instance id appended to it
-		ApplicationSummary applicationSummary = backingApplication.orElseThrow(RuntimeException::new);
-		assertThat(applicationSummary.getUrls()).isNotEmpty();
-		assertThat(applicationSummary.getUrls().get(0)).startsWith(BROKER_SAMPLE_APP_CREATE_WITH_TARGET + "-" + spaceName);
+			// and has its route with the service instance id appended to it
+			assertThat(app.getUrls()).isNotEmpty();
+			assertThat(app.getUrls().get(0)).startsWith(BROKER_SAMPLE_APP_CREATE_WITH_TARGET + "-" + spaceName);
+		});
 
 		// when the service instance is updated
 		updateServiceInstance(Collections.singletonMap("parameter2", "config2"));
@@ -69,9 +71,8 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 			.blockOptional();
 
 		// then the service instance has the initial parameters
-		ApplicationEnvironments backingApplicationAfterUpdate =
-			getApplicationEnvironmentByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, spaceName);
-		assertThat((String) backingApplicationAfterUpdate.getUserProvided().get("SPRING_APPLICATION_JSON")).contains("parameter1");
+		DocumentContext json = getSpringAppJsonByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, spaceName);
+		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("config1");
 
 		// when the service instance is deleted
 		deleteServiceInstance();

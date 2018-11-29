@@ -28,13 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_SAMPLE_APP_CREATE = "broker-sample-app-create";
+	private static final String BROKER_SAMPLE_APP_CREATE_1 = "broker-app-create-1";
+	private static final String BROKER_SAMPLE_APP_CREATE_2 = "broker-app-create-2";
 
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE_1,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
@@ -48,6 +49,9 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-lowercase-alpha=true",
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-numeric=false",
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false",
+
+		"spring.cloud.appbroker.services[0].apps[1].name=" + BROKER_SAMPLE_APP_CREATE_2,
+		"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar"
 	})
 	void shouldPushAppWhenCreateServiceCalled() {
 		// when a service instance is created
@@ -57,25 +61,32 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		assertThat(serviceInstance).hasValueSatisfying(value ->
 			assertThat(value.getLastOperation()).contains("completed"));
 
-		// then a backing application is deployed
-		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
-		assertThat(backingApplication).hasValueSatisfying(app -> {
+		// then a backing applications are deployed
+		Optional<ApplicationSummary> backingApplication1 = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE_1);
+		assertThat(backingApplication1).hasValueSatisfying(app -> {
 			assertThat(app.getInstances()).isEqualTo(2);
 			assertThat(app.getRunningInstances()).isEqualTo(2);
 			assertThat(app.getMemoryLimit()).isEqualTo(2048);
 		});
 
+		Optional<ApplicationSummary> backingApplication2 = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE_2);
+		assertThat(backingApplication2).hasValueSatisfying(app ->
+			assertThat(app.getRunningInstances()).isEqualTo(1));
+
 		// and has the environment variables
-		DocumentContext json = getSpringAppJsonByName(BROKER_SAMPLE_APP_CREATE);
+		DocumentContext json = getSpringAppJsonByName(BROKER_SAMPLE_APP_CREATE_1);
 		assertEnvironmentVariablesSet(json);
 		assertBasicAuthCredentialsProvided(json);
 
 		// when the service instance is deleted
 		deleteServiceInstance();
 
-		// then the backing application is deleted
-		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
-		assertThat(backingApplicationAfterDeletion).isEmpty();
+		// then the backing applications are deleted
+		Optional<ApplicationSummary> backingApplication1AfterDeletion = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE_1);
+		assertThat(backingApplication1AfterDeletion).isEmpty();
+
+		Optional<ApplicationSummary> backingApplication2AfterDeletion = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE_2);
+		assertThat(backingApplication2AfterDeletion).isEmpty();
 	}
 
 	private void assertEnvironmentVariablesSet(DocumentContext json) {

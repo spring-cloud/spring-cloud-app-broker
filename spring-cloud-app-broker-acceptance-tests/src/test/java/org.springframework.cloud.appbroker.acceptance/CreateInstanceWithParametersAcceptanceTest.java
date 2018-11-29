@@ -19,11 +19,12 @@ package org.springframework.cloud.appbroker.acceptance;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.cloudfoundry.operations.applications.ApplicationEnvironments;
+
+import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.Test;
 
-
+import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -39,8 +40,12 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=config2",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=config3",
+
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=EnvironmentMapping",
-		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=parameter1,parameter3"
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=parameter1,parameter3",
+
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].name=PropertyMapping",
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].args.include=memory",
 	})
 	void shouldPushAppWhenCreateServiceCalled() {
 		// when a service instance is created
@@ -48,18 +53,27 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		parameters.put("parameter1", "value1");
 		parameters.put("parameter2", "value2");
 		parameters.put("parameter3", "value3");
+		parameters.put("count", 5);
+		parameters.put("memory", "2G");
+
 		createServiceInstanceWithParameters(parameters);
 
 		// then a backing application is deployed
 		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
-		assertThat(backingApplication).isNotEmpty();
+		assertThat(backingApplication).hasValueSatisfying(app -> {
+			assertThat(app.getInstances()).isEqualTo(1);
+			assertThat(app.getRunningInstances()).isEqualTo(1);
+			assertThat(app.getMemoryLimit()).isEqualTo(2048);
+		});
 
 		// and has the environment variables
-		ApplicationEnvironments applicationEnvironments = getApplicationEnvironmentByName(BROKER_SAMPLE_APP_CREATE);
-		assertThat(applicationEnvironments.getUserProvided().get("SPRING_APPLICATION_JSON")).asString()
-			.contains("\"parameter1\":\"value1\"")
-			.contains("\"parameter2\":\"config2\"")
-			.contains("\"parameter3\":\"value3\"");
+		DocumentContext json = getSpringAppJsonByName(BROKER_SAMPLE_APP_CREATE);
+		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("value1");
+		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
+		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("value3");
+
+		// when the service instance is deleted
+		deleteServiceInstance();
 	}
 
 }

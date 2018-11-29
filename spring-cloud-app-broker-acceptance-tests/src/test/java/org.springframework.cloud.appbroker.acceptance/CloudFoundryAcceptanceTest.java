@@ -228,6 +228,12 @@ class CloudFoundryAcceptanceTest {
 		return JsonPath.parse(saj);
 	}
 
+	DocumentContext getSpringAppJsonByNameAndSpace(String appName, String space) {
+		ApplicationEnvironments env = getApplicationEnvironmentByNameAndSpace(appName, space);
+		String saj = (String) env.getUserProvided().get("SPRING_APPLICATION_JSON");
+		return JsonPath.parse(saj);
+	}
+
 	ApplicationEnvironments getApplicationEnvironmentByNameAndSpace(String appName, String space) {
 		return cloudFoundryService.getApplicationEnvironmentByAppNameAndSpace(appName, space).block();
 	}

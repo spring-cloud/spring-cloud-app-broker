@@ -27,6 +27,7 @@ import java.util.Map;
 public class SpringSecurityBasicAuthCredentialProviderFactory extends
 	CredentialProviderFactory<CredentialGenerationConfig> {
 
+	static final String SPRING_KEY = "spring";
 	static final String SPRING_SECURITY_KEY = "security";
 	static final String SPRING_SECURITY_USER_KEY = "user";
 	static final String SPRING_SECURITY_USER_NAME_KEY = "name";
@@ -72,7 +73,8 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 		userProperties.put(SPRING_SECURITY_USER_NAME_KEY, user.getLeft());
 		userProperties.put(SPRING_SECURITY_USER_PASSWORD_KEY, user.getRight());
 
-		backingApplication.addEnvironment(SPRING_SECURITY_KEY,
-				Collections.singletonMap(SPRING_SECURITY_USER_KEY, userProperties));
+		backingApplication.addEnvironment(SPRING_KEY,
+			Collections.singletonMap(SPRING_SECURITY_KEY,
+				Collections.singletonMap(SPRING_SECURITY_USER_KEY, userProperties)));
 	}
 }

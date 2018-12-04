@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_KEY;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_KEY;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_KEY;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_NAME_KEY;
@@ -73,7 +74,7 @@ class SpringSecurityBasicAuthCredentialProviderFactoryTest {
 
 		Map<String, Object> environment = backingApplication.getEnvironment();
 		Map<String, Object> userProperties = MapUtils.getNestedMap(environment,
-			SPRING_SECURITY_KEY, SPRING_SECURITY_USER_KEY);
+			SPRING_KEY, SPRING_SECURITY_KEY, SPRING_SECURITY_USER_KEY);
 
 		assertThat(userProperties)
 			.containsEntry(SPRING_SECURITY_USER_NAME_KEY, "username")

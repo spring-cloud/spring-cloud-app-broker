@@ -99,14 +99,14 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			OperationState.IN_PROGRESS,
 			"create service instance started")
 			.thenMany(invokeCreateWorkflows(request)
-				.doOnRequest(l -> log.info("Creating service instance {}", request))
-				.doOnComplete(() -> log.info("Finished creating service instance {}", request))
-				.doOnError(e -> log.info("Error creating service instance {} with error {}", request, e)))
+				.doOnRequest(l -> log.debug("Creating service instance {}", request))
+				.doOnComplete(() -> log.debug("Finished creating service instance {}", request))
+				.doOnError(exception -> log.error("Error creating service instance {} with error {}", request, exception)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "create service instance completed")
 				.then())
-			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.FAILED, e.getMessage())
+			.onErrorResume(exception -> stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.FAILED, exception.getMessage())
 				.then());
 	}
 
@@ -140,9 +140,9 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS, "delete service instance started")
 			.thenMany(invokeDeleteWorkflows(request)
-				.doOnRequest(l -> log.info("Deleting service instance {}", request))
-				.doOnComplete(() -> log.info("Finished deleting service instance {}", request))
-				.doOnError(e -> log.info("Error deleting service instance {} with error {}", request, e)))
+				.doOnRequest(l -> log.debug("Deleting service instance {}", request))
+				.doOnComplete(() -> log.debug("Finished deleting service instance {}", request))
+				.doOnError(exception -> log.error("Error deleting service instance {} with error {}", request, exception)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "delete service instance completed")
 				.then())
@@ -181,14 +181,14 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS, "update service instance started")
 			.thenMany(invokeUpdateWorkflows(request)
-				.doOnRequest(l -> log.info("Updating service instance {}", request))
-				.doOnComplete(() -> log.info("Finished updating service instance {}", request))
-				.doOnError(e -> log.info("Error updating service instance {} with error {}", request, e)))
+				.doOnRequest(l -> log.debug("Updating service instance {}", request))
+				.doOnComplete(() -> log.debug("Finished updating service instance {}", request))
+				.doOnError(e -> log.error("Error updating service instance {} with error {}", request, e)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "update service instance completed")
 				.then())
-			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.FAILED, e.getMessage())
+			.onErrorResume(exception -> stateRepository.saveState(request.getServiceInstanceId(),
+				OperationState.FAILED, exception.getMessage())
 				.then());
 	}
 

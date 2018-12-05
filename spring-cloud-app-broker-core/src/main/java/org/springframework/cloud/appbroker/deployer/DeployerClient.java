@@ -40,9 +40,9 @@ public class DeployerClient {
 			.environment(backingApplication.getEnvironment())
 			.services(backingApplication.getServices().stream().map(ServicesSpec::getServiceInstanceName).collect(Collectors.toList()))
 			.build())
-			.doOnRequest(l -> log.info("Deploying application {}", backingApplication.getName()))
-			.doOnSuccess(d -> log.info("Finished deploying application {}", backingApplication.getName()))
-			.doOnError(e -> log.info("Error deploying application {} with error {}", backingApplication.getName(), e))
+			.doOnRequest(l -> log.debug("Deploying application {}", backingApplication))
+			.doOnSuccess(response -> log.debug("Finished deploying application {}", backingApplication))
+			.doOnError(exception -> log.error("Error deploying application {} with error {}", backingApplication, exception))
 			.map(DeployApplicationResponse::getName);
 	}
 
@@ -62,9 +62,9 @@ public class DeployerClient {
 															  .parameters(backingService.getParameters())
 															  .properties(backingService.getProperties())
 															  .build())
-						  .doOnRequest(l -> log.info("Creating backing service {}", backingService.getName()))
-						  .doOnSuccess(d -> log.info("Finished creating backing service {}", backingService.getName()))
-						  .doOnError(e -> log.info("Error creating backing service {} with error {}", backingService.getName(), e))
+						  .doOnRequest(l -> log.debug("Creating backing service {}", backingService))
+						  .doOnSuccess(response -> log.debug("Finished creating backing service {}", backingService))
+						  .doOnError(exception -> log.error("Error creating backing service {} with error {}", backingService, exception))
 						  .map(CreateServiceInstanceResponse::getName);
 	}
 

@@ -37,10 +37,10 @@ public class BackingAppDeploymentService {
 			.parallel()
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::deploy)
-			.doOnRequest(l -> log.info("Deploying applications {}", backingApps))
-			.doOnEach(d -> log.info("Finished deploying application {}", d))
-			.doOnComplete(() -> log.info("Finished deploying application {}", backingApps))
-			.doOnError(e -> log.info("Error deploying applications {} with error {}", backingApps, e))
+			.doOnRequest(l -> log.debug("Deploying applications {}", backingApps))
+			.doOnEach(response -> log.debug("Finished deploying application {}", response))
+			.doOnComplete(() -> log.debug("Finished deploying application {}", backingApps))
+			.doOnError(exception -> log.error("Error deploying applications {} with error {}", backingApps, exception))
 			.sequential();
 	}
 
@@ -49,10 +49,10 @@ public class BackingAppDeploymentService {
 			.parallel()
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::undeploy)
-			.doOnRequest(l -> log.info("Undeploying applications {}", backingApps))
-			.doOnEach(d -> log.info("Finished undeploying application {}", d))
-			.doOnComplete(() -> log.info("Finished undeploying application {}", backingApps))
-			.doOnError(e -> log.info("Error undeploying applications {} with error {}", backingApps, e))
+			.doOnRequest(l -> log.debug("Undeploying applications {}", backingApps))
+			.doOnEach(response -> log.debug("Finished undeploying application {}", response))
+			.doOnComplete(() -> log.debug("Finished undeploying application {}", backingApps))
+			.doOnError(exception -> log.error("Error undeploying applications {} with error {}", backingApps, exception))
 			.sequential();
 	}
 }

@@ -66,10 +66,10 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 						.flatMap(backingApplications -> credentialProviderService.deleteCredentials(backingApplications, request.getServiceInstanceId()))
 						.flatMap(backingApps -> targetService.addToBackingApplications(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()),  request.getServiceInstanceId()))
 						.flatMapMany(deploymentService::undeploy)
-						.doOnRequest(l -> log.info("Undeploying applications {}", brokeredServices))
-						.doOnEach(s -> log.info("Finished undeploying {}", s))
-						.doOnComplete(() -> log.info("Finished undeploying applications {}", brokeredServices))
-						.doOnError(e -> log.info("Error undeploying applications {} with error {}", brokeredServices, e))
+						.doOnRequest(l -> log.debug("Undeploying applications {}", brokeredServices))
+						.doOnEach(response -> log.debug("Finished undeploying {}", response))
+						.doOnComplete(() -> log.debug("Finished undeploying applications {}", brokeredServices))
+						.doOnError(exception -> log.error("Error undeploying applications {} with error {}", brokeredServices, exception))
 						.flatMap(apps -> Flux.empty()));
 	}
 

@@ -38,10 +38,10 @@ public class BackingServicesProvisionService {
 				   .parallel()
 				   .runOn(Schedulers.parallel())
 				   .flatMap(deployerClient::createServiceInstance)
-				   .doOnRequest(l -> log.info("Creating backing services {}", backingServices))
-				   .doOnEach(d -> log.info("Finished creating backing service {}", d))
-				   .doOnComplete(() -> log.info("Finished creating backing service {}", backingServices))
-				   .doOnError(e -> log.info("Error creating backing services {} with error {}", backingServices, e))
+				   .doOnRequest(l -> log.debug("Creating backing services {}", backingServices))
+				   .doOnEach(response -> log.debug("Finished creating backing service {}", response))
+				   .doOnComplete(() -> log.debug("Finished creating backing service {}", backingServices))
+				   .doOnError(exception -> log.error("Error creating backing services {} with error {}", backingServices, exception))
 				   .sequential();
 	}
 
@@ -50,10 +50,10 @@ public class BackingServicesProvisionService {
 				   .parallel()
 				   .runOn(Schedulers.parallel())
 				   .flatMap(deployerClient::deleteServiceInstance)
-				   .doOnRequest(l -> log.info("Deleting backing services {}", backingServices))
-				   .doOnEach(d -> log.info("Finished deleting backing service {}", d))
-				   .doOnComplete(() -> log.info("Finished deleting backing service {}", backingServices))
-				   .doOnError(e -> log.info("Error deleting backing services {} with error {}", backingServices, e))
+				   .doOnRequest(l -> log.debug("Deleting backing services {}", backingServices))
+				   .doOnEach(response -> log.debug("Finished deleting backing service {}", response))
+				   .doOnComplete(() -> log.debug("Finished deleting backing service {}", backingServices))
+				   .doOnError(exception -> log.error("Error deleting backing services {} with error {}", backingServices, exception))
 				   .sequential();
 	}
 

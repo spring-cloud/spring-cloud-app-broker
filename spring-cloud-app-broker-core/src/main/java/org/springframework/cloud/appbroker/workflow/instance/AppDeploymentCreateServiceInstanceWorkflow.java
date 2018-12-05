@@ -76,10 +76,10 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 						.flatMap(backingApps -> appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
 						.flatMap(backingApplications -> credentialProviderService.addCredentials(backingApplications, request.getServiceInstanceId()))
 						.flatMapMany(deploymentService::deploy)
-						.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
-						.doOnEach(s -> log.info("Finished deploying {}", s))
-						.doOnComplete(() -> log.info("Finished deploying applications {}", brokeredServices))
-						.doOnError(e -> log.info("Error deploying applications {} with error {}", brokeredServices, e))
+						.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
+						.doOnEach(response -> log.debug("Finished deploying {}", response))
+						.doOnComplete(() -> log.debug("Finished deploying applications {}", brokeredServices))
+						.doOnError(exception -> log.error("Error deploying applications {} with error {}", brokeredServices, exception))
 						.flatMap(apps -> Flux.empty()));
 	}
 

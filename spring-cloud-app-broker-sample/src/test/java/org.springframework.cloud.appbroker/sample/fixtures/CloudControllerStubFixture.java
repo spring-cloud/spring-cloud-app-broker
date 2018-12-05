@@ -328,6 +328,13 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(ok()));
 	}
 
+	public void stubUpdateServiceInstanceWithParameters(String serviceInstanceName, Map<String, Object> params) {
+		String serviceInstanceGuid = serviceInstanceName + "-GUID";
+		stubFor(put(urlEqualTo("/v2/service_instances/" + serviceInstanceGuid + "?accepts_incomplete=true"))
+			.withRequestBody(matchingJsonPath("$.[?(@.parameters == " + new JSONObject(params) + ")]"))
+			.willReturn(ok()));
+	}
+
 	public void stubCreateServiceBinding(String appName, String serviceInstanceName) {
 		String serviceInstanceGuid = serviceInstanceName + "-GUID";
 		String serviceBindingGuid = appGuid(appName) + "-" + serviceInstanceGuid;

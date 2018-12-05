@@ -109,9 +109,10 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			new AppDeploymentDeleteServiceInstanceWorkflow(
 				brokeredServices,
 				backingAppDeploymentService,
+				backingServicesProvisionService,
 				credentialProviderService,
-				targetService,
-				backingServicesProvisionService);
+				targetService
+			);
 	}
 
 	@Test

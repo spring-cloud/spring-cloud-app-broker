@@ -22,8 +22,10 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
@@ -38,30 +40,50 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 	private final Logger log = Loggers.getLogger(AppDeploymentUpdateServiceInstanceWorkflow.class);
 
 	private final BackingAppDeploymentService deploymentService;
-	private final BackingApplicationsParametersTransformationService parametersTransformationService;
+	private final BackingServicesProvisionService backingServicesProvisionService;
+	private final BackingApplicationsParametersTransformationService appsParametersTransformationService;
+	private final BackingServicesParametersTransformationService servicesParametersTransformationService;
 	private final TargetService targetService;
 
 	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
-													  BackingApplicationsParametersTransformationService parametersTransformationService,
+													  BackingServicesProvisionService backingServicesProvisionService,
+													  BackingApplicationsParametersTransformationService appsParametersTransformationService,
+													  BackingServicesParametersTransformationService servicesParametersTransformationService,
 													  TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
-		this.parametersTransformationService = parametersTransformationService;
+		this.backingServicesProvisionService = backingServicesProvisionService;
+		this.appsParametersTransformationService = appsParametersTransformationService;
+		this.servicesParametersTransformationService = servicesParametersTransformationService;
 		this.targetService = targetService;
 	}
 
 	public Flux<Void> update(UpdateServiceInstanceRequest request) {
-		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-			.flatMap(backingApps -> targetService.addToBackingApplications(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()), request.getServiceInstanceId()))
-			.flatMap(backingApps ->
-				parametersTransformationService.transformParameters(backingApps, request.getParameters()))
-			.flatMapMany(deploymentService::deploy)
-			.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
-			.doOnEach(response -> log.debug("Finished deploying {}", response))
-			.doOnComplete(() -> log.debug("Finished deploying applications {}", brokeredServices))
-			.doOnError(exception -> log.error("Error deploying applications {} with error {}", brokeredServices, exception))
-			.flatMap(apps -> Flux.empty());
+		return
+			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
+				.flatMap(backingService ->
+					targetService.addToBackingServices(backingService,
+						getTargetForService(request.getServiceDefinition(), request.getPlanId()),
+						request.getServiceInstanceId()))
+				.flatMap(backingServices ->
+					servicesParametersTransformationService.transformParameters(backingServices,
+						request.getParameters()))
+				.flatMapMany(backingServicesProvisionService::updateServiceInstance)
+				.thenMany(
+					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+						.flatMap(backingApps ->
+							targetService.addToBackingApplications(backingApps,
+								getTargetForService(request.getServiceDefinition(), request.getPlanId()),
+								request.getServiceInstanceId()))
+						.flatMap(backingApps ->
+							appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
+						.flatMapMany(deploymentService::deploy)
+						.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
+						.doOnEach(s -> log.info("Finished deploying {}", s))
+						.doOnComplete(() -> log.info("Finished deploying applications {}", brokeredServices))
+						.doOnError(e -> log.info("Error deploying applications {} with error {}", brokeredServices, e))
+						.flatMap(apps -> Flux.empty()));
 	}
 
 	@Override

@@ -28,21 +28,26 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.sample.UpdateInstanceComponentTest.APP_NAME_1;
-import static org.springframework.cloud.appbroker.sample.UpdateInstanceComponentTest.APP_NAME_2;
+import static org.springframework.cloud.appbroker.sample.UpdateInstanceWithServicesComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.sample.UpdateInstanceWithServicesComponentTest.SERVICE_NAME;
+import static org.springframework.cloud.appbroker.sample.UpdateInstanceWithServicesComponentTest.SERVICE_INSTANCE_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
-	"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
-	"spring.cloud.appbroker.services[0].apps[1].name=" + APP_NAME_2
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + SERVICE_INSTANCE_NAME,
+	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + SERVICE_INSTANCE_NAME,
+	"spring.cloud.appbroker.services[0].services[0].name=" + SERVICE_NAME,
+	"spring.cloud.appbroker.services[0].services[0].plan=standard"
 })
-class UpdateInstanceComponentTest extends WiremockComponentTest {
+class UpdateInstanceWithServicesComponentTest extends WiremockComponentTest {
 
-	static final String APP_NAME_1 = "update-first-app";
-	static final String APP_NAME_2 = "update-second-app";
+	static final String APP_NAME = "app-update-with-services";
+
+	static final String SERVICE_INSTANCE_NAME = "my-db-service";
+	static final String SERVICE_NAME = "db-service";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -51,11 +56,12 @@ class UpdateInstanceComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void updateAppsWhenTheyExist() {
-		cloudControllerFixture.stubAppExists(APP_NAME_1);
-		cloudControllerFixture.stubUpdateApp(APP_NAME_1);
-		cloudControllerFixture.stubAppExists(APP_NAME_2);
-		cloudControllerFixture.stubUpdateApp(APP_NAME_2);
+	void updateAppWithServicesWhenServicesExist() {
+		cloudControllerFixture.stubAppExists(APP_NAME);
+		cloudControllerFixture.stubUpdateApp(APP_NAME);
+
+		cloudControllerFixture.stubServiceInstanceExists(SERVICE_INSTANCE_NAME);
+		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, SERVICE_INSTANCE_NAME);
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

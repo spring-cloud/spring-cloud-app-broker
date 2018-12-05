@@ -16,27 +16,37 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import reactor.core.publisher.Mono;
+public class UpdateServiceInstanceResponse {
 
-public interface AppDeployer {
+	private final String name;
 
-	default Mono<DeployApplicationResponse> deploy(DeployApplicationRequest request) {
-		return Mono.empty();
+	UpdateServiceInstanceResponse(String name) {
+		this.name = name;
 	}
 
-	default Mono<UndeployApplicationResponse> undeploy(UndeployApplicationRequest request) {
-		return Mono.empty();
+	public static UpdateServiceInstanceResponseBuilder builder() {
+		return new UpdateServiceInstanceResponseBuilder();
 	}
 
-	default Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
-		return Mono.empty();
+	public String getName() {
+		return name;
 	}
 
-	default Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
-		return Mono.empty();
-	}
+	public static class UpdateServiceInstanceResponseBuilder {
 
-	default Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		return Mono.empty();
+		private String name;
+
+		UpdateServiceInstanceResponseBuilder() {
+		}
+
+		public UpdateServiceInstanceResponseBuilder name(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public UpdateServiceInstanceResponse build() {
+			return new UpdateServiceInstanceResponse(name);
+		}
+
 	}
 }

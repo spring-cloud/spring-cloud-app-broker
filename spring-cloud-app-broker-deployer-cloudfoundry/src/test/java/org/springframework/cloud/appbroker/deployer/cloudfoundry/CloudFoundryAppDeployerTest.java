@@ -47,6 +47,7 @@ import org.springframework.cloud.appbroker.deployer.CreateServiceInstanceRequest
 import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.UpdateServiceInstanceRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -324,7 +325,7 @@ class CloudFoundryAppDeployerTest {
 
 		DeleteServiceInstanceRequest request =
 			DeleteServiceInstanceRequest.builder()
-										.name("service-instance-name")
+										.serviceInstanceName("service-instance-name")
 										.properties(emptyMap())
 										.build();
 
@@ -356,6 +357,27 @@ class CloudFoundryAppDeployerTest {
 
 		StepVerifier.create(
 			appDeployer.createServiceInstance(request))
+					.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
+					.verifyComplete();
+	}
+
+	@Test
+	void updateServiceInstance() {
+		when(services.updateInstance(
+			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
+																			 .serviceInstanceName("service-instance-name")
+																			 .parameters(emptyMap())
+																			 .build()))
+			.thenReturn(Mono.empty());
+
+		UpdateServiceInstanceRequest request =
+			UpdateServiceInstanceRequest.builder()
+										.serviceInstanceName("service-instance-name")
+										.parameters(emptyMap())
+										.build();
+
+		StepVerifier.create(
+			appDeployer.updateServiceInstance(request))
 					.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
 					.verifyComplete();
 	}

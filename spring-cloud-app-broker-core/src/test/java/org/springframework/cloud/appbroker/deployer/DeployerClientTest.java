@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("UnassignedFluxMonoInstance")
 class DeployerClientTest {
 
 	private static final String APP_NAME = "helloworld";
@@ -122,7 +122,7 @@ class DeployerClientTest {
 			.verifyComplete();
 
 		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
-			Collections.emptyMap(), Arrays.asList("my-db-service"))));
+			Collections.emptyMap(), Collections.singletonList("my-db-service"))));
 	}
 
 	@Test

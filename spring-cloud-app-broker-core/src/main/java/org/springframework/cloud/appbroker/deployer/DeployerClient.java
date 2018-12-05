@@ -55,24 +55,39 @@ public class DeployerClient {
 	}
 
 	Mono<String> createServiceInstance(BackingService backingService) {
-		return appDeployer.createServiceInstance(CreateServiceInstanceRequest.builder()
-															  .serviceInstanceName(backingService.getServiceInstanceName())
-															  .name(backingService.getName())
-															  .plan(backingService.getPlan())
-															  .parameters(backingService.getParameters())
-															  .properties(backingService.getProperties())
-															  .build())
-						  .doOnRequest(l -> log.debug("Creating backing service {}", backingService))
-						  .doOnSuccess(response -> log.debug("Finished creating backing service {}", backingService))
-						  .doOnError(exception -> log.error("Error creating backing service {} with error {}", backingService, exception))
-						  .map(CreateServiceInstanceResponse::getName);
+		return appDeployer.createServiceInstance(
+			CreateServiceInstanceRequest.builder()
+				.serviceInstanceName(backingService.getServiceInstanceName())
+				.name(backingService.getName())
+				.plan(backingService.getPlan())
+				.parameters(backingService.getParameters())
+				.properties(backingService.getProperties())
+				.build())
+			.doOnRequest(l -> log.debug("Creating backing service {}", backingService.getName()))
+			.doOnSuccess(d -> log.debug("Finished creating backing service {}", backingService.getName()))
+			.doOnError(e -> log.error("Error creating backing service {} with error {}", backingService.getName(), e))
+			.map(CreateServiceInstanceResponse::getName);
+	}
+
+	Mono<String> updateServiceInstance(BackingService backingService) {
+		return appDeployer.updateServiceInstance(
+			UpdateServiceInstanceRequest.builder()
+				.serviceInstanceName(backingService.getServiceInstanceName())
+				.parameters(backingService.getParameters())
+				.properties(backingService.getProperties())
+				.build())
+			.doOnRequest(l -> log.debug("Creating backing service {}", backingService.getName()))
+			.doOnSuccess(d -> log.debug("Finished creating backing service {}", backingService.getName()))
+			.doOnError(e -> log.error("Error creating backing service {} with error {}", backingService.getName(), e))
+			.map(UpdateServiceInstanceResponse::getName);
 	}
 
 	Mono<String> deleteServiceInstance(BackingService backingService) {
-		return appDeployer.deleteServiceInstance(DeleteServiceInstanceRequest.builder()
-																			 .name(backingService.getServiceInstanceName())
-																			 .properties(backingService.getProperties())
-																			 .build())
-						  .map(DeleteServiceInstanceResponse::getName);
+		return appDeployer.deleteServiceInstance(
+			DeleteServiceInstanceRequest.builder()
+				.serviceInstanceName(backingService.getServiceInstanceName())
+				.properties(backingService.getProperties())
+				.build())
+			.map(DeleteServiceInstanceResponse::getName);
 	}
 }

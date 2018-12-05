@@ -45,6 +45,21 @@ public class BackingServicesProvisionService {
 				   .sequential();
 	}
 
+	public Flux<String> updateServiceInstance(List<BackingService> backingServices) {
+		return Flux.fromIterable(backingServices)
+			.parallel()
+			.runOn(Schedulers.parallel())
+			// service instances can be updated with a change to the plan or to parameters
+			// if the service instance has no parameters, don't update it
+			.filter(backingService -> !backingService.getParameters().isEmpty())
+			.flatMap(deployerClient::updateServiceInstance)
+			.doOnRequest(l -> log.info("Updating backing services {}", backingServices))
+			.doOnEach(d -> log.info("Finished updating backing service {}", d))
+			.doOnComplete(() -> log.info("Finished updating backing service {}", backingServices))
+			.doOnError(e -> log.info("Error updating backing services {} with error {}", backingServices, e))
+			.sequential();
+	}
+
 	public Flux<String> deleteServiceInstance(List<BackingService> backingServices) {
 		return Flux.fromIterable(backingServices)
 				   .parallel()
@@ -56,5 +71,4 @@ public class BackingServicesProvisionService {
 				   .doOnError(exception -> log.error("Error deleting backing services {} with error {}", backingServices, exception))
 				   .sequential();
 	}
-
 }

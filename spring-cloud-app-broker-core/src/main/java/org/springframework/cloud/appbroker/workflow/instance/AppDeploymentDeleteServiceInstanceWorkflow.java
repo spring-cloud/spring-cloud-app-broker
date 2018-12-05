@@ -45,9 +45,9 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
+													  BackingServicesProvisionService backingServicesProvisionService,
 													  CredentialProviderService credentialProviderService,
-													  TargetService targetService,
-													  BackingServicesProvisionService backingServicesProvisionService) {
+													  TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.credentialProviderService = credentialProviderService;

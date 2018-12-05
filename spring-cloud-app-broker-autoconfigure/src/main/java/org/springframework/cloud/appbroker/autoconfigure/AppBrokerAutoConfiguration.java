@@ -162,43 +162,56 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	public CreateServiceInstanceWorkflow appDeploymentCreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
-																					BackingAppDeploymentService backingAppDeploymentService,
-																					BackingApplicationsParametersTransformationService applicationsParametersTransformationService,
-																					BackingServicesParametersTransformationService servicesParametersTransformationService,
-																					CredentialProviderService credentialProviderService,
-																					TargetService targetService,
-																					BackingServicesProvisionService backingServicesProvisionService) {
+	public CreateServiceInstanceWorkflow appDeploymentCreateServiceInstanceWorkflow(
+		BrokeredServices brokeredServices,
+		BackingAppDeploymentService backingAppDeploymentService,
+		BackingApplicationsParametersTransformationService appsParametersTransformationService,
+		BackingServicesParametersTransformationService servicesParametersTransformationService,
+		CredentialProviderService credentialProviderService,
+		TargetService targetService,
+		BackingServicesProvisionService backingServicesProvisionService) {
 		return new AppDeploymentCreateServiceInstanceWorkflow(
 			brokeredServices,
 			backingAppDeploymentService,
-			applicationsParametersTransformationService,
+			backingServicesProvisionService,
+			appsParametersTransformationService,
 			servicesParametersTransformationService,
 			credentialProviderService,
-			targetService,
-			backingServicesProvisionService);
+			targetService);
 	}
 
 	@Bean
-	public DeleteServiceInstanceWorkflow appDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
-																					BackingAppDeploymentService backingAppDeploymentService,
-																					CredentialProviderService credentialProviderService,
-																					TargetService targetService,
-																					BackingServicesProvisionService backingServicesProvisionService) {
+	public UpdateServiceInstanceWorkflow appDeploymentUpdateServiceInstanceWorkflow(
+		BrokeredServices brokeredServices,
+		BackingAppDeploymentService backingAppDeploymentService,
+		BackingServicesProvisionService backingServicesProvisionService,
+		BackingApplicationsParametersTransformationService appsParametersTransformationService,
+		BackingServicesParametersTransformationService servicesParametersTransformationService,
+		TargetService targetService) {
+
+		return new AppDeploymentUpdateServiceInstanceWorkflow(
+			brokeredServices,
+			backingAppDeploymentService,
+			backingServicesProvisionService,
+			appsParametersTransformationService,
+			servicesParametersTransformationService,
+			targetService);
+	}
+
+	@Bean
+	public DeleteServiceInstanceWorkflow appDeploymentDeleteServiceInstanceWorkflow(
+		BrokeredServices brokeredServices,
+		BackingAppDeploymentService backingAppDeploymentService,
+		BackingServicesProvisionService backingServicesProvisionService,
+		CredentialProviderService credentialProviderService,
+		TargetService targetService) {
+
 		return new AppDeploymentDeleteServiceInstanceWorkflow(
 			brokeredServices,
 			backingAppDeploymentService,
-			credentialProviderService,
-			targetService,
-			backingServicesProvisionService);
-	}
-
-	@Bean
-	public UpdateServiceInstanceWorkflow updateServiceInstanceWorkflow(BrokeredServices brokeredServices,
-																	   BackingAppDeploymentService backingAppDeploymentService,
-																	   BackingApplicationsParametersTransformationService parametersTransformationService,
-																	   TargetService targetService) {
-		return new AppDeploymentUpdateServiceInstanceWorkflow(brokeredServices, backingAppDeploymentService, parametersTransformationService, targetService);
+			backingServicesProvisionService, credentialProviderService,
+			targetService
+		);
 	}
 
 	@Bean

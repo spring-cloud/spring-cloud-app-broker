@@ -68,6 +68,8 @@ import org.springframework.cloud.appbroker.deployer.DeployApplicationResponse;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.UndeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.UndeployApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.UpdateServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.UpdateServiceInstanceResponse;
 import org.springframework.cloud.appbroker.deployer.util.ByteSizeUtils;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
@@ -218,7 +220,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 																   .name(spaceName)
 																   .build())
 										 .doOnSuccess(response -> logger.info("Created space {}", spaceName))
-										 .doOnError(e -> logger.warn(String.format("Error creating space %s. Exception Message %s", spaceName, e.getMessage())))
+										 .doOnError(e -> logger.warn(String.format("Error creating space %s: %s", spaceName, e.getMessage())))
 										 .onErrorResume(e -> Mono.empty())
 										 .then(Mono.empty()));
 		return getSpaceIdFromName(spaceName)
@@ -517,7 +519,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.build();
 
 		Mono<CreateServiceInstanceResponse> createServiceInstanceResponseMono =
-			Mono.just(CreateServiceInstanceResponse.builder().name(request.getServiceInstanceName()).build());
+			Mono.just(CreateServiceInstanceResponse.builder()
+				.name(request.getServiceInstanceName())
+				.build());
 
 		if (request.getProperties().containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
 			return createSpace(request.getProperties().get(DeploymentProperties.TARGET_PROPERTY_KEY))
@@ -526,34 +530,49 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 						.services()
 						.createInstance(createServiceInstanceRequest)
 						.then(createServiceInstanceResponseMono));
+		} else {
+			return operations
+				.services()
+				.createInstance(createServiceInstanceRequest)
+				.then(createServiceInstanceResponseMono);
 		}
-		return operations
+	}
+
+	@Override
+	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
+		org.cloudfoundry.operations.services.UpdateServiceInstanceRequest updateServiceInstanceRequest =
+			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest
+				.builder()
+				.serviceInstanceName(request.getServiceInstanceName())
+				.parameters(request.getParameters())
+				.build();
+
+		Mono<UpdateServiceInstanceResponse> updateServiceInstanceResponseMono =
+			Mono.just(UpdateServiceInstanceResponse.builder()
+				.name(request.getServiceInstanceName())
+				.build());
+
+		return getOperations(request.getProperties())
 			.services()
-			.createInstance(createServiceInstanceRequest)
-			.then(createServiceInstanceResponseMono);
+			.updateInstance(updateServiceInstanceRequest)
+			.then(updateServiceInstanceResponseMono);
 	}
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		final String serviceInstanceName = request.getName();
+		final String serviceInstanceName = request.getServiceInstanceName();
 
-		final CloudFoundryOperations operations;
-		if (request.getProperties().containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			operations = createCloudFoundryOperationsForSpace(request.getProperties().get(DeploymentProperties.TARGET_PROPERTY_KEY));
-		}
-		else {
-			operations = this.operations;
-		}
-
-		return operations
+		return getOperations(request.getProperties())
 			.services()
-			.getInstance(GetServiceInstanceRequest.builder().name(serviceInstanceName).build())
+			.getInstance(GetServiceInstanceRequest.builder()
+				.name(serviceInstanceName)
+				.build())
 			.map(ServiceInstance::getApplications)
 			.flatMap((Function<List<String>, Mono<?>>) applications ->
 				Flux.fromIterable(applications)
 					.flatMap(
 						application ->
-							operations
+							getOperations(request.getProperties())
 								.services()
 								.unbind(
 									UnbindServiceInstanceRequest
@@ -563,7 +582,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 										.build())
 					).collectList())
 			.then(
-				operations
+				getOperations(request.getProperties())
 					.services()
 					.deleteInstance(
 						org.cloudfoundry.operations.services.DeleteServiceInstanceRequest
@@ -573,4 +592,11 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 					.then(Mono.just(DeleteServiceInstanceResponse.builder().name(serviceInstanceName).build())));
 	}
 
+	private CloudFoundryOperations getOperations(Map<String, String> properties) {
+		if (properties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			return createCloudFoundryOperationsForSpace(properties.get(DeploymentProperties.TARGET_PROPERTY_KEY));
+		} else {
+			return this.operations;
+		}
+	}
 }

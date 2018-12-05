@@ -12,7 +12,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class BackingServicesProvisionServiceTest {
@@ -37,14 +39,13 @@ class BackingServicesProvisionServiceTest {
 																	   .serviceInstanceName("si2")
 																	   .name("service2")
 																	   .plan("free")
-																	   .parameters(Collections.singletonMap("key2", "value2"))
 																	   .build())
 										 .build();
 	}
 
 	@Test
 	@SuppressWarnings("UnassignedFluxMonoInstance")
-	void shouldCreateServiceInstance() {
+	void createServiceInstance() {
 		doReturn(Mono.just("si1"))
 			.when(deployerClient).createServiceInstance(backingServices.get(0));
 		doReturn(Mono.just("si2"))
@@ -64,7 +65,20 @@ class BackingServicesProvisionServiceTest {
 
 	@Test
 	@SuppressWarnings("UnassignedFluxMonoInstance")
-	void shouldDeleteServiceInstance() {
+	void updateServiceInstance() {
+		doReturn(Mono.just("si1"))
+			.when(deployerClient).updateServiceInstance(backingServices.get(0));
+
+		StepVerifier.create(backingServicesProvisionService.updateServiceInstance(backingServices))
+					.assertNext(value -> assertThat(value).isEqualTo("si1"))
+					.verifyComplete();
+
+		verifyNoMoreInteractions(deployerClient);
+	}
+
+	@Test
+	@SuppressWarnings("UnassignedFluxMonoInstance")
+	void deleteServiceInstance() {
 		doReturn(Mono.just("deleted1"))
 			.when(deployerClient).deleteServiceInstance(backingServices.get(0));
 		doReturn(Mono.just("deleted2"))

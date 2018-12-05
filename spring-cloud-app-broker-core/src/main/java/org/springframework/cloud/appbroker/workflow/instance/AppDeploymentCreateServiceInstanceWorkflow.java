@@ -41,40 +41,52 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 	private final Logger log = Loggers.getLogger(AppDeploymentCreateServiceInstanceWorkflow.class);
 
 	private final BackingAppDeploymentService deploymentService;
+	private final BackingServicesProvisionService backingServicesProvisionService;
 	private final BackingApplicationsParametersTransformationService appsParametersTransformationService;
 	private final BackingServicesParametersTransformationService servicesParametersTransformationService;
 	private final CredentialProviderService credentialProviderService;
 	private final TargetService targetService;
-	private final BackingServicesProvisionService backingServicesProvisionService;
 
 	public AppDeploymentCreateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 													  BackingAppDeploymentService deploymentService,
+													  BackingServicesProvisionService backingServicesProvisionService,
 													  BackingApplicationsParametersTransformationService appsParametersTransformationService,
 													  BackingServicesParametersTransformationService servicesParametersTransformationService,
 													  CredentialProviderService credentialProviderService,
-													  TargetService targetService,
-													  BackingServicesProvisionService backingServicesProvisionService) {
+													  TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
+		this.backingServicesProvisionService = backingServicesProvisionService;
 		this.appsParametersTransformationService = appsParametersTransformationService;
 		this.servicesParametersTransformationService = servicesParametersTransformationService;
 		this.credentialProviderService = credentialProviderService;
 		this.targetService = targetService;
-		this.backingServicesProvisionService = backingServicesProvisionService;
 	}
 
 	@Override
 	public Flux<Void> create(CreateServiceInstanceRequest request) {
 		return
 			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
-				.flatMap(backingService -> targetService.addToBackingServices(backingService, getTargetForService(request.getServiceDefinition(), request.getPlanId()) , request.getServiceInstanceId()))
-				.flatMap(backingServices -> servicesParametersTransformationService.transformParameters(backingServices, request.getParameters()))
+				.flatMap(backingService ->
+					targetService.addToBackingServices(backingService,
+						getTargetForService(request.getServiceDefinition(), request.getPlanId()) ,
+						request.getServiceInstanceId()))
+				.flatMap(backingServices ->
+					servicesParametersTransformationService.transformParameters(backingServices,
+						request.getParameters()))
 				.flatMapMany(backingServicesProvisionService::createServiceInstance)
 				.thenMany(
 					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-						.flatMap(backingApps -> targetService.addToBackingApplications(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()) , request.getServiceInstanceId()))
-						.flatMap(backingApps -> appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
-						.flatMap(backingApplications -> credentialProviderService.addCredentials(backingApplications, request.getServiceInstanceId()))
+						.flatMap(backingApps ->
+							targetService.addToBackingApplications(backingApps,
+								getTargetForService(request.getServiceDefinition(),
+									request.getPlanId()) , request.getServiceInstanceId()))
+						.flatMap(backingApps ->
+							appsParametersTransformationService.transformParameters(backingApps,
+								request.getParameters()))
+						.flatMap(backingApplications ->
+							credentialProviderService.addCredentials(backingApplications,
+								request.getServiceInstanceId()))
 						.flatMapMany(deploymentService::deploy)
 						.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
 						.doOnEach(response -> log.debug("Finished deploying {}", response))

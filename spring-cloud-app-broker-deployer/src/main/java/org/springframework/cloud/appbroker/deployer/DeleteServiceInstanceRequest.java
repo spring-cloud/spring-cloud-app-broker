@@ -20,11 +20,11 @@ import java.util.Map;
 
 public class DeleteServiceInstanceRequest {
 
-	private final String name;
+	private final String serviceInstanceName;
 	private final Map<String, String> properties;
 
-	DeleteServiceInstanceRequest(String name, Map<String, String> properties) {
-		this.name = name;
+	DeleteServiceInstanceRequest(String serviceInstanceName, Map<String, String> properties) {
+		this.serviceInstanceName = serviceInstanceName;
 		this.properties = properties;
 	}
 
@@ -32,8 +32,8 @@ public class DeleteServiceInstanceRequest {
 		return new DeleteServiceInstanceRequestBuilder();
 	}
 
-	public String getName() {
-		return name;
+	public String getServiceInstanceName() {
+		return serviceInstanceName;
 	}
 
 	public Map<String, String> getProperties() {
@@ -42,14 +42,14 @@ public class DeleteServiceInstanceRequest {
 
 	public static class DeleteServiceInstanceRequestBuilder {
 
-		private String name;
+		private String serviceInstanceName;
 		private Map<String, String> properties;
 
 		DeleteServiceInstanceRequestBuilder() {
 		}
 
-		public DeleteServiceInstanceRequestBuilder name(String name) {
-			this.name = name;
+		public DeleteServiceInstanceRequestBuilder serviceInstanceName(String name) {
+			this.serviceInstanceName = name;
 			return this;
 		}
 
@@ -59,7 +59,7 @@ public class DeleteServiceInstanceRequest {
 		}
 
 		public DeleteServiceInstanceRequest build() {
-			return new DeleteServiceInstanceRequest(name, properties);
+			return new DeleteServiceInstanceRequest(serviceInstanceName, properties);
 		}
 
 	}

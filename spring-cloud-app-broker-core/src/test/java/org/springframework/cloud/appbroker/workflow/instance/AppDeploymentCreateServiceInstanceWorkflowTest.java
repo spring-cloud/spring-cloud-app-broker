@@ -56,22 +56,22 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 class AppDeploymentCreateServiceInstanceWorkflowTest {
 
 	@Mock
-	private BackingAppDeploymentService backingAppDeploymentService;
+	private BackingAppDeploymentService appDeploymentService;
 
 	@Mock
-	private BackingApplicationsParametersTransformationService backingApplicationsParametersTransformationService;
+	private BackingServicesProvisionService servicesProvisionService;
 
 	@Mock
-	private BackingServicesParametersTransformationService backingServicesParametersTransformationService;
+	private BackingApplicationsParametersTransformationService appsParametersTransformationService;
+
+	@Mock
+	private BackingServicesParametersTransformationService servicesParametersTransformationService;
 
 	@Mock
 	private CredentialProviderService credentialProviderService;
 
 	@Mock
 	private TargetService targetService;
-
-	@Mock
-	private BackingServicesProvisionService backingServicesProvisionService;
 
 	private BackingApplications backingApps;
 	private BackingServices backingServices;
@@ -105,7 +105,10 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
-		targetSpec = TargetSpec.builder().name("TargetSpace").build();
+		targetSpec = TargetSpec.builder()
+			.name("TargetSpace")
+			.build();
+
 		BrokeredServices brokeredServices = BrokeredServices
 			.builder()
 			.service(BrokeredService
@@ -120,16 +123,16 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 
 		createServiceInstanceWorkflow = new AppDeploymentCreateServiceInstanceWorkflow(
 			brokeredServices,
-			backingAppDeploymentService,
-			backingApplicationsParametersTransformationService,
-			backingServicesParametersTransformationService,
+			appDeploymentService,
+			servicesProvisionService,
+			appsParametersTransformationService,
+			servicesParametersTransformationService,
 			credentialProviderService,
-			targetService,
-			backingServicesProvisionService);
+			targetService);
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "UnassignedFluxMonoInstance"})
 	void createServiceInstanceSucceeds() {
 		CreateServiceInstanceRequest request = buildRequest("service1", "plan1");
 
@@ -141,47 +144,40 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		verify(backingAppDeploymentService).deploy(backingApps);
-		verify(backingServicesProvisionService).createServiceInstance(backingServices);
-
-		verifyNoMoreInteractionsWithServices();
-	}
-
-	@Test
-	void createServiceInstanceWithParametersSucceeds() {
-		CreateServiceInstanceRequest request = buildRequest("service1", "plan1",
-			singletonMap("ENV_VAR_1", "value from parameters"));
-
-		setupMocks(request);
-
-		StepVerifier
-			.create(createServiceInstanceWorkflow.create(request))
-			.expectNext()
-			.expectNext()
-			.verifyComplete();
-
-		verify(backingApplicationsParametersTransformationService)
-			.transformParameters(backingApps, singletonMap("ENV_VAR_1", "value from parameters"));
-
-		verifyNoMoreInteractionsWithServices();
-	}
-
-	@Test
-	void createServiceInstanceWithTargetSucceeds() {
-		CreateServiceInstanceRequest request = buildRequest("service1", "plan1",
-			singletonMap("ENV_VAR_1", "value from parameters"));
-
-		setupMocks(request);
-
-		StepVerifier
-			.create(createServiceInstanceWorkflow.create(request))
-			.expectNext()
-			.expectNext()
-			.verifyComplete();
+		verify(appDeploymentService).deploy(backingApps);
+		verify(servicesProvisionService).createServiceInstance(backingServices);
 
 		final String expectedServiceId = "service-instance-id";
 		verify(targetService).addToBackingServices(backingServices, targetSpec, expectedServiceId);
 		verify(targetService).addToBackingApplications(backingApps, targetSpec, expectedServiceId);
+
+		verifyNoMoreInteractionsWithServices();
+	}
+
+	@Test
+	@SuppressWarnings("UnassignedFluxMonoInstance")
+	void createServiceInstanceWithParametersSucceeds() {
+		Map<String, Object> parameters = singletonMap("ENV_VAR_1", "value from parameters");
+		
+		CreateServiceInstanceRequest request = buildRequest("service1", "plan1",
+			parameters);
+
+		setupMocks(request);
+
+		StepVerifier
+			.create(createServiceInstanceWorkflow.create(request))
+			.expectNext()
+			.expectNext()
+			.verifyComplete();
+
+		verify(appDeploymentService).deploy(backingApps);
+		verify(servicesProvisionService).createServiceInstance(backingServices);
+
+		verify(appsParametersTransformationService)
+			.transformParameters(backingApps, parameters);
+
+		verify(servicesParametersTransformationService)
+			.transformParameters(backingServices, parameters);
 
 		verifyNoMoreInteractionsWithServices();
 	}
@@ -198,29 +194,32 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	}
 
 	private void setupMocks(CreateServiceInstanceRequest request) {
-		given(this.backingAppDeploymentService.deploy(eq(backingApps)))
+		given(this.appDeploymentService.deploy(eq(backingApps)))
 			.willReturn(Flux.just("app1", "app2"));
-		given(this.backingApplicationsParametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
+		given(this.servicesProvisionService.createServiceInstance(eq(backingServices)))
+			.willReturn(Flux.just("my-service-instance"));
+
+		given(this.appsParametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
-		given(this.backingServicesParametersTransformationService.transformParameters(eq(backingServices), eq(request.getParameters())))
+		given(this.servicesParametersTransformationService.transformParameters(eq(backingServices), eq(request.getParameters())))
 			.willReturn(Mono.just(backingServices));
+
 		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
+
 		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
 		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingServices));
-		given(this.backingServicesProvisionService.createServiceInstance(eq(backingServices)))
-			.willReturn(Flux.just("my-service-instance"));
 	}
 
 	private void verifyNoMoreInteractionsWithServices() {
-		verifyNoMoreInteractions(this.backingAppDeploymentService);
-		verifyNoMoreInteractions(this.backingApplicationsParametersTransformationService);
-		verifyNoMoreInteractions(this.backingServicesParametersTransformationService);
+		verifyNoMoreInteractions(this.appDeploymentService);
+		verifyNoMoreInteractions(this.servicesProvisionService);
+		verifyNoMoreInteractions(this.appsParametersTransformationService);
+		verifyNoMoreInteractions(this.servicesParametersTransformationService);
 		verifyNoMoreInteractions(this.credentialProviderService);
 		verifyNoMoreInteractions(this.targetService);
-		verifyNoMoreInteractions(this.backingServicesProvisionService);
 	}
 
 	private CreateServiceInstanceRequest buildRequest(String serviceName, String planName) {

@@ -79,10 +79,10 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 						.flatMap(backingApps ->
 							appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
 						.flatMapMany(deploymentService::deploy)
-						.doOnRequest(l -> log.info("Deploying applications {}", brokeredServices))
-						.doOnEach(s -> log.info("Finished deploying {}", s))
-						.doOnComplete(() -> log.info("Finished deploying applications {}", brokeredServices))
-						.doOnError(e -> log.info("Error deploying applications {} with error {}", brokeredServices, e))
+						.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
+						.doOnEach(s -> log.debug("Finished deploying {}", s))
+						.doOnComplete(() -> log.debug("Finished deploying applications {}", brokeredServices))
+						.doOnError(e -> log.error("Error deploying applications {} with error {}", brokeredServices, e))
 						.flatMap(apps -> Flux.empty()));
 	}
 

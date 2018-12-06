@@ -63,7 +63,7 @@ class UpdateInstanceWithServicesComponentTest extends WiremockComponentTest {
 		cloudControllerFixture.stubServiceInstanceExists(SERVICE_INSTANCE_NAME);
 		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, SERVICE_INSTANCE_NAME);
 
-		// when a service instance is created
+		// when a service instance is updated
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
 			.patch(brokerFixture.createServiceInstanceUrl(), "instance-id")

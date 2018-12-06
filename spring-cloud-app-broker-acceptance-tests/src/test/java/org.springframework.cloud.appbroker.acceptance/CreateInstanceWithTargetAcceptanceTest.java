@@ -22,38 +22,46 @@ import java.util.Optional;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_SAMPLE_APP_CREATE_WITH_TARGET = "app-with-target";
-	private static final String BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER = "app-with-target-other";
-	private static final String SI_1_NAME = "service-instance-1";
-	private static final String SERVICE_NAME = "db-service";
+	private static final String APP_CREATE_WITH_TARGET = "app-create-with-target";
+	private static final String APP_CREATE_WITH_TARGET_OTHER = "app-create-with-target-other";
+	private static final String BACKING_SERVICE_INSTANCE = "backing-service-instance-target";
+	private static final String BACKING_SERVICE_NAME = "backing-service-target";
+
+	@BeforeEach
+	void setUpServiceBrokerForService() {
+		deployServiceBrokerForService(BACKING_SERVICE_NAME);
+	}
+
+	@AfterEach
+	void tearDownServiceBrokerForService() {
+		deleteServiceBrokerForService(BACKING_SERVICE_NAME);
+	}
 
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
 
-		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_CREATE_WITH_TARGET,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-		"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + SI_1_NAME,
-		"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + SI_1_NAME,
-		"spring.cloud.appbroker.services[0].services[0].name=" + SERVICE_NAME,
+		"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SERVICE_INSTANCE,
+		"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SERVICE_INSTANCE,
+		"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 		"spring.cloud.appbroker.services[0].services[0].plan=standard",
 
-		"spring.cloud.appbroker.services[0].apps[1].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER,
+		"spring.cloud.appbroker.services[0].apps[1].name=" + APP_CREATE_WITH_TARGET_OTHER,
 		"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
 
 		"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance"
 	})
-	void shouldCreateMultipleAppsInSpace() {
-		// given that a service is available in the marketplace
-		setupServiceBrokerForService(SERVICE_NAME);
-
+	void deployAppsInTargetSpaceOnCreateService() {
 		// when a service instance is created with targets
 		createServiceInstance();
 
@@ -65,24 +73,24 @@ class CreateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 		String spaceName = serviceInstance.orElseThrow(RuntimeException::new).getId();
 
 		Optional<ApplicationSummary> backingApplication =
-			getApplicationSummaryByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, spaceName);
+			getApplicationSummaryByNameAndSpace(APP_CREATE_WITH_TARGET, spaceName);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
 			assertThat(app.getRunningInstances()).isEqualTo(1);
 
 			// and has its route with the service instance id appended to it
 			assertThat(app.getUrls()).isNotEmpty();
-			assertThat(app.getUrls().get(0)).startsWith(BROKER_SAMPLE_APP_CREATE_WITH_TARGET + "-" + spaceName);
+			assertThat(app.getUrls().get(0)).startsWith(APP_CREATE_WITH_TARGET + "-" + spaceName);
 		});
 
 		Optional<ApplicationSummary> backingApplicationOther =
-			getApplicationSummaryByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET_OTHER, spaceName);
+			getApplicationSummaryByNameAndSpace(APP_CREATE_WITH_TARGET_OTHER, spaceName);
 		assertThat(backingApplicationOther).hasValueSatisfying(app ->
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		// and the services are bound to it
-		Optional<ServiceInstanceSummary> serviceInstance1 = getServiceInstance(SI_1_NAME, spaceName);
+		Optional<ServiceInstanceSummary> serviceInstance1 = getServiceInstance(BACKING_SERVICE_INSTANCE, spaceName);
 		assertThat(serviceInstance1).hasValueSatisfying(instance ->
-			assertThat(instance.getApplications()).contains(BROKER_SAMPLE_APP_CREATE_WITH_TARGET));
+			assertThat(instance.getApplications()).contains(APP_CREATE_WITH_TARGET));
 
 		// when the service instance is deleted
 		deleteServiceInstance();
@@ -90,13 +98,5 @@ class CreateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 		// then the space is deleted
 		List<String> spaces = getSpaces();
 		assertThat(spaces).doesNotContain(spaceName);
-	}
-
-	@Override
-	@AfterEach
-	void tearDown() {
-		super.tearDown();
-
-		deleteServiceBrokerForService(SERVICE_NAME);
 	}
 }

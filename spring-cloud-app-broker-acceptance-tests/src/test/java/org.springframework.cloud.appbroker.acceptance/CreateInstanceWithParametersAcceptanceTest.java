@@ -29,13 +29,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_SAMPLE_APP_CREATE = "broker-sample-app-create-with-parameters";
+	private static final String APP_CREATE_WITH_PARAMETERS = "app-create-with-parameters";
 
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_CREATE_WITH_PARAMETERS,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=config2",
@@ -47,7 +47,7 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].name=PropertyMapping",
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].args.include=memory",
 	})
-	void shouldPushAppWhenCreateServiceCalled() {
+	void deployAppsWithParametersOnCreateService() {
 		// when a service instance is created
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("parameter1", "value1");
@@ -59,7 +59,7 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		createServiceInstanceWithParameters(parameters);
 
 		// then a backing application is deployed
-		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
+		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_CREATE_WITH_PARAMETERS);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
 			assertThat(app.getInstances()).isEqualTo(1);
 			assertThat(app.getRunningInstances()).isEqualTo(1);
@@ -67,7 +67,7 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		});
 
 		// and has the environment variables
-		DocumentContext json = getSpringAppJsonByName(BROKER_SAMPLE_APP_CREATE);
+		DocumentContext json = getSpringAppJsonByName(APP_CREATE_WITH_PARAMETERS);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("value1");
 		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
 		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("value3");

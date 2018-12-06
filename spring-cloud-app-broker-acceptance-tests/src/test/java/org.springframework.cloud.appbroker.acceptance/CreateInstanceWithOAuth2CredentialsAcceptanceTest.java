@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_SAMPLE_APP_CREATE = "broker-sample-app-create-oauth2";
+	private static final String APP_CREATE = "app-create-with-oauth2";
 
 	@Test
 	@Disabled("This test can only be run with a Cloud Foundry user or client that has 'client.write' authority, " +
@@ -39,7 +39,7 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_CREATE,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].name=SpringSecurityOAuth2",
@@ -52,7 +52,7 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-numeric=false",
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false"
 	})
-	void shouldPushAppWhenCreateServiceCalled() {
+	void deployAppsWithOAuth2OnCreateService() {
 		// when a service instance is created
 		createServiceInstance();
 
@@ -65,13 +65,13 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 			.orElse("unknown");
 
 		// then a backing application is deployed
-		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
+		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_CREATE);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
 			assertThat(app.getRunningInstances()).isEqualTo(1);
 		});
 
 		// and has the environment variables
-		DocumentContext json = getSpringAppJsonByName(BROKER_SAMPLE_APP_CREATE);
+		DocumentContext json = getSpringAppJsonByName(APP_CREATE);
 		assertThat(json).jsonPathAsString("$.spring.security.oauth2.client.registration.sample-app-client.client-id")
 			.isEqualTo(uaaClientId(serviceInstanceGuid));
 		assertThat(json).jsonPathAsString("$.spring.security.oauth2.client.registration.sample-app-client.client-secret")
@@ -88,7 +88,7 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 		deleteServiceInstance();
 
 		// then the backing application is deleted
-		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(BROKER_SAMPLE_APP_CREATE);
+		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(APP_CREATE);
 		assertThat(backingApplicationAfterDeletion).isEmpty();
 
 		// and the UAA client is deleted
@@ -97,6 +97,6 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 	}
 
 	private String uaaClientId(String serviceInstanceGuid) {
-		return BROKER_SAMPLE_APP_CREATE + "-" + serviceInstanceGuid;
+		return APP_CREATE + "-" + serviceInstanceGuid;
 	}
 }

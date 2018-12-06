@@ -32,13 +32,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_SAMPLE_APP_UPDATE = "app-update";
+	private static final String APP_UPDATE = "app-update";
 
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_UPDATE,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_UPDATE,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=config2",
@@ -47,16 +47,16 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=EnvironmentMapping",
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=parameter1,parameter3"
 	})
-	void shouldUpdateAppWhenUpdateServiceCalled() {
+	void deployAppsOnUpdateService() {
 		// given a service instance is created
 		createServiceInstance();
 
 		// and a backing application is deployed
-		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(BROKER_SAMPLE_APP_UPDATE);
+		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_UPDATE);
 		assertThat(backingApplication).hasValueSatisfying(app ->
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
-		DocumentContext json = getSpringAppJsonByName(BROKER_SAMPLE_APP_UPDATE);
+		DocumentContext json = getSpringAppJsonByName(APP_UPDATE);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("config1");
 		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
 		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("config3");
@@ -75,7 +75,7 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		assertThat(serviceInstanceSummary).isNotEmpty();
 
 		// the backing application is updated with the new parameters
-		json = getSpringAppJsonByName(BROKER_SAMPLE_APP_UPDATE);
+		json = getSpringAppJsonByName(APP_UPDATE);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("value1");
 		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
 		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("value3");
@@ -85,7 +85,7 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		deleteServiceInstance();
 
 		// then the backing application is deleted
-		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(BROKER_SAMPLE_APP_UPDATE);
+		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(APP_UPDATE);
 		assertThat(backingApplicationAfterDeletion).isEmpty();
 	}
 }

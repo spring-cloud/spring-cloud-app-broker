@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
@@ -12,10 +13,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_APP_SERVICES = "broker-app-new-services";
-	private static final String SI_1_NAME = "service-instance-created";
-	private static final String SI_2_NAME = "service-instance-existing";
-	private static final String SERVICE_NAME = "db-service";
+	private static final String BROKER_APP_SERVICES = "app-create-with-services";
+	private static final String SI_1_NAME = "backing-service-instance-created";
+	private static final String SI_2_NAME = "backing-service-instance-existing";
+	private static final String SERVICE_NAME = "backing-service";
+
+	@BeforeEach
+	void setUpServiceBrokerForService() {
+		deployServiceBrokerForService(SERVICE_NAME);
+	}
+
+	@AfterEach
+	void tearDownServiceBrokerForService() {
+		deleteServiceBrokerForService(SERVICE_NAME);
+	}
 
 	@Test
 	@AppBrokerTestProperties({
@@ -31,9 +42,8 @@ class CreateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 		
 		"spring.cloud.appbroker.services[0].apps[0].services[1].service-instance-name=" + SI_2_NAME
 	})
-	void shouldPushAppWithServicesBind() {
+	void deployAppsAndCreateServicesOnCreateService() {
 		// given that a service is available in the marketplace
-		setupServiceBrokerForService(SERVICE_NAME);
 		createServiceInstance("standard", SERVICE_NAME, SI_2_NAME, emptyMap());
 
 		// when a service instance is created
@@ -65,13 +75,5 @@ class CreateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 			assertThat(instance.getApplications()).isEmpty());
 
 		deleteServiceInstance(SI_2_NAME);
-	}
-
-	@Override
-	@AfterEach
-	void tearDown() {
-		super.tearDown();
-
-		deleteServiceBrokerForService(SERVICE_NAME);
 	}
 }

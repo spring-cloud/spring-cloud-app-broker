@@ -122,14 +122,19 @@ public class CloudFoundryService {
 	public Mono<Void> deleteApp(String appName) {
 		return loggingMono(cloudFoundryOperations
 			.applications()
-			.delete(DeleteApplicationRequest.builder().name(appName).build())
+			.delete(DeleteApplicationRequest.builder()
+				.name(appName)
+				.deleteRoutes(true)
+				.build())
 			.onErrorResume(e -> Mono.empty()));
 	}
 
 	public Mono<Void> deleteServiceBroker(String brokerName) {
 		return loggingMono(cloudFoundryOperations
 			.serviceAdmin()
-			.delete(DeleteServiceBrokerRequest.builder().name(brokerName).build())
+			.delete(DeleteServiceBrokerRequest.builder()
+				.name(brokerName)
+				.build())
 			.onErrorResume(e -> Mono.empty()));
 	}
 
@@ -139,7 +144,9 @@ public class CloudFoundryService {
 				.flatMap(si ->
 					cloudFoundryOperations
 						.services()
-						.deleteInstance(DeleteServiceInstanceRequest.builder().name(si.getName()).build())
+						.deleteInstance(DeleteServiceInstanceRequest.builder()
+							.name(si.getName())
+							.build())
 						.onErrorResume(e -> Mono.empty()))
 				.onErrorResume(e -> Mono.empty()));
 	}

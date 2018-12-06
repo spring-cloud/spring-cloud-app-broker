@@ -127,7 +127,7 @@ class CloudFoundryAcceptanceTest {
 			.then(cloudFoundryService.deleteApp(SAMPLE_BROKER_APP_NAME));
 	}
 
-	void setupServiceBrokerForService(String serviceName) {
+	void deployServiceBrokerForService(String serviceName) {
 		String[] properties = new String[] {
 			"spring.cloud.openservicebroker.catalog.services[0].id=" + serviceName,
 			"spring.cloud.openservicebroker.catalog.services[0].name=" + serviceName,

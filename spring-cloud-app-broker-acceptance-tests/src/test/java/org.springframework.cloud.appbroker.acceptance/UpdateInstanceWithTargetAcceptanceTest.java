@@ -32,18 +32,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String BROKER_SAMPLE_APP_CREATE_WITH_TARGET = "app-with-target";
+	private static final String APP_UPDATE_WITH_TARGET = "app-update-with-target";
 
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + BROKER_SAMPLE_APP_CREATE_WITH_TARGET,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_UPDATE_WITH_TARGET,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
 		"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance"
 	})
-	void shouldCreateAppInTargetWhenAddingNewProperties() {
+	void deployAppsInTargetSpaceOnUpdateService() {
 		// when a service instance is created
 		createServiceInstance();
 		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance();
@@ -53,13 +53,13 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 		// then a backing application is deployed in a space named as the service instance id
 		String spaceName = serviceInstance.orElseThrow(RuntimeException::new).getId();
 		Optional<ApplicationSummary> backingApplication =
-			getApplicationSummaryByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, spaceName);
+			getApplicationSummaryByNameAndSpace(APP_UPDATE_WITH_TARGET, spaceName);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
 			assertThat(app.getRunningInstances()).isEqualTo(1);
 
 			// and has its route with the service instance id appended to it
 			assertThat(app.getUrls()).isNotEmpty();
-			assertThat(app.getUrls().get(0)).startsWith(BROKER_SAMPLE_APP_CREATE_WITH_TARGET + "-" + spaceName);
+			assertThat(app.getUrls().get(0)).startsWith(APP_UPDATE_WITH_TARGET + "-" + spaceName);
 		});
 
 		// when the service instance is updated
@@ -71,7 +71,7 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 			.blockOptional();
 
 		// then the service instance has the initial parameters
-		DocumentContext json = getSpringAppJsonByNameAndSpace(BROKER_SAMPLE_APP_CREATE_WITH_TARGET, spaceName);
+		DocumentContext json = getSpringAppJsonByNameAndSpace(APP_UPDATE_WITH_TARGET, spaceName);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("config1");
 
 		// when the service instance is deleted

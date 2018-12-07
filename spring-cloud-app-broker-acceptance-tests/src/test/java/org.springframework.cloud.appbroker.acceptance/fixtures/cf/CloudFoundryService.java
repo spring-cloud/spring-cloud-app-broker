@@ -69,166 +69,175 @@ public class CloudFoundryService {
 	}
 
 	public Mono<Void> enableServiceBrokerAccess(String serviceName) {
-		return loggingMono(
-			cloudFoundryOperations
-				.serviceAdmin()
-				.enableServiceAccess(EnableServiceAccessRequest.builder()
-					.serviceName(serviceName)
-					.build()));
+		return cloudFoundryOperations.serviceAdmin()
+			.enableServiceAccess(EnableServiceAccessRequest.builder()
+				.serviceName(serviceName)
+				.build())
+			.doOnSuccess(item -> LOGGER.info("Enabled access to service " + serviceName))
+			.doOnError(error -> LOGGER.error("Error enabling access to service " + serviceName + ": " + error));
 	}
 
 	public Mono<Void> createServiceBroker(String brokerName, String sampleBrokerAppName) {
-		return loggingMono(
-			getApplicationRoute(sampleBrokerAppName)
-				.flatMap(url -> cloudFoundryOperations
-					.serviceAdmin()
-					.create(CreateServiceBrokerRequest.builder()
-						.name(brokerName)
-						.username("user")
-						.password("password")
-						.url(url)
-						.build())));
+		return getApplicationRoute(sampleBrokerAppName)
+			.flatMap(url -> cloudFoundryOperations.serviceAdmin()
+				.create(CreateServiceBrokerRequest.builder()
+					.name(brokerName)
+					.username("user")
+					.password("password")
+					.url(url)
+					.build())
+				.doOnSuccess(item -> LOGGER.info("Created service broker " + brokerName))
+				.doOnError(error -> LOGGER.error("Error creating service broker " + brokerName + ": " + error)));
 	}
 
 	private Mono<String> getApplicationRoute(String appName) {
-		return loggingMono(
-			cloudFoundryOperations
-				.applications()
-				.get(GetApplicationRequest.builder().name(appName).build())
-				.map(ApplicationDetail::getUrls)
-				.flatMapMany(Flux::fromIterable)
-				.next()
-				.map(url -> "https://" + url));
+		return cloudFoundryOperations.applications()
+			.get(GetApplicationRequest.builder()
+				.name(appName)
+				.build())
+			.doOnSuccess(item -> LOGGER.info("Got route for app " + appName))
+			.doOnError(error -> LOGGER.error("Error getting route for app " + appName + ": " + error))
+			.map(ApplicationDetail::getUrls)
+			.flatMapMany(Flux::fromIterable)
+			.next()
+			.map(url -> "https://" + url);
 	}
 
 	public Mono<Void> pushBrokerApp(String appName, Path appPath, String... backingAppProperties) {
-		return loggingMono(
-			cloudFoundryOperations
-				.applications()
-				.pushManifest(PushApplicationManifestRequest
-					.builder()
-					.manifest(ApplicationManifest
-						.builder()
-						.putAllEnvironmentVariables(appBrokerDeployerEnvironmentVariables())
-						.putAllEnvironmentVariables(appBrokerCatalogEnvironmentVariables())
-						.putAllEnvironmentVariables(backingAppEnvironmentVariables(backingAppProperties))
-						.name(appName)
-						.path(appPath)
-						.memory(1024)
-						.build())
-					.build()));
+		return cloudFoundryOperations.applications()
+			.pushManifest(PushApplicationManifestRequest.builder()
+				.manifest(ApplicationManifest.builder()
+					.putAllEnvironmentVariables(appBrokerDeployerEnvironmentVariables())
+					.putAllEnvironmentVariables(appBrokerCatalogEnvironmentVariables())
+					.putAllEnvironmentVariables(backingAppEnvironmentVariables(backingAppProperties))
+					.name(appName)
+					.path(appPath)
+					.memory(1024)
+					.build())
+				.build())
+			.doOnSuccess(item -> LOGGER.info("Pushed broker app " + appName))
+			.doOnError(error -> LOGGER.error("Error pushing broker app " + appName + ": " + error));
 	}
 
 	public Mono<Void> deleteApp(String appName) {
-		return loggingMono(cloudFoundryOperations
-			.applications()
+		return cloudFoundryOperations.applications()
 			.delete(DeleteApplicationRequest.builder()
 				.name(appName)
 				.deleteRoutes(true)
 				.build())
-			.onErrorResume(e -> Mono.empty()));
+			.doOnSuccess(item -> LOGGER.info("Deleted app " + appName))
+			.doOnError(error -> LOGGER.error("Error deleting app " + appName + ": " + error))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	public Mono<Void> deleteServiceBroker(String brokerName) {
-		return loggingMono(cloudFoundryOperations
-			.serviceAdmin()
+		return cloudFoundryOperations.serviceAdmin()
 			.delete(DeleteServiceBrokerRequest.builder()
 				.name(brokerName)
 				.build())
-			.onErrorResume(e -> Mono.empty()));
+			.doOnSuccess(item -> LOGGER.info("Deleted service broker " + brokerName))
+			.doOnError(error -> LOGGER.error("Error deleting service broker " + brokerName + ": " + error))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	public Mono<Void> deleteServiceInstance(String serviceInstanceName) {
-		return loggingMono(
-			getServiceInstanceFromList(serviceInstanceName)
-				.flatMap(si ->
-					cloudFoundryOperations
-						.services()
-						.deleteInstance(DeleteServiceInstanceRequest.builder()
-							.name(si.getName())
-							.build())
-						.onErrorResume(e -> Mono.empty()))
-				.onErrorResume(e -> Mono.empty()));
-	}
-
-	private Mono<ServiceInstanceSummary> getServiceInstanceFromList(String serviceInstanceName) {
-		return cloudFoundryOperations
-			.services()
-			.listInstances()
-			.filter(si -> si.getName().equals(serviceInstanceName))
-			.next();
+		return getServiceInstance(serviceInstanceName)
+			.flatMap(si -> cloudFoundryOperations.services()
+				.deleteInstance(DeleteServiceInstanceRequest.builder()
+					.name(si.getName())
+					.build())
+				.doOnSuccess(item -> LOGGER.info("Deleted service instance " + serviceInstanceName))
+				.doOnError(error -> LOGGER.error("Error deleting service instance " + serviceInstanceName + ": " + error))
+				.onErrorResume(e -> Mono.empty()))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	public Mono<Void> createServiceInstance(String planName,
 											String serviceName,
 											String serviceInstanceName,
 											Map<String, Object> parameters) {
-		return loggingMono(
-			cloudFoundryOperations
-				.services()
-				.createInstance(CreateServiceInstanceRequest
-					.builder()
-					.planName(planName)
-					.serviceName(serviceName)
-					.serviceInstanceName(serviceInstanceName)
-					.parameters(parameters)
-					.build()));
+		return cloudFoundryOperations.services()
+			.createInstance(CreateServiceInstanceRequest.builder()
+				.planName(planName)
+				.serviceName(serviceName)
+				.serviceInstanceName(serviceInstanceName)
+				.parameters(parameters)
+				.build())
+			.doOnSuccess(item -> LOGGER.info("Created service instance " + serviceInstanceName))
+			.doOnError(error -> LOGGER.error("Error creating service instance " + serviceInstanceName + ": " + error));
 	}
 
 	public Mono<Void> updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
-		return loggingMono(
-			cloudFoundryOperations
-				.services()
-				.updateInstance(UpdateServiceInstanceRequest
-					.builder()
-					.serviceInstanceName(serviceInstanceName)
-					.parameters(parameters)
-					.build()));
+		return cloudFoundryOperations.services()
+			.updateInstance(UpdateServiceInstanceRequest.builder()
+				.serviceInstanceName(serviceInstanceName)
+				.parameters(parameters)
+				.build())
+			.doOnSuccess(item -> LOGGER.info("Updated service instance " + serviceInstanceName))
+			.doOnError(error -> LOGGER.error("Error updating service instance " + serviceInstanceName + ": " + error));
 	}
 
 	public Mono<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName) {
-		return loggingMono(
-			getServiceInstanceFromList(serviceInstanceName));
+		return listServiceInstances(cloudFoundryOperations)
+			.filter(si -> si.getName().equals(serviceInstanceName))
+			.next();
 	}
 
 	public Mono<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName, String space) {
-		return loggingMono(
-			createOperationsForSpace(space)
-				.services()
-				.listInstances()
-				.filter(si -> si.getName().equals(serviceInstanceName))
-				.next());
+		return listServiceInstances(createOperationsForSpace(space))
+			.filter(si -> si.getName().equals(serviceInstanceName))
+			.next();
+	}
+
+	private Flux<ServiceInstanceSummary> listServiceInstances(CloudFoundryOperations operations) {
+		return operations.services()
+			.listInstances()
+			.doOnComplete(() -> LOGGER.info("Listed service instances"))
+			.doOnError(error -> LOGGER.error("Error listing service instances: " + error));
 	}
 
 	public Mono<List<ApplicationSummary>> getApplications() {
-		return loggingMono(
-			cloudFoundryOperations.applications().list().collectList());
-	}
-
-	public Mono<List<String>> getSpaces() {
-		return this.cloudFoundryOperations.spaces().list().map(SpaceSummary::getName).collectList();
+		return listApplications(cloudFoundryOperations)
+			.collectList();
 	}
 
 	public Mono<ApplicationSummary> getApplicationSummaryByNameAndSpace(String appName, String space) {
-		return loggingFlux(createOperationsForSpace(space)
-			.applications()
-			.list()
+		return listApplications(createOperationsForSpace(space))
 			.filter(applicationSummary -> applicationSummary.getName().equals(appName))
-		).single();
+			.single();
+	}
+
+	private Flux<ApplicationSummary> listApplications(CloudFoundryOperations operations) {
+		return operations.applications()
+			.list()
+			.doOnComplete(() -> LOGGER.info("Listed applications"))
+			.doOnError(error -> LOGGER.error("Error listing applications: " + error));
 	}
 
 	public Mono<ApplicationEnvironments> getApplicationEnvironmentByAppName(String appName) {
-		return loggingMono(
-			cloudFoundryOperations
-				.applications()
-				.getEnvironments(GetApplicationEnvironmentsRequest.builder().name(appName).build()));
+		return getApplicationEnvironment(cloudFoundryOperations, appName);
 	}
 
 	public Mono<ApplicationEnvironments> getApplicationEnvironmentByAppNameAndSpace(String appName, String space) {
-		return loggingMono(
-			createOperationsForSpace(space)
-				.applications()
-				.getEnvironments(GetApplicationEnvironmentsRequest.builder().name(appName).build()));
+		return getApplicationEnvironment(createOperationsForSpace(space), appName);
+	}
+
+	private Mono<ApplicationEnvironments> getApplicationEnvironment(CloudFoundryOperations operations, String appName) {
+		return operations.applications()
+			.getEnvironments(GetApplicationEnvironmentsRequest.builder()
+				.name(appName)
+				.build())
+			.doOnSuccess(item -> LOGGER.info("Got environment for application " + appName))
+			.doOnError(error -> LOGGER.error("Error getting environment for application " + appName + ": " + error));
+	}
+
+	public Mono<List<String>> getSpaces() {
+		return cloudFoundryOperations.spaces()
+			.list()
+			.doOnComplete(() -> LOGGER.info("Listed spaces"))
+			.doOnError(error -> LOGGER.error("Error listing spaces: " + error))
+			.map(SpaceSummary::getName)
+			.collectList();
 	}
 
 	public Mono<SpaceSummary> getOrCreateDefaultSpace() {
@@ -241,28 +250,42 @@ public class CloudFoundryService {
 			.spaces();
 
 		final String defaultSpace = cloudFoundryProperties.getDefaultSpace();
-		return loggingMono(
-			getDefaultSpace(spaceOperations)
-				.switchIfEmpty(spaceOperations
-					.create(CreateSpaceRequest
-						.builder()
-						.name(defaultSpace)
-						.organization(defaultOrg)
-						.build())
-					.then(getDefaultSpace(spaceOperations))));
+		return getDefaultSpace(spaceOperations)
+			.switchIfEmpty(spaceOperations.create(CreateSpaceRequest
+				.builder()
+				.name(defaultSpace)
+				.organization(defaultOrg)
+				.build())
+				.then(getDefaultSpace(spaceOperations)));
 	}
 
 	public Mono<OrganizationSummary> getOrCreateDefaultOrganization() {
 		Organizations organizationOperations = cloudFoundryOperations.organizations();
 
 		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
-		return loggingMono(getDefaultOrg(organizationOperations)
-				.switchIfEmpty(organizationOperations
-					.create(CreateOrganizationRequest
-						.builder()
-						.organizationName(defaultOrg)
-						.build())
-					.then(getDefaultOrg(organizationOperations))));
+		return getDefaultOrg(organizationOperations)
+			.switchIfEmpty(organizationOperations
+				.create(CreateOrganizationRequest
+					.builder()
+					.organizationName(defaultOrg)
+					.build())
+				.then(getDefaultOrg(organizationOperations)));
+	}
+
+	private Mono<OrganizationSummary> getDefaultOrg(Organizations orgOperations) {
+		return orgOperations.list()
+			.filter(r -> r
+				.getName()
+				.equals(cloudFoundryProperties.getDefaultOrg()))
+			.next();
+	}
+
+	private Mono<SpaceSummary> getDefaultSpace(Spaces spaceOperations) {
+		return spaceOperations.list()
+			.filter(r -> r
+				.getName()
+				.equals(cloudFoundryProperties.getDefaultSpace()))
+			.next();
 	}
 
 	private CloudFoundryOperations createOperationsForSpace(String space) {
@@ -272,24 +295,6 @@ public class CloudFoundryService {
 			.organization(defaultOrg)
 			.space(space)
 			.build();
-	}
-
-	private Mono<OrganizationSummary> getDefaultOrg(Organizations orgOperations) {
-		return orgOperations
-			.list()
-			.filter(r -> r
-				.getName()
-				.equals(cloudFoundryProperties.getDefaultOrg()))
-			.next();
-	}
-
-	private Mono<SpaceSummary> getDefaultSpace(Spaces spaceOperations) {
-		return spaceOperations
-			.list()
-			.filter(r -> r
-				.getName()
-				.equals(cloudFoundryProperties.getDefaultSpace()))
-			.next();
 	}
 
 	private Map<String, String> appBrokerDeployerEnvironmentVariables() {
@@ -348,21 +353,5 @@ public class CloudFoundryService {
 			}
 		}
 		return backingAppVariables;
-	}
-
-	private <T> Mono<T> loggingMono(Mono<T> publisher) {
-		if (LOGGER.isDebugEnabled()) {
-			return publisher.log();
-		} else {
-			return publisher;
-		}
-	}
-
-	private <T> Flux<T> loggingFlux(Flux<T> publisher) {
-		if (LOGGER.isDebugEnabled()) {
-			return publisher.log();
-		} else {
-			return publisher;
-		}
 	}
 }

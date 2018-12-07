@@ -29,17 +29,18 @@ import java.util.Optional;
 import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled("This test can only be run with a Cloud Foundry user or client that has 'client.write' authority, " +
+	"so it should not be run in CI")
 class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String APP_CREATE = "app-create-with-oauth2";
+	private static final String APP_NAME = "app-create-oauth2";
+	private static final String SI_NAME = "si-create-oauth2";
 
 	@Test
-	@Disabled("This test can only be run with a Cloud Foundry user or client that has 'client.write' authority, " +
-		"so it should not be run in CI")
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_CREATE,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].name=SpringSecurityOAuth2",
@@ -54,9 +55,9 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 	})
 	void deployAppsWithOAuth2OnCreateService() {
 		// when a service instance is created
-		createServiceInstance();
+		createServiceInstance(SI_NAME);
 
-		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance();
+		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_NAME);
 		assertThat(serviceInstance).hasValueSatisfying(value ->
 			assertThat(value.getLastOperation()).contains("completed"));
 
@@ -65,13 +66,12 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 			.orElse("unknown");
 
 		// then a backing application is deployed
-		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_CREATE);
-		assertThat(backingApplication).hasValueSatisfying(app -> {
-			assertThat(app.getRunningInstances()).isEqualTo(1);
-		});
+		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_NAME);
+		assertThat(backingApplication).hasValueSatisfying(app ->
+			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		// and has the environment variables
-		DocumentContext json = getSpringAppJsonByName(APP_CREATE);
+		DocumentContext json = getSpringAppJsonByName(APP_NAME);
 		assertThat(json).jsonPathAsString("$.spring.security.oauth2.client.registration.sample-app-client.client-id")
 			.isEqualTo(uaaClientId(serviceInstanceGuid));
 		assertThat(json).jsonPathAsString("$.spring.security.oauth2.client.registration.sample-app-client.client-secret")
@@ -85,10 +85,10 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 		});
 
 		// when the service instance is deleted
-		deleteServiceInstance();
+		deleteServiceInstance(SI_NAME);
 
 		// then the backing application is deleted
-		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(APP_CREATE);
+		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(APP_NAME);
 		assertThat(backingApplicationAfterDeletion).isEmpty();
 
 		// and the UAA client is deleted
@@ -97,6 +97,6 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 	}
 
 	private String uaaClientId(String serviceInstanceGuid) {
-		return APP_CREATE + "-" + serviceInstanceGuid;
+		return APP_NAME + "-" + serviceInstanceGuid;
 	}
 }

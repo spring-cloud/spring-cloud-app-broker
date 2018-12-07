@@ -65,7 +65,6 @@ class CloudFoundryAcceptanceTest {
 	private static final String SERVICE_BROKER_NAME = "sample-broker-name";
 	private static final String SERVICE_NAME = "example";
 	private static final String PLAN_NAME = "standard";
-	private static final String SERVICE_INSTANCE_NAME = "my-service";
 
 	@Autowired
 	private CloudFoundryService cloudFoundryService;
@@ -121,9 +120,7 @@ class CloudFoundryAcceptanceTest {
 	}
 
 	private Mono<Void> cleanup() {
-		return cloudFoundryService
-			.deleteServiceInstance(SERVICE_INSTANCE_NAME)
-			.then(cloudFoundryService.deleteServiceBroker(SERVICE_BROKER_NAME))
+		return cloudFoundryService.deleteServiceBroker(SERVICE_BROKER_NAME)
 			.then(cloudFoundryService.deleteApp(SAMPLE_BROKER_APP_NAME));
 	}
 
@@ -149,12 +146,16 @@ class CloudFoundryAcceptanceTest {
 							   .then(cloudFoundryService.deleteApp(serviceName)));
 	}
 
-	void createServiceInstance() {
-		createServiceInstanceWithParameters(Collections.emptyMap());
+	void createServiceInstance(String serviceInstanceName) {
+		createServiceInstance(serviceInstanceName, Collections.emptyMap());
 	}
 
-	void createServiceInstance(String planName,
-							   String serviceName,
+	void createServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
+		createServiceInstance(SERVICE_NAME, PLAN_NAME, serviceInstanceName, parameters);
+	}
+
+	void createServiceInstance(String serviceName,
+							   String planName,
 							   String serviceInstanceName,
 							   Map<String, Object> parameters) {
 		blockingSubscribe(cloudFoundryService
@@ -165,24 +166,12 @@ class CloudFoundryAcceptanceTest {
 				parameters));
 	}
 
-	void createServiceInstanceWithParameters(Map<String, Object> parameters) {
-		createServiceInstance(PLAN_NAME, SERVICE_NAME, SERVICE_INSTANCE_NAME, parameters);
-	}
-
-	void updateServiceInstance(Map<String, Object> parameters) {
-		blockingSubscribe(cloudFoundryService.updateServiceInstance(SERVICE_INSTANCE_NAME, parameters));
-	}
-
-	void deleteServiceInstance() {
-		deleteServiceInstance(SERVICE_INSTANCE_NAME);
+	void updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
+		blockingSubscribe(cloudFoundryService.updateServiceInstance(serviceInstanceName, parameters));
 	}
 
 	void deleteServiceInstance(String serviceInstanceName) {
 		blockingSubscribe(cloudFoundryService.deleteServiceInstance(serviceInstanceName));
-	}
-
-	Optional<ServiceInstanceSummary> getServiceInstance() {
-		return getServiceInstanceMono().blockOptional();
 	}
 
 	Optional<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName) {
@@ -193,11 +182,7 @@ class CloudFoundryAcceptanceTest {
 		return getServiceInstanceMono(serviceInstanceName, space).blockOptional();
 	}
 
-	Mono<ServiceInstanceSummary> getServiceInstanceMono() {
-		return getServiceInstanceMono(SERVICE_INSTANCE_NAME);
-	}
-
-	private Mono<ServiceInstanceSummary> getServiceInstanceMono(String serviceInstanceName) {
+	Mono<ServiceInstanceSummary> getServiceInstanceMono(String serviceInstanceName) {
 		return cloudFoundryService.getServiceInstance(serviceInstanceName);
 	}
 

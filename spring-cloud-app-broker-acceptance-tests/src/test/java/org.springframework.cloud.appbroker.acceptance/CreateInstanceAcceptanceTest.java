@@ -30,6 +30,7 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	private static final String APP_CREATE_1 = "app-create-1";
 	private static final String APP_CREATE_2 = "app-create-2";
+	private static final String SI_NAME = "si-create";
 
 	@Test
 	@AppBrokerTestProperties({
@@ -55,9 +56,9 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 	})
 	void deployAppsOnCreateService() {
 		// when a service instance is created
-		createServiceInstance();
+		createServiceInstance(SI_NAME);
 
-		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance();
+		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_NAME);
 		assertThat(serviceInstance).hasValueSatisfying(value ->
 			assertThat(value.getLastOperation()).contains("completed"));
 
@@ -79,7 +80,7 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		assertBasicAuthCredentialsProvided(json);
 
 		// when the service instance is deleted
-		deleteServiceInstance();
+		deleteServiceInstance(SI_NAME);
 
 		// then the backing applications are deleted
 		Optional<ApplicationSummary> backingApplication1AfterDeletion = getApplicationSummaryByName(APP_CREATE_1);

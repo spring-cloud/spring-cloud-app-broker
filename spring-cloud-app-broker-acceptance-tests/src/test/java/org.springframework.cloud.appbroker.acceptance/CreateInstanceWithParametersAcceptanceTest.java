@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.junit.jupiter.api.Test;
 
 import static com.revinate.assertj.json.JsonPathAssert.assertThat;
@@ -29,13 +30,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String APP_CREATE_WITH_PARAMETERS = "app-create-with-parameters";
+	private static final String APP_NAME = "app-create-params";
+	private static final String SI_NAME = "si-create-params";
 
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_CREATE_WITH_PARAMETERS,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=config2",
@@ -56,10 +58,14 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		parameters.put("count", 5);
 		parameters.put("memory", "2G");
 
-		createServiceInstanceWithParameters(parameters);
+		createServiceInstance(SI_NAME, parameters);
+
+		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_NAME);
+		assertThat(serviceInstance).hasValueSatisfying(value ->
+			assertThat(value.getLastOperation()).contains("completed"));
 
 		// then a backing application is deployed
-		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_CREATE_WITH_PARAMETERS);
+		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_NAME);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
 			assertThat(app.getInstances()).isEqualTo(1);
 			assertThat(app.getRunningInstances()).isEqualTo(1);
@@ -67,13 +73,13 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		});
 
 		// and has the environment variables
-		DocumentContext json = getSpringAppJsonByName(APP_CREATE_WITH_PARAMETERS);
+		DocumentContext json = getSpringAppJsonByName(APP_NAME);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("value1");
 		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
 		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("value3");
 
 		// when the service instance is deleted
-		deleteServiceInstance();
+		deleteServiceInstance(SI_NAME);
 	}
 
 }

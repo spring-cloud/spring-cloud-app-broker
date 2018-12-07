@@ -32,13 +32,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String APP_UPDATE = "app-update";
+	private static final String APP_NAME = "app-update";
+	private static final String SI_NAME = "si-update";
 
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_UPDATE,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=config2",
@@ -49,14 +50,18 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 	})
 	void deployAppsOnUpdateService() {
 		// given a service instance is created
-		createServiceInstance();
+		createServiceInstance(SI_NAME);
+
+		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_NAME);
+		assertThat(serviceInstance).hasValueSatisfying(value ->
+			assertThat(value.getLastOperation()).contains("completed"));
 
 		// and a backing application is deployed
-		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_UPDATE);
+		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_NAME);
 		assertThat(backingApplication).hasValueSatisfying(app ->
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
-		DocumentContext json = getSpringAppJsonByName(APP_UPDATE);
+		DocumentContext json = getSpringAppJsonByName(APP_NAME);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("config1");
 		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
 		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("config3");
@@ -66,26 +71,26 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		parameters.put("parameter1", "value1");
 		parameters.put("parameter2", "value2");
 		parameters.put("parameter3", "value3");
-		updateServiceInstance(parameters);
+		updateServiceInstance(SI_NAME, parameters);
 
-		Optional<ServiceInstanceSummary> serviceInstanceSummary = getServiceInstanceMono()
+		Optional<ServiceInstanceSummary> serviceInstanceSummary = getServiceInstanceMono(SI_NAME)
 			.filter(summary -> summary.getLastOperation().contains("completed"))
 			.repeatWhenEmpty(DelayUtils.exponentialBackOff(Duration.ofSeconds(2), Duration.ofSeconds(15), Duration.ofMinutes(5)))
 			.blockOptional();
 		assertThat(serviceInstanceSummary).isNotEmpty();
 
 		// the backing application is updated with the new parameters
-		json = getSpringAppJsonByName(APP_UPDATE);
+		json = getSpringAppJsonByName(APP_NAME);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("value1");
 		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
 		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("value3");
 		assertThat(json).jsonPathAsString("$.parameter4").isEqualTo("config4");
 
 		// when the service instance is deleted
-		deleteServiceInstance();
+		deleteServiceInstance(SI_NAME);
 
 		// then the backing application is deleted
-		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(APP_UPDATE);
+		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(APP_NAME);
 		assertThat(backingApplicationAfterDeletion).isEmpty();
 	}
 }

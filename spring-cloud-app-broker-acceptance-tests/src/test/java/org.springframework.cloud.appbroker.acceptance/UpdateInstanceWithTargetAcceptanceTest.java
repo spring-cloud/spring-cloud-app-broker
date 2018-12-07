@@ -32,50 +32,52 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String APP_UPDATE_WITH_TARGET = "app-update-with-target";
+	private static final String APP_NAME = "app-update-target";
+	private static final String SI_NAME = "si-update-target";
 
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=example",
 		"spring.cloud.appbroker.services[0].plan-name=standard",
-		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_UPDATE_WITH_TARGET,
+		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
 		"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance"
 	})
 	void deployAppsInTargetSpaceOnUpdateService() {
 		// when a service instance is created
-		createServiceInstance();
-		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance();
+		createServiceInstance(SI_NAME);
+
+		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_NAME);
 		assertThat(serviceInstance).hasValueSatisfying(value ->
 			assertThat(value.getLastOperation()).contains("completed"));
 
 		// then a backing application is deployed in a space named as the service instance id
 		String spaceName = serviceInstance.orElseThrow(RuntimeException::new).getId();
 		Optional<ApplicationSummary> backingApplication =
-			getApplicationSummaryByNameAndSpace(APP_UPDATE_WITH_TARGET, spaceName);
+			getApplicationSummaryByNameAndSpace(APP_NAME, spaceName);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
 			assertThat(app.getRunningInstances()).isEqualTo(1);
 
 			// and has its route with the service instance id appended to it
 			assertThat(app.getUrls()).isNotEmpty();
-			assertThat(app.getUrls().get(0)).startsWith(APP_UPDATE_WITH_TARGET + "-" + spaceName);
+			assertThat(app.getUrls().get(0)).startsWith(APP_NAME + "-" + spaceName);
 		});
 
 		// when the service instance is updated
-		updateServiceInstance(Collections.singletonMap("parameter2", "config2"));
+		updateServiceInstance(SI_NAME, Collections.singletonMap("parameter2", "config2"));
 
-		getServiceInstanceMono()
+		getServiceInstanceMono(SI_NAME)
 			.filter(summary -> summary.getLastOperation().contains("completed"))
 			.repeatWhenEmpty(DelayUtils.exponentialBackOff(Duration.ofSeconds(2), Duration.ofSeconds(15), Duration.ofMinutes(5)))
 			.blockOptional();
 
 		// then the service instance has the initial parameters
-		DocumentContext json = getSpringAppJsonByNameAndSpace(APP_UPDATE_WITH_TARGET, spaceName);
+		DocumentContext json = getSpringAppJsonByNameAndSpace(APP_NAME, spaceName);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("config1");
 
 		// when the service instance is deleted
-		deleteServiceInstance();
+		deleteServiceInstance(SI_NAME);
 
 		// then the space is deleted
 		List<String> spaces = getSpaces();

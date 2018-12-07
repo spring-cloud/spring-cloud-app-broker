@@ -1,0 +1,93 @@
+/*
+ * Copyright 2016-2018 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.cloud.appbroker.workflow.binding;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.Logger;
+import reactor.util.Loggers;
+
+import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
+import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
+import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder;
+import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
+import org.springframework.core.annotation.Order;
+import org.springframework.credhub.core.ReactiveCredHubOperations;
+import org.springframework.credhub.support.json.JsonCredentialRequest;
+import org.springframework.util.CollectionUtils;
+
+@Order(50)
+public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow implements CreateServiceInstanceAppBindingWorkflow {
+
+	private static final Logger LOG = Loggers.getLogger(CredHubPersistingCreateServiceInstanceAppBindingWorkflow.class);
+
+	private static final String CREDENTIALS_KEY = "credhub-ref";
+
+	private static final String CREDENTIALS_VALUE_TEMPLATE = "/c/%s/%s/%s/credentials-json";
+
+	private final String appName;
+
+	private final ReactiveCredHubOperations credHubOperations;
+
+	public CredHubPersistingCreateServiceInstanceAppBindingWorkflow(ReactiveCredHubOperations credHubOperations, String appName) {
+		this.credHubOperations = credHubOperations;
+		this.appName = appName;
+	}
+
+	@Override
+	public Flux<Void> create(CreateServiceInstanceBindingRequest request) {
+		return Flux.empty();
+	}
+
+	@Override
+	public Mono<CreateServiceInstanceAppBindingResponseBuilder> buildResponse(CreateServiceInstanceBindingRequest request,
+																			  CreateServiceInstanceAppBindingResponseBuilder responseBuilder) {
+		return Mono.just(responseBuilder.build())
+				   .flatMap(response -> {
+					   if (!CollectionUtils.isEmpty(response.getCredentials())) {
+						   return persistBindingCredentials(request, response)
+							   .doOnRequest(l -> LOG.debug("Storing binding credentials in CredHub"))
+							   .doOnSuccess(r -> LOG.debug("Finished storing binding credentials in CredHub"))
+							   .doOnError(exception -> LOG.debug("Error storing binding credentials in CredHub with error {}", exception));
+					   }
+					   return Mono.just(responseBuilder);
+				   });
+	}
+
+	private Mono<CreateServiceInstanceAppBindingResponseBuilder> persistBindingCredentials(CreateServiceInstanceBindingRequest request,
+																						   CreateServiceInstanceAppBindingResponse response) {
+		return credHubOperations
+			.credentials()
+			.write(JsonCredentialRequest
+				.builder()
+				.value(response.getCredentials())
+				.build())
+			.thenReturn(CreateServiceInstanceAppBindingResponse
+				.builder()
+				.async(response.isAsync())
+				.bindingExisted(response.isBindingExisted())
+				.credentials(CREDENTIALS_KEY, formatCredentials(request))
+				.operation(response.getOperation())
+				.syslogDrainUrl(response.getSyslogDrainUrl())
+				.volumeMounts(response.getVolumeMounts()));
+	}
+
+	private String formatCredentials(CreateServiceInstanceBindingRequest request) {
+		return String.format(CREDENTIALS_VALUE_TEMPLATE, this.appName, request.getServiceDefinitionId(), request.getBindingId());
+	}
+
+}

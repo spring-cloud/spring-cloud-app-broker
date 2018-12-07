@@ -26,12 +26,15 @@ dependencies {
 	implementation project(":spring-cloud-app-broker-core")
 	implementation project(":spring-cloud-app-broker-deployer")
 	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")
+	implementation project(":spring-cloud-app-broker-security-credhub")
 	implementation("org.springframework.boot:spring-boot-starter")
-	implementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
-	implementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
 	implementation("io.projectreactor:reactor-core")
 	implementation("io.projectreactor.ipc:reactor-netty")
 	api("org.immutables:value:${immutablesVersion}")
+
+	compileOnly("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
+	compileOnly("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
+	compileOnly("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
 
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.springframework.boot:spring-boot-autoconfigure-processor")
@@ -39,7 +42,13 @@ dependencies {
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-webflux")
 	testImplementation("org.junit.jupiter:junit-jupiter-api")
+	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+
+	testCompileOnly("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
+	testCompileOnly("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
+	testCompileOnly("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
 }
 
 compileJava.dependsOn(processResources)

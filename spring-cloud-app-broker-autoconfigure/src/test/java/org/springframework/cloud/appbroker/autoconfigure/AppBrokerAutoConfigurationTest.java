@@ -17,8 +17,11 @@
 package org.springframework.cloud.appbroker.autoconfigure;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCreateServiceInstanceAppBindingWorkflow;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
@@ -35,6 +38,7 @@ import org.springframework.cloud.appbroker.extensions.parameters.ParameterMappin
 import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceBindingService;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.state.ServiceInstanceBindingStateRepository;
@@ -42,17 +46,47 @@ import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentUpdateServiceInstanceWorkflow;
+import org.springframework.context.annotation.Bean;
+import org.springframework.credhub.core.ReactiveCredHubOperations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class AppBrokerAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-		.withConfiguration(AutoConfigurations.of(AppBrokerAutoConfiguration.class));
+		.withConfiguration(AutoConfigurations.of(AppBrokerAutoConfiguration.class, CredHubAutoConfiguration.class));
 
 	@Test
 	void servicesAreCreatedWithCloudFoundryConfigured() {
+		configuredContext()
+			.run(this::assertContext);
+	}
+
+	@Test
+	void servicesAreCreatedWithCloudFoundryAndCredHubConfigured() {
+		configuredContext()
+			.withUserConfiguration(CredHubConfiguration.class)
+			.run((context) -> {
+				assertContext(context);
+				assertThat(context)
+					.hasSingleBean(CreateServiceInstanceAppBindingWorkflow.class)
+					.getBean(CreateServiceInstanceAppBindingWorkflow.class)
+					.isExactlyInstanceOf(CredHubPersistingCreateServiceInstanceAppBindingWorkflow.class);
+			});
+	}
+
+	@Test
+	void servicesAreNotCreatedWithoutDeployerConfiguration() {
 		this.contextRunner
+			.run((context) -> {
+				assertThat(context).doesNotHaveBean(BackingApplications.class);
+				assertThat(context).doesNotHaveBean(DeployerClient.class);
+			});
+	}
+
+	private ApplicationContextRunner configuredContext() {
+		return this.contextRunner
 			.withConfiguration(AutoConfigurations.of(CloudFoundryAppDeployerAutoConfiguration.class))
 			.withPropertyValues(
 				"spring.cloud.appbroker.services[0].service-name=service1",
@@ -76,70 +110,70 @@ class AppBrokerAutoConfigurationTest {
 				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
 				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
 				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
-			)
-			.run((context) -> {
-				assertThat(context).hasSingleBean(BrokeredServices.class);
-				BrokeredServices brokeredServices = context.getBean(BrokeredServices.class);
-				assertThat(brokeredServices).hasSize(2);
-
-				assertThat(brokeredServices.get(0).getServiceName()).isEqualTo("service1");
-				assertThat(brokeredServices.get(0).getPlanName()).isEqualTo("service1-plan1");
-
-				assertThat(brokeredServices.get(0).getApps().get(0).getName()).isEqualTo("app1");
-				assertThat(brokeredServices.get(0).getApps().get(0).getPath()).isEqualTo("classpath:app1.jar");
-				assertThat(brokeredServices.get(0).getApps().get(0).getProperties().get("memory")).isEqualTo("1G");
-				assertThat(brokeredServices.get(0).getApps().get(0).getProperties().get("instances")).isNull();
-
-				assertThat(brokeredServices.get(0).getApps().get(1).getName()).isEqualTo("app2");
-				assertThat(brokeredServices.get(0).getApps().get(1).getPath()).isEqualTo("classpath:app2.jar");
-				assertThat(brokeredServices.get(0).getApps().get(1).getProperties().get("memory")).isEqualTo("2G");
-				assertThat(brokeredServices.get(0).getApps().get(1).getProperties().get("instances")).isEqualTo("2");
-
-				assertThat(brokeredServices.get(1).getServiceName()).isEqualTo("service2");
-				assertThat(brokeredServices.get(1).getPlanName()).isEqualTo("service2-plan1");
-
-				assertThat(brokeredServices.get(1).getApps().get(0).getName()).isEqualTo("app3");
-				assertThat(brokeredServices.get(1).getApps().get(0).getPath()).isEqualTo("classpath:app3.jar");
-
-				assertThat(context).hasSingleBean(DeployerClient.class);
-				assertThat(context).hasSingleBean(BrokeredServices.class);
-
-				assertThat(context).hasSingleBean(ServiceInstanceStateRepository.class);
-				assertThat(context).hasSingleBean(ServiceInstanceBindingStateRepository.class);
-
-				assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
-				assertThat(context).hasSingleBean(BackingServicesProvisionService.class);
-
-				assertThat(context).hasSingleBean(BackingApplicationsParametersTransformationService.class);
-				assertThat(context).hasSingleBean(EnvironmentMappingParametersTransformerFactory.class);
-				assertThat(context).hasSingleBean(PropertyMappingParametersTransformerFactory.class);
-				assertThat(context).hasSingleBean(ParameterMappingParametersTransformerFactory.class);
-
-				assertThat(context).hasSingleBean(BackingServicesParametersTransformationService.class);
-
-				assertThat(context).hasSingleBean(CredentialProviderService.class);
-				assertThat(context).hasSingleBean(SpringSecurityBasicAuthCredentialProviderFactory.class);
-				assertThat(context).hasSingleBean(SpringSecurityOAuth2CredentialProviderFactory.class);
-
-				assertThat(context).hasSingleBean(TargetService.class);
-				assertThat(context).hasSingleBean(SpacePerServiceInstance.class);
-
-				assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);
-				assertThat(context).hasSingleBean(WorkflowServiceInstanceBindingService.class);
-
-				assertThat(context).hasSingleBean(AppDeploymentCreateServiceInstanceWorkflow.class);
-				assertThat(context).hasSingleBean(AppDeploymentDeleteServiceInstanceWorkflow.class);
-				assertThat(context).hasSingleBean(AppDeploymentUpdateServiceInstanceWorkflow.class);
-			});
+			);
 	}
 
-	@Test
-	void servicesAreNotCreatedWithoutDeployerConfiguration() {
-		this.contextRunner
-			.run((context) -> {
-				assertThat(context).doesNotHaveBean(BackingApplications.class);
-				assertThat(context).doesNotHaveBean(DeployerClient.class);
-			});
+	private void assertContext(AssertableApplicationContext context) {
+		assertThat(context).hasSingleBean(BrokeredServices.class);
+		BrokeredServices brokeredServices = context.getBean(BrokeredServices.class);
+		assertThat(brokeredServices).hasSize(2);
+
+		assertThat(brokeredServices.get(0).getServiceName()).isEqualTo("service1");
+		assertThat(brokeredServices.get(0).getPlanName()).isEqualTo("service1-plan1");
+
+		assertThat(brokeredServices.get(0).getApps().get(0).getName()).isEqualTo("app1");
+		assertThat(brokeredServices.get(0).getApps().get(0).getPath()).isEqualTo("classpath:app1.jar");
+		assertThat(brokeredServices.get(0).getApps().get(0).getProperties().get("memory")).isEqualTo("1G");
+		assertThat(brokeredServices.get(0).getApps().get(0).getProperties().get("instances")).isNull();
+
+		assertThat(brokeredServices.get(0).getApps().get(1).getName()).isEqualTo("app2");
+		assertThat(brokeredServices.get(0).getApps().get(1).getPath()).isEqualTo("classpath:app2.jar");
+		assertThat(brokeredServices.get(0).getApps().get(1).getProperties().get("memory")).isEqualTo("2G");
+		assertThat(brokeredServices.get(0).getApps().get(1).getProperties().get("instances")).isEqualTo("2");
+
+		assertThat(brokeredServices.get(1).getServiceName()).isEqualTo("service2");
+		assertThat(brokeredServices.get(1).getPlanName()).isEqualTo("service2-plan1");
+
+		assertThat(brokeredServices.get(1).getApps().get(0).getName()).isEqualTo("app3");
+		assertThat(brokeredServices.get(1).getApps().get(0).getPath()).isEqualTo("classpath:app3.jar");
+
+		assertThat(context).hasSingleBean(DeployerClient.class);
+		assertThat(context).hasSingleBean(BrokeredServices.class);
+
+		assertThat(context).hasSingleBean(ServiceInstanceStateRepository.class);
+		assertThat(context).hasSingleBean(ServiceInstanceBindingStateRepository.class);
+
+		assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
+		assertThat(context).hasSingleBean(BackingServicesProvisionService.class);
+
+		assertThat(context).hasSingleBean(BackingApplicationsParametersTransformationService.class);
+		assertThat(context).hasSingleBean(EnvironmentMappingParametersTransformerFactory.class);
+		assertThat(context).hasSingleBean(PropertyMappingParametersTransformerFactory.class);
+		assertThat(context).hasSingleBean(ParameterMappingParametersTransformerFactory.class);
+
+		assertThat(context).hasSingleBean(BackingServicesParametersTransformationService.class);
+
+		assertThat(context).hasSingleBean(CredentialProviderService.class);
+		assertThat(context).hasSingleBean(SpringSecurityBasicAuthCredentialProviderFactory.class);
+		assertThat(context).hasSingleBean(SpringSecurityOAuth2CredentialProviderFactory.class);
+
+		assertThat(context).hasSingleBean(TargetService.class);
+		assertThat(context).hasSingleBean(SpacePerServiceInstance.class);
+
+		assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);
+		assertThat(context).hasSingleBean(WorkflowServiceInstanceBindingService.class);
+
+		assertThat(context).hasSingleBean(AppDeploymentCreateServiceInstanceWorkflow.class);
+		assertThat(context).hasSingleBean(AppDeploymentDeleteServiceInstanceWorkflow.class);
+		assertThat(context).hasSingleBean(AppDeploymentUpdateServiceInstanceWorkflow.class);
+	}
+
+	@TestConfiguration
+	public static class CredHubConfiguration {
+		@Bean
+		public ReactiveCredHubOperations credHubOperations() {
+			return mock(ReactiveCredHubOperations.class);
+		}
 	}
 
 }

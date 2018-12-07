@@ -211,13 +211,13 @@ public class AppBrokerAutoConfiguration {
 
 	@Bean
 	public WorkflowServiceInstanceBindingService serviceInstanceBindingService(
-			ServiceInstanceBindingStateRepository stateRepository,
-			@Autowired(required = false) List<CreateServiceInstanceAppBindingWorkflow> createServiceInstanceAppBindingWorkflows,
-			@Autowired(required = false) List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows,
-			@Autowired(required = false) List<DeleteServiceInstanceBindingWorkflow> deleteServiceInstanceBindingWorkflows) {
+		ServiceInstanceBindingStateRepository stateRepository,
+		@Autowired(required = false) List<CreateServiceInstanceAppBindingWorkflow> createServiceInstanceAppBindingWorkflows,
+		@Autowired(required = false) List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows,
+		@Autowired(required = false) List<DeleteServiceInstanceBindingWorkflow> deleteServiceInstanceBindingWorkflows) {
 		return new WorkflowServiceInstanceBindingService(stateRepository,
-				createServiceInstanceAppBindingWorkflows,
-				createServiceInstanceRouteBindingWorkflows,
-				deleteServiceInstanceBindingWorkflows);
+			createServiceInstanceAppBindingWorkflows,
+			createServiceInstanceRouteBindingWorkflows,
+			deleteServiceInstanceBindingWorkflows);
 	}
 }

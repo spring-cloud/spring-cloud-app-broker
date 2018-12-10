@@ -126,6 +126,7 @@ class CloudFoundryAcceptanceTest {
 
 	void deployServiceBrokerForService(String serviceName) {
 		String[] properties = new String[] {
+			"spring.application.name=backing-broker",
 			"spring.cloud.openservicebroker.catalog.services[0].id=" + serviceName,
 			"spring.cloud.openservicebroker.catalog.services[0].name=" + serviceName,
 			"spring.cloud.openservicebroker.catalog.services[0].plans[0].id=" + serviceName,

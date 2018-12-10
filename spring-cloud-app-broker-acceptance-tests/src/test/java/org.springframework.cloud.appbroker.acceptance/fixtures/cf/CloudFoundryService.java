@@ -107,6 +107,7 @@ public class CloudFoundryService {
 		return cloudFoundryOperations.applications()
 			.pushManifest(PushApplicationManifestRequest.builder()
 				.manifest(ApplicationManifest.builder()
+					.environmentVariable("spring.application.name", "app-broker-acceptance")
 					.putAllEnvironmentVariables(appBrokerDeployerEnvironmentVariables())
 					.putAllEnvironmentVariables(appBrokerCatalogEnvironmentVariables())
 					.putAllEnvironmentVariables(backingAppEnvironmentVariables(backingAppProperties))

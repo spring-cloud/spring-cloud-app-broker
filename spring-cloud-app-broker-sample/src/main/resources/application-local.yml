@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: app-broker-sample
   cloud:
     openservicebroker:
       catalog:

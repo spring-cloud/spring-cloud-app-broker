@@ -1,6 +1,3 @@
-spring:
-  application:
-    name: foo-app
 logging:
   level:
     cloudfoundry-client: DEBUG

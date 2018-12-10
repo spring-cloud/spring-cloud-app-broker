@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: app-broker-test
   cloud:
     appbroker:
       deployer:

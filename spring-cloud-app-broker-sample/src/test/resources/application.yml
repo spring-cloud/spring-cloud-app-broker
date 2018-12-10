@@ -1,3 +1,6 @@
+spring:
+  application:
+    name: app-broker-test
 logging:
   level:
     cloudfoundry-client: DEBUG

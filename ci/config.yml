@@ -100,3 +100,61 @@ jobs:
     - store_test_results:
         path: ~/repo/spring-cloud-app-broker-acceptance-tests/build/test-results
         destination: acceptancetestartifacts
+
+  bosh_redeploy:
+    docker:
+    - image: springcloudservices/spring-cloud-app-broker-ci:v1
+
+    working_directory: ~/repo
+
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xms512m -Xmx2048m"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx512m -Xmx2048m" -Dorg.gradle.daemon=false'
+      TERM: dumb
+
+    steps:
+    - checkout
+
+    - restore_cache:
+        key: sc-app-broker-{{ .Branch }}
+
+    - run:
+        name: "Populate Secrets from Environment"
+        command: |
+          cd ~/repo/ci/
+          if [[ ${CIRCLE_BUILD_NUM} = "" ]]; then
+              echo "populating from .envrc"
+              [[ -f ".envrc-localci" ]] || (printf "Ensure .envrc is present in ci directory before running script"; exit 1)
+              cat .envrc-localci >> $BASH_ENV
+              source .envrc-localci
+              ./scripts/manage-bosh-bbl-environment.sh generate-bbl-state-directory -b "${ACTIVE_BBL_ENV_LOCAL}"
+              bbl -s "bosh-env-${ACTIVE_BBL_ENV_LOCAL}/bbl-state" print-env >> $BASH_ENV
+          else
+              echo "populating from bbl env"
+              ./scripts/manage-bosh-bbl-environment.sh generate-bbl-state-directory -b "${ACTIVE_BBL_ENV_CIRCLE}"
+              bbl -s "bosh-env-${ACTIVE_BBL_ENV_CIRCLE}/bbl-state" print-env >> $BASH_ENV
+          fi
+
+    - run:
+        name: "Redeploy and cleanup cf"
+        command: |
+          cd ~/repo/ci
+          scripts/manage-bosh-bbl-environment.sh recreate-environment -b plymouth
+          bosh disks --orphaned | grep disk- | awk '{print $1}' | xargs -L1 bosh delete-disk -n
+          
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 7 * * 0"
+          filters:
+            branches:
+              only:
+              - master
+    jobs:
+      - bosh_redeploy
+

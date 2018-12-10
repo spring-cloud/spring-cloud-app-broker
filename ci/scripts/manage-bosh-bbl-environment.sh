@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euox pipefail
 readonly SCRIPT_DIR=$(readlink -m $(dirname $0))
 readonly CI_DIR=$(dirname "${SCRIPT_DIR}")
 readonly BBL_VERSION=v6.9.16
@@ -319,16 +319,20 @@ update_variables_to_target_active_environment(){
 
 recreate_environment(){
 	local -r bbl_env_suffix="${1}"
+	local -r bbl_state_dir=$(get_bbl_state_dir "${bbl_env_suffix}")
 	local -r bbl_suffix_upper=${bbl_env_suffix^^}
 	local -r internal_network_var_name="BBL_${bbl_suffix_upper}_INTERNAL_NETWORK_CIDR"
 	local -r internal_cidr=$(eval echo "\$${internal_network_var_name}")
 	source_bbl_environment "${bbl_env_suffix}"
 	clone_cf_deployment "${bbl_env_suffix}"
-	recreate_director_and_jumpbox "${internal_cidr}" "${bbl_env_suffix}"
 
-	bosh -n -d cf stop --hard
-	bosh -n -d cf recreate --fix --skip-drain --canaries=0
-	bosh -n -d cf start --canaries=0
+	bosh -n update-runtime-config "${bbl_state_dir}/bosh-deployment/runtime-configs/dns.yml" --name dns
+	local -r stemcell_version=$(bosh interpolate "${bbl_state_dir}/cf-deployment/cf-deployment.yml" --path /stemcells/alias=default/version)
+	bosh -n upload-stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-xenial-go_agent?v=${stemcell_version}
+	local -r cf_password=$(credhub get -n "/bosh-${bbl_env_suffix}/cf/cf_admin_password" -j | jq -r '.value')
+	bosh -n -d cf delete-deployment
+	bosh -n -d cf deploy "${bbl_state_dir}/cf-deployment/cf-deployment.yml" -o "${bbl_state_dir}/cf-deployment/operations/bosh-lite.yml" \
+		-o "${bbl_state_dir}/cf-deployment/operations/use-compiled-releases.yml" -v system_domain="$(get_bbl_env_name ${bbl_env_suffix}).cf-app.com" -v cf_admin_password="${cf_password}"
 }
 
 get_bbl_state_dir(){

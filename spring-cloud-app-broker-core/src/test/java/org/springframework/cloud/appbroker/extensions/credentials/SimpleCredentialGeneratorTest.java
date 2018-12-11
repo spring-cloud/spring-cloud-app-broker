@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
+import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,28 +27,40 @@ class SimpleCredentialGeneratorTest {
 	void generateString() {
 		SimpleCredentialGenerator generator = new SimpleCredentialGenerator();
 
-		assertThat(generator.generateString(null, null, 12, true, false, false, false))
-			.matches("^[A-Z]{12}$");
-		assertThat(generator.generateString(null, null, 12, false, true, false, false))
-			.matches("^[a-z]{12}$");
-		assertThat(generator.generateString(null, null, 12, false, false, true, false))
-			.matches("^[0-9]{12}$");
-		assertThat(generator.generateString(null, null, 12, false, false, false, true))
-			.matches("^[\\p{Punct}]{12}$");
+		StepVerifier.create(generator.generateString(null, null, null, 12, true, false, false, false))
+					.assertNext(s -> assertThat(s).matches("^[A-Z]{12}$"))
+					.verifyComplete();
 
-		assertThat(generator.generateString(null, null, 12, true, true, true, true))
-			.matches("^[a-zA-Z0-9\\p{Punct}]{12}$");
-		assertThat(generator.generateString(null, null, 12, false, false, false, false))
-			.matches("^[a-zA-Z0-9\\p{Punct}]{12}$");
+		StepVerifier.create(generator.generateString(null, null, null, 12, false, true, false, false))
+					.assertNext(s -> assertThat(s).matches("^[a-z]{12}$"))
+					.verifyComplete();
+
+		StepVerifier.create(generator.generateString(null, null, null, 12, false, false, true, false))
+					.assertNext(s -> assertThat(s).matches("^[0-9]{12}$"))
+					.verifyComplete();
+
+		StepVerifier.create(generator.generateString(null, null, null, 12, false, false, false, true))
+					.assertNext(s -> assertThat(s).matches("^[\\p{Punct}]{12}$"))
+					.verifyComplete();
+
+		StepVerifier.create(generator.generateString(null, null, null, 12, true, true, true, true))
+					.assertNext(s -> assertThat(s).matches("^[a-zA-Z0-9\\p{Punct}]{12}$"))
+					.verifyComplete();
+
+		StepVerifier.create(generator.generateString(null, null, null, 12, false, false, false, false))
+					.assertNext(s -> assertThat(s).matches("^[a-zA-Z0-9\\p{Punct}]{12}$"))
+					.verifyComplete();
 	}
 
 	@Test
 	void generateUser() {
 		SimpleCredentialGenerator generator = new SimpleCredentialGenerator();
 
-		Pair<String, String> user = generator.generateUser(null, null, 10, true, true, true, true);
-
-		assertThat(user.getLeft().length()).isEqualTo(10);
-		assertThat(user.getRight().length()).isEqualTo(10);
+		StepVerifier.create(generator.generateUser(null, null, null, 10, true, true, true, true))
+					.assertNext(user -> {
+						assertThat(user.getT1().length()).isEqualTo(10);
+						assertThat(user.getT2().length()).isEqualTo(10);
+					})
+					.verifyComplete();
 	}
 }

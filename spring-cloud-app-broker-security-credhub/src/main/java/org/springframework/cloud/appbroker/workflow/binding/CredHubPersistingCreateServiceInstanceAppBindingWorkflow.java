@@ -27,6 +27,7 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.core.annotation.Order;
 import org.springframework.credhub.core.ReactiveCredHubOperations;
+import org.springframework.credhub.support.ServiceInstanceCredentialName;
 import org.springframework.credhub.support.json.JsonCredentialRequest;
 import org.springframework.util.CollectionUtils;
 
@@ -37,7 +38,7 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow implements
 
 	private static final String CREDENTIALS_KEY = "credhub-ref";
 
-	private static final String CREDENTIALS_VALUE_TEMPLATE = "/c/%s/%s/%s/credentials-json";
+	private static final String CREDENTIALS_NAME = "credentials-json";
 
 	private final String appName;
 
@@ -80,14 +81,17 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow implements
 				.builder()
 				.async(response.isAsync())
 				.bindingExisted(response.isBindingExisted())
-				.credentials(CREDENTIALS_KEY, formatCredentials(request))
+				.credentials(CREDENTIALS_KEY, ServiceInstanceCredentialName
+					.builder()
+					.serviceBrokerName(this.appName)
+					.serviceOfferingName(request.getServiceDefinitionId())
+					.serviceBindingId(request.getBindingId())
+					.credentialName(CREDENTIALS_NAME)
+					.build()
+					.getName())
 				.operation(response.getOperation())
 				.syslogDrainUrl(response.getSyslogDrainUrl())
 				.volumeMounts(response.getVolumeMounts()));
-	}
-
-	private String formatCredentials(CreateServiceInstanceBindingRequest request) {
-		return String.format(CREDENTIALS_VALUE_TEMPLATE, this.appName, request.getServiceDefinitionId(), request.getBindingId());
 	}
 
 }

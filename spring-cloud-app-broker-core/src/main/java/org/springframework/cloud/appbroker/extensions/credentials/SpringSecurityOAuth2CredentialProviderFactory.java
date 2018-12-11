@@ -16,21 +16,25 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import org.apache.commons.lang3.tuple.Pair;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
+
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientRequest;
 import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientResponse;
 import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientRequest;
 import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientResponse;
 import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
-import reactor.core.publisher.Mono;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public class SpringSecurityOAuth2CredentialProviderFactory extends
 	CredentialProviderFactory<SpringSecurityOAuth2CredentialProviderFactory.Config> {
+
+	private static final String CREDENTIAL_DESCRIPTOR = "oauth2";
 
 	static final String SPRING_KEY = "spring";
 	static final String SPRING_SECURITY_KEY = "security";
@@ -65,33 +69,30 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 			@Override
 			public Mono<BackingApplication> deleteCredentials(BackingApplication backingApplication,
 															  String serviceInstanceGuid) {
-				credentialGenerator.deleteString(backingApplication.getName(), serviceInstanceGuid);
-
-				String clientId = generateClientId(config, backingApplication, serviceInstanceGuid);
-
-				return deleteOAuth2Client(config, clientId)
-					.flatMap(response -> Mono.just(backingApplication));
+				return credentialGenerator.deleteString(backingApplication.getName(), serviceInstanceGuid, CREDENTIAL_DESCRIPTOR)
+					.then(generateClientId(config, backingApplication, serviceInstanceGuid))
+					.flatMap(clientId -> deleteOAuth2Client(config, clientId)
+						.flatMap(response -> Mono.just(backingApplication)));
 			}
 		};
 	}
 
-	private Mono<Pair<String, String>> generateCredentials(Config config,
-														   BackingApplication backingApplication,
-														   String serviceInstanceGuid) {
-		String id = generateClientId(config, backingApplication, serviceInstanceGuid);
-		String secret = generateClientSecret(config, backingApplication, serviceInstanceGuid);
-
-		Pair<String, String> client = Pair.of(id, secret);
-
-		return Mono.just(client);
+	private Mono<Tuple2<String, String>> generateCredentials(Config config,
+															 BackingApplication backingApplication,
+															 String serviceInstanceGuid) {
+		return generateClientId(config, backingApplication, serviceInstanceGuid)
+			.flatMap(id -> generateClientSecret(config, backingApplication, serviceInstanceGuid)
+				.map(secret -> Tuples.of(id, secret)));
 	}
 
-	private Mono<Pair<String, String>> addClientToEnvironment(Config config,
+	private Mono<Tuple2<String, String>> addClientToEnvironment(Config config,
 															  BackingApplication backingApplication,
-															  Pair<String, String> client) {
+															  Tuple2<String, String> client) {
+
+
 		Map<String, String> clientProperties = new HashMap<>(2);
-		clientProperties.put(SPRING_SECURITY_CLIENT_ID_KEY, client.getLeft());
-		clientProperties.put(SPRING_SECURITY_CLIENT_SECRET_KEY, client.getRight());
+		clientProperties.put(SPRING_SECURITY_CLIENT_ID_KEY, client.getT1());
+		clientProperties.put(SPRING_SECURITY_CLIENT_SECRET_KEY, client.getT2());
 
 		backingApplication.addEnvironment(SPRING_KEY,
 			Collections.singletonMap(SPRING_SECURITY_KEY,
@@ -103,25 +104,27 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 		return Mono.just(client);
 	}
 
-	private String generateClientId(Config config, BackingApplication backingApplication,
+	private Mono<String> generateClientId(Config config, BackingApplication backingApplication,
 									String serviceInstanceGuid) {
-		if (config.clientId == null) {
-			return backingApplication.getName() + "-" + serviceInstanceGuid;
-		}
-		return config.getClientId();
+		return Mono.defer(() -> {
+			if (config.clientId == null) {
+				return Mono.just(backingApplication.getName() + "-" + serviceInstanceGuid);
+			}
+			return Mono.just(config.getClientId());
+		});
 	}
 
-	private String generateClientSecret(Config config, BackingApplication backingApplication,
+	private Mono<String> generateClientSecret(Config config, BackingApplication backingApplication,
 										String serviceInstanceGuid) {
 		return credentialGenerator.generateString(backingApplication.getName(), serviceInstanceGuid,
-			config.getLength(), config.isIncludeUppercaseAlpha(), config.isIncludeLowercaseAlpha(),
+			CREDENTIAL_DESCRIPTOR, config.getLength(), config.isIncludeUppercaseAlpha(), config.isIncludeLowercaseAlpha(),
 			config.isIncludeNumeric(), config.isIncludeSpecial());
 	}
 
-	private Mono<CreateOAuth2ClientResponse> createOAuth2Client(Config config, Pair<String, String> client) {
+	private Mono<CreateOAuth2ClientResponse> createOAuth2Client(Config config, Tuple2<String, String> client) {
 		CreateOAuth2ClientRequest.CreateOAuth2ClientRequestBuilder builder = CreateOAuth2ClientRequest.builder()
-			.clientId(client.getLeft())
-			.clientSecret(client.getRight())
+			.clientId(client.getT1())
+			.clientSecret(client.getT2())
 			.clientName(config.getClientName())
 			.identityZoneSubdomain(config.getIdentityZoneSubdomain())
 			.identityZoneId(config.getIdentityZoneId());

@@ -16,23 +16,26 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import org.apache.commons.lang3.tuple.Pair;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 public interface CredentialGenerator {
 
-	Pair<String, String> generateUser(String applicationId, String serviceInstanceId,
-									  int length, boolean includeUppercaseAlpha,
-									  boolean includeLowercaseAlpha, boolean includeNumeric,
-									  boolean includeSpecial);
+	Mono<Tuple2<String, String>> generateUser(String applicationId, String serviceInstanceId, String descriptor,
+												   int length, boolean includeUppercaseAlpha,
+												   boolean includeLowercaseAlpha, boolean includeNumeric,
+												   boolean includeSpecial);
 
-	String generateString(String applicationId, String serviceInstanceId,
-						  int length, boolean includeUppercaseAlpha,
-						  boolean includeLowercaseAlpha, boolean includeNumeric,
-						  boolean includeSpecial);
+	Mono<String> generateString(String applicationId, String serviceInstanceId, String descriptor,
+								int length, boolean includeUppercaseAlpha,
+								boolean includeLowercaseAlpha, boolean includeNumeric,
+								boolean includeSpecial);
 
-	default void deleteUser(String applicationId, String serviceInstanceId) {
+	default Mono<Void> deleteUser(String applicationId, String serviceInstanceId, String descriptor) {
+		return Mono.empty();
 	}
 
-	default void deleteString(String applicationId, String serviceInstanceId) {
+	default Mono<Void> deleteString(String applicationId, String serviceInstanceId, String descriptor) {
+		return Mono.empty();
 	}
 }

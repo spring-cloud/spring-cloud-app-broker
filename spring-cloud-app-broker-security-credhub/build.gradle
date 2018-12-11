@@ -24,8 +24,6 @@ dependencyManagement {
 
 dependencies {
 	implementation project(":spring-cloud-app-broker-core")
-	implementation("io.projectreactor:reactor-core")
-	implementation("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
 	implementation("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")

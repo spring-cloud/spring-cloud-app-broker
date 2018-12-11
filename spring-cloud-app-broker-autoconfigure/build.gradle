@@ -28,9 +28,6 @@ dependencies {
 	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")
 	implementation project(":spring-cloud-app-broker-security-credhub")
 	implementation("org.springframework.boot:spring-boot-starter")
-	implementation("io.projectreactor:reactor-core")
-	implementation("io.projectreactor.ipc:reactor-netty")
-	api("org.immutables:value:${immutablesVersion}")
 
 	compileOnly("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
 	compileOnly("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")

@@ -7,4 +7,5 @@ include "spring-cloud-app-broker-autoconfigure"
 include "spring-cloud-app-broker-sample"
 include "spring-cloud-app-broker-acceptance-tests"
 include "spring-cloud-app-broker-security-credhub"
-include 'spring-cloud-starter-app-broker'
+include "spring-cloud-starter-app-broker"
+include "spring-cloud-starter-app-broker-cloudfoundry"

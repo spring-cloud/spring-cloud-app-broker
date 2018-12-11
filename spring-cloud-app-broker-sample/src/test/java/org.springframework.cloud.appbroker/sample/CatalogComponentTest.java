@@ -33,7 +33,7 @@ import static org.hamcrest.CoreMatchers.is;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = {AppBrokerSampleApplication.class})
+	classes = {AppBrokerApplication.class})
 @ActiveProfiles({"openservicebroker-catalog", "appbroker-cf"})
 class CatalogComponentTest {
 

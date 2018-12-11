@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.autoconfigure;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.appbroker.extensions.credentials.CredHubCredentialsGenerator;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCreateServiceInstanceAppBindingWorkflow;
@@ -28,6 +29,7 @@ import org.springframework.credhub.core.ReactiveCredHubOperations;
 
 @Configuration
 @AutoConfigureBefore(AppBrokerAutoConfiguration.class)
+@ConditionalOnClass(ReactiveCredHubOperations.class)
 @ConditionalOnBean(ReactiveCredHubOperations.class)
 public class CredHubAutoConfiguration {
 

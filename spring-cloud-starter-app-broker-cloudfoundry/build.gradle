@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-description = "Spring Cloud App Broker Starter"
+description = "Spring Cloud App Broker Starter for Cloud Foundry"
 
 dependencyManagement {
 	imports {
@@ -23,9 +23,14 @@ dependencyManagement {
 }
 
 dependencies {
-	api project(":spring-cloud-app-broker-core")
-	api project(":spring-cloud-app-broker-autoconfigure")
-	api("org.springframework.cloud:spring-cloud-starter-open-service-broker:${openServiceBrokerVersion}")
+	api project(":spring-cloud-starter-app-broker")
+	api project(":spring-cloud-app-broker-deployer-cloudfoundry")
+	api project(":spring-cloud-app-broker-security-credhub")
+
+	api("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
+	api("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
+	api("io.projectreactor.ipc:reactor-netty")
+	api("org.immutables:value:${immutablesVersion}")
 }
 
 install {

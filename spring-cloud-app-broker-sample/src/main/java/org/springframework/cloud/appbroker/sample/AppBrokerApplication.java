@@ -20,9 +20,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AppBrokerSampleApplication {
+public class AppBrokerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AppBrokerSampleApplication.class, args);
+		SpringApplication.run(AppBrokerApplication.class, args);
 	}
 }

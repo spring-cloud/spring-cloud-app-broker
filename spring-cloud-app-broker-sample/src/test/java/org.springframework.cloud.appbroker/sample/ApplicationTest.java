@@ -31,13 +31,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {AppBrokerSampleApplication.class})
+@SpringBootTest(classes = {AppBrokerApplication.class})
 @ActiveProfiles({"openservicebroker-catalog", "appbroker-cf"})
 class ApplicationTest {
 	@Autowired(required = false)
 	private CatalogController catalogController;
 
-	@Autowired
+	@Autowired(required = false)
 	private CloudFoundryOperations cloudFoundryOperations;
 
 	@Autowired(required = false)

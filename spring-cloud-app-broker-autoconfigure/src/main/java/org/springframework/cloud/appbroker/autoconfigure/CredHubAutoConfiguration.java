@@ -16,27 +16,32 @@
 
 package org.springframework.cloud.appbroker.autoconfigure;
 
-import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCreateServiceInstanceAppBindingWorkflow;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.cloud.appbroker.extensions.credentials.CredHubCredentialsGenerator;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
+import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCreateServiceInstanceAppBindingWorkflow;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.credhub.core.ReactiveCredHubOperations;
 
 @Configuration
 @AutoConfigureBefore(AppBrokerAutoConfiguration.class)
+@ConditionalOnBean(ReactiveCredHubOperations.class)
 public class CredHubAutoConfiguration {
 
 	@Value("${spring.application.name}")
 	private String appName;
 
 	@Bean
-	@ConditionalOnBean(ReactiveCredHubOperations.class)
 	public CreateServiceInstanceAppBindingWorkflow credhubPersistingCreateServiceInstanceAppBindingWorkflow(ReactiveCredHubOperations credHubOperations) {
 		return new CredHubPersistingCreateServiceInstanceAppBindingWorkflow(credHubOperations, appName);
+	}
+
+	@Bean
+	public CredHubCredentialsGenerator credHubCredentialsGenerator(ReactiveCredHubOperations credHubOperations) {
+		return new CredHubCredentialsGenerator(credHubOperations);
 	}
 
 }

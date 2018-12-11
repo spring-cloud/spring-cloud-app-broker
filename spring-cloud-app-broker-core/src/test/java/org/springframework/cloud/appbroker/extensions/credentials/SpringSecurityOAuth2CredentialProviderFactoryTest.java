@@ -16,23 +16,25 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientRequest;
 import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientResponse;
 import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientRequest;
 import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientResponse;
 import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -69,9 +71,9 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 		BackingApplication backingApplication = BackingApplication.builder()
 			.build();
 
-		when(credentialGenerator.generateString(backingApplication.getName(), "service-instance-id",
+		when(credentialGenerator.generateString(backingApplication.getName(), "service-instance-id", "oauth2",
 			8, true, false, true, false))
-			.thenReturn("test-secret");
+			.thenReturn(Mono.just("test-secret"));
 
 		when(oAuth2Client.createClient(buildCreateOAuth2Request("test-id")))
 			.thenReturn(Mono.just(CreateOAuth2ClientResponse.builder().build()));
@@ -93,9 +95,9 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 			.build();
 		String clientId = backingApplication.getName() + "-" + "service-instance-id";
 
-		when(credentialGenerator.generateString(backingApplication.getName(), "service-instance-id",
+		when(credentialGenerator.generateString(backingApplication.getName(), "service-instance-id", "oauth2",
 			8, true, false, true, false))
-			.thenReturn("test-secret");
+			.thenReturn(Mono.just("test-secret"));
 
 		when(oAuth2Client.createClient(buildCreateOAuth2Request(clientId)))
 			.thenReturn(Mono.just(CreateOAuth2ClientResponse.builder().build()));
@@ -130,12 +132,15 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 		when(oAuth2Client.deleteClient(buildDeleteOAuth2Request("test-id")))
 			.thenReturn(Mono.just(DeleteOAuth2ClientResponse.builder().build()));
 
+		given(credentialGenerator.deleteString(backingApplication.getName(), "service-instance-id", "oauth2"))
+			.willReturn(Mono.empty());
+
 		StepVerifier
 			.create(provider.deleteCredentials(backingApplication, "service-instance-id"))
 			.expectNext(backingApplication)
 			.verifyComplete();
 
-		verify(credentialGenerator).deleteString(backingApplication.getName(), "service-instance-id");
+		verify(credentialGenerator).deleteString(backingApplication.getName(), "service-instance-id", "oauth2");
 		verifyNoMoreInteractions(credentialGenerator);
 	}
 
@@ -151,12 +156,15 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 		when(oAuth2Client.deleteClient(buildDeleteOAuth2Request(clientId)))
 			.thenReturn(Mono.just(DeleteOAuth2ClientResponse.builder().build()));
 
+		given(credentialGenerator.deleteString(backingApplication.getName(), "service-instance-id", "oauth2"))
+			.willReturn(Mono.empty());
+
 		StepVerifier
 			.create(provider.deleteCredentials(backingApplication, "service-instance-id"))
 			.expectNext(backingApplication)
 			.verifyComplete();
 
-		verify(credentialGenerator).deleteString(backingApplication.getName(), "service-instance-id");
+		verify(credentialGenerator).deleteString(backingApplication.getName(), "service-instance-id", "oauth2");
 		verifyNoMoreInteractions(credentialGenerator);
 	}
 

@@ -16,10 +16,12 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.security.SecureRandom;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 public class SimpleCredentialGenerator implements CredentialGenerator {
 
@@ -29,22 +31,22 @@ public class SimpleCredentialGenerator implements CredentialGenerator {
 	private static final String SPECIAL_CHARACTERS = "~`!@#$%^&*()-_=+[{]}\\|;:\'\",<.>/?";
 
 	private final SecureRandom secureRandom = new SecureRandom();
-	
+
 	@Override
-	public Pair<String, String> generateUser(String applicationId, String serviceInstanceId, int length,
-											 boolean includeUppercaseAlpha, boolean includeLowercaseAlpha,
-											 boolean includeNumeric, boolean includeSpecial) {
-		return Pair.of(
-			generateString(applicationId, serviceInstanceId, length,
-				includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial),
-			generateString(applicationId, serviceInstanceId, length,
-				includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial));
+	public Mono<Tuple2<String, String>> generateUser(String applicationId, String serviceInstanceId, String descriptor, int length,
+													 boolean includeUppercaseAlpha, boolean includeLowercaseAlpha,
+													 boolean includeNumeric, boolean includeSpecial) {
+		return generateString(applicationId, serviceInstanceId, descriptor, length,
+			includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial)
+			.flatMap(username -> generateString(applicationId, serviceInstanceId, descriptor, length,
+				includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial)
+				.map(password -> Tuples.of(username, password)));
 	}
 
 	@Override
-	public String generateString(String applicationId, String serviceInstanceId, int length,
-								 boolean includeUppercaseAlpha, boolean includeLowercaseAlpha,
-								 boolean includeNumeric, boolean includeSpecial) {
+	public Mono<String> generateString(String applicationId, String serviceInstanceId, String descriptor, int length,
+									   boolean includeUppercaseAlpha, boolean includeLowercaseAlpha,
+									   boolean includeNumeric, boolean includeSpecial) {
 		StringBuilder builder = new StringBuilder();
 
 		if (includeUppercaseAlpha) {
@@ -65,13 +67,13 @@ public class SimpleCredentialGenerator implements CredentialGenerator {
 
 		if (builder.length() == 0) {
 			builder.append(UPPERCASE_ALPHA)
-				.append(LOWERCASE_ALPHA)
-				.append(DIGITS)
-				.append(SPECIAL_CHARACTERS);
+				   .append(LOWERCASE_ALPHA)
+				   .append(DIGITS)
+				   .append(SPECIAL_CHARACTERS);
 		}
 
 		char[] chars = builder.toString().toCharArray();
 
-		return RandomStringUtils.random(length, 0, chars.length - 1, false, false, chars, secureRandom);
+		return Mono.just(RandomStringUtils.random(length, 0, chars.length - 1, false, false, chars, secureRandom));
 	}
 }

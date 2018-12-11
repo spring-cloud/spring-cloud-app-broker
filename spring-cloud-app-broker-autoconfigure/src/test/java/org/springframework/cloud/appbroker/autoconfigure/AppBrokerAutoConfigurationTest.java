@@ -17,6 +17,10 @@
 package org.springframework.cloud.appbroker.autoconfigure;
 
 import org.junit.jupiter.api.Test;
+
+import org.springframework.cloud.appbroker.extensions.credentials.CredHubCredentialsGenerator;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
+import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
 import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCreateServiceInstanceAppBindingWorkflow;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -60,7 +64,14 @@ class AppBrokerAutoConfigurationTest {
 	@Test
 	void servicesAreCreatedWithCloudFoundryConfigured() {
 		configuredContext()
-			.run(this::assertContext);
+			.run(context -> {
+				assertContext(context);
+				assertThat(context).doesNotHaveBean(CreateServiceInstanceAppBindingWorkflow.class);
+				assertThat(context)
+					.hasSingleBean(CredentialGenerator.class)
+					.getBean(CredentialGenerator.class)
+					.isExactlyInstanceOf(SimpleCredentialGenerator.class);
+			});
 	}
 
 	@Test
@@ -73,6 +84,10 @@ class AppBrokerAutoConfigurationTest {
 					.hasSingleBean(CreateServiceInstanceAppBindingWorkflow.class)
 					.getBean(CreateServiceInstanceAppBindingWorkflow.class)
 					.isExactlyInstanceOf(CredHubPersistingCreateServiceInstanceAppBindingWorkflow.class);
+				assertThat(context)
+					.hasSingleBean(CredentialGenerator.class)
+					.getBean(CredentialGenerator.class)
+					.isExactlyInstanceOf(CredHubCredentialsGenerator.class);
 			});
 	}
 

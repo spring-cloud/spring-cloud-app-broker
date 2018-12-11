@@ -16,18 +16,21 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import org.apache.commons.lang3.tuple.Pair;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import reactor.util.function.Tuples;
 
-import java.util.Map;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -63,9 +66,9 @@ class SpringSecurityBasicAuthCredentialProviderFactoryTest {
 		BackingApplication backingApplication = BackingApplication.builder()
 			.build();
 
-		when(credentialGenerator.generateUser(backingApplication.getName(), "service-instance-id",
+		when(credentialGenerator.generateUser(backingApplication.getName(), "service-instance-id", "basic",
 			8, true, false, true, false))
-			.thenReturn(Pair.of("username", "password"));
+			.thenReturn(Mono.just(Tuples.of("username", "password")));
 
 		StepVerifier
 			.create(provider.addCredentials(backingApplication, "service-instance-id"))
@@ -83,15 +86,19 @@ class SpringSecurityBasicAuthCredentialProviderFactoryTest {
 
 	@Test
 	void deleteCredentials() {
-		BackingApplication backingApplication = BackingApplication.builder()
+		BackingApplication backingApplication = BackingApplication
+			.builder()
 			.build();
+
+		given(credentialGenerator.deleteUser(backingApplication.getName(), "service-instance-id", "basic"))
+			.willReturn(Mono.empty());
 
 		StepVerifier
 			.create(provider.deleteCredentials(backingApplication, "service-instance-id"))
 			.expectNext(backingApplication)
 			.verifyComplete();
 
-		verify(credentialGenerator).deleteUser(backingApplication.getName(), "service-instance-id");
+		verify(credentialGenerator).deleteUser(backingApplication.getName(), "service-instance-id", "basic");
 		verifyNoMoreInteractions(credentialGenerator);
 	}
 }

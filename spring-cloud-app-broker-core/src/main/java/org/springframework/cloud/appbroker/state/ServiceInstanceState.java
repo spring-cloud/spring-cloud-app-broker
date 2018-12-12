@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.state;
 
+import java.sql.Timestamp;
+
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
 /**
@@ -29,7 +31,7 @@ public class ServiceInstanceState {
 
 	private final String description;
 
-	//TODO: consider a time stamp property
+	private final Timestamp lastUpdated;
 
 	public OperationState getOperationState() {
 		return operationState;
@@ -39,9 +41,14 @@ public class ServiceInstanceState {
 		return description;
 	}
 
-	public ServiceInstanceState(OperationState operationState, String description) {
+	public Timestamp getLastUpdated() {
+		return this.lastUpdated;
+	}
+
+	public ServiceInstanceState(OperationState operationState, String description, Timestamp lastUpdated) {
 		this.operationState = operationState;
 		this.description = description;
+		this.lastUpdated = lastUpdated;
 	}
 
 }

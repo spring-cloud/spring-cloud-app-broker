@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.state;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -34,7 +36,7 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 	@Override
 	public Mono<ServiceInstanceState> saveState(String serviceInstanceId, String bindingId, OperationState state, String description) {
 		return Mono.just(new BindingKey(serviceInstanceId, bindingId))
-			.flatMap(bindingKey -> Mono.just(new ServiceInstanceState(state, description))
+			.flatMap(bindingKey -> Mono.just(new ServiceInstanceState(state, description, new Timestamp(Instant.now().toEpochMilli())))
 				.flatMap(serviceInstanceState -> Mono.fromCallable(() -> this.states.put(bindingKey, serviceInstanceState))
 					.thenReturn(serviceInstanceState)));
 	}

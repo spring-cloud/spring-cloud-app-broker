@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.event;
+package org.springframework.cloud.appbroker.state;
+
+import java.util.Calendar;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 
-import org.springframework.cloud.appbroker.state.InMemoryServiceInstanceStateRepository;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +41,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -47,6 +49,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 	}
@@ -57,6 +60,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -64,12 +68,50 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
 		StepVerifier.create(stateRepository.getState("foo"))
 			.expectError(IllegalArgumentException.class)
 			.verify();
+	}
+
+	@Test
+	void updateState() {
+		StepVerifier
+			.create(stateRepository.saveState("foo-service", OperationState.IN_PROGRESS, "bar"))
+			.assertNext(serviceInstanceState -> {
+				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
+				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+			})
+			.verifyComplete();
+
+		StepVerifier.create(stateRepository.getState("foo-service"))
+					.assertNext(serviceInstanceState -> {
+						assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
+						assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+						assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					})
+					.verifyComplete();
+
+		StepVerifier
+			.create(stateRepository.saveState("foo-service", OperationState.SUCCEEDED, "bar"))
+			.assertNext(serviceInstanceState -> {
+				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
+				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+			})
+			.verifyComplete();
+
+		StepVerifier.create(stateRepository.getState("foo-service"))
+					.assertNext(serviceInstanceState -> {
+						assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
+						assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+						assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					})
+					.verifyComplete();
 	}
 
 	@Test

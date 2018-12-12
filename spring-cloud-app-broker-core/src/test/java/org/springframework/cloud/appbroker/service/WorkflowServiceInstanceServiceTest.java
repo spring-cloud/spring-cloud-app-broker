@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -91,8 +93,10 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void createServiceInstance() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed",
+				new Timestamp(Instant.now().minusSeconds(300).toEpochMilli()))));
 
 		CreateServiceInstanceRequest request = CreateServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
@@ -156,8 +160,10 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void createServiceInstanceWithAsyncError() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance failed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance failed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		CreateServiceInstanceRequest request = CreateServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
@@ -230,8 +236,10 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void createServiceInstanceWithNoAcceptsDoesNothing() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		CreateServiceInstanceRequest request = CreateServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
@@ -262,8 +270,10 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void deleteServiceInstance() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
@@ -325,8 +335,10 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void deleteServiceInstanceWithAsyncError() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "delete service instance failed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "delete service instance failed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
@@ -399,8 +411,10 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void deleteServiceInstanceWithNoAcceptsDoesNothing() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
@@ -431,8 +445,10 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void updateServiceInstance() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "update service instance completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "update service instance completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		UpdateServiceInstanceRequest request = UpdateServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
@@ -496,8 +512,10 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void updateServiceInstanceWithAsyncError() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "update service instance failed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "update service instance failed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		UpdateServiceInstanceRequest request = UpdateServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")
@@ -570,8 +588,10 @@ class WorkflowServiceInstanceServiceTest {
 	@Test
 	void updateServiceInstanceWithNoAcceptsDoesNothing() {
 		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "update service instance completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "update service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "update service instance completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		UpdateServiceInstanceRequest request = UpdateServiceInstanceRequest.builder()
 			.serviceInstanceId("foo")

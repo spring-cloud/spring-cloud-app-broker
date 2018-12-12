@@ -30,7 +30,6 @@ dependencies {
 	api("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
 	api("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
 	api("io.projectreactor.ipc:reactor-netty")
-	api("org.immutables:value:${immutablesVersion}")
 }
 
 install {

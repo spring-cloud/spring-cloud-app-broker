@@ -99,7 +99,8 @@ subprojects {
 	apply from: "${rootProject.projectDir}/publish-maven.gradle"
 }
 
-configure(subprojects - [project(":spring-cloud-starter-app-broker")]) {
+configure(subprojects - [project(":spring-cloud-starter-app-broker"), 
+						 project(":spring-cloud-starter-app-broker-cloudfoundry")]) {
 	compileJava {
 		sourceCompatibility=1.8
 		targetCompatibility=1.8

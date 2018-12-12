@@ -61,6 +61,7 @@ import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentUpdateServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -223,6 +224,7 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean(ServiceInstanceBindingService.class)
 	public WorkflowServiceInstanceBindingService serviceInstanceBindingService(
 		ServiceInstanceBindingStateRepository stateRepository,
 		@Autowired(required = false) List<CreateServiceInstanceAppBindingWorkflow> createServiceInstanceAppBindingWorkflows,

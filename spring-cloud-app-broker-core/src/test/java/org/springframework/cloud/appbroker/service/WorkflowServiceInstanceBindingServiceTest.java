@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -92,8 +94,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void createServiceInstanceAppBindingWithNoWorkflows() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(
 				this.stateRepository, null, null, null);
@@ -124,8 +128,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void createServiceInstanceRouteBindingWithNoWorkflows() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(
 				this.stateRepository, null, null, null);
@@ -156,8 +162,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void createServiceInstanceAppBinding() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-service")
@@ -227,8 +235,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void createServiceInstanceRouteBinding() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance binding completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-service")
@@ -297,8 +307,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void createServiceInstanceAppBindingWithAsyncError() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance binding failed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance binding failed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-service")
@@ -351,8 +363,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void createServiceInstanceRouteBindingWithAsyncError() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance binding failed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "create service instance binding failed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-service")
@@ -461,8 +475,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void createServiceInstanceAppBindingWithNoAcceptsDoesNothing() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-service")
@@ -498,8 +514,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void createServiceInstanceRouteBindingWithNoAcceptsDoesNothing() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "create service instance completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-service")
@@ -535,8 +553,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void deleteServiceInstanceBindingsWithNoWorkflows() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		this.workflowServiceInstanceBindingService = new WorkflowServiceInstanceBindingService(
 				this.stateRepository, null, null, null);
@@ -564,8 +584,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void deleteServiceInstanceBinding() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance binding started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance binding completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance binding started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance binding completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-service")
@@ -628,8 +650,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void deleteServiceInstanceBindingWithAsyncError() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "delete service instance failed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.FAILED, "delete service instance failed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-service")
@@ -704,8 +728,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 	@Test
 	void deleteServiceInstanceBindingWithNoAcceptsDoesNothing() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance binding started")))
-			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance binding completed")));
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance binding started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.SUCCEEDED, "delete service instance binding completed",
+				new Timestamp(Instant.now().minusSeconds(30).toEpochMilli()))));
 
 		DeleteServiceInstanceBindingRequest request = DeleteServiceInstanceBindingRequest.builder()
 			.serviceInstanceId("foo-service")

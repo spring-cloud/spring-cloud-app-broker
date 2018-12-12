@@ -66,6 +66,8 @@ class UpdateInstanceWithServicesParametersComponentTest extends WiremockComponen
 		cloudControllerFixture.stubUpdateApp(APP_NAME);
 
 		cloudControllerFixture.stubServiceInstanceExists(SERVICE_INSTANCE_NAME);
+		cloudControllerFixture.stubListServiceBindings(APP_NAME, SERVICE_INSTANCE_NAME);
+		cloudControllerFixture.stubServiceBindingExists(APP_NAME, SERVICE_INSTANCE_NAME);
 
 		// will update with filtered parameters and bind the service instance
 		HashMap<String, Object> expectedCreationParameters = new HashMap<>();

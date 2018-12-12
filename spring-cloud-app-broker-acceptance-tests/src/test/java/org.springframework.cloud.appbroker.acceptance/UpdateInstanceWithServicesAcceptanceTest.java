@@ -84,7 +84,16 @@ class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 		parameters.put("parameter3", "value3");
 		updateServiceInstance(SI_NAME, parameters);
 
-		// the services are still bound to it
+		Optional<ServiceInstanceSummary> updatedServiceInstance = getServiceInstance(SI_NAME);
+		assertThat(updatedServiceInstance).hasValueSatisfying(value ->
+			assertThat(value.getLastOperation()).contains("completed"));
+
+		// then a backing application is re-deployed
+		Optional<ApplicationSummary> updatedBackingApplication = getApplicationSummaryByName(APP_NAME);
+		assertThat(updatedBackingApplication).hasValueSatisfying(app ->
+			assertThat(app.getRunningInstances()).isEqualTo(1));
+
+		// and the services are still bound to it
 		Optional<ServiceInstanceSummary> backingServiceInstanceUpdated = getServiceInstance(BACKING_SI_NAME);
 		assertThat(backingServiceInstanceUpdated).hasValueSatisfying(instance ->
 			assertThat(instance.getApplications()).contains(APP_NAME));

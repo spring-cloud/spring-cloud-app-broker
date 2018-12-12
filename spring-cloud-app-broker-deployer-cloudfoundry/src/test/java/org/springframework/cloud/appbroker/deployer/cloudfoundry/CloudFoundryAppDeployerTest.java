@@ -20,6 +20,10 @@ import java.io.File;
 import java.util.ArrayList;
 
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceResponse;
+import org.cloudfoundry.client.v2.serviceinstances.LastOperation;
+import org.cloudfoundry.client.v2.serviceinstances.ServiceInstanceEntity;
+import org.cloudfoundry.client.v2.serviceinstances.ServiceInstances;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -69,13 +73,16 @@ class CloudFoundryAppDeployerTest {
 	private AppDeployer appDeployer;
 
 	@Mock
-	private Applications applications;
+	private Applications operationsApplications;
 
 	@Mock
-	private Services services;
+	private Services operationsServices;
 
 	@Mock
-	private Spaces spaces;
+	private Spaces operationsSpaces;
+
+	@Mock
+	private ServiceInstances clientServiceInstances;
 
 	@Mock
 	private CloudFoundryOperations cloudFoundryOperations;
@@ -93,12 +100,13 @@ class CloudFoundryAppDeployerTest {
 		deploymentProperties = new CloudFoundryDeploymentProperties();
 		CloudFoundryTargetProperties targetProperties = new CloudFoundryTargetProperties();
 
-		when(applications.pushManifest(any())).thenReturn(Mono.empty());
-		when(cloudFoundryOperations.applications()).thenReturn(applications);
+		when(operationsApplications.pushManifest(any())).thenReturn(Mono.empty());
 		when(resourceLoader.getResource(APP_PATH)).thenReturn(new FileSystemResource(APP_PATH));
 
-		when(cloudFoundryOperations.services()).thenReturn(services);
-		when(cloudFoundryOperations.spaces()).thenReturn(spaces);
+		when(cloudFoundryOperations.spaces()).thenReturn(operationsSpaces);
+		when(cloudFoundryOperations.applications()).thenReturn(operationsApplications);
+		when(cloudFoundryOperations.services()).thenReturn(operationsServices);
+		when(cloudFoundryClient.serviceInstances()).thenReturn(clientServiceInstances);
 
 		appDeployer = new CloudFoundryAppDeployer(deploymentProperties,
 			cloudFoundryOperations, cloudFoundryClient, targetProperties, resourceLoader);
@@ -120,7 +128,7 @@ class CloudFoundryAppDeployerTest {
 			.path(new File(APP_PATH).toPath())
 			.build();
 
-		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
+		verify(operationsApplications).pushManifest(argThat(matchesManifest(expectedManifest)));
 	}
 
 	@Test
@@ -157,7 +165,7 @@ class CloudFoundryAppDeployerTest {
 			.noRoute(true)
 			.build();
 
-		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
+		verify(operationsApplications).pushManifest(argThat(matchesManifest(expectedManifest)));
 	}
 
 	@Test
@@ -193,7 +201,7 @@ class CloudFoundryAppDeployerTest {
 			.host("host")
 			.build();
 
-		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
+		verify(operationsApplications).pushManifest(argThat(matchesManifest(expectedManifest)));
 	}
 
 	@Test
@@ -239,7 +247,7 @@ class CloudFoundryAppDeployerTest {
 			.noRoute(true)
 			.build();
 
-		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
+		verify(operationsApplications).pushManifest(argThat(matchesManifest(expectedManifest)));
 	}
 
 	@Test
@@ -265,7 +273,7 @@ class CloudFoundryAppDeployerTest {
 			.environmentVariable("SPRING_APPLICATION_JSON", "{\"ENV_VAR_2\":\"value2\",\"ENV_VAR_1\":\"value1\"}")
 			.build();
 
-		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
+		verify(operationsApplications).pushManifest(argThat(matchesManifest(expectedManifest)));
 	}
 
 	@Test
@@ -292,18 +300,18 @@ class CloudFoundryAppDeployerTest {
 			.environmentVariable("ENV_VAR_2", "value2")
 			.build();
 
-		verify(applications).pushManifest(argThat(matchesManifest(expectedManifest)));
+		verify(operationsApplications).pushManifest(argThat(matchesManifest(expectedManifest)));
 	}
 
 	@Test
 	void deleteServiceInstanceShouldUnbindServices() {
-		when(services.deleteInstance(
+		when(operationsServices.deleteInstance(
 			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest.builder()
 																			 .name("service-instance-name")
 																			 .build()))
 			.thenReturn(Mono.empty());
 
-		when(services.getInstance(GetServiceInstanceRequest.builder().name("service-instance-name").build()))
+		when(operationsServices.getInstance(GetServiceInstanceRequest.builder().name("service-instance-name").build()))
 			.thenReturn(Mono.just(ServiceInstance.builder()
 												 .id("siid")
 												 .type(ServiceInstanceType.MANAGED)
@@ -311,13 +319,13 @@ class CloudFoundryAppDeployerTest {
 												 .applications("app1", "app2")
 												 .build()));
 
-		when(services.unbind(UnbindServiceInstanceRequest.builder()
+		when(operationsServices.unbind(UnbindServiceInstanceRequest.builder()
 														 .serviceInstanceName("service-instance-name")
 														 .applicationName("app1")
 														 .build()))
 			.thenReturn(Mono.empty());
 
-		when(services.unbind(UnbindServiceInstanceRequest.builder()
+		when(operationsServices.unbind(UnbindServiceInstanceRequest.builder()
 														 .serviceInstanceName("service-instance-name")
 														 .applicationName("app2")
 														 .build()))
@@ -338,7 +346,7 @@ class CloudFoundryAppDeployerTest {
 
 	@Test
 	void createServiceInstance() {
-		when(services.createInstance(
+		when(operationsServices.createInstance(
 			org.cloudfoundry.operations.services.CreateServiceInstanceRequest.builder()
 																			 .serviceInstanceName("service-instance-name")
 																			 .serviceName("db-service")
@@ -363,23 +371,44 @@ class CloudFoundryAppDeployerTest {
 
 	@Test
 	void updateServiceInstance() {
-		when(services.updateInstance(
+		when(operationsServices.updateInstance(
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
-																			 .serviceInstanceName("service-instance-name")
-																			 .parameters(emptyMap())
-																			 .build()))
+				.serviceInstanceName("service-instance-name")
+				.parameters(emptyMap())
+				.build()))
 			.thenReturn(Mono.empty());
+
+		when(operationsServices.getInstance(GetServiceInstanceRequest.builder()
+				.name("service-instance-name")
+				.build()))
+			.thenReturn(Mono.just(ServiceInstance.builder()
+				.name("service-instance-name")
+				.id("service-instance-guid")
+				.type(ServiceInstanceType.MANAGED)
+				.build()));
+
+		when(clientServiceInstances.get(
+			org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceRequest.builder()
+				.serviceInstanceId("service-instance-guid")
+				.build()))
+			.thenReturn(Mono.just(GetServiceInstanceResponse.builder()
+				.entity(ServiceInstanceEntity.builder()
+					.lastOperation(LastOperation.builder()
+						.state("succeeded")
+						.build())
+					.build())
+				.build()));
 
 		UpdateServiceInstanceRequest request =
 			UpdateServiceInstanceRequest.builder()
-										.serviceInstanceName("service-instance-name")
-										.parameters(emptyMap())
-										.build();
+				.serviceInstanceName("service-instance-name")
+				.parameters(emptyMap())
+				.build();
 
 		StepVerifier.create(
 			appDeployer.updateServiceInstance(request))
-					.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
-					.verifyComplete();
+			.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
+			.verifyComplete();
 	}
 
 	private ApplicationManifest.Builder baseManifest() {

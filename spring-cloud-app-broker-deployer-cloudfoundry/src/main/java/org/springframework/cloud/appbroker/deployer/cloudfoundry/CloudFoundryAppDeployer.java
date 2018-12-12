@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cloudfoundry.AbstractCloudFoundryException;
 import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceResponse;
 import org.cloudfoundry.client.v2.spaces.CreateSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
 import org.cloudfoundry.operations.CloudFoundryOperations;
@@ -52,6 +53,8 @@ import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.GetSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceDetail;
+import org.cloudfoundry.util.LastOperationUtils;
+import org.cloudfoundry.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Exceptions;
@@ -81,6 +84,8 @@ import org.springframework.util.StringUtils;
 public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware {
 
 	private final Logger logger = LoggerFactory.getLogger(CloudFoundryAppDeployer.class);
+
+	private static final Duration ASYNC_OPERATION_TIMEOUT = Duration.ofMinutes(5);
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -552,9 +557,19 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.name(request.getServiceInstanceName())
 				.build());
 
-		return getOperations(request.getProperties())
-			.services()
+		CloudFoundryOperations operations = getOperations(request.getProperties());
+		return operations.services()
 			.updateInstance(updateServiceInstanceRequest)
+			// for consistency with the createServiceInstance() and deleteServiceInstance() methods,
+			// this code must wait for the update operation to complete (with either a succeeded or failed status)
+			// before returning, until this waiting logic is implemented in CF Java Client
+			// https://github.com/cloudfoundry/cf-java-client/issues/929
+			.then(operations.services()
+				.getInstance(GetServiceInstanceRequest.builder()
+					.name(request.getServiceInstanceName())
+					.build()))
+			.map(ServiceInstance::getId)
+			.flatMap(this::waitForUpdateInstance)
 			.then(updateServiceInstanceResponseMono);
 	}
 
@@ -598,5 +613,20 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		} else {
 			return this.operations;
 		}
+	}
+
+	private Mono<Void> waitForUpdateInstance(String serviceInstanceId) {
+		return LastOperationUtils
+			.waitForCompletion(ASYNC_OPERATION_TIMEOUT, () ->
+				requestGetServiceInstance(client, serviceInstanceId)
+					.map(response -> ResourceUtils.getEntity(response).getLastOperation()));
+	}
+
+	private Mono<GetServiceInstanceResponse> requestGetServiceInstance(CloudFoundryClient cloudFoundryClient,
+																	   String serviceInstanceId) {
+		return cloudFoundryClient.serviceInstances()
+			.get(org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceRequest.builder()
+				.serviceInstanceId(serviceInstanceId)
+				.build());
 	}
 }

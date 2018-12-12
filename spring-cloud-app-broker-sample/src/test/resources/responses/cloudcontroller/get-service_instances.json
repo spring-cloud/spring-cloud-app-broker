@@ -1,0 +1,35 @@
+{
+	"metadata": {
+		"guid": "@guid",
+		"url": "/v2/service_instances/@guid",
+		"created_at": "2016-06-08T16:41:29Z",
+		"updated_at": "2016-06-08T16:41:26Z"
+	},
+	"entity": {
+		"name": "@name",
+		"credentials": {},
+		"service_guid": "a14baddf-1ccc-5299-0152-ab9s49de4422",
+		"service_plan_guid": "779d2df0-9cdd-48e8-9781-ea05301cedb1",
+		"space_guid": "@space-guid",
+		"gateway_data": null,
+		"dashboard_url": null,
+		"type": "managed_service_instance",
+		"last_operation": {
+			"type": "create",
+			"state": "succeeded",
+			"description": "service broker-provided description",
+			"updated_at": "2016-06-08T16:41:29Z",
+			"created_at": "2016-06-08T16:41:29Z"
+		},
+		"tags": [],
+		"space_url": "/v2/spaces/@space-guid",
+		"service_url": "/v2/services/a14baddf-1ccc-5299-0152-ab9s49de4422",
+		"service_plan_url": "/v2/service_plans/779d2df0-9cdd-48e8-9781-ea05301cedb1",
+		"service_bindings_url": "/v2/service_instances/@guid/service_bindings",
+		"service_keys_url": "/v2/service_instances/@guid/service_keys",
+		"routes_url": "/v2/service_instances/@guid/routes",
+		"shared_from_url": "/v2/service_instances/@guid/shared_from",
+		"shared_to_url": "/v2/service_instances/@guid/shared_to",
+		"service_instance_parameters_url": "/v2/service_instances/@guid/parameters"
+	}
+}

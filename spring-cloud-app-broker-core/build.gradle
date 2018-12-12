@@ -36,7 +36,6 @@ dependencies {
 
 	implementation("org.springframework:spring-core")
 	implementation("org.springframework:spring-context")
-	implementation("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
 

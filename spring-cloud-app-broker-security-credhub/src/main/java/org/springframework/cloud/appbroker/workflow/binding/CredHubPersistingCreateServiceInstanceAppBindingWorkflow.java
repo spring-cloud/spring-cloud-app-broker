@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.appbroker.workflow.binding;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
@@ -50,8 +49,8 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow implements
 	}
 
 	@Override
-	public Flux<Void> create(CreateServiceInstanceBindingRequest request) {
-		return Flux.empty();
+	public Mono<Void> create(CreateServiceInstanceBindingRequest request) {
+		return Mono.empty();
 	}
 
 	@Override

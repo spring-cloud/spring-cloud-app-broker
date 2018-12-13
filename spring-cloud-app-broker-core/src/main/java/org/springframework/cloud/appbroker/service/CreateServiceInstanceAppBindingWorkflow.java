@@ -16,14 +16,13 @@
 
 package org.springframework.cloud.appbroker.service;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder;
+import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 
 public interface CreateServiceInstanceAppBindingWorkflow {
-	Flux<Void> create(CreateServiceInstanceBindingRequest request);
+	Mono<Void> create(CreateServiceInstanceBindingRequest request);
 
 	default Mono<Boolean> accept(CreateServiceInstanceBindingRequest request) {
 		return Mono.just(true);

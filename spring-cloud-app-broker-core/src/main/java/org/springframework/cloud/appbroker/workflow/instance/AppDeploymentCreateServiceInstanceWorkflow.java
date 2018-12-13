@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
@@ -64,7 +63,7 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 	}
 
 	@Override
-	public Flux<Void> create(CreateServiceInstanceRequest request) {
+	public Mono<Void> create(CreateServiceInstanceRequest request) {
 		return
 			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
 				.flatMap(backingService ->
@@ -91,8 +90,8 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 						.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
 						.doOnEach(response -> log.debug("Finished deploying {}", response))
 						.doOnComplete(() -> log.debug("Finished deploying applications {}", brokeredServices))
-						.doOnError(exception -> log.error("Error deploying applications {} with error {}", brokeredServices, exception))
-						.flatMap(apps -> Flux.empty()));
+						.doOnError(exception -> log.error("Error deploying applications {} with error {}", brokeredServices, exception)))
+			.then();
 	}
 
 	@Override

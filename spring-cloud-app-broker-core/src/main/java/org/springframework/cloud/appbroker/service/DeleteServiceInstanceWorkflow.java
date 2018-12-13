@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.appbroker.service;
 
-import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
-import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
+
 public interface DeleteServiceInstanceWorkflow {
-	Flux<Void> delete(DeleteServiceInstanceRequest request);
+	Mono<Void> delete(DeleteServiceInstanceRequest request);
 
 	default Mono<Boolean> accept(DeleteServiceInstanceRequest request) {
 		return Mono.just(true);

@@ -12,7 +12,7 @@
 
 The tests require the following properties to be set:
 
-* `tests.sampleBrokerAppPath` - The path to the sample broker jar (eg. /spring-cloud-app-broker-sample/build/libs/spring-cloud-app-broker-sample.jar).
+* `tests.testBrokerAppPath` - The path to the test broker jar (eg. /spring-cloud-app-broker-integration-tests/build/libs/spring-cloud-app-broker-integration-tests.jar).
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.api-host` - The CF API host where the tests are going to run.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.api-port` - The CF API port where the tests are going to run.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.username` - The CF API username where the tests are going to run.
@@ -28,7 +28,7 @@ Also, the flag acceptanceTests must be provided as `-PacceptanceTests`.
 [source,bash]
 ----
 $ ./gradlew test -PacceptanceTests \
- -Dtests.sampleBrokerAppPath=/path/to/broker.jar \
+ -Dtests.testBrokerAppPath=/path/to/broker.jar \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.api-host=api.cf.my.cf.io  \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.api-port=443 \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.username=admin \
@@ -36,3 +36,4 @@ $ ./gradlew test -PacceptanceTests \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.default-org=test \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.default-space=development \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.skip-ssl-validation=true
+----

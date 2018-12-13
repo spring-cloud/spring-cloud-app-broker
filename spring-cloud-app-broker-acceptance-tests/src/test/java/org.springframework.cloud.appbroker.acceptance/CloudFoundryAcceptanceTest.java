@@ -61,8 +61,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @EnableConfigurationProperties(AcceptanceTestProperties.class)
 class CloudFoundryAcceptanceTest {
 
-	private static final String SAMPLE_BROKER_APP_NAME = "sample-broker";
-	private static final String SERVICE_BROKER_NAME = "sample-broker-name";
+	private static final String TEST_BROKER_APP_NAME = "test-broker-app";
+	private static final String SERVICE_BROKER_NAME = "test-broker";
 	private static final String SERVICE_NAME = "example";
 	private static final String PLAN_NAME = "standard";
 
@@ -114,14 +114,14 @@ class CloudFoundryAcceptanceTest {
 				cloudFoundryService
 					.getOrCreateDefaultOrganization()
 					.then(cloudFoundryService.getOrCreateDefaultSpace())
-					.then(cloudFoundryService.pushBrokerApp(SAMPLE_BROKER_APP_NAME, getSampleBrokerAppPath(), backingAppProperties))
-					.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, SAMPLE_BROKER_APP_NAME))
+					.then(cloudFoundryService.pushBrokerApp(TEST_BROKER_APP_NAME, getTestBrokerAppPath(), backingAppProperties))
+					.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, TEST_BROKER_APP_NAME))
 					.then(cloudFoundryService.enableServiceBrokerAccess(SERVICE_NAME)));
 	}
 
 	private Mono<Void> cleanup() {
 		return cloudFoundryService.deleteServiceBroker(SERVICE_BROKER_NAME)
-			.then(cloudFoundryService.deleteApp(SAMPLE_BROKER_APP_NAME));
+			.then(cloudFoundryService.deleteApp(TEST_BROKER_APP_NAME));
 	}
 
 	void deployServiceBrokerForService(String serviceName) {
@@ -136,7 +136,7 @@ class CloudFoundryAcceptanceTest {
 			"spring.cloud.appbroker.services[0].apps[0].name=app-" + serviceName,
 			"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar"};
 		blockingSubscribe(
-			cloudFoundryService.pushBrokerApp(serviceName, getSampleBrokerAppPath(), properties)
+			cloudFoundryService.pushBrokerApp(serviceName, getTestBrokerAppPath(), properties)
 							   .then(cloudFoundryService.createServiceBroker(serviceName, serviceName))
 							   .then(cloudFoundryService.enableServiceBrokerAccess(serviceName)));
 	}
@@ -233,8 +233,8 @@ class CloudFoundryAcceptanceTest {
 			.blockOptional();
 	}
 
-	private Path getSampleBrokerAppPath() {
-		return Paths.get(acceptanceTestProperties.getSampleBrokerAppPath(), "");
+	private Path getTestBrokerAppPath() {
+		return Paths.get(acceptanceTestProperties.getTestBrokerAppPath(), "");
 	}
 
 	private <T> void blockingSubscribe(Mono<? super T> publisher) {

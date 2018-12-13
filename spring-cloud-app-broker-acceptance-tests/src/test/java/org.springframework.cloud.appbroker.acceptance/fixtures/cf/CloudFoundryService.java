@@ -87,8 +87,8 @@ public class CloudFoundryService {
 			.doOnError(error -> LOGGER.error("Error enabling access to service " + serviceName + ": " + error));
 	}
 
-	public Mono<Void> createServiceBroker(String brokerName, String sampleBrokerAppName) {
-		return getApplicationRoute(sampleBrokerAppName)
+	public Mono<Void> createServiceBroker(String brokerName, String testBrokerAppName) {
+		return getApplicationRoute(testBrokerAppName)
 			.flatMap(url -> cloudFoundryOperations.serviceAdmin()
 				.create(CreateServiceBrokerRequest.builder()
 					.name(brokerName)

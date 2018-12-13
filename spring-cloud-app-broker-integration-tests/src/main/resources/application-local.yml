@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: app-broker-test
+  cloud:
+    openservicebroker:
+      catalog:
+        services:
+        - id: example-service-id
+          name: example
+          description: A simple example
+          bindable: true
+          tags:
+          - example
+          plans:
+          - id: standard-plan-id
+            name: standard
+            bindable: true
+            description: A simple plan
+            free: true
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          apps:
+            - name: backing-app1
+              path: classpath:demo.jar
+            - name: backing-app2
+              path: classpath:demo.jar
+              properties:
+                spring.cloud.deployer.memory: 2G
+                spring.cloud.deployer.count: 2
+                spring.cloud.cloudfoundry.no-route: true
+              environment:
+                ENV_VAR_1: value1
+                ENV_VAR_2: value2
+      deployer:
+        cloudfoundry:
+          api-host: run.pivotal.io
+          api-port: 443
+          username: admin
+          password: adminpass
+          default-org: test
+          default-space: development
+          skip-ssl-validation: true
+
+logging:
+  level:
+    cloudfoundry-client: DEBUG

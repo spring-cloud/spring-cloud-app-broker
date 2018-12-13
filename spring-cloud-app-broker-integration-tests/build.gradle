@@ -1,0 +1,60 @@
+/*
+ * Copyright 2016-2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+buildscript {
+	repositories {
+		mavenCentral()
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+description = "Spring Cloud App Broker Integration Tests"
+
+// don't publish the jar for this module
+configurations.archives.artifacts.clear()
+
+ext {
+	wiremockVersion = "2.18.0"
+}
+
+// The latest version of jetty-server is not compatible with the latest version of wiremock yet;
+// override the version managed by Spring Boot to a wiremock-compatible version
+ext['jetty.version'] = "9.4.8.v20171121"
+
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+	implementation project(":spring-cloud-starter-app-broker-cloudfoundry")
+
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.junit.jupiter:junit-jupiter-api")
+	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+	testImplementation("io.rest-assured:rest-assured")
+	testImplementation("com.github.tomakehurst:wiremock:${wiremockVersion}")
+}
+
+test {
+	// force a new fork for every test to eliminate issues with wiremock state
+	forkEvery = 1
+}

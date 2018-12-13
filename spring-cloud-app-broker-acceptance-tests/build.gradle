@@ -29,7 +29,7 @@ dependencies {
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
 	testImplementation("org.junit.jupiter:junit-jupiter-api")
-	testImplementation("org.assertj:assertj-core")
+	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 	testImplementation("com.revinate:assertj-json:1.2.0")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-webflux")

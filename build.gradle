@@ -44,14 +44,15 @@ configure(allprojects) {
 	apply plugin: "com.jfrog.artifactory"
 
 	ext {
-		springBootVersion = project.findProperty("springBootVersion") ?: "2.0.6.RELEASE"
-		springVersion = project.findProperty("springVersion") ?: "5.0.10.RELEASE"
-		reactorVersion = project.findProperty("reactorVersion") ?: "Bismuth-SR14"
+		springBootVersion = project.findProperty("springBootVersion") ?: "2.1.1.RELEASE"
+		springVersion = project.findProperty("springVersion") ?: "5.1.3.RELEASE"
+		reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR3"
 		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
 		springCredhubVersion = "2.0.0.BUILD-SNAPSHOT"
 		cfJavaClientVersion = "3.13.0.RELEASE"
 		mockitoVersion = "2.23.4"
 		immutablesVersion = "2.7.3"
+		assertjVersion = "3.9.1"
 	}
 
 	//override managed Spring Boot versions

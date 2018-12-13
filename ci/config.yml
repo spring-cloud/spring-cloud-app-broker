@@ -90,7 +90,7 @@ jobs:
     - run:
         name: "Run acceptance tests"
         command: |
-          ./gradlew -b spring-cloud-app-broker-sample/build.gradle assemble
+          ./gradlew -b spring-cloud-app-broker-integration-tests/build.gradle assemble
           ./gradlew clean assemble check -PacceptanceTests --stacktrace --continue -b spring-cloud-app-broker-acceptance-tests/build.gradle
 
     - run:

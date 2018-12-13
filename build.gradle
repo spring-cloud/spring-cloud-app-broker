@@ -291,7 +291,8 @@ configure(rootProject) {
 			project.sourceSets.main.compileClasspath
 		})
 
-		exclude 'org/springframework/cloud/appbroker/sample/**'
+		exclude 'org/springframework/cloud/appbroker/integration-tests/**',
+			'org/springframework/cloud/appbroker/acceptance-tests/**'
 		maxMemory = "1024m"
 		destinationDir = new File(buildDir, "api")
 	}
@@ -338,7 +339,7 @@ task codeCoverageReport(type: JacocoReport) {
 	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 
 	subprojects.each { subproject ->
-		if (subproject.name.endsWith("-sample")) {
+		if (subproject.name.endsWith("-integration-tests")) {
 			// Work-around for issue with jacoco and multiple-release jar files
 			// (like Log4J 2.10 and above)
 			// see https://github.com/jacoco/jacoco/issues/407

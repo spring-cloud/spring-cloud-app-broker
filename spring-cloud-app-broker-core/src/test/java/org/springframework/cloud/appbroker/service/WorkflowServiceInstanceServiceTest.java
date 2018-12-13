@@ -26,7 +26,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
@@ -110,7 +109,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(createServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceWorkflow1.create(request))
-			.willReturn(lowerOrderFlow.flux());
+			.willReturn(lowerOrderFlow.mono());
 		given(createServiceInstanceWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -119,7 +118,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(createServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceWorkflow2.create(request))
-			.willReturn(higherOrderFlow.flux());
+			.willReturn(higherOrderFlow.mono());
 		given(createServiceInstanceWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.dashboardUrl("https://dashboard.example.com")
@@ -174,14 +173,14 @@ class WorkflowServiceInstanceServiceTest {
 		given(createServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceWorkflow1.create(request))
-			.willReturn(Flux.error(new RuntimeException("create foo error")));
+			.willReturn(Mono.error(new RuntimeException("create foo error")));
 		given(createServiceInstanceWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
 		given(createServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceWorkflow2.create(request))
-			.willReturn(Flux.empty());
+			.willReturn(Mono.empty());
 		given(createServiceInstanceWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
@@ -287,7 +286,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(deleteServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceWorkflow1.delete(request))
-			.willReturn(lowerOrderFlow.flux());
+			.willReturn(lowerOrderFlow.mono());
 		given(deleteServiceInstanceWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -296,7 +295,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(deleteServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceWorkflow2.delete(request))
-			.willReturn(higherOrderFlow.flux());
+			.willReturn(higherOrderFlow.mono());
 		given(deleteServiceInstanceWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.operation("working2")));
@@ -349,14 +348,14 @@ class WorkflowServiceInstanceServiceTest {
 		given(deleteServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceWorkflow1.delete(request))
-			.willReturn(Flux.error(new RuntimeException("delete foo error")));
+			.willReturn(Mono.error(new RuntimeException("delete foo error")));
 		given(deleteServiceInstanceWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
 		given(deleteServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceWorkflow2.delete(request))
-			.willReturn(Flux.empty());
+			.willReturn(Mono.empty());
 		given(deleteServiceInstanceWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
@@ -462,7 +461,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(updateServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(updateServiceInstanceWorkflow1.update(request))
-			.willReturn(lowerOrderFlow.flux());
+			.willReturn(lowerOrderFlow.mono());
 		given(updateServiceInstanceWorkflow1.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -471,7 +470,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(updateServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(updateServiceInstanceWorkflow2.update(request))
-			.willReturn(higherOrderFlow.flux());
+			.willReturn(higherOrderFlow.mono());
 		given(updateServiceInstanceWorkflow2.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.dashboardUrl("https://dashboard.example.com")
@@ -526,14 +525,14 @@ class WorkflowServiceInstanceServiceTest {
 		given(updateServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(updateServiceInstanceWorkflow1.update(request))
-			.willReturn(Flux.error(new RuntimeException("update foo error")));
+			.willReturn(Mono.error(new RuntimeException("update foo error")));
 		given(updateServiceInstanceWorkflow1.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
 		given(updateServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(updateServiceInstanceWorkflow2.update(request))
-			.willReturn(Flux.empty());
+			.willReturn(Mono.empty());
 		given(updateServiceInstanceWorkflow2.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 

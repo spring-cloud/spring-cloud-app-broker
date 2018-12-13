@@ -26,7 +26,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
@@ -183,7 +182,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceAppBindingWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceAppBindingWorkflow1.create(request))
-			.willReturn(lowerOrderFlow.flux());
+			.willReturn(lowerOrderFlow.mono());
 		given(createServiceInstanceAppBindingWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceAppBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -192,7 +191,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceAppBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceAppBindingWorkflow2.create(request))
-			.willReturn(higherOrderFlow.flux());
+			.willReturn(higherOrderFlow.mono());
 		given(createServiceInstanceAppBindingWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceAppBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.credentials("foo", "bar")
@@ -256,7 +255,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceRouteBindingWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceRouteBindingWorkflow1.create(request))
-			.willReturn(lowerOrderFlow.flux());
+			.willReturn(lowerOrderFlow.mono());
 		given(createServiceInstanceRouteBindingWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceRouteBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -265,7 +264,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceRouteBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceRouteBindingWorkflow2.create(request))
-			.willReturn(higherOrderFlow.flux());
+			.willReturn(higherOrderFlow.mono());
 		given(createServiceInstanceRouteBindingWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceRouteBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.routeServiceUrl("foo-url")
@@ -325,14 +324,14 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceAppBindingWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceAppBindingWorkflow1.create(request))
-			.willReturn(Flux.error(new RuntimeException("create foo error")));
+			.willReturn(Mono.error(new RuntimeException("create foo error")));
 		given(createServiceInstanceAppBindingWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceAppBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
 		given(createServiceInstanceAppBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceAppBindingWorkflow2.create(request))
-			.willReturn(Flux.empty());
+			.willReturn(Mono.empty());
 		given(createServiceInstanceAppBindingWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceAppBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
@@ -381,14 +380,14 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceRouteBindingWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceRouteBindingWorkflow1.create(request))
-			.willReturn(Flux.error(new RuntimeException("create foo error")));
+			.willReturn(Mono.error(new RuntimeException("create foo error")));
 		given(createServiceInstanceRouteBindingWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceRouteBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
 		given(createServiceInstanceRouteBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceRouteBindingWorkflow2.create(request))
-			.willReturn(Flux.empty());
+			.willReturn(Mono.empty());
 		given(createServiceInstanceRouteBindingWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceRouteBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
@@ -602,7 +601,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(deleteServiceInstanceBindingWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceBindingWorkflow1.delete(request))
-			.willReturn(lowerOrderFlow.flux());
+			.willReturn(lowerOrderFlow.mono());
 		given(deleteServiceInstanceBindingWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -611,7 +610,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(deleteServiceInstanceBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceBindingWorkflow2.delete(request))
-			.willReturn(higherOrderFlow.flux());
+			.willReturn(higherOrderFlow.mono());
 		given(deleteServiceInstanceBindingWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.operation("working2")));
@@ -665,14 +664,14 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(deleteServiceInstanceBindingWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceBindingWorkflow1.delete(request))
-			.willReturn(Flux.error(new RuntimeException("delete foo binding error")));
+			.willReturn(Mono.error(new RuntimeException("delete foo binding error")));
 		given(deleteServiceInstanceBindingWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
 		given(deleteServiceInstanceBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceBindingWorkflow2.delete(request))
-			.willReturn(Flux.empty());
+			.willReturn(Mono.empty());
 		given(deleteServiceInstanceBindingWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 

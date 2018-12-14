@@ -1,17 +1,8 @@
-image:https://circleci.com/gh/spring-cloud-incubator/spring-cloud-app-broker.svg?style=svg["CircleCI", link="https://circleci.com/gh/spring-cloud-incubator/spring-cloud-app-broker"]
-image:https://api.codacy.com/project/badge/Grade/72dc83489cb84106bcca9d0d20430622["Codacy code quality", link="https://www.codacy.com/app/scottfrederick/spring-cloud-app-broker?utm_source=github.com&utm_medium=referral&utm_content=spring-cloud-incubator/spring-cloud-app-broker&utm_campaign=Badge_Grade"]
-image:https://codecov.io/gh/spring-cloud-incubator/spring-cloud-app-broker/branch/master/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud-incubator/spring-cloud-app-broker/branch/master"]
+image:https://circleci.com/gh/spring-cloud/spring-cloud-app-broker.svg?style=svg["CircleCI", link="https://circleci.com/gh/spring-cloud/spring-cloud-app-broker"]
+image:https://api.codacy.com/project/badge/Grade/72dc83489cb84106bcca9d0d20430622["Codacy code quality", link="https://www.codacy.com/app/scottfrederick/spring-cloud-app-broker?utm_source=github.com&utm_medium=referral&utm_content=spring-cloud/spring-cloud-app-broker&utm_campaign=Badge_Grade"]
+image:https://codecov.io/gh/spring-cloud/spring-cloud-app-broker/branch/master/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-app-broker/branch/master"]
 
 
 = Spring Cloud App Broker
 
 Spring Cloud App Broker is a project for implementing service broker functionality within a Spring Boot application.
-
-Spring Cloud App Broker allows you to implement different strategies for different steps.
-
-== Implementing a custom ParametersTransformer
-
-By default, the parameters created via `-c '{"key", "value"}'` will be added to `SPRING_APPLICATION_JSON`.
-In the case, the same properties were provided via `spring.cloud.appbroker.apps[0].environment.key=value`. The one provided via `-c` will take precedence.
-
-The default implementation can be overwritten by just creating a `Bean` that implements the `ParametersTransformer` interface as in `CreateInstanceWithCustomCreationParametersComponentTest`

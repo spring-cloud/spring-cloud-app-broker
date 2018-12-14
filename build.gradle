@@ -40,8 +40,7 @@ configure(allprojects) {
 	apply plugin: "propdeps-idea"
 	apply plugin: "propdeps-eclipse"
 	apply plugin: "io.spring.dependency-management"
-	apply plugin: 'maven-publish'
-	apply plugin: "com.jfrog.artifactory"
+	apply plugin: "maven-publish"
 
 	ext {
 		springBootVersion = project.findProperty("springBootVersion") ?: "2.1.1.RELEASE"
@@ -187,20 +186,6 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 
 	pmdTest {
 		ruleSetFiles = files("${project.rootDir}/ci/config/pmdTestRuleSet.xml")
-	}
-
-	artifactory {
-		contextUrl = 'https://repo.spring.io'
-		publish {
-			repository {
-				repoKey = 'libs-snapshot-local'
-				username = System.getenv()['USERNAME']
-				password = System.getenv()['PASSWORD']
-			}
-			defaults {
-				publications ('mavenJava')
-			}
-		}
 	}
 
 	jar {

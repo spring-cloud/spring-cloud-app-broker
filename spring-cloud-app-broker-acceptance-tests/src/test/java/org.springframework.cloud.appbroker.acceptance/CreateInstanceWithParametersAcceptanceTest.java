@@ -22,7 +22,6 @@ import java.util.Optional;
 
 import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.junit.jupiter.api.Test;
 
 import static com.revinate.assertj.json.JsonPathAssert.assertThat;
@@ -35,10 +34,11 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 
 	@Test
 	@AppBrokerTestProperties({
-		"spring.cloud.appbroker.services[0].service-name=example",
-		"spring.cloud.appbroker.services[0].plan-name=standard",
+		"spring.cloud.appbroker.services[0].service-name=" + APP_SERVICE_NAME,
+		"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
+
 		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.services[0].apps[0].path=" + BACKING_APP_PATH,
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=config2",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=config3",
@@ -60,12 +60,8 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 
 		createServiceInstance(SI_NAME, parameters);
 
-		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_NAME);
-		assertThat(serviceInstance).hasValueSatisfying(value ->
-			assertThat(value.getLastOperation()).contains("completed"));
-
 		// then a backing application is deployed
-		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_NAME);
+		Optional<ApplicationSummary> backingApplication = getApplicationSummary(APP_NAME);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
 			assertThat(app.getInstances()).isEqualTo(1);
 			assertThat(app.getRunningInstances()).isEqualTo(1);
@@ -73,7 +69,7 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 		});
 
 		// and has the environment variables
-		DocumentContext json = getSpringAppJsonByName(APP_NAME);
+		DocumentContext json = getSpringAppJson(APP_NAME);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("value1");
 		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
 		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("value3");

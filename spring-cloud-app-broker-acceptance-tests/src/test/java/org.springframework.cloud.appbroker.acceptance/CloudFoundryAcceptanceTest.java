@@ -36,7 +36,7 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +52,8 @@ import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryCl
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SpringBootTest(classes = {
 	CloudFoundryClientConfiguration.class,
 	CloudFoundryService.class,
@@ -63,8 +65,11 @@ class CloudFoundryAcceptanceTest {
 
 	private static final String TEST_BROKER_APP_NAME = "test-broker-app";
 	private static final String SERVICE_BROKER_NAME = "test-broker";
-	private static final String SERVICE_NAME = "example";
-	private static final String PLAN_NAME = "standard";
+	
+	static final String APP_SERVICE_NAME = "app-service";
+	static final String BACKING_SERVICE_NAME = "backing-service";
+	static final String PLAN_NAME = "standard";
+	static final String BACKING_APP_PATH = "classpath:backing-app.jar";
 
 	@Autowired
 	private CloudFoundryService cloudFoundryService;
@@ -108,15 +113,16 @@ class CloudFoundryAcceptanceTest {
 		blockingSubscribe(cleanup());
 	}
 
-	private Mono<Void> initializeBroker(String... backingAppProperties) {
+	private Mono<Void> initializeBroker(String... appBrokerProperties) {
 		return cleanup()
 			.then(
 				cloudFoundryService
 					.getOrCreateDefaultOrganization()
 					.then(cloudFoundryService.getOrCreateDefaultSpace())
-					.then(cloudFoundryService.pushBrokerApp(TEST_BROKER_APP_NAME, getTestBrokerAppPath(), backingAppProperties))
+					.then(cloudFoundryService.pushBrokerApp(TEST_BROKER_APP_NAME, getTestBrokerAppPath(), appBrokerProperties))
 					.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, TEST_BROKER_APP_NAME))
-					.then(cloudFoundryService.enableServiceBrokerAccess(SERVICE_NAME)));
+					.then(cloudFoundryService.enableServiceBrokerAccess(APP_SERVICE_NAME))
+					.then(cloudFoundryService.enableServiceBrokerAccess(BACKING_SERVICE_NAME)));
 	}
 
 	private Mono<Void> cleanup() {
@@ -124,74 +130,60 @@ class CloudFoundryAcceptanceTest {
 			.then(cloudFoundryService.deleteApp(TEST_BROKER_APP_NAME));
 	}
 
-	void deployServiceBrokerForService(String serviceName) {
-		String[] properties = new String[] {
-			"spring.application.name=backing-broker",
-			"spring.cloud.openservicebroker.catalog.services[0].id=" + serviceName,
-			"spring.cloud.openservicebroker.catalog.services[0].name=" + serviceName,
-			"spring.cloud.openservicebroker.catalog.services[0].plans[0].id=" + serviceName,
-
-			"spring.cloud.appbroker.services[0].service-name=" + serviceName,
-			"spring.cloud.appbroker.services[0].plan-name=standard",
-			"spring.cloud.appbroker.services[0].apps[0].name=app-" + serviceName,
-			"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar"};
-		blockingSubscribe(
-			cloudFoundryService.pushBrokerApp(serviceName, getTestBrokerAppPath(), properties)
-							   .then(cloudFoundryService.createServiceBroker(serviceName, serviceName))
-							   .then(cloudFoundryService.enableServiceBrokerAccess(serviceName)));
-	}
-
-	void deleteServiceBrokerForService(String serviceName) {
-		blockingSubscribe(
-			cloudFoundryService.deleteServiceBroker(serviceName)
-							   .then(cloudFoundryService.deleteApp(serviceName)));
-	}
-
 	void createServiceInstance(String serviceInstanceName) {
 		createServiceInstance(serviceInstanceName, Collections.emptyMap());
 	}
 
 	void createServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
-		createServiceInstance(SERVICE_NAME, PLAN_NAME, serviceInstanceName, parameters);
+		createServiceInstance(APP_SERVICE_NAME, PLAN_NAME, serviceInstanceName, parameters);
 	}
 
 	void createServiceInstance(String serviceName,
 							   String planName,
 							   String serviceInstanceName,
 							   Map<String, Object> parameters) {
-		blockingSubscribe(cloudFoundryService
-			.createServiceInstance(
-				planName,
-				serviceName,
-				serviceInstanceName,
-				parameters));
+		blockingSubscribe(
+			cloudFoundryService.createServiceInstance(planName, serviceName, serviceInstanceName, parameters)
+				.then(getServiceInstanceMono(serviceInstanceName))
+				.flatMap(serviceInstance -> {
+					assertThat(serviceInstance.getStatus()).isEqualTo("succeeded");
+					return Mono.empty();
+				}));
 	}
 
 	void updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
-		blockingSubscribe(cloudFoundryService.updateServiceInstance(serviceInstanceName, parameters));
+		blockingSubscribe(
+			cloudFoundryService.updateServiceInstance(serviceInstanceName, parameters)
+				.then(getServiceInstanceMono(serviceInstanceName))
+				.flatMap(serviceInstance -> {
+					assertThat(serviceInstance.getStatus()).isEqualTo("succeeded");
+					return Mono.empty();
+				}));
 	}
 
 	void deleteServiceInstance(String serviceInstanceName) {
 		blockingSubscribe(cloudFoundryService.deleteServiceInstance(serviceInstanceName));
 	}
 
-	Optional<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName) {
-		return getServiceInstanceMono(serviceInstanceName).blockOptional();
+	ServiceInstance getServiceInstance(String serviceInstanceName) {
+		return getServiceInstanceMono(serviceInstanceName).block();
 	}
 
-	Optional<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName, String space) {
-		return getServiceInstanceMono(serviceInstanceName, space).blockOptional();
+	ServiceInstance getServiceInstance(String serviceInstanceName, String space) {
+		return cloudFoundryService.getServiceInstance(serviceInstanceName, space).block();
 	}
 
-	Mono<ServiceInstanceSummary> getServiceInstanceMono(String serviceInstanceName) {
+	String getServiceInstanceGuid(String serviceInstanceName) {
+		return getServiceInstanceMono(serviceInstanceName)
+			.map(ServiceInstance::getId)
+			.block();
+	}
+
+	private Mono<ServiceInstance> getServiceInstanceMono(String serviceInstanceName) {
 		return cloudFoundryService.getServiceInstance(serviceInstanceName);
 	}
 
-	private Mono<ServiceInstanceSummary> getServiceInstanceMono(String serviceInstanceName, String space) {
-		return cloudFoundryService.getServiceInstance(serviceInstanceName, space);
-	}
-
-	Optional<ApplicationSummary> getApplicationSummaryByName(String appName) {
+	Optional<ApplicationSummary> getApplicationSummary(String appName) {
 		return cloudFoundryService
 			.getApplications()
 			.flatMapMany(Flux::fromIterable)
@@ -200,28 +192,28 @@ class CloudFoundryAcceptanceTest {
 			.blockOptional();
 	}
 
-	Optional<ApplicationSummary> getApplicationSummaryByNameAndSpace(String appName, String space) {
-		return cloudFoundryService.getApplicationSummaryByNameAndSpace(appName, space).blockOptional();
+	Optional<ApplicationSummary> getApplicationSummary(String appName, String space) {
+		return cloudFoundryService.getApplicationSummary(appName, space).blockOptional();
 	}
 
-	ApplicationEnvironments getApplicationEnvironmentByName(String appName) {
-		return cloudFoundryService.getApplicationEnvironmentByAppName(appName).block();
+	ApplicationEnvironments getApplicationEnvironment(String appName) {
+		return cloudFoundryService.getApplicationEnvironment(appName).block();
 	}
 
-	DocumentContext getSpringAppJsonByName(String appName) {
-		ApplicationEnvironments env = getApplicationEnvironmentByName(appName);
+	ApplicationEnvironments getApplicationEnvironment(String appName, String space) {
+		return cloudFoundryService.getApplicationEnvironment(appName, space).block();
+	}
+
+	DocumentContext getSpringAppJson(String appName) {
+		ApplicationEnvironments env = getApplicationEnvironment(appName);
 		String saj = (String) env.getUserProvided().get("SPRING_APPLICATION_JSON");
 		return JsonPath.parse(saj);
 	}
 
-	DocumentContext getSpringAppJsonByNameAndSpace(String appName, String space) {
-		ApplicationEnvironments env = getApplicationEnvironmentByNameAndSpace(appName, space);
+	DocumentContext getSpringAppJson(String appName, String space) {
+		ApplicationEnvironments env = getApplicationEnvironment(appName, space);
 		String saj = (String) env.getUserProvided().get("SPRING_APPLICATION_JSON");
 		return JsonPath.parse(saj);
-	}
-
-	ApplicationEnvironments getApplicationEnvironmentByNameAndSpace(String appName, String space) {
-		return cloudFoundryService.getApplicationEnvironmentByAppNameAndSpace(appName, space).block();
 	}
 
 	List<String> getSpaces() {
@@ -234,7 +226,7 @@ class CloudFoundryAcceptanceTest {
 	}
 
 	private Path getTestBrokerAppPath() {
-		return Paths.get(acceptanceTestProperties.getTestBrokerAppPath(), "");
+		return Paths.get(acceptanceTestProperties.getBrokerAppPath(), "");
 	}
 
 	private <T> void blockingSubscribe(Mono<? super T> publisher) {

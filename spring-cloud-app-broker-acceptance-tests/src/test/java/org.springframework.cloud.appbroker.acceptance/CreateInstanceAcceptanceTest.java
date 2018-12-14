@@ -20,7 +20,6 @@ import java.util.Optional;
 
 import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.junit.jupiter.api.Test;
 
 import static com.revinate.assertj.json.JsonPathAssert.assertThat;
@@ -34,10 +33,11 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	@Test
 	@AppBrokerTestProperties({
-		"spring.cloud.appbroker.services[0].service-name=example",
-		"spring.cloud.appbroker.services[0].plan-name=standard",
+		"spring.cloud.appbroker.services[0].service-name=" + APP_SERVICE_NAME,
+		"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
+
 		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_CREATE_1,
-		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.services[0].apps[0].path=" + BACKING_APP_PATH,
 		
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=value2",
@@ -52,30 +52,26 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false",
 
 		"spring.cloud.appbroker.services[0].apps[1].name=" + APP_CREATE_2,
-		"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar"
+		"spring.cloud.appbroker.services[0].apps[1].path=" + BACKING_APP_PATH
 	})
 	void deployAppsOnCreateService() {
 		// when a service instance is created
 		createServiceInstance(SI_NAME);
 
-		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_NAME);
-		assertThat(serviceInstance).hasValueSatisfying(value ->
-			assertThat(value.getLastOperation()).contains("completed"));
-
 		// then a backing applications are deployed
-		Optional<ApplicationSummary> backingApplication1 = getApplicationSummaryByName(APP_CREATE_1);
+		Optional<ApplicationSummary> backingApplication1 = getApplicationSummary(APP_CREATE_1);
 		assertThat(backingApplication1).hasValueSatisfying(app -> {
 			assertThat(app.getInstances()).isEqualTo(2);
 			assertThat(app.getRunningInstances()).isEqualTo(2);
 			assertThat(app.getMemoryLimit()).isEqualTo(2048);
 		});
 
-		Optional<ApplicationSummary> backingApplication2 = getApplicationSummaryByName(APP_CREATE_2);
+		Optional<ApplicationSummary> backingApplication2 = getApplicationSummary(APP_CREATE_2);
 		assertThat(backingApplication2).hasValueSatisfying(app ->
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		// and has the environment variables
-		DocumentContext json = getSpringAppJsonByName(APP_CREATE_1);
+		DocumentContext json = getSpringAppJson(APP_CREATE_1);
 		assertEnvironmentVariablesSet(json);
 		assertBasicAuthCredentialsProvided(json);
 
@@ -83,10 +79,10 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		deleteServiceInstance(SI_NAME);
 
 		// then the backing applications are deleted
-		Optional<ApplicationSummary> backingApplication1AfterDeletion = getApplicationSummaryByName(APP_CREATE_1);
+		Optional<ApplicationSummary> backingApplication1AfterDeletion = getApplicationSummary(APP_CREATE_1);
 		assertThat(backingApplication1AfterDeletion).isEmpty();
 
-		Optional<ApplicationSummary> backingApplication2AfterDeletion = getApplicationSummaryByName(APP_CREATE_2);
+		Optional<ApplicationSummary> backingApplication2AfterDeletion = getApplicationSummary(APP_CREATE_2);
 		assertThat(backingApplication2AfterDeletion).isEmpty();
 	}
 

@@ -45,7 +45,6 @@ import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
@@ -65,6 +64,8 @@ import static java.lang.String.format;
 public class CloudFoundryService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CloudFoundryService.class);
+	
+	private static final String DEPLOYER_PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry.";
 
 	private final CloudFoundryOperations cloudFoundryOperations;
 	private final CloudFoundryClient cloudFoundryClient;
@@ -113,14 +114,12 @@ public class CloudFoundryService {
 			.map(url -> "https://" + url);
 	}
 
-	public Mono<Void> pushBrokerApp(String appName, Path appPath, String... backingAppProperties) {
+	public Mono<Void> pushBrokerApp(String appName, Path appPath, String... appBrokerProperties) {
 		return cloudFoundryOperations.applications()
 			.pushManifest(PushApplicationManifestRequest.builder()
 				.manifest(ApplicationManifest.builder()
-					.environmentVariable("spring.application.name", "app-broker-acceptance")
 					.putAllEnvironmentVariables(appBrokerDeployerEnvironmentVariables())
-					.putAllEnvironmentVariables(appBrokerCatalogEnvironmentVariables())
-					.putAllEnvironmentVariables(backingAppEnvironmentVariables(backingAppProperties))
+					.putAllEnvironmentVariables(propertiesToEnvironment(appBrokerProperties))
 					.name(appName)
 					.path(appPath)
 					.memory(1024)
@@ -160,6 +159,7 @@ public class CloudFoundryService {
 				.doOnSuccess(item -> LOGGER.info("Deleted service instance " + serviceInstanceName))
 				.doOnError(error -> LOGGER.error("Error deleting service instance " + serviceInstanceName + ": " + error))
 				.onErrorResume(e -> Mono.empty()))
+			.doOnError(error -> LOGGER.error("Error getting service instance " + serviceInstanceName + ": " + error))
 			.onErrorResume(e -> Mono.empty());
 	}
 
@@ -194,23 +194,22 @@ public class CloudFoundryService {
 			.doOnError(error -> LOGGER.error("Error updating service instance " + serviceInstanceName + ": " + error));
 	}
 
-	public Mono<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName) {
-		return listServiceInstances(cloudFoundryOperations)
-			.filter(si -> si.getName().equals(serviceInstanceName))
-			.next();
+	public Mono<ServiceInstance> getServiceInstance(String serviceInstanceName) {
+		return getServiceInstance(cloudFoundryOperations, serviceInstanceName);
 	}
 
-	public Mono<ServiceInstanceSummary> getServiceInstance(String serviceInstanceName, String space) {
-		return listServiceInstances(createOperationsForSpace(space))
-			.filter(si -> si.getName().equals(serviceInstanceName))
-			.next();
+	public Mono<ServiceInstance> getServiceInstance(String serviceInstanceName, String space) {
+		return getServiceInstance(createOperationsForSpace(space), serviceInstanceName);
 	}
 
-	private Flux<ServiceInstanceSummary> listServiceInstances(CloudFoundryOperations operations) {
+	private Mono<ServiceInstance> getServiceInstance(CloudFoundryOperations operations,
+													 String serviceInstanceName) {
 		return operations.services()
-			.listInstances()
-			.doOnComplete(() -> LOGGER.info("Listed service instances"))
-			.doOnError(error -> LOGGER.error("Error listing service instances: " + error));
+			.getInstance(GetServiceInstanceRequest.builder()
+				.name(serviceInstanceName)
+				.build())
+			.doOnSuccess(item -> LOGGER.info("Got service instance " + serviceInstanceName))
+			.doOnError(error -> LOGGER.error("Error getting service instance " + serviceInstanceName + ": " + error));
 	}
 
 	public Mono<List<ApplicationSummary>> getApplications() {
@@ -218,7 +217,7 @@ public class CloudFoundryService {
 			.collectList();
 	}
 
-	public Mono<ApplicationSummary> getApplicationSummaryByNameAndSpace(String appName, String space) {
+	public Mono<ApplicationSummary> getApplicationSummary(String appName, String space) {
 		return listApplications(createOperationsForSpace(space))
 			.filter(applicationSummary -> applicationSummary.getName().equals(appName))
 			.single();
@@ -231,11 +230,11 @@ public class CloudFoundryService {
 			.doOnError(error -> LOGGER.error("Error listing applications: " + error));
 	}
 
-	public Mono<ApplicationEnvironments> getApplicationEnvironmentByAppName(String appName) {
+	public Mono<ApplicationEnvironments> getApplicationEnvironment(String appName) {
 		return getApplicationEnvironment(cloudFoundryOperations, appName);
 	}
 
-	public Mono<ApplicationEnvironments> getApplicationEnvironmentByAppNameAndSpace(String appName, String space) {
+	public Mono<ApplicationEnvironments> getApplicationEnvironment(String appName, String space) {
 		return getApplicationEnvironment(createOperationsForSpace(space), appName);
 	}
 
@@ -331,59 +330,44 @@ public class CloudFoundryService {
 
 	private Map<String, String> appBrokerDeployerEnvironmentVariables() {
 		Map<String, String> deployerVariables = new HashMap<>();
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.api-host",
+		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "api-host",
 			cloudFoundryProperties.getApiHost());
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.api-port",
+		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "api-port",
 			String.valueOf(cloudFoundryProperties.getApiPort()));
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.default-org",
+		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "default-org",
 			cloudFoundryProperties.getDefaultOrg());
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.default-space",
+		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "default-space",
 			cloudFoundryProperties.getDefaultSpace());
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.skip-ssl-validation",
+		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "skip-ssl-validation",
 			String.valueOf(cloudFoundryProperties.isSkipSslValidation()));
-		deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.properties.memory", "1024M");
+		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "properties.memory", "1024M");
 
 		if (cloudFoundryProperties.getUsername() == null || cloudFoundryProperties.getPassword() == null) {
-			deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.client-id",
+			deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "client-id",
 				CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_ID);
-			deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.client-secret",
+			deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "client-secret",
 				CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET);
 		} else {
-			deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.username",
+			deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "username",
 				cloudFoundryProperties.getUsername());
-			deployerVariables.put("spring.cloud.appbroker.deployer.cloudfoundry.password",
+			deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "password",
 				cloudFoundryProperties.getPassword());
 		}
 
 		return deployerVariables;
 	}
 
-	private Map<String, String> appBrokerCatalogEnvironmentVariables() {
-		Map<String, String> catalogVariables = new HashMap<>();
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].id", "example-service-id");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].name", "example");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].description", "A simple example");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].bindable", "true");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].tags[0]", "example");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].id", "standard-plan-id");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].bindable", "true");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].name", "standard");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].description", "A simple plan");
-		catalogVariables.put("spring.cloud.openservicebroker.catalog.services[0].plans[0].free", "true");
-		return catalogVariables;
-	}
-
-	private Map<String, String> backingAppEnvironmentVariables(String... backingAppProperties) {
-		Map<String, String> backingAppVariables = new HashMap<>();
-		for (String appProperty : backingAppProperties) {
-			final String[] appPropertyKeyValue = appProperty.split("=");
-			if (appPropertyKeyValue.length == 2) {
-				backingAppVariables.put(appPropertyKeyValue[0], appPropertyKeyValue[1]);
+	private Map<String, String> propertiesToEnvironment(String... properties) {
+		Map<String, String> environment = new HashMap<>();
+		for (String property : properties) {
+			final String[] propertyKeyValue = property.split("=");
+			if (propertyKeyValue.length == 2) {
+				environment.put(propertyKeyValue[0], propertyKeyValue[1]);
 			} else {
-				throw new IllegalArgumentException(format("Backing app property '%s' is incorrectly formatted",
-					Arrays.toString(appPropertyKeyValue)));
+				throw new IllegalArgumentException(format("App Broker property '%s' is incorrectly formatted",
+					Arrays.toString(propertyKeyValue)));
 			}
 		}
-		return backingAppVariables;
+		return environment;
 	}
 }

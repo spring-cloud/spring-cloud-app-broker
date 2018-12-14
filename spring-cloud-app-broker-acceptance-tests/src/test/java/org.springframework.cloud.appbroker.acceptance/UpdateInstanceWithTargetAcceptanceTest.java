@@ -16,15 +16,12 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
-import org.cloudfoundry.util.DelayUtils;
 import org.junit.jupiter.api.Test;
 
 import static com.revinate.assertj.json.JsonPathAssert.assertThat;
@@ -37,25 +34,23 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 
 	@Test
 	@AppBrokerTestProperties({
-		"spring.cloud.appbroker.services[0].service-name=example",
-		"spring.cloud.appbroker.services[0].plan-name=standard",
+		"spring.cloud.appbroker.services[0].service-name=" + APP_SERVICE_NAME,
+		"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
+
 		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.services[0].apps[0].path=" + BACKING_APP_PATH,
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=config1",
+
 		"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance"
 	})
 	void deployAppsInTargetSpaceOnUpdateService() {
 		// when a service instance is created
 		createServiceInstance(SI_NAME);
 
-		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_NAME);
-		assertThat(serviceInstance).hasValueSatisfying(value ->
-			assertThat(value.getLastOperation()).contains("completed"));
-
 		// then a backing application is deployed in a space named as the service instance id
-		String spaceName = serviceInstance.orElseThrow(RuntimeException::new).getId();
-		Optional<ApplicationSummary> backingApplication =
-			getApplicationSummaryByNameAndSpace(APP_NAME, spaceName);
+		String spaceName = getServiceInstanceGuid(SI_NAME);
+
+		Optional<ApplicationSummary> backingApplication = getApplicationSummary(APP_NAME, spaceName);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
 			assertThat(app.getRunningInstances()).isEqualTo(1);
 
@@ -67,13 +62,8 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 		// when the service instance is updated
 		updateServiceInstance(SI_NAME, Collections.singletonMap("parameter2", "config2"));
 
-		getServiceInstanceMono(SI_NAME)
-			.filter(summary -> summary.getLastOperation().contains("completed"))
-			.repeatWhenEmpty(DelayUtils.exponentialBackOff(Duration.ofSeconds(2), Duration.ofSeconds(15), Duration.ofMinutes(5)))
-			.blockOptional();
-
 		// then the service instance has the initial parameters
-		DocumentContext json = getSpringAppJsonByNameAndSpace(APP_NAME, spaceName);
+		DocumentContext json = getSpringAppJson(APP_NAME, spaceName);
 		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("config1");
 
 		// when the service instance is deleted

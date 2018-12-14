@@ -14,18 +14,29 @@
  * limitations under the License.
  */
 
+buildscript {
+	repositories {
+		mavenCentral()
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
 description = "Spring Cloud App Broker Acceptance Tests"
 
 // don't publish the jar for the acceptance tests project
 configurations.archives.artifacts.clear()
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
-	}
-}
+apply plugin: 'org.springframework.boot'
 
 dependencies {
+	implementation project(":spring-cloud-starter-app-broker-cloudfoundry")
+
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
+
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
 	testImplementation("org.junit.jupiter:junit-jupiter-api")
@@ -40,35 +51,23 @@ dependencies {
 	testImplementation("io.projectreactor.ipc:reactor-netty")
 }
 
+// build the test broker from /src into a jar that the tests can deploy
+test.dependsOn assemble
+
+// omit the version from the test broker jar file
+jar {
+	version = ''
+}
+bootJar {
+	version = ''
+}
+
 test {
 	// Only run the tests if acceptanceTests is specified
 	onlyIf {
 		project.hasProperty("acceptanceTests")
 	}
+	systemProperty "tests.broker-app-path", "${buildDir}/libs/spring-cloud-app-broker-acceptance-tests.jar"
 	// Pass relevant java properties to the test task
-	systemProperties << System.properties.findAll { it.key.startsWith("tests.") }
 	systemProperties << System.properties.findAll { it.key.startsWith("spring.") }
 }
-
-// Disable classfile warnings because of cloudfoundry-client warnings
-[compileJava, compileTestJava]*.options*.compilerArgs = [
-	"-Xlint:serial",
-	"-Xlint:varargs",
-	"-Xlint:cast",
-	"-Xlint:-classfile",
-	"-Xlint:dep-ann",
-	"-Xlint:divzero",
-	"-Xlint:empty",
-	"-Xlint:finally",
-	"-Xlint:overrides",
-	"-Xlint:path",
-	"-Xlint:-processing",
-	"-Xlint:static",
-	"-Xlint:try",
-	"-Xlint:fallthrough",
-	"-Xlint:rawtypes",
-	"-Xlint:deprecation",
-	"-Xlint:unchecked",
-	"-Xlint:-options",
-	"-Werror"
-]

@@ -18,7 +18,6 @@ package org.springframework.cloud.appbroker.acceptance;
 
 import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.cloudfoundry.uaa.tokens.GrantType;
 import org.junit.jupiter.api.Disabled;
@@ -38,10 +37,11 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 
 	@Test
 	@AppBrokerTestProperties({
-		"spring.cloud.appbroker.services[0].service-name=example",
-		"spring.cloud.appbroker.services[0].plan-name=standard",
+		"spring.cloud.appbroker.services[0].service-name=" + APP_SERVICE_NAME,
+		"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
+
 		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-		"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+		"spring.cloud.appbroker.services[0].apps[0].path=" + BACKING_APP_PATH,
 		
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].name=SpringSecurityOAuth2",
 		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.registration=sample-app-client",
@@ -57,21 +57,15 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 		// when a service instance is created
 		createServiceInstance(SI_NAME);
 
-		Optional<ServiceInstanceSummary> serviceInstance = getServiceInstance(SI_NAME);
-		assertThat(serviceInstance).hasValueSatisfying(value ->
-			assertThat(value.getLastOperation()).contains("completed"));
-
-		String serviceInstanceGuid = serviceInstance
-			.map(ServiceInstanceSummary::getId)
-			.orElse("unknown");
+		String serviceInstanceGuid = getServiceInstanceGuid(SI_NAME);
 
 		// then a backing application is deployed
-		Optional<ApplicationSummary> backingApplication = getApplicationSummaryByName(APP_NAME);
+		Optional<ApplicationSummary> backingApplication = getApplicationSummary(APP_NAME);
 		assertThat(backingApplication).hasValueSatisfying(app ->
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		// and has the environment variables
-		DocumentContext json = getSpringAppJsonByName(APP_NAME);
+		DocumentContext json = getSpringAppJson(APP_NAME);
 		assertThat(json).jsonPathAsString("$.spring.security.oauth2.client.registration.sample-app-client.client-id")
 			.isEqualTo(uaaClientId(serviceInstanceGuid));
 		assertThat(json).jsonPathAsString("$.spring.security.oauth2.client.registration.sample-app-client.client-secret")
@@ -88,7 +82,7 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 		deleteServiceInstance(SI_NAME);
 
 		// then the backing application is deleted
-		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummaryByName(APP_NAME);
+		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummary(APP_NAME);
 		assertThat(backingApplicationAfterDeletion).isEmpty();
 
 		// and the UAA client is deleted

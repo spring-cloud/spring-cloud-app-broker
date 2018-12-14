@@ -23,14 +23,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(value = "tests")
 public class AcceptanceTestProperties {
 
-	private String testBrokerAppPath;
+	private String brokerAppPath;
 
-	public String getTestBrokerAppPath() {
-		return testBrokerAppPath;
+	public String getBrokerAppPath() {
+		return brokerAppPath;
 	}
 
-	public void setTestBrokerAppPath(String testBrokerAppPath) {
-		this.testBrokerAppPath = testBrokerAppPath;
+	public void setBrokerAppPath(String brokerAppPath) {
+		this.brokerAppPath = brokerAppPath;
 	}
 
 }

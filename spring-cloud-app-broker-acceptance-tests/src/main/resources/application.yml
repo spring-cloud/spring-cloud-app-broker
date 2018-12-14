@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: app-broker-acceptance
+  cloud:
+    openservicebroker:
+      catalog:
+        services:
+        - id: 201ae814-ff16-11e8-8eb2-f2801f1b9fd1
+          name: app-service
+          description: A service that deploys a backing app
+          bindable: true
+          plans:
+          - id: 201aeb3e-ff16-11e8-8eb2-f2801f1b9fd1
+            name: standard
+            bindable: true
+            description: A simple plan
+            free: true
+        - id: 3071bcec-ff16-11e8-8eb2-f2801f1b9fd1
+          name: backing-service
+          description: A backing service that can be bound to backing apps
+          bindable: true
+          plans:
+          - id: 3071bf94-ff16-11e8-8eb2-f2801f1b9fd1
+            name: standard
+            bindable: true
+            description: A simple plan
+            free: true
+      # appbroker:
+      #   App Broker services configuration properties are configured individual test cases
+      #   services:
+      #   App Broker deployer configuration properties are configured test setup
+      #   deployer:
+
+logging:
+  level:
+    cloudfoundry-client: DEBUG

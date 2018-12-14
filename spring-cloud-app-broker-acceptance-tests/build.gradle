@@ -16,7 +16,11 @@
 
 description = "Spring Cloud App Broker Acceptance Tests"
 
-apply plugin: "com.jfrog.artifactory"
+tasks.whenTaskAdded {task ->
+	if(task.name.contains("artifactoryPublish")) {
+		task.enabled = false
+	}
+}
 
 // don't publish the jar for the acceptance tests project
 configurations.archives.artifacts.clear()
@@ -50,10 +54,6 @@ test {
 	// Pass relevant java properties to the test task
 	systemProperties << System.properties.findAll { it.key.startsWith("tests.") }
 	systemProperties << System.properties.findAll { it.key.startsWith("spring.") }
-}
-
-artifactoryPublish {
-	enabled = false
 }
 
 // Disable classfile warnings because of cloudfoundry-client warnings

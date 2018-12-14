@@ -16,12 +16,6 @@
 
 description = "Spring Cloud App Broker Acceptance Tests"
 
-tasks.whenTaskAdded {task ->
-	if(task.name.contains("artifactoryPublish")) {
-		task.enabled = false
-	}
-}
-
 // don't publish the jar for the acceptance tests project
 configurations.archives.artifacts.clear()
 

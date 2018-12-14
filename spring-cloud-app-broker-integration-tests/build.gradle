@@ -27,12 +27,6 @@ buildscript {
 
 description = "Spring Cloud App Broker Integration Tests"
 
-tasks.whenTaskAdded {task ->
-	if(task.name.contains("artifactoryPublish")) {
-		task.enabled = false
-	}
-}
-
 // don't publish the jar for this module
 configurations.archives.artifacts.clear()
 

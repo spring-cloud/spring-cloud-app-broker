@@ -27,6 +27,8 @@ buildscript {
 
 description = "Spring Cloud App Broker Integration Tests"
 
+apply plugin: "com.jfrog.artifactory"
+
 // don't publish the jar for this module
 configurations.archives.artifacts.clear()
 
@@ -57,4 +59,8 @@ dependencies {
 test {
 	// force a new fork for every test to eliminate issues with wiremock state
 	forkEvery = 1
+}
+
+artifactoryPublish {
+	enabled = false
 }

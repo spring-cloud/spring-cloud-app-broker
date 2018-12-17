@@ -81,7 +81,7 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(CreateServiceInstanceBindingRequest request) {
 		return invokeCreateResponseBuilders(request)
 			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> create(request)
+			.doOnNext(response -> create(request, response)
 				.subscribe());
 	}
 
@@ -121,10 +121,11 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 				&& StringUtils.hasText(request.getBindResource().getRoute());
 	}
 
-	private Mono<Void> create(CreateServiceInstanceBindingRequest request) {
+	private Mono<Void> create(CreateServiceInstanceBindingRequest request,
+							  CreateServiceInstanceBindingResponse response) {
 		return stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 			OperationState.IN_PROGRESS, "create service instance binding started")
-			.thenMany(invokeCreateWorkflows(request)
+			.thenMany(invokeCreateWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Creating service instance binding {}", request))
 				.doOnComplete(() -> log.debug("Finished creating service instance binding {}", request))
 				.doOnError(exception -> log.error("Error creating service instance binding {} with error {}", request, exception)))
@@ -136,17 +137,20 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 				.then());
 	}
 
-	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceBindingRequest request) {
+	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceBindingRequest request,
+											 CreateServiceInstanceBindingResponse response) {
 		return Flux.defer(() -> {
 			if (isAppBindingRequest(request)) {
 				return Flux.fromIterable(createServiceInstanceAppBindingWorkflows)
 					.filterWhen(workflow -> workflow.accept(request))
-					.concatMap(workflow -> workflow.create(request));
+					.concatMap(workflow -> workflow.create(request,
+						(CreateServiceInstanceAppBindingResponse) response));
 			}
 			else if (isRouteBindingRequest(request)) {
 				return Flux.fromIterable(createServiceInstanceRouteBindingWorkflows)
 					.filterWhen(workflow -> workflow.accept(request))
-					.concatMap(workflow -> workflow.create(request));
+					.concatMap(workflow -> workflow.create(request,
+						(CreateServiceInstanceRouteBindingResponse)response));
 			}
 			return Flux.empty();
 		});
@@ -156,7 +160,7 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(DeleteServiceInstanceBindingRequest request) {
 		return invokeDeleteResponseBuilders(request)
 			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> delete(request)
+			.doOnNext(response -> delete(request, response)
 				.subscribe());
 	}
 
@@ -172,10 +176,11 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 			.map(DeleteServiceInstanceBindingResponseBuilder::build);
 	}
 
-	private Mono<Void> delete(DeleteServiceInstanceBindingRequest request) {
+	private Mono<Void> delete(DeleteServiceInstanceBindingRequest request,
+							  DeleteServiceInstanceBindingResponse response) {
 		return stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 			OperationState.IN_PROGRESS, "delete service instance binding started")
-			.thenMany(invokeDeleteWorkflows(request)
+			.thenMany(invokeDeleteWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Deleting service instance binding {}", request))
 				.doOnComplete(() -> log.debug("Finished deleting service instance binding {}", request))
 				.doOnError(exception -> log.error("Error deleting service instance binding {} with error {}", request, exception)))
@@ -187,10 +192,11 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 				.then());
 	}
 
-	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceBindingRequest request) {
+	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceBindingRequest request,
+											 DeleteServiceInstanceBindingResponse response) {
 		return Flux.fromIterable(deleteServiceInstanceBindingWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
-			.concatMap(workflow -> workflow.delete(request));
+			.concatMap(workflow -> workflow.delete(request, response));
 	}
 
 	@Override

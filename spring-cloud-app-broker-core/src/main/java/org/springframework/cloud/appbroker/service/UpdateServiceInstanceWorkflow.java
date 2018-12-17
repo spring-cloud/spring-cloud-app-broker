@@ -19,10 +19,13 @@ package org.springframework.cloud.appbroker.service;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 
 public interface UpdateServiceInstanceWorkflow {
-	Mono<Void> update(UpdateServiceInstanceRequest request);
+	default Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
+		return Mono.empty();
+	}
 
 	default Mono<Boolean> accept(UpdateServiceInstanceRequest request) {
 		return Mono.just(true);

@@ -20,9 +20,13 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse.CreateServiceInstanceResponseBuilder;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 
 public interface CreateServiceInstanceWorkflow {
-	Mono<Void> create(CreateServiceInstanceRequest request);
+	default Mono<Void> create(CreateServiceInstanceRequest request,
+							  CreateServiceInstanceResponse response) {
+		return Mono.empty();
+	}
 
 	default Mono<Boolean> accept(CreateServiceInstanceRequest request) {
 		return Mono.just(true);

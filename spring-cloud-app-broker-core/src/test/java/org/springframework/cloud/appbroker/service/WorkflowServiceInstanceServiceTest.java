@@ -102,13 +102,18 @@ class WorkflowServiceInstanceServiceTest {
 			.build();
 
 		CreateServiceInstanceResponseBuilder responseBuilder = CreateServiceInstanceResponse.builder();
+		CreateServiceInstanceResponse builtResponse = CreateServiceInstanceResponse.builder()
+			.async(true)
+			.dashboardUrl("https://dashboard.example.com")
+			.operation("working2")
+			.build();
 
 		TestPublisher<Void> lowerOrderFlow = TestPublisher.create();
 		TestPublisher<Void> higherOrderFlow = TestPublisher.create();
 
 		given(createServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
-		given(createServiceInstanceWorkflow1.create(request))
+		given(createServiceInstanceWorkflow1.create(eq(request), eq(builtResponse)))
 			.willReturn(lowerOrderFlow.mono());
 		given(createServiceInstanceWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
@@ -117,7 +122,7 @@ class WorkflowServiceInstanceServiceTest {
 
 		given(createServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
-		given(createServiceInstanceWorkflow2.create(request))
+		given(createServiceInstanceWorkflow2.create(eq(request), eq(builtResponse)))
 			.willReturn(higherOrderFlow.mono());
 		given(createServiceInstanceWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
@@ -144,8 +149,8 @@ class WorkflowServiceInstanceServiceTest {
 					any(CreateServiceInstanceResponseBuilder.class));
 				createOrder.verify(createServiceInstanceWorkflow1).buildResponse(eq(request),
 					any(CreateServiceInstanceResponseBuilder.class));
-				createOrder.verify(createServiceInstanceWorkflow2).create(request);
-				createOrder.verify(createServiceInstanceWorkflow1).create(request);
+				createOrder.verify(createServiceInstanceWorkflow2).create(request, responseBuilder.build());
+				createOrder.verify(createServiceInstanceWorkflow1).create(request, responseBuilder.build());
 				createOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
@@ -172,14 +177,14 @@ class WorkflowServiceInstanceServiceTest {
 
 		given(createServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
-		given(createServiceInstanceWorkflow1.create(request))
+		given(createServiceInstanceWorkflow1.create(request, responseBuilder.build()))
 			.willReturn(Mono.error(new RuntimeException("create foo error")));
 		given(createServiceInstanceWorkflow1.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
 		given(createServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
-		given(createServiceInstanceWorkflow2.create(request))
+		given(createServiceInstanceWorkflow2.create(request, responseBuilder.build()))
 			.willReturn(Mono.empty());
 		given(createServiceInstanceWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
@@ -198,8 +203,8 @@ class WorkflowServiceInstanceServiceTest {
 					any(CreateServiceInstanceResponseBuilder.class));
 				createOrder.verify(createServiceInstanceWorkflow1).buildResponse(eq(request),
 					any(CreateServiceInstanceResponseBuilder.class));
-				createOrder.verify(createServiceInstanceWorkflow2).create(request);
-				createOrder.verify(createServiceInstanceWorkflow1).create(request);
+				createOrder.verify(createServiceInstanceWorkflow2).create(request, responseBuilder.build());
+				createOrder.verify(createServiceInstanceWorkflow1).create(request, responseBuilder.build());
 				createOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
@@ -279,26 +284,30 @@ class WorkflowServiceInstanceServiceTest {
 			.build();
 
 		DeleteServiceInstanceResponseBuilder responseBuilder = DeleteServiceInstanceResponse.builder();
+		DeleteServiceInstanceResponse builtResponse = DeleteServiceInstanceResponse.builder()
+			.async(true)
+			.operation("working2")
+			.build();
 
 		TestPublisher<Void> lowerOrderFlow = TestPublisher.create();
 		TestPublisher<Void> higherOrderFlow = TestPublisher.create();
 
 		given(deleteServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
-		given(deleteServiceInstanceWorkflow1.delete(request))
-			.willReturn(lowerOrderFlow.mono());
 		given(deleteServiceInstanceWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
 				.operation("working1")));
+		given(deleteServiceInstanceWorkflow1.delete(eq(request), eq(builtResponse)))
+			.willReturn(lowerOrderFlow.mono());
 
 		given(deleteServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
-		given(deleteServiceInstanceWorkflow2.delete(request))
-			.willReturn(higherOrderFlow.mono());
 		given(deleteServiceInstanceWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.operation("working2")));
+		given(deleteServiceInstanceWorkflow2.delete(eq(request), eq(builtResponse)))
+			.willReturn(higherOrderFlow.mono());
 
 		StepVerifier.create(workflowServiceInstanceService.deleteServiceInstance(request))
 			.assertNext(response -> {
@@ -320,8 +329,8 @@ class WorkflowServiceInstanceServiceTest {
 					any(DeleteServiceInstanceResponseBuilder.class));
 				deleteOrder.verify(deleteServiceInstanceWorkflow1).buildResponse(eq(request),
 					any(DeleteServiceInstanceResponseBuilder.class));
-				deleteOrder.verify(deleteServiceInstanceWorkflow2).delete(request);
-				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request);
+				deleteOrder.verify(deleteServiceInstanceWorkflow2).delete(request, responseBuilder.build());
+				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request, responseBuilder.build());
 				deleteOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
@@ -347,14 +356,14 @@ class WorkflowServiceInstanceServiceTest {
 
 		given(deleteServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
-		given(deleteServiceInstanceWorkflow1.delete(request))
+		given(deleteServiceInstanceWorkflow1.delete(request, responseBuilder.build()))
 			.willReturn(Mono.error(new RuntimeException("delete foo error")));
 		given(deleteServiceInstanceWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
 		given(deleteServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
-		given(deleteServiceInstanceWorkflow2.delete(request))
+		given(deleteServiceInstanceWorkflow2.delete(request, responseBuilder.build()))
 			.willReturn(Mono.empty());
 		given(deleteServiceInstanceWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
@@ -373,8 +382,8 @@ class WorkflowServiceInstanceServiceTest {
 					any(DeleteServiceInstanceResponseBuilder.class));
 				deleteOrder.verify(deleteServiceInstanceWorkflow1).buildResponse(eq(request),
 					any(DeleteServiceInstanceResponseBuilder.class));
-				deleteOrder.verify(deleteServiceInstanceWorkflow2).delete(request);
-				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request);
+				deleteOrder.verify(deleteServiceInstanceWorkflow2).delete(request, responseBuilder.build());
+				deleteOrder.verify(deleteServiceInstanceWorkflow1).delete(request, responseBuilder.build());
 				deleteOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
@@ -454,27 +463,32 @@ class WorkflowServiceInstanceServiceTest {
 			.build();
 
 		UpdateServiceInstanceResponseBuilder responseBuilder = UpdateServiceInstanceResponse.builder();
+		UpdateServiceInstanceResponse builtResponse = UpdateServiceInstanceResponse.builder()
+			.async(true)
+			.dashboardUrl("https://dashboard.example.com")
+			.operation("working2")
+			.build();
 
 		TestPublisher<Void> lowerOrderFlow = TestPublisher.create();
 		TestPublisher<Void> higherOrderFlow = TestPublisher.create();
 
 		given(updateServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
-		given(updateServiceInstanceWorkflow1.update(request))
-			.willReturn(lowerOrderFlow.mono());
 		given(updateServiceInstanceWorkflow1.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
 				.operation("working1")));
+		given(updateServiceInstanceWorkflow1.update(eq(request), eq(builtResponse)))
+			.willReturn(lowerOrderFlow.mono());
 
 		given(updateServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
-		given(updateServiceInstanceWorkflow2.update(request))
-			.willReturn(higherOrderFlow.mono());
 		given(updateServiceInstanceWorkflow2.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.dashboardUrl("https://dashboard.example.com")
 				.operation("working2")));
+		given(updateServiceInstanceWorkflow2.update(eq(request), eq(builtResponse)))
+			.willReturn(higherOrderFlow.mono());
 
 		StepVerifier.create(workflowServiceInstanceService.updateServiceInstance(request))
 			.assertNext(response -> {
@@ -496,8 +510,8 @@ class WorkflowServiceInstanceServiceTest {
 					any(UpdateServiceInstanceResponseBuilder.class));
 				updateOrder.verify(updateServiceInstanceWorkflow1).buildResponse(eq(request),
 					any(UpdateServiceInstanceResponseBuilder.class));
-				updateOrder.verify(updateServiceInstanceWorkflow2).update(request);
-				updateOrder.verify(updateServiceInstanceWorkflow1).update(request);
+				updateOrder.verify(updateServiceInstanceWorkflow2).update(request, builtResponse);
+				updateOrder.verify(updateServiceInstanceWorkflow1).update(request, builtResponse);
 				updateOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
@@ -524,14 +538,14 @@ class WorkflowServiceInstanceServiceTest {
 
 		given(updateServiceInstanceWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
-		given(updateServiceInstanceWorkflow1.update(request))
+		given(updateServiceInstanceWorkflow1.update(request, responseBuilder.build()))
 			.willReturn(Mono.error(new RuntimeException("update foo error")));
 		given(updateServiceInstanceWorkflow1.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
 		given(updateServiceInstanceWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
-		given(updateServiceInstanceWorkflow2.update(request))
+		given(updateServiceInstanceWorkflow2.update(request, responseBuilder.build()))
 			.willReturn(Mono.empty());
 		given(updateServiceInstanceWorkflow2.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
@@ -550,8 +564,8 @@ class WorkflowServiceInstanceServiceTest {
 					any(UpdateServiceInstanceResponseBuilder.class));
 				updateOrder.verify(updateServiceInstanceWorkflow1).buildResponse(eq(request),
 					any(UpdateServiceInstanceResponseBuilder.class));
-				updateOrder.verify(updateServiceInstanceWorkflow2).update(request);
-				updateOrder.verify(updateServiceInstanceWorkflow1).update(request);
+				updateOrder.verify(updateServiceInstanceWorkflow2).update(request, responseBuilder.build());
+				updateOrder.verify(updateServiceInstanceWorkflow1).update(request, responseBuilder.build());
 				updateOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();

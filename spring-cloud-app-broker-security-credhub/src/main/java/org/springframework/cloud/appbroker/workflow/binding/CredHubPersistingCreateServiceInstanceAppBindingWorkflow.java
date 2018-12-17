@@ -49,11 +49,6 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow implements
 	}
 
 	@Override
-	public Mono<Void> create(CreateServiceInstanceBindingRequest request) {
-		return Mono.empty();
-	}
-
-	@Override
 	public Mono<CreateServiceInstanceAppBindingResponseBuilder> buildResponse(CreateServiceInstanceBindingRequest request,
 																			  CreateServiceInstanceAppBindingResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder.build())

@@ -27,6 +27,7 @@ import org.springframework.cloud.appbroker.extensions.credentials.CredentialProv
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
 import org.springframework.core.annotation.Order;
 
@@ -55,7 +56,7 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	}
 
 	@Override
-	public Mono<Void> delete(DeleteServiceInstanceRequest request) {
+	public Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
 		return
 			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
 				.flatMapMany(backingService -> targetService.addToBackingServices(backingService, getTargetForService(request.getServiceDefinition(), request.getPlanId()) , request.getServiceInstanceId()))
@@ -66,7 +67,7 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 						.flatMap(backingApps -> targetService.addToBackingApplications(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()),  request.getServiceInstanceId()))
 						.flatMapMany(deploymentService::undeploy)
 						.doOnRequest(l -> log.debug("Undeploying applications {}", brokeredServices))
-						.doOnEach(response -> log.debug("Finished undeploying {}", response))
+						.doOnEach(result -> log.debug("Finished undeploying {}", result))
 						.doOnComplete(() -> log.debug("Finished undeploying applications {}", brokeredServices))
 						.doOnError(exception -> log.error("Error undeploying applications {} with error {}", brokeredServices, exception)))
 				.then();

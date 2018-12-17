@@ -43,6 +43,7 @@ import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 
 import static java.util.Collections.singletonMap;
 import static org.mockito.ArgumentMatchers.eq;
@@ -125,11 +126,12 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	@SuppressWarnings({"unchecked", "UnassignedFluxMonoInstance"})
 	void updateServiceInstanceSucceeds() {
 		UpdateServiceInstanceRequest request = buildRequest("service1", "plan1");
+		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
 
 		setupMocks(request);
 
 		StepVerifier
-			.create(updateServiceInstanceWorkflow.update(request))
+			.create(updateServiceInstanceWorkflow.update(request, response))
 			.expectNext()
 			.expectNext()
 			.verifyComplete();
@@ -148,11 +150,12 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	void updateServiceInstanceWithParametersSucceeds() {
 		UpdateServiceInstanceRequest request = buildRequest("service1", "plan1",
 			singletonMap("ENV_VAR_1", "value from parameters"));
+		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
 
 		setupMocks(request);
 
 		StepVerifier
-			.create(updateServiceInstanceWorkflow.update(request))
+			.create(updateServiceInstanceWorkflow.update(request, response))
 			.expectNext()
 			.expectNext()
 			.verifyComplete();
@@ -162,8 +165,11 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 	@Test
 	void updateServiceInstanceWithNoAppsDoesNothing() {
+		UpdateServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
+		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
+
 		StepVerifier
-			.create(updateServiceInstanceWorkflow.update(buildRequest("unsupported-service", "plan1")))
+			.create(updateServiceInstanceWorkflow.update(request, response))
 			.verifyComplete();
 
 		verifyNoMoreInteractionsWithServices();

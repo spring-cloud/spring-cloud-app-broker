@@ -45,6 +45,7 @@ import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 
 import static java.util.Collections.singletonMap;
 import static org.mockito.ArgumentMatchers.eq;
@@ -135,11 +136,12 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	@SuppressWarnings({"unchecked", "UnassignedFluxMonoInstance"})
 	void createServiceInstanceSucceeds() {
 		CreateServiceInstanceRequest request = buildRequest("service1", "plan1");
+		CreateServiceInstanceResponse response = CreateServiceInstanceResponse.builder().build();
 
 		setupMocks(request);
 
 		StepVerifier
-			.create(createServiceInstanceWorkflow.create(request))
+			.create(createServiceInstanceWorkflow.create(request, response))
 			.expectNext()
 			.expectNext()
 			.verifyComplete();
@@ -161,11 +163,12 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		
 		CreateServiceInstanceRequest request = buildRequest("service1", "plan1",
 			parameters);
+		CreateServiceInstanceResponse response = CreateServiceInstanceResponse.builder().build();
 
 		setupMocks(request);
 
 		StepVerifier
-			.create(createServiceInstanceWorkflow.create(request))
+			.create(createServiceInstanceWorkflow.create(request, response))
 			.expectNext()
 			.expectNext()
 			.verifyComplete();
@@ -185,9 +188,10 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	@Test
 	void createServiceInstanceWithNoAppsDoesNothing() {
 		CreateServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
+		CreateServiceInstanceResponse response = CreateServiceInstanceResponse.builder().build();
 
 		StepVerifier
-			.create(createServiceInstanceWorkflow.create(request))
+			.create(createServiceInstanceWorkflow.create(request, response))
 			.verifyComplete();
 
 		verifyNoMoreInteractionsWithServices();

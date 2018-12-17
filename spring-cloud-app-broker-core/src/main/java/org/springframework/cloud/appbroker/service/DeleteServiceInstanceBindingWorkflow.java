@@ -20,16 +20,20 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse;
 
 public interface DeleteServiceInstanceBindingWorkflow {
-	Mono<Void> delete(DeleteServiceInstanceBindingRequest request);
+	default Mono<Void> delete(DeleteServiceInstanceBindingRequest request,
+							  DeleteServiceInstanceBindingResponse response) {
+		return Mono.empty();
+	}
 
 	default Mono<Boolean> accept(DeleteServiceInstanceBindingRequest request) {
 		return Mono.just(true);
 	}
 
 	default Mono<DeleteServiceInstanceBindingResponseBuilder> buildResponse(DeleteServiceInstanceBindingRequest request,
-																	 DeleteServiceInstanceBindingResponseBuilder responseBuilder) {
+																			DeleteServiceInstanceBindingResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder);
 	}
 }

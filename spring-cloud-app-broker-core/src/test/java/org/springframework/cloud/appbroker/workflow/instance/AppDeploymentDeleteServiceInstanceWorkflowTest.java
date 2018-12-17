@@ -40,6 +40,7 @@ import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -118,6 +119,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	@Test
 	void deleteServiceInstanceSucceeds() {
 		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
+		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
 		given(this.backingAppDeploymentService.undeploy(eq(backingApps)))
 			.willReturn(Flux.just("undeployed1", "undeployed2"));
@@ -131,7 +133,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.willReturn(Flux.just("my-service-instance"));
 
 		StepVerifier
-			.create(deleteServiceInstanceWorkflow.delete(request))
+			.create(deleteServiceInstanceWorkflow.delete(request, response))
 			.expectNext()
 			.expectNext()
 			.verifyComplete();
@@ -141,8 +143,11 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 	@Test
 	void deleteServiceInstanceWithWithNoAppsDoesNothing() {
+		DeleteServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
+		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
+
 		StepVerifier
-			.create(deleteServiceInstanceWorkflow.delete(buildRequest("unsupported-service", "plan1")))
+			.create(deleteServiceInstanceWorkflow.delete(request, response))
 			.verifyComplete();
 
 		verifyNoMoreInteractionsWithServices();

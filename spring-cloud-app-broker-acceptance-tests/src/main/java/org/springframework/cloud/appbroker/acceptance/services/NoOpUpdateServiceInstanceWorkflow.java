@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.acceptance.services;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -29,7 +30,7 @@ public class NoOpUpdateServiceInstanceWorkflow implements UpdateServiceInstanceW
 	private String backingServiceId;
 
 	@Override
-	public Mono<Void> update(UpdateServiceInstanceRequest request) {
+	public Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
 		return Mono.empty();
 	}
 

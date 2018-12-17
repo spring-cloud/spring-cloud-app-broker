@@ -78,7 +78,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
 		return invokeCreateResponseBuilders(request)
 			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> create(request)
+			.doOnNext(response -> create(request, response)
 				.subscribe());
 	}
 
@@ -94,11 +94,11 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			.map(CreateServiceInstanceResponseBuilder::build);
 	}
 
-	private Mono<Void> create(CreateServiceInstanceRequest request) {
+	private Mono<Void> create(CreateServiceInstanceRequest request, CreateServiceInstanceResponse response) {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS,
 			"create service instance started")
-			.thenMany(invokeCreateWorkflows(request)
+			.thenMany(invokeCreateWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Creating service instance {}", request))
 				.doOnComplete(() -> log.debug("Finished creating service instance {}", request))
 				.doOnError(exception -> log.error("Error creating service instance {} with error {}", request, exception)))
@@ -110,17 +110,18 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 				.then());
 	}
 
-	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceRequest request) {
+	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceRequest request,
+											 CreateServiceInstanceResponse response) {
 		return Flux.fromIterable(createServiceInstanceWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
-			.concatMap(workflow -> workflow.create(request));
+			.concatMap(workflow -> workflow.create(request, response));
 	}
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
 		return invokeDeleteResponseBuilders(request)
 			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> delete(request)
+			.doOnNext(response -> delete(request, response)
 				.subscribe());
 	}
 
@@ -136,10 +137,10 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			.map(DeleteServiceInstanceResponseBuilder::build);
 	}
 
-	private Mono<Void> delete(DeleteServiceInstanceRequest request) {
+	private Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS, "delete service instance started")
-			.thenMany(invokeDeleteWorkflows(request)
+			.thenMany(invokeDeleteWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Deleting service instance {}", request))
 				.doOnComplete(() -> log.debug("Finished deleting service instance {}", request))
 				.doOnError(exception -> log.error("Error deleting service instance {} with error {}", request, exception)))
@@ -151,17 +152,18 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 				.then());
 	}
 
-	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceRequest request) {
+	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceRequest request,
+											 DeleteServiceInstanceResponse response) {
 		return Flux.fromIterable(deleteServiceInstanceWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
-			.concatMap(workflow -> workflow.delete(request));
+			.concatMap(workflow -> workflow.delete(request, response));
 	}
 
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
 		return invokeUpdateResponseBuilders(request)
 			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> update(request)
+			.doOnNext(response -> update(request, response)
 				.subscribe());
 	}
 
@@ -177,10 +179,10 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			.map(UpdateServiceInstanceResponseBuilder::build);
 	}
 
-	private Mono<Void> update(UpdateServiceInstanceRequest request) {
+	private Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS, "update service instance started")
-			.thenMany(invokeUpdateWorkflows(request)
+			.thenMany(invokeUpdateWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Updating service instance {}", request))
 				.doOnComplete(() -> log.debug("Finished updating service instance {}", request))
 				.doOnError(e -> log.error("Error updating service instance {} with error {}", request, e)))
@@ -192,10 +194,11 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 				.then());
 	}
 
-	private Flux<Void> invokeUpdateWorkflows(UpdateServiceInstanceRequest request) {
+	private Flux<Void> invokeUpdateWorkflows(UpdateServiceInstanceRequest request,
+											 UpdateServiceInstanceResponse response) {
 		return Flux.fromIterable(updateServiceInstanceWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
-			.concatMap(workflow -> workflow.update(request));
+			.concatMap(workflow -> workflow.update(request, response));
 	}
 
 	@Override

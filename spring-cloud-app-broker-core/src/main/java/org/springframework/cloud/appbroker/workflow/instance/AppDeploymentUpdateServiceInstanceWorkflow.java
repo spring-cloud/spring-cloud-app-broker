@@ -28,6 +28,7 @@ import org.springframework.cloud.appbroker.extensions.parameters.BackingServices
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 import org.springframework.core.annotation.Order;
 
@@ -58,7 +59,7 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 		this.targetService = targetService;
 	}
 
-	public Mono<Void> update(UpdateServiceInstanceRequest request) {
+	public Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
 		return
 			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
 				.flatMap(backingService ->
@@ -79,7 +80,7 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 							appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
 						.flatMapMany(deploymentService::deploy)
 						.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
-						.doOnEach(s -> log.debug("Finished deploying {}", s))
+						.doOnEach(result -> log.debug("Finished deploying {}", result))
 						.doOnComplete(() -> log.debug("Finished deploying applications {}", brokeredServices))
 						.doOnError(e -> log.error("Error deploying applications {} with error {}", brokeredServices, e)))
 				.then();

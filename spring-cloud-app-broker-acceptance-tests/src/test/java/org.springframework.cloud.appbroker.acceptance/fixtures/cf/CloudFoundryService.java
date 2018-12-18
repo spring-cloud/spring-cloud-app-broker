@@ -17,14 +17,11 @@
 package org.springframework.cloud.appbroker.acceptance.fixtures.cf;
 
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudfoundry.client.CloudFoundryClient;
-import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceResponse;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
@@ -49,8 +46,6 @@ import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
 import org.cloudfoundry.operations.spaces.Spaces;
-import org.cloudfoundry.util.LastOperationUtils;
-import org.cloudfoundry.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
@@ -68,14 +63,11 @@ public class CloudFoundryService {
 	private static final String DEPLOYER_PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry.";
 
 	private final CloudFoundryOperations cloudFoundryOperations;
-	private final CloudFoundryClient cloudFoundryClient;
 	private final CloudFoundryProperties cloudFoundryProperties;
 
 	public CloudFoundryService(CloudFoundryOperations cloudFoundryOperations,
-							   CloudFoundryClient cloudFoundryClient,
 							   CloudFoundryProperties cloudFoundryProperties) {
 		this.cloudFoundryOperations = cloudFoundryOperations;
-		this.cloudFoundryClient = cloudFoundryClient;
 		this.cloudFoundryProperties = cloudFoundryProperties;
 	}
 
@@ -184,12 +176,6 @@ public class CloudFoundryService {
 				.serviceInstanceName(serviceInstanceName)
 				.parameters(parameters)
 				.build())
-			.then(cloudFoundryOperations.services()
-				.getInstance(GetServiceInstanceRequest.builder()
-					.name(serviceInstanceName)
-					.build()))
-			.map(ServiceInstance::getId)
-			.flatMap(this::waitForUpdateInstance)
 			.doOnSuccess(item -> LOGGER.info("Updated service instance " + serviceInstanceName))
 			.doOnError(error -> LOGGER.error("Error updating service instance " + serviceInstanceName + ": " + error));
 	}
@@ -311,21 +297,6 @@ public class CloudFoundryService {
 			.organization(defaultOrg)
 			.space(space)
 			.build();
-	}
-
-	private Mono<Void> waitForUpdateInstance(String serviceInstanceId) {
-		return LastOperationUtils
-			.waitForCompletion(Duration.ofMinutes(5), () ->
-				requestGetServiceInstance(cloudFoundryClient, serviceInstanceId)
-					.map(response -> ResourceUtils.getEntity(response).getLastOperation()));
-	}
-
-	private Mono<GetServiceInstanceResponse> requestGetServiceInstance(CloudFoundryClient cloudFoundryClient,
-																	   String serviceInstanceId) {
-		return cloudFoundryClient.serviceInstances()
-			.get(org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceRequest.builder()
-				.serviceInstanceId(serviceInstanceId)
-				.build());
 	}
 
 	private Map<String, String> appBrokerDeployerEnvironmentVariables() {

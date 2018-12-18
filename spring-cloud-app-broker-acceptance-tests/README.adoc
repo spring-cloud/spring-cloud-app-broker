@@ -6,20 +6,29 @@
 
     $ ./gradlew build
 
-=== Running the tests
-
-== Running
+=== Run the tests
 
 The tests require the following properties to be set:
 
-* `tests.broker-app-path` - The path to the test broker jar (eg. /spring-cloud-app-broker-integration-tests/build/libs/spring-cloud-app-broker-integration-tests.jar).
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.api-host` - The CF API host where the tests are going to run.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.api-port` - The CF API port where the tests are going to run.
-* `spring.cloud.appbroker.acceptance-test.cloudfoundry.username` - The CF API username where the tests are going to run.
-* `spring.cloud.appbroker.acceptance-test.cloudfoundry.password` - The CF API password where the tests are going to run.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.default-org` - The CF organization where the tests are going to run.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.default-space` - The CF space where the tests are going to run.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.skip-ssl-validation` - If SSL validation should be skipped.
+
+To authenticate to the target CF with a user account, set the following properties:
+
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.username` - The CF API username.
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.password` - The CF API password.
+
+To authenticate to the target CF with an OAuth2 client in UAA, set the following properties:
+
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.client-id` - The CF API OAuth2 client ID.
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.client-secret` - The CF API OAuth2 client secret.
+
+When running tests from an IDE, the following property must also be set (it is set automatically when running the entire suite via Gradle):
+
+* `tests.broker-app-path` - The path to the test broker jar file (eg. `spring-cloud-app-broker-acceptance-tests/build/libs/spring-cloud-app-broker-acceptance-tests.jar`).
 
 These properties can be set with `-D` system properties on the gradle command line.
 
@@ -28,7 +37,6 @@ Also, the flag acceptanceTests must be provided as `-PacceptanceTests`.
 [source,bash]
 ----
 $ ./gradlew test -PacceptanceTests \
- -Dtests.broker-app-path=/path/to/broker.jar \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.api-host=api.cf.my.cf.io  \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.api-port=443 \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.username=admin \

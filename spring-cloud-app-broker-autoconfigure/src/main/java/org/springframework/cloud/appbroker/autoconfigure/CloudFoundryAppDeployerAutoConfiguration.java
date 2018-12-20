@@ -30,6 +30,8 @@ import org.cloudfoundry.reactor.tokenprovider.ClientCredentialsGrantTokenProvide
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.UaaClient;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -42,8 +44,14 @@ import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryTar
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.StringUtils;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Configuration
 @ConditionalOnProperty(CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".api-host")
@@ -74,12 +82,13 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	@Bean
-	OAuth2Client cloudFoundryOAuth2Client(UaaClient uaaClient) {
+	OAuth2Client cloudFoundryOAuth2Client(@UaaClientQualifier UaaClient uaaClient) {
 		return new CloudFoundryOAuth2Client(uaaClient);
 	}
 
 	@Bean
-	ReactorCloudFoundryClient cloudFoundryClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+	ReactorCloudFoundryClient cloudFoundryClient(ConnectionContext connectionContext,
+												 @TokenQualifier TokenProvider tokenProvider) {
 		return ReactorCloudFoundryClient.builder()
 			.connectionContext(connectionContext)
 			.tokenProvider(tokenProvider)
@@ -87,8 +96,10 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	@Bean
-	CloudFoundryOperations cloudFoundryOperations(CloudFoundryTargetProperties properties, CloudFoundryClient client,
-												  DopplerClient dopplerClient, UaaClient uaaClient) {
+	CloudFoundryOperations cloudFoundryOperations(CloudFoundryTargetProperties properties,
+												  CloudFoundryClient client,
+												  DopplerClient dopplerClient,
+												  @UaaClientQualifier UaaClient uaaClient) {
 		return DefaultCloudFoundryOperations.builder()
 			.cloudFoundryClient(client)
 			.dopplerClient(dopplerClient)
@@ -109,39 +120,69 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	@Bean
-	ReactorDopplerClient dopplerClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+	ReactorDopplerClient dopplerClient(ConnectionContext connectionContext,
+									   @TokenQualifier TokenProvider tokenProvider) {
 		return ReactorDopplerClient.builder()
 			.connectionContext(connectionContext)
 			.tokenProvider(tokenProvider)
 			.build();
 	}
 
+	@TokenQualifier
 	@Bean
-	@ConditionalOnProperty({CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".username",
-		CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".password"})
-	PasswordGrantTokenProvider passwordGrantTokenProvider(CloudFoundryTargetProperties properties) {
-		return PasswordGrantTokenProvider.builder()
-			.password(properties.getPassword())
-			.username(properties.getUsername())
-			.build();
+	TokenProvider uaaTokenProvider(CloudFoundryTargetProperties properties) {
+		boolean isClientIdAndSecretSet = Stream.of(properties.getClientId(), properties.getClientSecret())
+											   .allMatch(StringUtils::hasText);
+		boolean isUsernameAndPasswordSet = Stream.of(properties.getUsername(), properties.getPassword())
+												 .allMatch(StringUtils::hasText);
+		if (isClientIdAndSecretSet && isUsernameAndPasswordSet) {
+			throw new IllegalStateException(
+				String.format("(%1$s.client_id / %1$s.client_secret) must not be set when\n" +
+					"(%1$s.username / %1$s.password) are also set", PROPERTY_PREFIX));
+		}
+		else if (isClientIdAndSecretSet) {
+			return ClientCredentialsGrantTokenProvider.builder()
+													  .clientId(properties.getClientId())
+													  .clientSecret(properties.getClientSecret())
+													  .identityZoneSubdomain(properties.getIdentityZoneSubdomain())
+													  .build();
+		}
+		else if (isUsernameAndPasswordSet) {
+			return PasswordGrantTokenProvider.builder()
+											 .password(properties.getPassword())
+											 .username(properties.getUsername())
+											 .build();
+		}
+		else {
+			throw new IllegalStateException(
+				String.format("Either (%1$s.client_id and %1$s.client_secret) or\n" +
+					"(%1$s.username and %1$s.password) properties must be set", PROPERTY_PREFIX));
+		}
 	}
 
+	@UaaClientQualifier
 	@Bean
-	@ConditionalOnProperty({CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".client-id",
-		CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".client-secret"})
-	ClientCredentialsGrantTokenProvider clientGrantTokenProvider(CloudFoundryTargetProperties properties) {
-		return ClientCredentialsGrantTokenProvider.builder()
-			.clientId(properties.getClientId())
-			.clientSecret(properties.getClientSecret())
-			.identityZoneSubdomain(properties.getIdentityZoneSubdomain())
-			.build();
-	}
-
-	@Bean
-	ReactorUaaClient uaaClient(ConnectionContext connectionContext, TokenProvider tokenProvider) {
+	ReactorUaaClient uaaClient(ConnectionContext connectionContext,
+							   @TokenQualifier TokenProvider tokenProvider) {
 		return ReactorUaaClient.builder()
 			.connectionContext(connectionContext)
 			.tokenProvider(tokenProvider)
 			.build();
+	}
+
+	@Qualifier
+	@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface TokenQualifier {
+
+		String value() default "appBrokerTokenProvider";
+	}
+
+	@Qualifier
+	@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface 	UaaClientQualifier {
+
+		String value() default "appBrokerUaaClientQualifier";
 	}
 }

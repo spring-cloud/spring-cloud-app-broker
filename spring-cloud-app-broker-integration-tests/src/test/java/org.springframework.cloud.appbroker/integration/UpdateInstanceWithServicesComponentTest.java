@@ -56,7 +56,7 @@ class UpdateInstanceWithServicesComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void updateAppWithServicesWhenServicesExist() {
+	void updateAppWithServices() {
 		cloudControllerFixture.stubAppExists(APP_NAME);
 		cloudControllerFixture.stubUpdateApp(APP_NAME);
 

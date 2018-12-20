@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.cloud.appbroker.integration;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.OpenServiceBrokerApiFixture;
@@ -29,9 +28,9 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.APP_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SI_NAME;
+import static org.springframework.cloud.appbroker.integration.UpdateInstanceWithServicesRebindComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.UpdateInstanceWithServicesRebindComponentTest.BACKING_SI_NAME;
+import static org.springframework.cloud.appbroker.integration.UpdateInstanceWithServicesRebindComponentTest.BACKING_SERVICE_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -41,11 +40,12 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
-	"spring.cloud.appbroker.services[0].services[0].plan=standard"
+	"spring.cloud.appbroker.services[0].services[0].plan=standard",
+	"spring.cloud.appbroker.services[0].services[0].rebind-on-update=true"
 })
-class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
+class UpdateInstanceWithServicesRebindComponentTest extends WiremockComponentTest {
 
-	static final String APP_NAME = "app-with-new-services";
+	static final String APP_NAME = "app-update-rebind-with-services";
 
 	static final String BACKING_SI_NAME = "my-db-service";
 	static final String BACKING_SERVICE_NAME = "db-service";
@@ -57,25 +57,21 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void pushAppWithServicesWhenServicesExist() {
-		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
-		cloudControllerFixture.stubPushApp(APP_NAME);
+	void updateAppWithServices() {
+		cloudControllerFixture.stubAppExists(APP_NAME);
+		cloudControllerFixture.stubUpdateApp(APP_NAME);
 
-		// given that service instances does not exist
-		cloudControllerFixture.stubServiceInstanceDoesNotExists(BACKING_SI_NAME);
-
-		// and the services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
-
-		// will create and bind the service instance
-		cloudControllerFixture.stubCreateServiceInstance(BACKING_SI_NAME);
-		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
 
-		// when a service instance is created
+		cloudControllerFixture.stubListServiceBindings(APP_NAME, BACKING_SI_NAME);
+		cloudControllerFixture.stubServiceBindingExists(APP_NAME, BACKING_SI_NAME);
+		cloudControllerFixture.stubDeleteServiceBinding(APP_NAME, BACKING_SI_NAME);
+		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, BACKING_SI_NAME);
+
+		// when a service instance is updated
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
+			.patch(brokerFixture.createServiceInstanceUrl(), "instance-id")
 			.then()
 			.statusCode(HttpStatus.ACCEPTED.value());
 

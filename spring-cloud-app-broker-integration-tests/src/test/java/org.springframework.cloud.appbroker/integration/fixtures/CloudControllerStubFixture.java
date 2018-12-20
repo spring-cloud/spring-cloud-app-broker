@@ -138,11 +138,17 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubAppExists(final String appName) {
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
+			.willReturn(ok()
+				.withBody(cc("get-app-STAGED",
+					replace("@name", appName)))));
+
 		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/apps"))
 			.withQueryParam("q", equalTo("name:" + appName))
 			.withQueryParam("page", equalTo("1"))
 			.willReturn(ok()
 				.withBody(cc("list-space-apps",
+					replace("@name", appName),
 					replace("@guid", appGuid(appName)),
 					replace("@space-guid", TEST_SPACE_GUID),
 					replace("@stack-guid", stackGuid(appName))))));
@@ -276,7 +282,8 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	private void stubCheckAppState(String appName) {
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
 			.willReturn(ok()
-				.withBody(cc("get-app-STAGED"))));
+				.withBody(cc("get-app-STAGED",
+					replace("@name", appName)))));
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/instances"))
 			.willReturn(ok()
@@ -357,6 +364,13 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(ok()));
 	}
 
+	public void stubDeleteServiceInstance(String serviceInstanceName) {
+		String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
+
+		stubFor(delete(urlPathEqualTo("/v2/service_instances/" + serviceInstanceGuid))
+			.willReturn(ok()));
+	}
+
 	public void stubCreateServiceBinding(String appName, String serviceInstanceName) {
 		String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
 		String serviceBindingGuid = serviceBindingGuid(appName, serviceInstanceName);
@@ -365,10 +379,22 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.withRequestBody(matchingJsonPath("$.[?(@.app_guid == '" + appGuid(appName) + "')]"))
 			.withRequestBody(matchingJsonPath("$.[?(@.service_instance_guid == '" + serviceInstanceGuid + "')]"))
 			.willReturn(created()
-				.withBody(cc("get-service_bindings",
+				.withBody(cc("get-service_binding",
 					replace("@guid", serviceBindingGuid),
 					replace("@app-guid", appGuid(appName)),
 					replace("@service-instance-guid", serviceInstanceGuid)))));
+	}
+
+	public void stubDeleteServiceBinding(String appName, String serviceInstanceName) {
+		String appGuid = appGuid(appName);
+		String serviceBindingGuid = serviceBindingGuid(appName, serviceInstanceName);
+
+		stubFor(delete(urlPathEqualTo("/v2/service_bindings/" + serviceBindingGuid))
+			.withQueryParam("async", equalTo("true"))
+			.willReturn(noContent()));
+
+		stubFor(delete(urlPathEqualTo("/v2/apps/" + appGuid + "/service_bindings/" + serviceBindingGuid))
+			.willReturn(noContent()));
 	}
 
 	public void stubListServiceBindings(String appName, String serviceInstanceName) {
@@ -392,7 +418,16 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/service_bindings"))
 			.willReturn(ok()
 				.withBody(cc("get-service_bindings",
-					replace("@guid", serviceBindingGuid),
+					replace("@service-binding-guid", serviceBindingGuid),
+					replace("@app-guid", appGuid(appName)),
+					replace("@service-instance-guid", serviceInstanceGuid)))));
+
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/service_bindings"))
+			.withQueryParam("q", equalTo("service_instance_guid:" + serviceInstanceGuid))
+			.withQueryParam("page", equalTo("1"))
+			.willReturn(ok()
+				.withBody(cc("get-service_bindings",
+					replace("@service-binding-guid", serviceBindingGuid),
 					replace("@app-guid", appGuid(appName)),
 					replace("@service-instance-guid", serviceInstanceGuid)))));
 	}

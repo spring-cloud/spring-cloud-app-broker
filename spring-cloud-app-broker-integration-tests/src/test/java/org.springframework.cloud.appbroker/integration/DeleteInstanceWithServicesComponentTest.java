@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.cloud.appbroker.integration;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.OpenServiceBrokerApiFixture;
@@ -29,9 +28,9 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.APP_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SI_NAME;
+import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithServicesComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
+import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithServicesComponentTest.BACKING_SI_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -43,9 +42,9 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 	"spring.cloud.appbroker.services[0].services[0].plan=standard"
 })
-class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
+class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
-	static final String APP_NAME = "app-with-new-services";
+	static final String APP_NAME = "app-delete-with-services";
 
 	static final String BACKING_SI_NAME = "my-db-service";
 	static final String BACKING_SERVICE_NAME = "db-service";
@@ -57,25 +56,22 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void pushAppWithServicesWhenServicesExist() {
-		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
-		cloudControllerFixture.stubPushApp(APP_NAME);
+	void deleteAppsAndServicesWhenTheyExist() {
+		cloudControllerFixture.stubAppExists(APP_NAME);
+		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
+		cloudControllerFixture.stubDeleteApp(APP_NAME);
 
-		// given that service instances does not exist
-		cloudControllerFixture.stubServiceInstanceDoesNotExists(BACKING_SI_NAME);
-
-		// and the services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
-
-		// will create and bind the service instance
-		cloudControllerFixture.stubCreateServiceInstance(BACKING_SI_NAME);
-		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
 
-		// when a service instance is created
+		cloudControllerFixture.stubListServiceBindings(APP_NAME, BACKING_SI_NAME);
+		cloudControllerFixture.stubServiceBindingExists(APP_NAME, BACKING_SI_NAME);
+		cloudControllerFixture.stubDeleteServiceBinding(APP_NAME, BACKING_SI_NAME);
+		cloudControllerFixture.stubDeleteServiceInstance(BACKING_SI_NAME);
+
+		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
+			.delete(brokerFixture.deleteServiceInstanceUrl(), "instance-id")
 			.then()
 			.statusCode(HttpStatus.ACCEPTED.value());
 

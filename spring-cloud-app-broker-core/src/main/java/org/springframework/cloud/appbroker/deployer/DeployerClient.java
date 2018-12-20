@@ -75,6 +75,7 @@ public class DeployerClient {
 				.serviceInstanceName(backingService.getServiceInstanceName())
 				.parameters(backingService.getParameters())
 				.properties(backingService.getProperties())
+				.rebindOnUpdate(backingService.isRebindOnUpdate())
 				.build())
 			.doOnRequest(l -> log.debug("Creating backing service {}", backingService.getName()))
 			.doOnSuccess(d -> log.debug("Finished creating backing service {}", backingService.getName()))

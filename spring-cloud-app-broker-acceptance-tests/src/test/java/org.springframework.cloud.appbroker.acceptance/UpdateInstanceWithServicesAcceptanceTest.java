@@ -45,6 +45,7 @@ class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 		"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 		"spring.cloud.appbroker.services[0].services[0].plan=" + PLAN_NAME,
 		"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
+		"spring.cloud.appbroker.services[0].services[0].rebind-on-update=true"
 	})
 	void shouldPushAppWithServicesBind() {
 		// when a service instance is created

@@ -21,12 +21,10 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -492,21 +490,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 	}
 
-	/**
-	 * Return a function usable in {@literal doOnError} constructs that will unwrap unrecognized Cloud Foundry Exceptions
-	 * and log the text payload.
-	 */
-	private Consumer<Throwable> logError(String msg) {
-		return e -> {
-			if (e instanceof UnknownCloudFoundryException) {
-				logger.error(msg + "\nUnknownCloudFoundryException encountered, whose payload follows:\n"
-					+ ((UnknownCloudFoundryException)e).getPayload(), e);
-			} else {
-				logger.error(msg, e);
-			}
-		};
-	}
-
 	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
 		org.cloudfoundry.operations.services.CreateServiceInstanceRequest createServiceInstanceRequest =
@@ -540,56 +523,75 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
-		org.cloudfoundry.operations.services.UpdateServiceInstanceRequest updateServiceInstanceRequest =
-			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest
-				.builder()
-				.serviceInstanceName(request.getServiceInstanceName())
-				.parameters(request.getParameters())
-				.build();
-
-		Mono<UpdateServiceInstanceResponse> updateServiceInstanceResponseMono =
-			Mono.just(UpdateServiceInstanceResponse.builder()
-				.name(request.getServiceInstanceName())
-				.build());
-
-		CloudFoundryOperations operations = getOperations(request.getProperties());
-		return operations.services()
-			.updateInstance(updateServiceInstanceRequest)
-			.then(updateServiceInstanceResponseMono);
+		CloudFoundryOperations cloudFoundryOperations = getOperations(request.getProperties());
+		return unbindServiceInstanceIfNecessary(request, cloudFoundryOperations)
+			.then(updateServiceInstanceIfNecessary(request, cloudFoundryOperations));
 	}
+
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
 		final String serviceInstanceName = request.getServiceInstanceName();
 
-		return getOperations(request.getProperties())
-			.services()
-			.getInstance(GetServiceInstanceRequest.builder()
+		CloudFoundryOperations cloudFoundryOperations = getOperations(request.getProperties());
+		return unbindServiceInstance(serviceInstanceName, cloudFoundryOperations)
+			.then(deleteServiceInstance(serviceInstanceName, cloudFoundryOperations)
+				.then(Mono.just(DeleteServiceInstanceResponse.builder()
+					.name(serviceInstanceName)
+					.build())));
+	}
+
+	private Mono<Void> deleteServiceInstance(String serviceInstanceName, CloudFoundryOperations cloudFoundryOperations) {
+		return cloudFoundryOperations.services().deleteInstance(
+			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest
+				.builder()
 				.name(serviceInstanceName)
-				.build())
+				.build());
+	}
+
+	private Mono<Void> unbindServiceInstance(String serviceInstanceName,
+												   CloudFoundryOperations cloudFoundryOperations) {
+		return cloudFoundryOperations.services().getInstance(GetServiceInstanceRequest.builder()
+			.name(serviceInstanceName)
+			.build())
 			.map(ServiceInstance::getApplications)
-			.flatMap((Function<List<String>, Mono<?>>) applications ->
-				Flux.fromIterable(applications)
-					.flatMap(
-						application ->
-							getOperations(request.getProperties())
-								.services()
-								.unbind(
-									UnbindServiceInstanceRequest
-										.builder()
-										.applicationName(application)
-										.serviceInstanceName(serviceInstanceName)
-										.build())
-					).collectList())
-			.then(
-				getOperations(request.getProperties())
-					.services()
-					.deleteInstance(
-						org.cloudfoundry.operations.services.DeleteServiceInstanceRequest
-							.builder()
-							.name(serviceInstanceName)
-							.build())
-					.then(Mono.just(DeleteServiceInstanceResponse.builder().name(serviceInstanceName).build())));
+			.flatMap(applications -> Flux.fromIterable(applications)
+				.flatMap(application -> cloudFoundryOperations.services().unbind(
+					UnbindServiceInstanceRequest.builder()
+						.applicationName(application)
+						.serviceInstanceName(serviceInstanceName)
+						.build())
+				)
+			.then(Mono.empty()));
+	}
+
+	private Mono<Void> unbindServiceInstanceIfNecessary(UpdateServiceInstanceRequest request,
+														CloudFoundryOperations cloudFoundryOperations) {
+		if (request.isRebindOnUpdate()) {
+			return unbindServiceInstance(request.getServiceInstanceName(), cloudFoundryOperations);
+		}
+		return Mono.empty();
+	}
+
+	private Mono<UpdateServiceInstanceResponse> updateServiceInstanceIfNecessary(UpdateServiceInstanceRequest request,
+																				 CloudFoundryOperations cloudFoundryOperations) {
+		// service instances can be updated with a change to the plan, name, or parameters;
+		// of these only parameter changes are supported, so don't update if the
+		// backing service instance has no parameters
+		if (request.getParameters() == null || request.getParameters().isEmpty()) {
+			return Mono.empty();
+		}
+
+		final String serviceInstanceName = request.getServiceInstanceName();
+
+		return cloudFoundryOperations.services().updateInstance(
+			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
+				.serviceInstanceName(serviceInstanceName)
+				.parameters(request.getParameters())
+				.build())
+			.then(Mono.just(UpdateServiceInstanceResponse.builder()
+				.name(serviceInstanceName)
+				.build()));
 	}
 
 	private CloudFoundryOperations getOperations(Map<String, String> properties) {
@@ -598,5 +600,20 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		} else {
 			return this.operations;
 		}
+	}
+
+	/**
+	 * Return a function usable in {@literal doOnError} constructs that will unwrap unrecognized Cloud Foundry Exceptions
+	 * and log the text payload.
+	 */
+	private Consumer<Throwable> logError(String msg) {
+		return e -> {
+			if (e instanceof UnknownCloudFoundryException) {
+				logger.error(msg + "\nUnknownCloudFoundryException encountered, whose payload follows:\n"
+					+ ((UnknownCloudFoundryException)e).getPayload(), e);
+			} else {
+				logger.error(msg, e);
+			}
+		};
 	}
 }

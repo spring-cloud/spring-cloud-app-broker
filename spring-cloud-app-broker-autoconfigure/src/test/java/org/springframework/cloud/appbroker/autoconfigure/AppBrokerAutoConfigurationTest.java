@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.autoconfigure;
 
+import org.cloudfoundry.reactor.TokenProvider;
+import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
@@ -50,10 +52,12 @@ import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreate
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentUpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AppBrokerAutoConfigurationTest {
 
@@ -97,6 +101,37 @@ class AppBrokerAutoConfigurationTest {
 					.hasSingleBean(ServiceInstanceBindingService.class)
 					.getBean(ServiceInstanceBindingService.class)
 					.isExactlyInstanceOf(TestServiceInstanceBindingService.class);
+			});
+	}
+
+	@Test
+	void clientCredentialsNotAllowedWhenUsernameAndPasswordSet() {
+		assertThatThrownBy(() -> this.contextRunner
+			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
+				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret",
+				"spring.cloud.appbroker.deployer.cloudfoundry.client_id=user",
+				"spring.cloud.appbroker.deployer.cloudfoundry.client_secret=secret")
+			.run(Lifecycle::start));
+	}
+
+	@Test
+	void clientIdWithoutSecretNotAllowed() {
+		assertThatThrownBy(() -> this.contextRunner
+			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.client_id=user")
+			.run(Lifecycle::start));
+	}
+
+	@Test
+	void configureCloudFoundryClientWithClientCredentials() {
+		this.contextRunner
+			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.client_id=user",
+				"spring.cloud.appbroker.deployer.cloudfoundry.client_secret=secret")
+			.run(context -> {
+				assertThat(context).hasSingleBean(TokenProvider.class);
+				assertThat(context).hasSingleBean(ReactorCloudFoundryClient.class);
 			});
 	}
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euox pipefail
+set -euo pipefail
 readonly SCRIPT_DIR=$(readlink -m $(dirname $0))
 readonly CI_DIR=$(dirname "${SCRIPT_DIR}")
 readonly BBL_VERSION=v6.9.16

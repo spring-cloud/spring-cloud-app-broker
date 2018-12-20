@@ -31,6 +31,7 @@ public class BackingService {
 	private Map<String, Object> parameters;
 	private Map<String, String> properties;
 	private List<ParametersTransformerSpec> parametersTransformers;
+	private boolean rebindOnUpdate;
 
 	private BackingService() {
 	}
@@ -40,13 +41,15 @@ public class BackingService {
 				   String plan,
 				   Map<String, Object> parameters,
 				   Map<String, String> properties,
-				   List<ParametersTransformerSpec> parametersTransformers) {
+				   List<ParametersTransformerSpec> parametersTransformers,
+				   boolean rebindOnUpdate) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.name = name;
 		this.plan = plan;
 		this.parameters = parameters;
 		this.properties = properties;
 		this.parametersTransformers = parametersTransformers;
+		this.rebindOnUpdate = rebindOnUpdate;
 	}
 
 	BackingService(BackingService backingServiceToCopy) {
@@ -62,6 +65,7 @@ public class BackingService {
 		this.parametersTransformers = backingServiceToCopy.parametersTransformers == null
 			? new ArrayList<>()
 			: new ArrayList<>(backingServiceToCopy.parametersTransformers);
+		this.rebindOnUpdate = backingServiceToCopy.rebindOnUpdate;
 	}
 
 	public String getServiceInstanceName() {
@@ -96,6 +100,10 @@ public class BackingService {
 		this.parameters = parameters;
 	}
 
+	public void addParameter(String key, Object value) {
+		parameters.put(key, value);
+	}
+
 	public Map<String, String> getProperties() {
 		return properties;
 	}
@@ -112,8 +120,12 @@ public class BackingService {
 		this.parametersTransformers = parametersTransformers;
 	}
 
-	public void addParameter(String key, Object value) {
-		parameters.put(key, value);
+	public boolean isRebindOnUpdate() {
+		return rebindOnUpdate;
+	}
+
+	public void setRebindOnUpdate(boolean rebindOnUpdate) {
+		this.rebindOnUpdate = rebindOnUpdate;
 	}
 
 	@Override
@@ -162,12 +174,9 @@ public class BackingService {
 		private Map<String, Object> parameters = new HashMap<>();
 		private Map<String, String> properties = new HashMap<>();
 		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
+		private boolean rebindOnUpdate;
 
 		BackingServiceBuilder() {
-		}
-
-		public BackingService build() {
-			return new BackingService(serviceInstanceName, name, plan, parameters, properties, parameterTransformers);
 		}
 
 		public BackingServiceBuilder serviceInstanceName(String serviceInstanceName) {
@@ -200,6 +209,14 @@ public class BackingService {
 			return this;
 		}
 
+		public BackingServiceBuilder rebindOnUpdate(boolean rebindOnUpdate) {
+			this.rebindOnUpdate = rebindOnUpdate;
+			return this;
+		}
+
+		public BackingService build() {
+			return new BackingService(serviceInstanceName, name, plan, parameters, properties, parameterTransformers, rebindOnUpdate);
+		}
 	}
 
 }

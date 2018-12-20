@@ -30,17 +30,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesAndTargetComponentTest.APP_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesAndTargetComponentTest.SERVICE_1_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesAndTargetComponentTest.SERVICE_INSTANCE_1_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesAndTargetComponentTest.BACKING_SERVICE_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesAndTargetComponentTest.BACKING_SI_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + SERVICE_INSTANCE_1_NAME,
-	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + SERVICE_INSTANCE_1_NAME,
-	"spring.cloud.appbroker.services[0].services[0].name=" + SERVICE_1_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SI_NAME,
+	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
+	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 	"spring.cloud.appbroker.services[0].services[0].plan=standard",
 	"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance"
 })
@@ -48,8 +48,8 @@ class CreateInstanceWithServicesAndTargetComponentTest extends WiremockComponent
 
 	static final String APP_NAME = "app-new-services-target";
 
-	static final String SERVICE_INSTANCE_1_NAME = "my-db-service";
-	static final String SERVICE_1_NAME = "db-service";
+	static final String BACKING_SI_NAME = "my-db-service";
+	static final String BACKING_SERVICE_NAME = "db-service";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -65,15 +65,15 @@ class CreateInstanceWithServicesAndTargetComponentTest extends WiremockComponent
 		cloudControllerFixture.stubPushAppWithHost(APP_NAME, host);
 
 		// given that service instances does not exist
-		cloudControllerFixture.stubServiceInstanceDoesNotExists(SERVICE_INSTANCE_1_NAME);
+		cloudControllerFixture.stubServiceInstanceDoesNotExists(BACKING_SI_NAME);
 
 		// and the services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(SERVICE_1_NAME);
+		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
 
 		// will create and bind the service instance
-		cloudControllerFixture.stubCreateServiceInstance(SERVICE_INSTANCE_1_NAME);
-		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, SERVICE_INSTANCE_1_NAME);
-		cloudControllerFixture.stubServiceInstanceExists(SERVICE_INSTANCE_1_NAME);
+		cloudControllerFixture.stubCreateServiceInstance(BACKING_SI_NAME);
+		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, BACKING_SI_NAME);
+		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

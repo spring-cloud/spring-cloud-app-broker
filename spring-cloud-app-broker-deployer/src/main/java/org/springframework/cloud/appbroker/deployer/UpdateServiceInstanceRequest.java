@@ -24,13 +24,16 @@ public class UpdateServiceInstanceRequest {
 	private final String serviceInstanceName;
 	private final Map<String, Object> parameters;
 	private final Map<String, String> properties;
+	private final boolean rebindOnUpdate;
 
 	UpdateServiceInstanceRequest(String serviceInstanceName,
 								 Map<String, Object> parameters,
-								 Map<String, String> properties) {
+								 Map<String, String> properties,
+								 boolean rebindOnUpdate) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.parameters = parameters;
 		this.properties = properties;
+		this.rebindOnUpdate = rebindOnUpdate;
 	}
 
 	public static UpdateServiceInstanceRequestBuilder builder() {
@@ -49,11 +52,16 @@ public class UpdateServiceInstanceRequest {
 		return properties;
 	}
 
+	public boolean isRebindOnUpdate() {
+		return rebindOnUpdate;
+	}
+
 	public static class UpdateServiceInstanceRequestBuilder {
 
 		private String serviceInstanceName;
 		private final Map<String, Object> parameters = new HashMap<>();
 		private final Map<String, String> properties = new HashMap<>();
+		private boolean rebindOnUpdate;
 
 		UpdateServiceInstanceRequestBuilder() {
 		}
@@ -84,8 +92,13 @@ public class UpdateServiceInstanceRequest {
 			return this;
 		}
 
+		public UpdateServiceInstanceRequestBuilder rebindOnUpdate(boolean rebindOnUpdate) {
+			this.rebindOnUpdate = rebindOnUpdate;
+			return this;
+		}
+
 		public UpdateServiceInstanceRequest build() {
-			return new UpdateServiceInstanceRequest(serviceInstanceName, parameters, properties);
+			return new UpdateServiceInstanceRequest(serviceInstanceName, parameters, properties, rebindOnUpdate);
 		}
 	}
 

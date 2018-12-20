@@ -30,23 +30,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithExistingServicesComponentTest.APP_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithExistingServicesComponentTest.SERVICE_INSTANCE_1_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithExistingServicesComponentTest.SERVICE_INSTANCE_2_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithExistingServicesComponentTest.BACKING_SI_1_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithExistingServicesComponentTest.BACKING_SI_2_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
-	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + SERVICE_INSTANCE_1_NAME,
-	"spring.cloud.appbroker.services[0].apps[0].services[1].service-instance-name=" + SERVICE_INSTANCE_2_NAME
+	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SI_1_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].services[1].service-instance-name=" + BACKING_SI_2_NAME
 })
 class CreateInstanceWithExistingServicesComponentTest extends WiremockComponentTest {
 
 	static final String APP_NAME = "app-with-services";
 
-	static final String SERVICE_INSTANCE_1_NAME = "my-db-service";
-	static final String SERVICE_INSTANCE_2_NAME = "my-rabbit-service";
+	static final String BACKING_SI_1_NAME = "my-db-service";
+	static final String BACKING_SI_2_NAME = "my-rabbit-service";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -60,11 +60,11 @@ class CreateInstanceWithExistingServicesComponentTest extends WiremockComponentT
 		cloudControllerFixture.stubPushApp(APP_NAME);
 
 		// given that service instances exist
-		cloudControllerFixture.stubServiceInstanceExists(SERVICE_INSTANCE_1_NAME);
-		cloudControllerFixture.stubServiceInstanceExists(SERVICE_INSTANCE_2_NAME);
+		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_1_NAME);
+		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_2_NAME);
 
-		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, SERVICE_INSTANCE_1_NAME);
-		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, SERVICE_INSTANCE_2_NAME);
+		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, BACKING_SI_1_NAME);
+		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, BACKING_SI_2_NAME);
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

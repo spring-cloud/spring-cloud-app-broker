@@ -49,9 +49,6 @@ public class BackingServicesProvisionService {
 		return Flux.fromIterable(backingServices)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			// service instances can be updated with a change to the plan or to parameters
-			// if the service instance has no parameters, don't update it
-			.filter(backingService -> !backingService.getParameters().isEmpty())
 			.flatMap(deployerClient::updateServiceInstance)
 			.doOnRequest(l -> log.info("Updating backing services {}", backingServices))
 			.doOnEach(d -> log.info("Finished updating backing service {}", d))

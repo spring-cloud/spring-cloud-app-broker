@@ -18,11 +18,10 @@ package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
-import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceResponse;
-import org.cloudfoundry.client.v2.serviceinstances.LastOperation;
-import org.cloudfoundry.client.v2.serviceinstances.ServiceInstanceEntity;
 import org.cloudfoundry.client.v2.serviceinstances.ServiceInstances;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
@@ -370,7 +369,30 @@ class CloudFoundryAppDeployerTest {
 	}
 
 	@Test
-	void updateServiceInstance() {
+	void updateServiceInstanceUpdatesWithParameters() {
+		Map<String, Object> parameters = Collections.singletonMap("param1", "value");
+
+		when(operationsServices.updateInstance(
+			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.parameters(parameters)
+				.build()))
+			.thenReturn(Mono.empty());
+
+		UpdateServiceInstanceRequest request =
+			UpdateServiceInstanceRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.parameters(parameters)
+				.build();
+
+		StepVerifier.create(
+			appDeployer.updateServiceInstance(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
+			.verifyComplete();
+	}
+
+	@Test
+	void updateServiceInstanceUnbindsWhenRequired() {
 		when(operationsServices.updateInstance(
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
 				.serviceInstanceName("service-instance-name")
@@ -379,25 +401,47 @@ class CloudFoundryAppDeployerTest {
 			.thenReturn(Mono.empty());
 
 		when(operationsServices.getInstance(GetServiceInstanceRequest.builder()
-				.name("service-instance-name")
-				.build()))
+			.name("service-instance-name")
+			.build()))
 			.thenReturn(Mono.just(ServiceInstance.builder()
 				.name("service-instance-name")
 				.id("service-instance-guid")
 				.type(ServiceInstanceType.MANAGED)
+				.applications("app1", "app2")
 				.build()));
 
-		when(clientServiceInstances.get(
-			org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceRequest.builder()
-				.serviceInstanceId("service-instance-guid")
+		when(operationsServices.unbind(UnbindServiceInstanceRequest.builder()
+			.applicationName("app1")
+			.serviceInstanceName("service-instance-name")
+			.build()))
+			.thenReturn(Mono.empty());
+
+		when(operationsServices.unbind(UnbindServiceInstanceRequest.builder()
+			.applicationName("app2")
+			.serviceInstanceName("service-instance-name")
+			.build()))
+			.thenReturn(Mono.empty());
+
+		UpdateServiceInstanceRequest request =
+			UpdateServiceInstanceRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.parameters(emptyMap())
+				.rebindOnUpdate(true)
+				.build();
+
+		StepVerifier.create(
+			appDeployer.updateServiceInstance(request))
+			.verifyComplete();
+	}
+
+	@Test
+	void updateServiceInstanceDoesNothingWithoutParameters() {
+		when(operationsServices.updateInstance(
+			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.parameters(emptyMap())
 				.build()))
-			.thenReturn(Mono.just(GetServiceInstanceResponse.builder()
-				.entity(ServiceInstanceEntity.builder()
-					.lastOperation(LastOperation.builder()
-						.state("succeeded")
-						.build())
-					.build())
-				.build()));
+			.thenReturn(Mono.empty());
 
 		UpdateServiceInstanceRequest request =
 			UpdateServiceInstanceRequest.builder()
@@ -407,7 +451,6 @@ class CloudFoundryAppDeployerTest {
 
 		StepVerifier.create(
 			appDeployer.updateServiceInstance(request))
-			.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
 			.verifyComplete();
 	}
 

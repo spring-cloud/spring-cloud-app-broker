@@ -117,7 +117,7 @@ class CloudFoundryAppDeployerTest {
 			.name(APP_NAME)
 			.path(APP_PATH)
 			.build();
-		
+
 		StepVerifier.create(appDeployer.deploy(request))
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();

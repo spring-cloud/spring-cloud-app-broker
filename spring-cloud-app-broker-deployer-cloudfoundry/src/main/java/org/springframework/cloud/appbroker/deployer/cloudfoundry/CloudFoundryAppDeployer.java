@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -35,12 +37,37 @@ import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.spaces.CreateSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
+import org.cloudfoundry.client.v3.Relationship;
+import org.cloudfoundry.client.v3.ToOneRelationship;
+import org.cloudfoundry.client.v3.builds.BuildState;
+import org.cloudfoundry.client.v3.builds.CreateBuildRequest;
+import org.cloudfoundry.client.v3.builds.CreateBuildResponse;
+import org.cloudfoundry.client.v3.builds.GetBuildRequest;
+import org.cloudfoundry.client.v3.builds.GetBuildResponse;
+import org.cloudfoundry.client.v3.deployments.CreateDeploymentRequest;
+import org.cloudfoundry.client.v3.deployments.CreateDeploymentResponse;
+import org.cloudfoundry.client.v3.deployments.DeploymentRelationships;
+import org.cloudfoundry.client.v3.deployments.DeploymentState;
+import org.cloudfoundry.client.v3.deployments.GetDeploymentRequest;
+import org.cloudfoundry.client.v3.deployments.GetDeploymentResponse;
+import org.cloudfoundry.client.v3.packages.CreatePackageRequest;
+import org.cloudfoundry.client.v3.packages.CreatePackageResponse;
+import org.cloudfoundry.client.v3.packages.GetPackageRequest;
+import org.cloudfoundry.client.v3.packages.GetPackageResponse;
+import org.cloudfoundry.client.v3.packages.Package;
+import org.cloudfoundry.client.v3.packages.PackageRelationships;
+import org.cloudfoundry.client.v3.packages.PackageState;
+import org.cloudfoundry.client.v3.packages.PackageType;
+import org.cloudfoundry.client.v3.packages.UploadPackageRequest;
+import org.cloudfoundry.client.v3.packages.UploadPackageResponse;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
+import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.organizations.OrganizationDetail;
@@ -50,6 +77,8 @@ import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.GetSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceDetail;
+import org.cloudfoundry.util.DelayUtils;
+import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Exceptions;
@@ -66,6 +95,8 @@ import org.springframework.cloud.appbroker.deployer.DeployApplicationResponse;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.UndeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.UndeployApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.UpdateApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.UpdateApplicationResponse;
 import org.springframework.cloud.appbroker.deployer.UpdateServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.UpdateServiceInstanceResponse;
 import org.springframework.cloud.appbroker.deployer.util.ByteSizeUtils;
@@ -110,7 +141,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	@Override
 	public Mono<DeployApplicationResponse> deploy(DeployApplicationRequest request) {
 		String appName = request.getName();
-		Resource appResource = getAppResource(request);
+		Resource appResource = getAppResource(request.getPath());
 		Map<String, String> deploymentProperties = request.getProperties();
 
 		logger.trace("Deploying application: request={}, resource={}",
@@ -130,6 +161,150 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.thenReturn(DeployApplicationResponse.builder()
 					.name(appName)
 					.build());
+	}
+
+	@Override
+	public Mono<UpdateApplicationResponse> update(UpdateApplicationRequest request) {
+		final String name = request.getName();
+		final Map<String, Object> environmentVariables =
+			getApplicationEnvironment(request.getProperties(), request.getEnvironment());
+
+		return this.operations
+			.applications()
+			.get(GetApplicationRequest.builder().name(name).build())
+			.map(ApplicationDetail::getId)
+			.flatMap(applicationId ->
+				updateApplicationEnvironment(environmentVariables, applicationId)
+					.thenReturn(applicationId)
+			)
+			.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
+				createPackageForApplication(applicationId)))
+			.map(tuple2 -> tuple2.mapT2(CreatePackageResponse::getId))
+			.flatMap(tuple2 -> {
+				String packageId = tuple2.getT2();
+				return Mono.zip(Mono.just(tuple2.getT1()), uploadPackage(request, packageId));
+			})
+
+			.map(tuple2 -> tuple2.mapT2(Package::getId))
+			.flatMap(tuple2 -> {
+					String packageId1 = tuple2.getT2();
+					return Mono.zip(Mono.just(tuple2.getT1()), waitForPackageReady(packageId1));
+				}
+			)
+			.map(tuple2 -> tuple2.mapT2(Package::getId))
+			.flatMap(tuple2 -> {
+				String packageId = tuple2.getT2();
+				return Mono.zip(Mono.just(tuple2.getT1()), createBuildForPackage(packageId));
+			})
+			.flatMap(tuple2 -> {
+					String buildId = tuple2.getT2();
+					return Mono.zip(Mono.just(tuple2.getT1()), waitForBuildStaged(buildId));
+				}
+			)
+			.map(tuple2 -> tuple2.mapT2((t2) -> t2.getDroplet().getId()))
+			.flatMap(tuple2 -> {
+				String dropletId = tuple2.getT2();
+				String applicationId = tuple2.getT1();
+				return createDeployment(dropletId, applicationId);
+			})
+			.map(CreateDeploymentResponse::getId)
+			.flatMap(this::waitForDeploymentDeployed)
+			.thenReturn(UpdateApplicationResponse.builder().name(name).build());
+	}
+
+	private Mono<GetDeploymentResponse> waitForDeploymentDeployed(String deploymentId) {
+		return this.client.deploymentsV3()
+						  .get(GetDeploymentRequest
+							  .builder()
+							  .deploymentId(deploymentId)
+							  .build())
+						  .filter(p -> p.getState().equals(DeploymentState.DEPLOYED))
+						  .repeatWhenEmpty(getExponentialBackOff());
+	}
+
+	private Function<Flux<Long>, Publisher<?>> getExponentialBackOff() {
+		return DelayUtils.exponentialBackOff(Duration.ofSeconds(2), Duration.ofSeconds(15), Duration.ofMinutes(10));
+	}
+
+	private Mono<CreateDeploymentResponse> createDeployment(String dropletId, String applicationId) {
+		return this.client.deploymentsV3()
+						  .create(CreateDeploymentRequest
+					   .builder()
+					   .droplet(Relationship
+						   .builder()
+						   .id(dropletId).build()).relationships(DeploymentRelationships
+						   .builder()
+						   .app(ToOneRelationship
+							   .builder()
+							   .data(Relationship.builder().id(applicationId).build())
+							   .build()
+						   ).build())
+					   .build());
+	}
+
+	private Mono<GetBuildResponse> waitForBuildStaged(String buildId) {
+		return this.client.builds().get(GetBuildRequest.builder().buildId(buildId).build())
+				   .filter(p -> p.getState().equals(BuildState.STAGED))
+				   .repeatWhenEmpty(getExponentialBackOff());
+	}
+
+	private Mono<String> createBuildForPackage(String packageId) {
+		return this.client.builds()
+						  .create(CreateBuildRequest
+							  .builder()
+							  .getPackage(Relationship.builder().id(packageId).build())
+							  .build())
+						  .map(CreateBuildResponse::getId);
+	}
+
+	private Mono<GetPackageResponse> waitForPackageReady(String packageId1) {
+		return this.client.packages()
+				   .get(GetPackageRequest.builder().packageId(packageId1).build())
+				   .filter(p -> p.getState().equals(PackageState.READY))
+				   .repeatWhenEmpty(getExponentialBackOff());
+	}
+
+	private Mono<UploadPackageResponse> uploadPackage(UpdateApplicationRequest request, String packageId) {
+		try {
+			return this.client.packages()
+							  .upload(UploadPackageRequest
+								  .builder()
+								  .packageId(packageId)
+								  .bits(Paths.get(getAppResource(request.getPath()).getURI()))
+								  .build());
+		}
+		catch (IOException e) {
+			throw Exceptions.propagate(e);
+		}
+	}
+
+	private Mono<CreatePackageResponse> createPackageForApplication(String applicationId) {
+		return this.client
+			.packages()
+			.create(CreatePackageRequest
+				.builder()
+				.relationships(PackageRelationships
+					.builder()
+					.application(ToOneRelationship
+						.builder()
+						.data(Relationship
+							.builder()
+							.id(applicationId)
+							.build())
+						.build())
+					.build())
+				.type(PackageType.BITS)
+				.build());
+	}
+
+	private Mono<org.cloudfoundry.client.v2.applications.UpdateApplicationResponse> updateApplicationEnvironment(
+		Map<String, Object> environmentVariables, String applicationId) {
+		return this.client.applicationsV2()
+						  .update(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest
+							  .builder()
+							  .applicationId(applicationId)
+							  .putAllEnvironmentJsons(environmentVariables)
+							  .build());
 	}
 
 	private Mono<Void> pushApplication(DeployApplicationRequest request,
@@ -468,8 +643,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 	}
 
-	private Resource getAppResource(DeployApplicationRequest request) {
-		return resourceLoader.getResource(request.getPath());
+	private Resource getAppResource(String path) {
+		return resourceLoader.getResource(path);
 	}
 
 	/**

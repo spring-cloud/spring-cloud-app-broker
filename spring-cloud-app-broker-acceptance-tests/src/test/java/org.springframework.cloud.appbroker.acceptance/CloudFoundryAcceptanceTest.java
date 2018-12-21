@@ -51,13 +51,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = {
 	CloudFoundryClientConfiguration.class,
 	CloudFoundryService.class,
-	UaaService.class})
+	UaaService.class,
+	HealthListener.class,
+	RestTemplate.class
+})
 @ExtendWith(SpringExtension.class)
 @ExtendWith(BrokerPropertiesParameterResolver.class)
 @EnableConfigurationProperties(AcceptanceTestProperties.class)

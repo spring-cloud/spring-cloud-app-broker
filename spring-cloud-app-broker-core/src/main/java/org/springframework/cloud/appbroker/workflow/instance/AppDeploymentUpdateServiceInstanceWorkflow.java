@@ -78,7 +78,7 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 								request.getServiceInstanceId()))
 						.flatMap(backingApps ->
 							appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
-						.flatMapMany(deploymentService::deploy)
+						.flatMapMany(deploymentService::update)
 						.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
 						.doOnEach(result -> log.debug("Finished deploying {}", result))
 						.doOnComplete(() -> log.debug("Finished deploying applications {}", brokeredServices))

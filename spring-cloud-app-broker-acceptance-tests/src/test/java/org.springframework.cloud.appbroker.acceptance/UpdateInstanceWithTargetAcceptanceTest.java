@@ -24,6 +24,8 @@ import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,6 +33,9 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 
 	private static final String APP_NAME = "app-update-target";
 	private static final String SI_NAME = "si-update-target";
+
+	@Autowired
+	private HealthListener healthListener;
 
 	@Test
 	@AppBrokerTestProperties({
@@ -59,8 +64,16 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 			assertThat(app.getUrls().get(0)).startsWith(APP_NAME + "-" + spaceName);
 		});
 
+		String path = backingApplication.get().getUrls().get(0);
+		healthListener.start(path);
+
 		// when the service instance is updated
 		updateServiceInstance(SI_NAME, Collections.singletonMap("parameter2", "config2"));
+
+		// then the backing application was updated with zero downtime
+		healthListener.stop();
+		assertThat(healthListener.getFailures()).isEqualTo(0);
+		assertThat(healthListener.getSuccesses()).isGreaterThan(0);
 
 		// then the service instance has the initial parameters
 		DocumentContext json = getSpringAppJson(APP_NAME, spaceName);

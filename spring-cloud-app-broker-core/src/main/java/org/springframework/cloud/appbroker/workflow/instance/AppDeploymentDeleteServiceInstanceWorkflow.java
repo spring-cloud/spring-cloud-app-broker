@@ -69,7 +69,8 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 						.doOnRequest(l -> log.debug("Undeploying applications {}", brokeredServices))
 						.doOnEach(result -> log.debug("Finished undeploying {}", result))
 						.doOnComplete(() -> log.debug("Finished undeploying applications {}", brokeredServices))
-						.doOnError(exception -> log.error("Error undeploying applications {} with error {}", brokeredServices, exception)))
+						.doOnError(exception -> log.error("Error undeploying applications {} with error '{}'",
+							brokeredServices, exception.getMessage())))
 				.then();
 	}
 

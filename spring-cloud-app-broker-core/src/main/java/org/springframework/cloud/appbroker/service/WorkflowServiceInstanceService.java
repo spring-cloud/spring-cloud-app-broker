@@ -101,7 +101,8 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			.thenMany(invokeCreateWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Creating service instance {}", request))
 				.doOnComplete(() -> log.debug("Finished creating service instance {}", request))
-				.doOnError(exception -> log.error("Error creating service instance {} with error {}", request, exception)))
+				.doOnError(exception -> log.error("Error creating service instance {} with error '{}'",
+					request, exception.getMessage())))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "create service instance completed")
 				.then())
@@ -143,7 +144,8 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			.thenMany(invokeDeleteWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Deleting service instance {}", request))
 				.doOnComplete(() -> log.debug("Finished deleting service instance {}", request))
-				.doOnError(exception -> log.error("Error deleting service instance {} with error {}", request, exception)))
+				.doOnError(exception -> log.error("Error deleting service instance {} with error '{}'",
+					request, exception.getMessage())))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "delete service instance completed")
 				.then())
@@ -185,7 +187,8 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			.thenMany(invokeUpdateWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Updating service instance {}", request))
 				.doOnComplete(() -> log.debug("Finished updating service instance {}", request))
-				.doOnError(e -> log.error("Error updating service instance {} with error {}", request, e)))
+				.doOnError(exception -> log.error("Error updating service instance {} with error '{}'",
+					request, exception.getMessage())))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "update service instance completed")
 				.then())

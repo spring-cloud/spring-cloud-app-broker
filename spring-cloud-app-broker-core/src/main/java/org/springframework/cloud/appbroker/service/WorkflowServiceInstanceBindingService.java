@@ -128,7 +128,8 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 			.thenMany(invokeCreateWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Creating service instance binding {}", request))
 				.doOnComplete(() -> log.debug("Finished creating service instance binding {}", request))
-				.doOnError(exception -> log.error("Error creating service instance binding {} with error {}", request, exception)))
+				.doOnError(exception -> log.error("Error creating service instance binding {} with error '{}'",
+					request, exception.getMessage())))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 				OperationState.SUCCEEDED, "create service instance binding completed")
 				.then())
@@ -183,7 +184,8 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 			.thenMany(invokeDeleteWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Deleting service instance binding {}", request))
 				.doOnComplete(() -> log.debug("Finished deleting service instance binding {}", request))
-				.doOnError(exception -> log.error("Error deleting service instance binding {} with error {}", request, exception)))
+				.doOnError(exception -> log.error("Error deleting service instance binding {} with error '{}'",
+					request, exception.getMessage())))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 				OperationState.SUCCEEDED, "delete service instance binding completed")
 				.then())

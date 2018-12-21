@@ -41,7 +41,8 @@ public class BackingServicesProvisionService {
 				   .doOnRequest(l -> log.debug("Creating backing services {}", backingServices))
 				   .doOnEach(response -> log.debug("Finished creating backing service {}", response))
 				   .doOnComplete(() -> log.debug("Finished creating backing service {}", backingServices))
-				   .doOnError(exception -> log.error("Error creating backing services {} with error {}", backingServices, exception))
+				   .doOnError(exception -> log.error("Error creating backing services {} with error '{}'",
+					   backingServices, exception.getMessage()))
 				   .sequential();
 	}
 
@@ -51,9 +52,10 @@ public class BackingServicesProvisionService {
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::updateServiceInstance)
 			.doOnRequest(l -> log.info("Updating backing services {}", backingServices))
-			.doOnEach(d -> log.info("Finished updating backing service {}", d))
+			.doOnEach(response -> log.info("Finished updating backing service {}", response))
 			.doOnComplete(() -> log.info("Finished updating backing service {}", backingServices))
-			.doOnError(e -> log.info("Error updating backing services {} with error {}", backingServices, e))
+			.doOnError(exception -> log.info("Error updating backing services {} with error '{}'",
+				backingServices, exception.getMessage()))
 			.sequential();
 	}
 
@@ -65,7 +67,8 @@ public class BackingServicesProvisionService {
 				   .doOnRequest(l -> log.debug("Deleting backing services {}", backingServices))
 				   .doOnEach(response -> log.debug("Finished deleting backing service {}", response))
 				   .doOnComplete(() -> log.debug("Finished deleting backing service {}", backingServices))
-				   .doOnError(exception -> log.error("Error deleting backing services {} with error {}", backingServices, exception))
+				   .doOnError(exception -> log.error("Error deleting backing services {} with error '{}'",
+					   backingServices, exception.getMessage()))
 				   .sequential();
 	}
 }

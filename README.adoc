@@ -5,4 +5,22 @@ image:https://codecov.io/gh/spring-cloud/spring-cloud-app-broker/branch/master/g
 
 = Spring Cloud App Broker
 
-Spring Cloud App Broker is a project for implementing service broker functionality within a Spring Boot application.
+Spring Cloud App Broker is a framework for building Spring Boot applications that implement the Open Service Broker API to deploy applications to a platform.
+
+The Open Service Broker API project allows developers to deliver services to applications running within cloud native platforms such as Cloud Foundry, Kubernetes, and OpenShift. Spring Cloud App Broker provides a framework based on Spring Boot that enables you to quickly create a service broker that deploys applications and services to the platform when managed services are provisioned.
+
+Currently Cloud Foundry is supported as a target platform for service instance backing applications and services.
+
+== Getting Started
+
+See the https://spring.io/projects/spring-cloud-app-broker/[project site] and https://docs.spring.io/spring-cloud-app-broker/docs/current/reference/html5/[reference documentation] to get started building a service broker using this framework.
+
+== Build
+
+This project requires Java 8 at a minimum.
+
+The project is built with Gradle. The https://docs.gradle.org/current/userguide/gradle_wrapper.html[Gradle wrapper] allows you to build the project on multiple platforms and even if you do not have Gradle installed; run it in place of the `gradle` command (as `./gradlew`) from the root of the main project directory.
+
+=== Compile the project and run tests
+
+    ./gradlew build

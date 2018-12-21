@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -32,6 +34,9 @@ class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 	private static final String SI_NAME = "si-update-services";
 
 	private static final String BACKING_SI_NAME = "backing-service-instance-update";
+
+	@Autowired
+	private HealthListener healthListener;
 
 	@Test
 	@AppBrokerTestProperties({
@@ -60,12 +65,20 @@ class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 		ServiceInstance backingServiceInstance = getServiceInstance(BACKING_SI_NAME);
 		assertThat(backingServiceInstance.getApplications()).contains(APP_NAME);
 
+		String path = backingApplication.get().getUrls().get(0);
+		healthListener.start(path);
+
 		// when the service instance is updated
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("parameter1", "value1");
 		parameters.put("parameter2", "value2");
 		parameters.put("parameter3", "value3");
 		updateServiceInstance(SI_NAME, parameters);
+
+		// then the backing application was updated with zero downtime
+		healthListener.stop();
+		assertThat(healthListener.getFailures()).isEqualTo(0);
+		assertThat(healthListener.getSuccesses()).isGreaterThan(0);
 
 		// then a backing application is re-deployed
 		Optional<ApplicationSummary> updatedBackingApplication = getApplicationSummary(APP_NAME);

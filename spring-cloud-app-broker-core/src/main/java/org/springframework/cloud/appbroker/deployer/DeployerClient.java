@@ -47,6 +47,20 @@ public class DeployerClient {
 			.map(DeployApplicationResponse::getName);
 	}
 
+	Mono<String> update(BackingApplication backingApplication) {
+		return appDeployer.update(UpdateApplicationRequest.builder()
+			.name(backingApplication.getName())
+			.path(backingApplication.getPath())
+			.properties(backingApplication.getProperties())
+			.environment(backingApplication.getEnvironment())
+			.services(backingApplication.getServices().stream().map(ServicesSpec::getServiceInstanceName).collect(Collectors.toList()))
+			.build())
+			.doOnRequest(l -> log.debug("Deploying application {}", backingApplication))
+			.doOnSuccess(response -> log.debug("Finished updating application {}", backingApplication))
+			.doOnError(exception -> log.error("Error updating application {} with error {}", backingApplication, exception))
+			.map(UpdateApplicationResponse::getName);
+	}
+
 	Mono<String> undeploy(BackingApplication backingApplication) {
 		return appDeployer.undeploy(UndeployApplicationRequest.builder()
 			.properties(backingApplication.getProperties())

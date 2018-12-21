@@ -189,6 +189,15 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubAppAfterCreation(appName, host);
 	}
 
+	public void stubUpdateApp(final String appName) {
+		stubGetApp(appName);
+		stubUpdateEnvironment(appName);
+		stubCreatePackage(appName);
+		stubCreateBuild(appName);
+		stubCreateDeployment(appName);
+		stubAppAfterCreation(appName, appName);
+	}
+
 	private void stubAppAfterCreation(String appName, String host) {
 		stubMapRouteToApp(appName, host);
 		stubUploadAppBits(appName);
@@ -196,9 +205,69 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubCheckAppState(appName);
 	}
 
-	public void stubUpdateApp(final String appName, ContentPattern<?>... appMetadataPatterns) {
-		stubUpdateAppMetadata(appName, appMetadataPatterns);
-		stubAppAfterCreation(appName, appName);
+	private void stubGetApp(String appName) {
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
+			.willReturn(ok()
+				.withBody(cc("get-app-STARTED",
+					replace("@name", appName),
+					replace("@guid", appGuid(appName))))));
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/routes?page=1"))
+			.willReturn(ok()
+				.withBody(cc("list-routes",
+					replace("@name", appName),
+					replace("@guid", appGuid(appName))))));
+	}
+
+	private void stubUpdateEnvironment(String appName) {
+		stubFor(put(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
+			.withRequestBody(matchingJsonPath("$.[?(@.environment_json)]"))
+			.willReturn(ok()
+				.withBody(cc("get-app-STARTED",
+					replace("@name", appName),
+					replace("@guid", appGuid(appName))))));
+	}
+
+	private void stubCreatePackage(String appName) {
+		stubFor(post(urlPathEqualTo("/v3/packages"))
+			.withRequestBody(
+				matchingJsonPath("$.[?(@.relationships.app.data.guid == '" + appGuid(appName) + "')]"))
+			.willReturn(ok()
+				.withBody(cc("get-package-READY",
+					replace("@guid", appGuid(appName))))));
+		stubFor(post(urlPathEqualTo("/v3/packages/" + appGuid(appName) + "/upload"))
+			.willReturn(ok()
+				.withBody(cc("get-package-READY",
+					replace("@guid", appGuid(appName))))));
+		stubFor(get(urlPathEqualTo("/v3/packages/" + appGuid(appName)))
+			.willReturn(ok()
+				.withBody(cc("get-package-READY",
+					replace("@guid", appGuid(appName))))));
+	}
+
+	private void stubCreateBuild(String appName) {
+		stubFor(get(urlPathEqualTo("/v3/builds"))
+			.willReturn(ok()
+				.withBody(cc("get-build-STAGED",
+					replace("@guid", appGuid(appName))))));
+		stubFor(post(urlPathEqualTo("/v3/builds"))
+			.willReturn(ok()
+				.withBody(cc("get-build-STAGED",
+					replace("@guid", appGuid(appName))))));
+		stubFor(get(urlPathEqualTo("/v3/builds/" + appGuid(appName)))
+			.willReturn(ok()
+				.withBody(cc("get-build-STAGED",
+					replace("@guid", appGuid(appName))))));
+	}
+
+	private void stubCreateDeployment(String appName) {
+		stubFor(post(urlPathEqualTo("/v3/deployments"))
+			.willReturn(ok()
+				.withBody(cc("get-deployment-DEPLOYED",
+					replace("@guid", appGuid(appName))))));
+		stubFor(get(urlPathEqualTo("/v3/deployments/" + appGuid(appName)))
+			.willReturn(ok()
+				.withBody(cc("get-deployment-DEPLOYED",
+					replace("@guid", appGuid(appName))))));
 	}
 
 	private void stubCreateAppMetadata(String appName, ContentPattern<?>... appMetadataPatterns) {
@@ -210,19 +279,6 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(mappingBuilder
 			.willReturn(ok()
 				.withBody(cc("get-app-STOPPED",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName))))));
-	}
-
-	private void stubUpdateAppMetadata(String appName, ContentPattern<?>... appMetadataPatterns) {
-		MappingBuilder mappingBuilder = put(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
-			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + appName + "')]"));
-		for (ContentPattern<?> appMetadataPattern : appMetadataPatterns) {
-			mappingBuilder.withRequestBody(appMetadataPattern);
-		}
-		stubFor(mappingBuilder
-			.willReturn(ok()
-				.withBody(cc("get-app-STARTED",
 					replace("@name", appName),
 					replace("@guid", appGuid(appName))))));
 	}

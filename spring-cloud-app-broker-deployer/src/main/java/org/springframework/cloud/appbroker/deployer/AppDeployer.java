@@ -24,6 +24,10 @@ public interface AppDeployer {
 		return Mono.empty();
 	}
 
+	default Mono<UpdateApplicationResponse> update(UpdateApplicationRequest request) {
+		return Mono.empty();
+	}
+
 	default Mono<UndeployApplicationResponse> undeploy(UndeployApplicationRequest request) {
 		return Mono.empty();
 	}

@@ -45,6 +45,18 @@ public class BackingAppDeploymentService {
 			.sequential();
 	}
 
+	public Flux<String> update(List<BackingApplication> backingApps) {
+		return Flux.fromIterable(backingApps)
+			.parallel()
+			.runOn(Schedulers.parallel())
+			.flatMap(deployerClient::update)
+			.doOnRequest(l -> log.debug("Updating applications {}", backingApps))
+			.doOnEach(response -> log.debug("Finished updating application {}", response))
+			.doOnComplete(() -> log.debug("Finished updating application {}", backingApps))
+			.doOnError(exception -> log.error("Error updating applications {} with error {}", backingApps, exception))
+			.sequential();
+	}
+
 	public Flux<String> undeploy(List<BackingApplication> backingApps) {
 		return Flux.fromIterable(backingApps)
 			.parallel()

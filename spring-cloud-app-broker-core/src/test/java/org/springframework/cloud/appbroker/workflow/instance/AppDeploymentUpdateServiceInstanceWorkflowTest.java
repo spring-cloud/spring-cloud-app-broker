@@ -136,7 +136,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		verify(appDeploymentService).deploy(backingApps);
+		verify(appDeploymentService).update(backingApps);
 		verify(servicesProvisionService).updateServiceInstance(backingServices);
 
 		final String expectedServiceId = "service-instance-id";
@@ -176,7 +176,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	}
 
 	private void setupMocks(UpdateServiceInstanceRequest request) {
-		given(this.appDeploymentService.deploy(eq(backingApps)))
+		given(this.appDeploymentService.update(eq(backingApps)))
 			.willReturn(Flux.just("app1", "app2"));
 		given(this.servicesProvisionService.updateServiceInstance(eq(backingServices)))
 			.willReturn(Flux.just("my-service-instance"));

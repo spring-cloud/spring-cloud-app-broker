@@ -40,7 +40,8 @@ public class BackingAppDeploymentService {
 			.doOnRequest(l -> log.debug("Deploying applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished deploying application {}", response))
 			.doOnComplete(() -> log.debug("Finished deploying application {}", backingApps))
-			.doOnError(exception -> log.error("Error deploying applications {} with error {}", backingApps, exception))
+			.doOnError(exception -> log.error("Error deploying applications {} with error '{}'",
+				backingApps, exception.getMessage()))
 			.sequential();
 	}
 
@@ -52,7 +53,8 @@ public class BackingAppDeploymentService {
 			.doOnRequest(l -> log.debug("Undeploying applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished undeploying application {}", response))
 			.doOnComplete(() -> log.debug("Finished undeploying application {}", backingApps))
-			.doOnError(exception -> log.error("Error undeploying applications {} with error {}", backingApps, exception))
+			.doOnError(exception -> log.error("Error undeploying applications {} with error '{}'",
+				backingApps, exception.getMessage()))
 			.sequential();
 	}
 }

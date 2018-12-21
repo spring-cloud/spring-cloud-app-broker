@@ -82,7 +82,8 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 						.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
 						.doOnEach(result -> log.debug("Finished deploying {}", result))
 						.doOnComplete(() -> log.debug("Finished deploying applications {}", brokeredServices))
-						.doOnError(e -> log.error("Error deploying applications {} with error {}", brokeredServices, e)))
+						.doOnError(exception -> log.error("Error deploying applications {} with error '{}'",
+							brokeredServices, exception.getMessage())))
 				.then();
 	}
 

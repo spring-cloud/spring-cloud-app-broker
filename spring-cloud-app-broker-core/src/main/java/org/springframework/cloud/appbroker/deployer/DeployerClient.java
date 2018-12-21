@@ -42,7 +42,8 @@ public class DeployerClient {
 			.build())
 			.doOnRequest(l -> log.debug("Deploying application {}", backingApplication))
 			.doOnSuccess(response -> log.debug("Finished deploying application {}", backingApplication))
-			.doOnError(exception -> log.error("Error deploying application {} with error {}", backingApplication, exception))
+			.doOnError(exception -> log.error("Error deploying application {} with error '{}'",
+				backingApplication, exception.getMessage()))
 			.map(DeployApplicationResponse::getName);
 	}
 
@@ -64,8 +65,9 @@ public class DeployerClient {
 				.properties(backingService.getProperties())
 				.build())
 			.doOnRequest(l -> log.debug("Creating backing service {}", backingService.getName()))
-			.doOnSuccess(d -> log.debug("Finished creating backing service {}", backingService.getName()))
-			.doOnError(e -> log.error("Error creating backing service {} with error {}", backingService.getName(), e))
+			.doOnSuccess(response -> log.debug("Finished creating backing service {}", backingService.getName()))
+			.doOnError(exception -> log.error("Error creating backing service {} with error '{}'",
+				backingService.getName(), exception.getMessage()))
 			.map(CreateServiceInstanceResponse::getName);
 	}
 
@@ -78,8 +80,9 @@ public class DeployerClient {
 				.rebindOnUpdate(backingService.isRebindOnUpdate())
 				.build())
 			.doOnRequest(l -> log.debug("Creating backing service {}", backingService.getName()))
-			.doOnSuccess(d -> log.debug("Finished creating backing service {}", backingService.getName()))
-			.doOnError(e -> log.error("Error creating backing service {} with error {}", backingService.getName(), e))
+			.doOnSuccess(response -> log.debug("Finished creating backing service {}", backingService.getName()))
+			.doOnError(exception -> log.error("Error creating backing service {} with error '{}'",
+				backingService.getName(), exception.getMessage()))
 			.map(UpdateServiceInstanceResponse::getName);
 	}
 

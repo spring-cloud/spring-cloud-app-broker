@@ -61,20 +61,20 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 
 	public Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
 		return
-			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
+			getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
 				.flatMap(backingService ->
 					targetService.addToBackingServices(backingService,
-						getTargetForService(request.getServiceDefinition(), request.getPlanId()),
+						getTargetForService(request.getServiceDefinition(), request.getPlan()),
 						request.getServiceInstanceId()))
 				.flatMap(backingServices ->
 					servicesParametersTransformationService.transformParameters(backingServices,
 						request.getParameters()))
 				.flatMapMany(backingServicesProvisionService::updateServiceInstance)
 				.thenMany(
-					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
 						.flatMap(backingApps ->
 							targetService.addToBackingApplications(backingApps,
-								getTargetForService(request.getServiceDefinition(), request.getPlanId()),
+								getTargetForService(request.getServiceDefinition(), request.getPlan()),
 								request.getServiceInstanceId()))
 						.flatMap(backingApps ->
 							appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
@@ -89,7 +89,7 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 
 	@Override
 	public Mono<Boolean> accept(UpdateServiceInstanceRequest request) {
-		return accept(request.getServiceDefinition(), request.getPlanId());
+		return accept(request.getServiceDefinition(), request.getPlan());
 	}
 
 	@Override

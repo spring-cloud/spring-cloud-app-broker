@@ -58,13 +58,21 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	@Override
 	public Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
 		return
-			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
-				.flatMapMany(backingService -> targetService.addToBackingServices(backingService, getTargetForService(request.getServiceDefinition(), request.getPlanId()) , request.getServiceInstanceId()))
+			getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
+				.flatMapMany(backingService ->
+					targetService.addToBackingServices(backingService,
+						getTargetForService(request.getServiceDefinition(), request.getPlan()) ,
+						request.getServiceInstanceId()))
 				.flatMap(backingServicesProvisionService::deleteServiceInstance)
 				.thenMany(
-					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
-						.flatMap(backingApplications -> credentialProviderService.deleteCredentials(backingApplications, request.getServiceInstanceId()))
-						.flatMap(backingApps -> targetService.addToBackingApplications(backingApps, getTargetForService(request.getServiceDefinition(), request.getPlanId()),  request.getServiceInstanceId()))
+					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
+						.flatMap(backingApplications ->
+							credentialProviderService.deleteCredentials(backingApplications,
+								request.getServiceInstanceId()))
+						.flatMap(backingApps ->
+							targetService.addToBackingApplications(backingApps,
+								getTargetForService(request.getServiceDefinition(), request.getPlan()),
+								request.getServiceInstanceId()))
 						.flatMapMany(deploymentService::undeploy)
 						.doOnRequest(l -> log.debug("Undeploying applications {}", brokeredServices))
 						.doOnEach(result -> log.debug("Finished undeploying {}", result))
@@ -76,7 +84,7 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	@Override
 	public Mono<Boolean> accept(DeleteServiceInstanceRequest request) {
-		return accept(request.getServiceDefinition(), request.getPlanId());
+		return accept(request.getServiceDefinition(), request.getPlan());
 	}
 
 	@Override

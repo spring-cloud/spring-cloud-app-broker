@@ -27,6 +27,7 @@ import org.springframework.cloud.appbroker.deployer.BackingServices;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.TargetSpec;
+import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 
 class AppDeploymentInstanceWorkflow {
@@ -37,48 +38,46 @@ class AppDeploymentInstanceWorkflow {
 		this.brokeredServices = brokeredServices;
 	}
 
-	Mono<Boolean> accept(ServiceDefinition serviceDefinition, String planId) {
-		return getBackingApplicationsForService(serviceDefinition, planId)
+	Mono<Boolean> accept(ServiceDefinition serviceDefinition, Plan plan) {
+		return getBackingApplicationsForService(serviceDefinition, plan)
 			.map(backingApplications -> !backingApplications.isEmpty())
 			.defaultIfEmpty(false);
 	}
 
-	TargetSpec getTargetForService(ServiceDefinition serviceDefinition, String planId) {
-		BrokeredService brokeredService = findBrokeredService(serviceDefinition, planId);
+	TargetSpec getTargetForService(ServiceDefinition serviceDefinition, Plan plan) {
+		BrokeredService brokeredService = findBrokeredService(serviceDefinition, plan);
 		return brokeredService == null ? null : brokeredService.getTarget();
 	}
 
-	Mono<List<BackingApplication>> getBackingApplicationsForService(ServiceDefinition serviceDefinition, String planId) {
+	Mono<List<BackingApplication>> getBackingApplicationsForService(ServiceDefinition serviceDefinition,
+																	Plan plan) {
 		return Mono.defer(() ->
-			Mono.justOrEmpty(findBackingApplications(serviceDefinition, planId)));
+			Mono.justOrEmpty(findBackingApplications(serviceDefinition, plan)));
 	}
 
-	Mono<List<BackingService>> getBackingServicesForService(ServiceDefinition serviceDefinition, String planId) {
+	Mono<List<BackingService>> getBackingServicesForService(ServiceDefinition serviceDefinition, Plan plan) {
 		return Mono.defer(() ->
-			Mono.justOrEmpty(findBackingServices(serviceDefinition, planId)));
+			Mono.justOrEmpty(findBackingServices(serviceDefinition, plan)));
 	}
 
 	private BackingApplications findBackingApplications(ServiceDefinition serviceDefinition,
-														String planId) {
-		BrokeredService brokeredService = findBrokeredService(serviceDefinition, planId);
+														Plan plan) {
+		BrokeredService brokeredService = findBrokeredService(serviceDefinition, plan);
 		return brokeredService == null ? null : new BackingApplications(brokeredService.getApps());
 	}
 
 	private BackingServices findBackingServices(ServiceDefinition serviceDefinition,
-												String planId) {
-		BrokeredService brokeredService = findBrokeredService(serviceDefinition, planId);
+												Plan plan) {
+		BrokeredService brokeredService = findBrokeredService(serviceDefinition, plan);
 		return brokeredService == null || brokeredService.getServices() == null
 			? null
 			: new BackingServices(brokeredService.getServices());
 	}
 
 	private BrokeredService findBrokeredService(ServiceDefinition serviceDefinition,
-												String planId) {
+												Plan plan) {
 		String serviceName = serviceDefinition.getName();
-
-		String planName = serviceDefinition.getPlans().stream()
-										   .filter(plan -> plan.getId().equals(planId))
-										   .findFirst().get().getName();
+		String planName = plan.getName();
 
 		return brokeredServices.stream()
 							   .filter(brokeredService ->

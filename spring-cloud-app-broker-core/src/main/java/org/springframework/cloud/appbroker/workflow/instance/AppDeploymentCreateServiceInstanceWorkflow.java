@@ -66,21 +66,21 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 	@Override
 	public Mono<Void> create(CreateServiceInstanceRequest request, CreateServiceInstanceResponse response) {
 		return
-			getBackingServicesForService(request.getServiceDefinition(), request.getPlanId())
+			getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
 				.flatMap(backingService ->
 					targetService.addToBackingServices(backingService,
-						getTargetForService(request.getServiceDefinition(), request.getPlanId()) ,
+						getTargetForService(request.getServiceDefinition(), request.getPlan()) ,
 						request.getServiceInstanceId()))
 				.flatMap(backingServices ->
 					servicesParametersTransformationService.transformParameters(backingServices,
 						request.getParameters()))
 				.flatMapMany(backingServicesProvisionService::createServiceInstance)
 				.thenMany(
-					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlanId())
+					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
 						.flatMap(backingApps ->
 							targetService.addToBackingApplications(backingApps,
 								getTargetForService(request.getServiceDefinition(),
-									request.getPlanId()) , request.getServiceInstanceId()))
+									request.getPlan()) , request.getServiceInstanceId()))
 						.flatMap(backingApps ->
 							appsParametersTransformationService.transformParameters(backingApps,
 								request.getParameters()))
@@ -98,7 +98,7 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 
 	@Override
 	public Mono<Boolean> accept(CreateServiceInstanceRequest request) {
-		return accept(request.getServiceDefinition(), request.getPlanId());
+		return accept(request.getServiceDefinition(), request.getPlan());
 	}
 
 	@Override

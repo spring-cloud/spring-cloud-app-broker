@@ -55,33 +55,37 @@ class AppDeploymentInstanceWorkflowTest {
 
 	@Test
 	void acceptWithMatchingService() {
+		ServiceDefinition serviceDefinition = buildServiceDefinition("service1", "plan1");
 		StepVerifier
-			.create(workflow.accept(buildServiceDefinition("service1", "plan1"), "plan1-id"))
+			.create(workflow.accept(serviceDefinition, serviceDefinition.getPlans().get(0)))
 			.expectNextMatches(value -> value)
 			.verifyComplete();
 	}
 
 	@Test
 	void doNotAcceptWithUnsupportedService() {
+		ServiceDefinition serviceDefinition = buildServiceDefinition("unknown-service", "plan1");
 		StepVerifier
-			.create(workflow.accept(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
+			.create(workflow.accept(serviceDefinition, serviceDefinition.getPlans().get(0)))
 			.expectNextMatches(value -> !value)
 			.verifyComplete();
 	}
 
 	@Test
 	void doNotAcceptWithUnsupportedPlan() {
+		ServiceDefinition serviceDefinition = buildServiceDefinition("service1", "unknown-plan");
 		StepVerifier
-			.create(workflow.accept(buildServiceDefinition("service1", "unknown-plan"), "unknown-plan-id"))
+			.create(workflow.accept(serviceDefinition, serviceDefinition.getPlans().get(0)))
 			.expectNextMatches(value -> !value)
 			.verifyComplete();
 	}
 
 	@Test
 	void getBackingAppForServiceSucceeds() {
+		ServiceDefinition serviceDefinition = buildServiceDefinition("service1", "plan1");
 		StepVerifier
 			.create(workflow
-				.getBackingApplicationsForService(buildServiceDefinition("service1", "plan1"), "plan1-id"))
+				.getBackingApplicationsForService(serviceDefinition, serviceDefinition.getPlans().get(0)))
 			.assertNext(actual -> assertThat(actual)
 				.isEqualTo(backingApps)
 				.isNotSameAs(backingApps))
@@ -90,17 +94,19 @@ class AppDeploymentInstanceWorkflowTest {
 
 	@Test
 	void getBackingAppForServiceWithUnknownServiceIdDoesNothing() {
+		ServiceDefinition serviceDefinition = buildServiceDefinition("unknown-service", "plan1");
 		StepVerifier
 			.create(workflow
-				.getBackingApplicationsForService(buildServiceDefinition("unknown-service", "plan1"), "plan1-id"))
+				.getBackingApplicationsForService(serviceDefinition,serviceDefinition.getPlans().get(0)))
 		.verifyComplete();
 	}
 
 	@Test
 	void getBackingAppForServiceWithUnknownPlanIdDoesNothing() {
+		ServiceDefinition serviceDefinition = buildServiceDefinition("service1", "unknown-plan");
 		StepVerifier
 			.create(workflow
-				.getBackingApplicationsForService(buildServiceDefinition("service1", "unknown-plan"), "unknown-plan-id"))
+				.getBackingApplicationsForService(serviceDefinition, serviceDefinition.getPlans().get(0)))
 		.verifyComplete();
 	}
 

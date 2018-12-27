@@ -18,7 +18,25 @@ package org.springframework.cloud.appbroker.extensions.targets;
 
 import java.util.Map;
 
-public interface Target {
+public class ServiceInstanceGuidSuffix extends TargetFactory<ServiceInstanceGuidSuffix.Config> {
 
-	ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId);
+	public ServiceInstanceGuidSuffix() {
+		super(Config.class);
+	}
+
+	@Override
+	public Target create(Config config) {
+		return this::apply;
+	}
+
+	private ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId) {
+		return ArtifactDetails.builder()
+							  .name(name + "-" + serviceInstanceId)
+							  .properties(properties)
+							  .build();
+	}
+
+	static class Config {
+	}
+
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.extensions.targets;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.assertj.core.util.Lists;
@@ -34,7 +35,7 @@ class TargetServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		targetService = new TargetService(singletonList(new SpacePerServiceInstance()));
+		targetService = new TargetService(Arrays.asList(new SpacePerServiceInstance(), new ServiceInstanceGuidSuffix()));
 	}
 
 	@Test
@@ -44,10 +45,14 @@ class TargetServiceTest {
 		BackingApplication backingApplication = BackingApplication.builder().name("app-name").build();
 
 		//when add gets called
-		List<BackingApplication> updatedBackingApplications = targetService.addToBackingApplications(singletonList(backingApplication), targetSpec, "service-id").block();
+		List<BackingApplication> updatedBackingApplications =
+			targetService
+				.addToBackingApplications(singletonList(backingApplication), targetSpec, "service-id")
+				.block();
 
 		//then a host and space are added
 		BackingApplication updatedBackingApplication = updatedBackingApplications.get(0);
+		assertThat(updatedBackingApplication.getName()).isEqualTo("app-name");
 		assertThat(updatedBackingApplication.getProperties().get("host")).isEqualTo("app-name-service-id");
 		assertThat(updatedBackingApplication.getProperties().get("target")).isEqualTo("service-id");
 	}
@@ -60,15 +65,35 @@ class TargetServiceTest {
 		BackingApplication backingApplication2 = BackingApplication.builder().name("app-name2").build();
 
 		//when add gets called
-		List<BackingApplication> updatedBackingApplications = targetService.addToBackingApplications(Lists.newArrayList(backingApplication1, backingApplication2), targetSpec, "service-id").block();
+		List<BackingApplication> updatedBackingApplications =
+			targetService
+				.addToBackingApplications(Lists.newArrayList(backingApplication1, backingApplication2), targetSpec, "service-id")
+				.block();
 
 		//then a host and space are added
 		BackingApplication updatedBackingApplication1 = updatedBackingApplications.get(0);
+		assertThat(updatedBackingApplication1.getName()).isEqualTo("app-name1");
 		assertThat(updatedBackingApplication1.getProperties().get("host")).isEqualTo("app-name1-service-id");
 		assertThat(updatedBackingApplication1.getProperties().get("target")).isEqualTo("service-id");
 
 		BackingApplication updatedBackingApplication2 = updatedBackingApplications.get(1);
+		assertThat(updatedBackingApplication2.getName()).isEqualTo("app-name2");
 		assertThat(updatedBackingApplication2.getProperties().get("host")).isEqualTo("app-name2-service-id");
 		assertThat(updatedBackingApplication2.getProperties().get("target")).isEqualTo("service-id");
 	}
+
+	@Test
+	void shouldAddNameAsServiceInstanceGuidSuffix() {
+		TargetSpec targetSpec = TargetSpec.builder().name("ServiceInstanceGuidSuffix").build();
+		BackingApplication backingApplication = BackingApplication.builder().name("app-name").build();
+
+		List<BackingApplication> backingApplications =
+			targetService
+				.addToBackingApplications(singletonList(backingApplication), targetSpec, "guid")
+				.block();
+
+		BackingApplication backingApplication1 = backingApplications.get(0);
+		assertThat(backingApplication1.getName()).isEqualTo("app-name-guid");
+	}
+
 }

@@ -20,9 +20,6 @@ import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
-import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
-
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -31,7 +28,9 @@ import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
+import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
+import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
 import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory;
 import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
@@ -39,7 +38,9 @@ import org.springframework.cloud.appbroker.extensions.parameters.BackingServices
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.ParameterMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.targets.ServiceInstanceGuidSuffix;
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
+import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceRouteBindingWorkflow;
@@ -184,7 +185,17 @@ class AppBrokerAutoConfigurationTest {
 		assertThat(context).hasSingleBean(SpringSecurityOAuth2CredentialProviderFactory.class);
 
 		assertThat(context).hasSingleBean(TargetService.class);
+
+		assertThat(context.getBeansOfType(TargetFactory.class)).hasSize(2);
+//	TODO why?
+//		assertThat(context.getBeansOfType(TargetFactory.class)
+//						  .values()
+//						  .stream()
+//						  .map(TargetFactory::getClass)
+//						  .collect(Collectors.toList()))
+//			.contains(SpacePerServiceInstance.class, ServiceInstanceGuidSuffix.class);
 		assertThat(context).hasSingleBean(SpacePerServiceInstance.class);
+		assertThat(context).hasSingleBean(ServiceInstanceGuidSuffix.class);
 
 		assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);
 		assertThat(context).hasSingleBean(AppDeploymentCreateServiceInstanceWorkflow.class);
@@ -227,6 +238,7 @@ class AppBrokerAutoConfigurationTest {
 
 	@Configuration
 	public static class CustomBindingServiceConfiguration {
+
 		@Bean
 		public ServiceInstanceBindingService serviceInstanceBindingService() {
 			return new TestServiceInstanceBindingService();

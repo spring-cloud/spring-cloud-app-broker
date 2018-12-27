@@ -18,7 +18,6 @@ package org.springframework.cloud.appbroker.extensions.targets;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -43,8 +42,9 @@ public class TargetService {
 				   .flatMap(backingApplication -> {
 					   if (targetSpec != null) {
 						   Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
-						   Map<String, String> properties = target.apply(backingApplication.getProperties(), backingApplication.getName(), serviceInstanceId);
-						   backingApplication.setProperties(properties);
+						   ArtifactDetails artifactDetails = target.apply(backingApplication.getProperties(), backingApplication.getName(), serviceInstanceId);
+						   backingApplication.setName(artifactDetails.getName());
+						   backingApplication.setProperties(artifactDetails.getProperties());
 					   }
 					   return Mono.just(backingApplication);
 
@@ -60,8 +60,8 @@ public class TargetService {
 				   .flatMap(backingService -> {
 					   if (targetSpec != null) {
 						   Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
-						   Map<String, String> properties = target.apply(backingService.getProperties(), backingService.getName(), serviceInstanceId);
-						   backingService.setProperties(properties);
+						   ArtifactDetails artifactDetails = target.apply(backingService.getProperties(), backingService.getName(), serviceInstanceId);
+						   backingService.setProperties(artifactDetails.getProperties());
 					   }
 					   return Mono.just(backingService);
 				   })

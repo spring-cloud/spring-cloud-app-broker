@@ -31,11 +31,14 @@ public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstan
 		return this::apply;
 	}
 
-	private Map<String, String> apply(Map<String, String> properties, String name, String serviceInstanceId) {
+	private ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId) {
 		properties.put(DeploymentProperties.HOST_PROPERTY_KEY, name + "-" + serviceInstanceId);
 		properties.put(DeploymentProperties.TARGET_PROPERTY_KEY, serviceInstanceId);
 
-		return properties;
+		return ArtifactDetails.builder()
+							  .name(name)
+							  .properties(properties)
+							  .build();
 	}
 
 	static class Config {

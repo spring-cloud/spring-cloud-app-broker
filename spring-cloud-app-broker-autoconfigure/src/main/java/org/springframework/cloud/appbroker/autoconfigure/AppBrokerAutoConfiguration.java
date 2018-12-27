@@ -42,6 +42,7 @@ import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMapp
 import org.springframework.cloud.appbroker.extensions.parameters.ParameterMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
+import org.springframework.cloud.appbroker.extensions.targets.ServiceInstanceGuidSuffix;
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
 import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
@@ -148,8 +149,13 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
-	public SpacePerServiceInstance targetFactory() {
+	public SpacePerServiceInstance spacePerServiceInstance() {
 		return new SpacePerServiceInstance();
+	}
+
+	@Bean
+	public ServiceInstanceGuidSuffix serviceInstanceGuidSuffix() {
+		return new ServiceInstanceGuidSuffix();
 	}
 
 	@Bean

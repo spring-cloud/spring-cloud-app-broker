@@ -26,8 +26,6 @@ dependencies {
 	implementation project(":spring-cloud-app-broker-deployer")
 	implementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
 	implementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
-	implementation("io.projectreactor:reactor-core")
-	implementation("io.projectreactor.ipc:reactor-netty")
 	api("org.immutables:value:${immutablesVersion}")
 
 	implementation("org.springframework.boot:spring-boot-starter-validation")

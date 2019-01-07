@@ -43,12 +43,7 @@ dependencies {
 	testImplementation("org.assertj:assertj-core:${assertjVersion}")
 	testImplementation("com.revinate:assertj-json:1.2.0")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-webflux")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
-	testImplementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
-	testImplementation("io.projectreactor:reactor-core")
-	testImplementation("io.projectreactor.ipc:reactor-netty")
 }
 
 // build the test broker from /src into a jar that the tests can deploy

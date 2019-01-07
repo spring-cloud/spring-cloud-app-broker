@@ -33,7 +33,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
@@ -43,6 +42,10 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	private static final String TEST_SPACE_GUID = "TEST-SPACE-GUID";
 	private static final String TEST_ORG_GUID = "TEST-ORG-GUID";
 	private static final String TEST_QUOTA_DEFINITION_GUID = "TEST-QUOTA-DEFINITION-GUID";
+
+	protected CloudControllerStubFixture() {
+		super(8080);
+	}
 
 	public void stubCommonCloudControllerRequests() {
 		stubGetPlatformInfo();

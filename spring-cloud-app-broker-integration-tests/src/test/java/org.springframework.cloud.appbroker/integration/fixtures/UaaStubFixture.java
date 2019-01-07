@@ -22,11 +22,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 @TestComponent
 public class UaaStubFixture extends WiremockStubFixture {
+	protected UaaStubFixture() {
+		super(8080);
+	}
+
 	public void stubCommonUaaRequests() {
 		stubRetrieveAccessToken();
 		stubRetrieveTokenKeys();

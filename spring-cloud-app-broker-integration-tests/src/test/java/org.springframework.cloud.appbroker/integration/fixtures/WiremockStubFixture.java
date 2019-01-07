@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.appbroker.integration.fixtures;
 
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Metadata;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -29,8 +32,24 @@ import java.util.stream.Collectors;
 public class WiremockStubFixture {
 	private static final String RESPONSES_RESOURCE_PATH = "classpath:/responses/";
 
+	protected WireMock wireMock;
+
 	@Autowired
 	private ResourceLoader resourceLoader;
+
+	protected WiremockStubFixture(int port) {
+		wireMock = WireMock.create()
+			.port(port)
+			.build();
+	}
+
+	protected StubMapping stubFor(MappingBuilder mappingBuilder) {
+		return givenThat(mappingBuilder);
+	}
+
+	protected StubMapping givenThat(MappingBuilder mappingBuilder) {
+		return wireMock.register(mappingBuilder);
+	}
 
 	CloudControllerStubFixture.StringReplacementPair replace(String regex, String replacement) {
 		return new CloudControllerStubFixture.StringReplacementPair(regex, replacement);

@@ -47,7 +47,7 @@ configure(allprojects) {
 		springVersion = project.findProperty("springVersion") ?: "5.1.3.RELEASE"
 		reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR3"
 		openServiceBrokerVersion = "3.0.0.M3"
-		springCredhubVersion = "2.0.0.RC1"
+		springCredhubVersion = "2.0.0.BUILD-SNAPSHOT"
 		cfJavaClientVersion = "3.14.0.RELEASE"
 		mockitoVersion = "2.23.4"
 		immutablesVersion = "2.7.3"

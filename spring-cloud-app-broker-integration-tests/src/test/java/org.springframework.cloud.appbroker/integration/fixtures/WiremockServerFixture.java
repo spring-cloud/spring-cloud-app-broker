@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.recordSpec;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,48 +34,38 @@ public class WiremockServerFixture {
 	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.api-port}")
 	private int cfApiPort;
 
-	@Value("${wiremock.record:false}")
-	private boolean wiremockRecord;
-
-	@Value("${wiremock.cloudfoundry.api-url:}")
-	private String cfApiUrl;
-
-	private WireMockServer wiremockServer;
+	private WireMockServer ccUaaWiremockServer;
+	private WireMockServer credHubWiremockServer;
 
 	public void startWiremock() {
-		wiremockServer = new WireMockServer(wireMockConfig()
+		ccUaaWiremockServer = new WireMockServer(wireMockConfig()
 			.port(cfApiPort)
 			.usingFilesUnderClasspath("recordings"));
+		ccUaaWiremockServer.start();
 
-		if (wiremockRecord) {
-			wiremockServer.startRecording(
-				recordSpec()
-					.forTarget(cfApiUrl)
-			);
-		}
-
-		wiremockServer.start();
+		credHubWiremockServer = new WireMockServer(wireMockConfig()
+			.port(8888)
+			.usingFilesUnderClasspath("recordings"));
+		credHubWiremockServer.start();
 	}
 
 	public void stopWiremock() {
-		if (wiremockRecord) {
-			wiremockServer.stopRecording();
-		}
-
-		wiremockServer.stop();
+		ccUaaWiremockServer.stop();
+		credHubWiremockServer.stop();
 	}
 
 	public void resetWiremock() {
-		wiremockServer.resetAll();
+		ccUaaWiremockServer.resetAll();
+		credHubWiremockServer.resetAll();
 	}
 
 	public void verifyAllRequiredStubsUsed() {
-		Set<UUID> servedStubIds = wiremockServer.getServeEvents().getRequests().stream()
+		Set<UUID> servedStubIds = ccUaaWiremockServer.getServeEvents().getRequests().stream()
 			.filter(event -> event.getStubMapping() != null)
 			.map(event -> event.getStubMapping().getId())
 			.collect(Collectors.toSet());
 
-		List<StubMapping> unusedStubs = wiremockServer.listAllStubMappings().getMappings().stream()
+		List<StubMapping> unusedStubs = ccUaaWiremockServer.listAllStubMappings().getMappings().stream()
 			.filter(stub -> !servedStubIds.contains(stub.getId()))
 			.filter(this::stubIsOptional)
 			.collect(Collectors.toList());

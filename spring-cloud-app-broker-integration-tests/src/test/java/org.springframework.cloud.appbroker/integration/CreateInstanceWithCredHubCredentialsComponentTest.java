@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.appbroker.integration;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture;
@@ -70,18 +69,17 @@ class CreateInstanceWithCredHubCredentialsComponentTest extends WiremockComponen
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Autowired
-	private UaaStubFixture uaaStubFixture;
+	private UaaStubFixture uaaFixture;
 
 	@Autowired
 	private CredHubStubFixture credHubFixture;
 
 	@Test
-	@Disabled
 	void pushAppWithCredentials() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME);
 
-		uaaStubFixture.stubCreateClient();
+		uaaFixture.stubCreateClient();
 
 		credHubFixture.stubGenerateUser(APP_NAME, SERVICE_INSTANCE_ID, "basic", 14);
 		credHubFixture.stubGeneratePassword(APP_NAME, SERVICE_INSTANCE_ID, "oauth2", 12);

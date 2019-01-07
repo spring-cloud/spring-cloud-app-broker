@@ -58,7 +58,7 @@ class CreateInstanceWithOAuth2CredentialsComponentTest extends WiremockComponent
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Autowired
-	private UaaStubFixture uaaStubFixture;
+	private UaaStubFixture uaaFixture;
 	
 	@Test
 	void pushAppWithOAuth2Credentials() {
@@ -69,7 +69,7 @@ class CreateInstanceWithOAuth2CredentialsComponentTest extends WiremockComponent
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ " +
 				"/.*spring.*security.*oauth2.*client.*registration.*example-app-client.*client-secret.*:.*[a-zA-Z]{14}.*/)]"));
 
-		uaaStubFixture.stubCreateClient();
+		uaaFixture.stubCreateClient();
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())
@@ -96,7 +96,7 @@ class CreateInstanceWithOAuth2CredentialsComponentTest extends WiremockComponent
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubDeleteApp(APP_NAME);
 
-		uaaStubFixture.stubDeleteClient("test-client");
+		uaaFixture.stubDeleteClient("test-client");
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())

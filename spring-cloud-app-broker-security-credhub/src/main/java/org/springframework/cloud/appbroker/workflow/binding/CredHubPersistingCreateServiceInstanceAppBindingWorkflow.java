@@ -25,7 +25,7 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.core.annotation.Order;
-import org.springframework.credhub.core.ReactiveCredHubOperations;
+import org.springframework.credhub.core.CredHubOperations;
 import org.springframework.credhub.support.ServiceInstanceCredentialName;
 import org.springframework.credhub.support.json.JsonCredentialRequest;
 import org.springframework.util.CollectionUtils;
@@ -41,9 +41,9 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow implements
 
 	private final String appName;
 
-	private final ReactiveCredHubOperations credHubOperations;
+	private final CredHubOperations credHubOperations;
 
-	public CredHubPersistingCreateServiceInstanceAppBindingWorkflow(ReactiveCredHubOperations credHubOperations, String appName) {
+	public CredHubPersistingCreateServiceInstanceAppBindingWorkflow(CredHubOperations credHubOperations, String appName) {
 		this.credHubOperations = credHubOperations;
 		this.appName = appName;
 	}
@@ -65,24 +65,26 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow implements
 
 	private Mono<CreateServiceInstanceAppBindingResponseBuilder> persistBindingCredentials(CreateServiceInstanceBindingRequest request,
 																						   CreateServiceInstanceAppBindingResponse response) {
-		return credHubOperations
-			.credentials()
+		ServiceInstanceCredentialName name = ServiceInstanceCredentialName
+			.builder()
+			.serviceBrokerName(this.appName)
+			.serviceOfferingName(request.getServiceDefinitionId())
+			.serviceBindingId(request.getBindingId())
+			.credentialName(CREDENTIALS_NAME)
+			.build();
+
+		credHubOperations.credentials()
 			.write(JsonCredentialRequest
 				.builder()
+				.name(name)
 				.value(response.getCredentials())
-				.build())
-			.thenReturn(CreateServiceInstanceAppBindingResponse
+				.build());
+
+		return Mono.just(CreateServiceInstanceAppBindingResponse
 				.builder()
 				.async(response.isAsync())
 				.bindingExisted(response.isBindingExisted())
-				.credentials(CREDENTIALS_KEY, ServiceInstanceCredentialName
-					.builder()
-					.serviceBrokerName(this.appName)
-					.serviceOfferingName(request.getServiceDefinitionId())
-					.serviceBindingId(request.getBindingId())
-					.credentialName(CREDENTIALS_NAME)
-					.build()
-					.getName())
+				.credentials(CREDENTIALS_KEY, name.getName())
 				.operation(response.getOperation())
 				.syslogDrainUrl(response.getSyslogDrainUrl())
 				.volumeMounts(response.getVolumeMounts()));

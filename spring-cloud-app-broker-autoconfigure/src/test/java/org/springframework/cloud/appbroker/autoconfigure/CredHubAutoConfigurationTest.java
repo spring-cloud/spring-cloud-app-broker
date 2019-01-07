@@ -26,7 +26,7 @@ import org.springframework.cloud.appbroker.extensions.credentials.CredentialGene
 import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
 import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCreateServiceInstanceAppBindingWorkflow;
 import org.springframework.context.annotation.Bean;
-import org.springframework.credhub.core.ReactiveCredHubOperations;
+import org.springframework.credhub.core.CredHubOperations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -49,7 +49,7 @@ class CredHubAutoConfigurationTest {
 	@Test
 	void servicesAreNotCreatedWithoutCredHubOnClasspath() {
 		contextRunner
-			.withClassLoader(new FilteredClassLoader(ReactiveCredHubOperations.class))
+			.withClassLoader(new FilteredClassLoader(CredHubOperations.class))
 			.run((context) -> {
 				assertThat(context)
 					.hasSingleBean(CredentialGenerator.class)
@@ -78,8 +78,8 @@ class CredHubAutoConfigurationTest {
 	@TestConfiguration
 	public static class CredHubConfiguration {
 		@Bean
-		public ReactiveCredHubOperations credHubOperations() {
-			return mock(ReactiveCredHubOperations.class);
+		public CredHubOperations credHubOperations() {
+			return mock(CredHubOperations.class);
 		}
 	}
 

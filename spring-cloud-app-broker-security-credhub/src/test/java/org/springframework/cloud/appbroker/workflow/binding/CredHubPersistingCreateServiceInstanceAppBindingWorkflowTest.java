@@ -25,15 +25,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
-import org.springframework.credhub.core.ReactiveCredHubOperations;
-import org.springframework.credhub.core.credential.ReactiveCredHubCredentialOperations;
+import org.springframework.credhub.core.CredHubOperations;
+import org.springframework.credhub.core.credential.CredHubCredentialOperations;
+import org.springframework.credhub.support.CredentialDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,10 +46,10 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 
 	@Mock
-	private ReactiveCredHubOperations credHubOperations;
+	private CredHubOperations credHubOperations;
 
 	@Mock
-	private ReactiveCredHubCredentialOperations credHubCredentialOperations;
+	private CredHubCredentialOperations credHubCredentialOperations;
 
 	private CredHubPersistingCreateServiceInstanceAppBindingWorkflow workflow;
 
@@ -127,7 +127,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 			.willReturn(credHubCredentialOperations);
 
 		given(this.credHubCredentialOperations.write(any()))
-			.willReturn(Mono.empty());
+			.willReturn(new CredentialDetails<>());
 
 		StepVerifier
 			.create(this.workflow.buildResponse(request, responseBuilder))

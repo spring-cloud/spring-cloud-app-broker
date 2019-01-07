@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.appbroker.integration;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.CredHubStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.OpenServiceBrokerApiFixture;
+import org.springframework.cloud.appbroker.integration.fixtures.UaaStubFixture;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
@@ -55,7 +55,7 @@ import static org.springframework.cloud.appbroker.integration.DeleteInstanceWith
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[1].args.include-numeric=false",
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[1].args.include-special=false",
 
-	"spring.credhub.url=http://localhost:8080"
+	"spring.credhub.url=http://localhost:8888"
 })
 class DeleteInstanceWithCredHubCredentialsComponentTest extends WiremockComponentTest {
 
@@ -69,14 +69,18 @@ class DeleteInstanceWithCredHubCredentialsComponentTest extends WiremockComponen
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Autowired
+	private UaaStubFixture uaaFixture;
+
+	@Autowired
 	private CredHubStubFixture credHubFixture;
 
 	@Test
-	@Disabled
 	void deleteAppWithCredentials() {
 		cloudControllerFixture.stubAppExists(APP_NAME);
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubDeleteApp(APP_NAME);
+
+		uaaFixture.stubDeleteClient("test-client");
 
 		credHubFixture.stubDeleteCredential(APP_NAME, SERVICE_INSTANCE_ID, "basic");
 		credHubFixture.stubDeleteCredential(APP_NAME, SERVICE_INSTANCE_ID, "oauth2");

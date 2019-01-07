@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
+import org.springframework.credhub.core.CredHubOperations;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import org.springframework.credhub.core.ReactiveCredHubOperations;
 import org.springframework.credhub.support.CredentialDetails;
 import org.springframework.credhub.support.SimpleCredentialName;
 import org.springframework.credhub.support.password.PasswordCredential;
@@ -31,9 +31,9 @@ import org.springframework.credhub.support.user.UserParametersRequest;
 
 public class CredHubCredentialsGenerator implements CredentialGenerator {
 
-	private final ReactiveCredHubOperations credHubOperations;
+	private final CredHubOperations credHubOperations;
 
-	public CredHubCredentialsGenerator(ReactiveCredHubOperations credHubOperations) {
+	public CredHubCredentialsGenerator(CredHubOperations credHubOperations) {
 		this.credHubOperations = credHubOperations;
 	}
 
@@ -41,39 +41,42 @@ public class CredHubCredentialsGenerator implements CredentialGenerator {
 	public Mono<Tuple2<String, String>> generateUser(String applicationId, String serviceInstanceId, String descriptor,
 													 int length, boolean includeUppercaseAlpha, boolean includeLowercaseAlpha,
 													 boolean includeNumeric, boolean includeSpecial) {
-		return this.credHubOperations.credentials().generate(UserParametersRequest
-			.builder()
-			.name(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor))
-			.parameters(passwordParameters(length, includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial))
-			.build(), UserCredential.class)
-									 .map(CredentialDetails::getValue)
-									 .map(userCredential -> Tuples.of(userCredential.getUsername(), userCredential.getPassword()));
+		CredentialDetails<UserCredential> user = this.credHubOperations.credentials()
+			.generate(UserParametersRequest.builder()
+				.name(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor))
+				.parameters(passwordParameters(length, includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial))
+				.build());
+
+		return Mono.just(Tuples.of(user.getValue().getUsername(), user.getValue().getPassword()));
 	}
 
 	@Override
 	public Mono<String> generateString(String applicationId, String serviceInstanceId, String descriptor, int length,
 									   boolean includeUppercaseAlpha, boolean includeLowercaseAlpha, boolean includeNumeric,
 									   boolean includeSpecial) {
-		return credHubOperations.credentials().generate(PasswordParametersRequest
-			.builder()
-			.name(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor))
-			.parameters(passwordParameters(length, includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial))
-			.build(), PasswordCredential.class)
-								.map(CredentialDetails::getValue)
-								.map(PasswordCredential::getPassword);
+		CredentialDetails<PasswordCredential> password = this.credHubOperations.credentials()
+			.generate(PasswordParametersRequest.builder()
+				.name(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor))
+				.parameters(passwordParameters(length, includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial))
+				.build());
+		return Mono.just(password.getValue().getPassword());
 	}
 
 	@Override
 	public Mono<Void> deleteUser(String applicationId, String serviceInstanceId, String descriptor) {
-		return credHubOperations.credentials().deleteByName(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor));
+		this.credHubOperations.credentials()
+			.deleteByName(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor));
+		return Mono.empty();
 	}
 
 	@Override
 	public Mono<Void> deleteString(String applicationId, String serviceInstanceId, String descriptor) {
-		return credHubOperations.credentials().deleteByName(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor));
+		this.credHubOperations.credentials().deleteByName(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor));
+		return Mono.empty();
 	}
 
-	private PasswordParameters passwordParameters(int length, boolean includeUppercaseAlpha, boolean includeLowercaseAlpha,
+	private PasswordParameters passwordParameters(int length, boolean includeUppercaseAlpha,
+												  boolean includeLowercaseAlpha,
 												  boolean includeNumeric, boolean includeSpecial) {
 		return PasswordParameters
 			.builder()

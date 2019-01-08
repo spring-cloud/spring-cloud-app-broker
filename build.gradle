@@ -282,13 +282,16 @@ configure(rootProject) {
 		destinationDir = new File(buildDir, "api")
 	}
 
-	task docsZip(type: Zip) {
+	task docsZip(type: Zip, dependsOn: [':spring-cloud-app-broker-docs:asciidoctor']) {
 		group = "Distribution"
 		classifier = "docs"
 		description = "Builds -${classifier} archive containing api and reference " +
 				"for deployment."
 
 		from (api) { into "api" }
+		from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctor')) {
+			into 'reference'
+		}
 	}
 
 	task distZip(type: Zip, dependsOn: docsZip) {

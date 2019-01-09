@@ -65,29 +65,26 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow implements
 
 	private Mono<CreateServiceInstanceAppBindingResponseBuilder> persistBindingCredentials(CreateServiceInstanceBindingRequest request,
 																						   CreateServiceInstanceAppBindingResponse response) {
-		ServiceInstanceCredentialName name = ServiceInstanceCredentialName
-			.builder()
+		return Mono.just(ServiceInstanceCredentialName.builder()
 			.serviceBrokerName(this.appName)
 			.serviceOfferingName(request.getServiceDefinitionId())
 			.serviceBindingId(request.getBindingId())
 			.credentialName(CREDENTIALS_NAME)
-			.build();
-
-		credHubOperations.credentials()
-			.write(JsonCredentialRequest
-				.builder()
-				.name(name)
-				.value(response.getCredentials())
-				.build());
-
-		return Mono.just(CreateServiceInstanceAppBindingResponse
-				.builder()
-				.async(response.isAsync())
-				.bindingExisted(response.isBindingExisted())
-				.credentials(CREDENTIALS_KEY, name.getName())
-				.operation(response.getOperation())
-				.syslogDrainUrl(response.getSyslogDrainUrl())
-				.volumeMounts(response.getVolumeMounts()));
+			.build())
+			.flatMap(credentialName -> Mono.fromCallable(() -> credHubOperations
+				.credentials()
+				.write(JsonCredentialRequest.builder()
+					.name(credentialName)
+					.value(response.getCredentials())
+					.build()))
+				.thenReturn(CreateServiceInstanceAppBindingResponse
+					.builder()
+					.async(response.isAsync())
+					.bindingExisted(response.isBindingExisted())
+					.credentials(CREDENTIALS_KEY, credentialName.getName())
+					.operation(response.getOperation())
+					.syslogDrainUrl(response.getSyslogDrainUrl())
+					.volumeMounts(response.getVolumeMounts())));
 	}
 
 }

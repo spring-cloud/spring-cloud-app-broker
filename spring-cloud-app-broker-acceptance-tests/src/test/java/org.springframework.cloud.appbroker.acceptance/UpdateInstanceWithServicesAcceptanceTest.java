@@ -18,7 +18,6 @@ package org.springframework.cloud.appbroker.acceptance;
 
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstance;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -40,7 +39,6 @@ class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 	private HealthListener healthListener;
 
 	@Test
-	@Disabled
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=" + APP_SERVICE_NAME,
 		"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,

@@ -28,6 +28,7 @@ import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
@@ -392,7 +393,7 @@ class CloudFoundryAppDeployerTest {
 	}
 
 	@Test
-	void updateServiceInstanceUnbindsWhenRequired() {
+	void updateServiceInstanceRebindsWhenRequired() {
 		when(operationsServices.updateInstance(
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
 				.serviceInstanceName("service-instance-name")
@@ -417,6 +418,18 @@ class CloudFoundryAppDeployerTest {
 			.thenReturn(Mono.empty());
 
 		when(operationsServices.unbind(UnbindServiceInstanceRequest.builder()
+			.applicationName("app2")
+			.serviceInstanceName("service-instance-name")
+			.build()))
+			.thenReturn(Mono.empty());
+
+		when(operationsServices.bind(BindServiceInstanceRequest.builder()
+			.applicationName("app1")
+			.serviceInstanceName("service-instance-name")
+			.build()))
+			.thenReturn(Mono.empty());
+
+		when(operationsServices.bind(BindServiceInstanceRequest.builder()
 			.applicationName("app2")
 			.serviceInstanceName("service-instance-name")
 			.build()))

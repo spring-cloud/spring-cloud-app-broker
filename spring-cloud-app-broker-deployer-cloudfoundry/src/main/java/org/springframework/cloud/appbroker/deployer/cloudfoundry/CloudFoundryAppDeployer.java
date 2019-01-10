@@ -72,6 +72,7 @@ import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.organizations.OrganizationDetail;
 import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
@@ -174,7 +175,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.get(GetApplicationRequest.builder().name(name).build())
 			.map(ApplicationDetail::getId)
 			.flatMap(applicationId ->
-				updateApplicationEnvironment(environmentVariables, applicationId)
+				updateApplicationEnvironment(applicationId, environmentVariables)
 					.thenReturn(applicationId)
 			)
 			.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
@@ -298,7 +299,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<org.cloudfoundry.client.v2.applications.UpdateApplicationResponse> updateApplicationEnvironment(
-		Map<String, Object> environmentVariables, String applicationId) {
+		String applicationId, Map<String, Object> environmentVariables) {
 		return this.client.applicationsV2()
 						  .update(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest
 							  .builder()
@@ -699,7 +700,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
 		CloudFoundryOperations cloudFoundryOperations = getOperations(request.getProperties());
-		return unbindServiceInstanceIfNecessary(request, cloudFoundryOperations)
+		return rebindServiceInstanceIfNecessary(request, cloudFoundryOperations)
 			.then(updateServiceInstanceIfNecessary(request, cloudFoundryOperations));
 	}
 
@@ -725,7 +726,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<Void> unbindServiceInstance(String serviceInstanceName,
-												   CloudFoundryOperations cloudFoundryOperations) {
+											 CloudFoundryOperations cloudFoundryOperations) {
 		return cloudFoundryOperations.services().getInstance(GetServiceInstanceRequest.builder()
 			.name(serviceInstanceName)
 			.build())
@@ -740,10 +741,31 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.then(Mono.empty()));
 	}
 
-	private Mono<Void> unbindServiceInstanceIfNecessary(UpdateServiceInstanceRequest request,
+	private Mono<Void> rebindServiceInstance(String serviceInstanceName,
+											 CloudFoundryOperations cloudFoundryOperations) {
+		return cloudFoundryOperations.services().getInstance(GetServiceInstanceRequest.builder()
+			.name(serviceInstanceName)
+			.build())
+			.map(ServiceInstance::getApplications)
+			.flatMap(applications -> Flux.fromIterable(applications)
+				.flatMap(application -> cloudFoundryOperations.services().unbind(
+					UnbindServiceInstanceRequest.builder()
+						.applicationName(application)
+						.serviceInstanceName(serviceInstanceName)
+						.build())
+					.then(cloudFoundryOperations.services().bind(
+						BindServiceInstanceRequest.builder()
+							.applicationName(application)
+							.serviceInstanceName(serviceInstanceName)
+							.build()))
+				)
+			.then(Mono.empty()));
+	}
+
+	private Mono<Void> rebindServiceInstanceIfNecessary(UpdateServiceInstanceRequest request,
 														CloudFoundryOperations cloudFoundryOperations) {
 		if (request.isRebindOnUpdate()) {
-			return unbindServiceInstance(request.getServiceInstanceName(), cloudFoundryOperations);
+			return rebindServiceInstance(request.getServiceInstanceName(), cloudFoundryOperations);
 		}
 		return Mono.empty();
 	}

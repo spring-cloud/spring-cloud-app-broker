@@ -167,9 +167,10 @@ deploy_cf(){
 	local -r bbl_state_dir=$(get_bbl_state_dir "${bbl_env_suffix}")
 	bosh -n update-runtime-config "${bbl_state_dir}/bosh-deployment/runtime-configs/dns.yml" --name dns
 	local -r stemcell_version=$(bosh interpolate "${bbl_state_dir}/cf-deployment/cf-deployment.yml" --path /stemcells/alias=default/version)
-	bosh -n upload-stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent?v=${stemcell_version}
+	bosh -n upload-stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-xenial-go_agent?v=${stemcell_version}
 	bosh -n -d cf deploy "${bbl_state_dir}/cf-deployment/cf-deployment.yml" -o "${bbl_state_dir}/cf-deployment/operations/bosh-lite.yml" \
-		-o "${bbl_state_dir}/cf-deployment/operations/use-compiled-releases.yml" -v system_domain="$(get_bbl_env_name ${bbl_env_suffix}).cf-app.com"
+		-o "${bbl_state_dir}/cf-deployment/operations/use-compiled-releases.yml" -o "${bbl_state_dir}/cf-deployment/operations/experimental/add-deployment-updater.yml" \
+		-v system_domain="$(get_bbl_env_name ${bbl_env_suffix}).cf-app.com"
 }
 
 update_dns(){
@@ -483,6 +484,28 @@ process_command(){
 			done
 			generate_bbl_state_dir_for_environment "${bbl_env_suffix}"
 			recreate_environment "${bbl_env_suffix}"
+			;;
+
+		redeploy-cf)
+			shift
+			while getopts ":b:" FOUND "${@}";
+			do
+				case ${FOUND} in
+					b) bbl_env_suffix="${OPTARG}"
+						;;
+					\:) printf "argument missing from -%s option\n" $OPTARG
+						usage
+						exit 2
+						;;
+					\?) printf "unknown option: -%s\n" $OPTARG
+						usage
+						exit 2
+						;;
+				esac >&2
+			done
+			generate_bbl_state_dir_for_environment "${bbl_env_suffix}"
+			source_bbl_environment "${bbl_env_suffix}"
+			deploy_cf "${bbl_env_suffix}"
 			;;
 
 		delete-environment)

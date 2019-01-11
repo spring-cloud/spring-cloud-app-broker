@@ -51,10 +51,10 @@ public class BackingServicesProvisionService {
 			.parallel()
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::updateServiceInstance)
-			.doOnRequest(l -> log.info("Updating backing services {}", backingServices))
-			.doOnEach(response -> log.info("Finished updating backing service {}", response))
-			.doOnComplete(() -> log.info("Finished updating backing service {}", backingServices))
-			.doOnError(exception -> log.info("Error updating backing services {} with error '{}'",
+			.doOnRequest(l -> log.debug("Updating backing services {}", backingServices))
+			.doOnEach(response -> log.debug("Finished updating backing service {}", response))
+			.doOnComplete(() -> log.debug("Finished updating backing service {}", backingServices))
+			.doOnError(exception -> log.error("Error updating backing services {} with error '{}'",
 				backingServices, exception.getMessage()))
 			.sequential();
 	}

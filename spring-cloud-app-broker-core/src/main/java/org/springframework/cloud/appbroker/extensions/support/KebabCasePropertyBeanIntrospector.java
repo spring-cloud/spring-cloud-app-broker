@@ -18,8 +18,8 @@ package org.springframework.cloud.appbroker.extensions.support;
 import org.apache.commons.beanutils.BeanIntrospector;
 import org.apache.commons.beanutils.DefaultBeanIntrospector;
 import org.apache.commons.beanutils.IntrospectionContext;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -41,7 +41,7 @@ public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
 
 	private static final String WRITE_METHOD_PREFIX = "set";
 
-	private final Log log = LogFactory.getLog(getClass());
+	private final Logger log = Loggers.getLogger(getClass());
 
 	/**
 	 * Creates a new instance of <code>KebabCaseBeanIntrospector</code> and
@@ -68,9 +68,8 @@ public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
 						context.addPropertyDescriptor(createPropertyDescriptor(m));
 					}
 				} catch (final IntrospectionException e) {
-					log.info("Error when creating PropertyDescriptor for " + m
-						+ "! Ignoring this property.");
-					log.debug("Exception is:", e);
+					log.error("Error when creating PropertyDescriptor for method '{}'. " +
+							"This property will be ignored. {}", m, e);
 				}
 			}
 		}

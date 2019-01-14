@@ -16,20 +16,63 @@
 
 package org.springframework.cloud.appbroker.integration.fixtures;
 
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.matching.ContentPattern;
 import org.springframework.boot.test.context.TestComponent;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 @TestComponent
 public class CredHubStubFixture extends WiremockStubFixture {
 	protected CredHubStubFixture() {
 		super(8888);
+	}
+
+	public void stubWriteCredential(String credentialName, ContentPattern<?>... appMetadataPatterns) {
+		MappingBuilder mappingBuilder = put(urlPathEqualTo("/api/v1/data"))
+			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + credentialName + "')]"))
+			.withRequestBody(matchingJsonPath("$.[?(@.type == 'json')]"));
+		for (ContentPattern<?> appMetadataPattern : appMetadataPatterns) {
+			mappingBuilder.withRequestBody(appMetadataPattern);
+		}
+		stubFor(mappingBuilder
+			.willReturn(ok()
+				.withHeader("Content-type", "application/json")
+				.withBody(credhub("put-data-json"))));
+	}
+
+	public void stubFindCredential(String credentialName) {
+		stubFor(get(urlPathEqualTo("/api/v1/data"))
+			.withQueryParam("name-like", equalTo(credentialName))
+			.willReturn(ok()
+				.withHeader("Content-type", "application/json")
+				.withBody(credhub("get-data-find"))));
+	}
+
+	public void stubDeleteCredential(String credentialName) {
+		stubFor(delete(urlPathEqualTo("/api/v1/data"))
+			.withQueryParam("name", equalTo(credentialName))
+			.willReturn(noContent()
+				.withHeader("Content-type", "application/json")
+				.withBody(credhub("put-data-json"))));
+	}
+
+	public void stubAddAppPermission(String path, String actor) {
+		stubFor(post(urlPathEqualTo("/api/v2/permissions"))
+			.withRequestBody(matchingJsonPath("$.[?(@.path == '" + path + "')]"))
+			.withRequestBody(matchingJsonPath("$.[?(@.actor == '" + actor + "')]"))
+			.withRequestBody(matchingJsonPath("$.[?(@.operations[0] == 'read')]"))
+			.willReturn(ok()
+				.withHeader("Content-type", "application/json")
+				.withBody(credhub("post-permission"))));
 	}
 
 	public void stubGenerateUser(String appId, String serviceInstanceId,
@@ -62,6 +105,11 @@ public class CredHubStubFixture extends WiremockStubFixture {
 		stubFor(delete(urlPathEqualTo("/api/v1/data"))
 			.withQueryParam("name", equalTo(credentialName))
 			.willReturn(noContent()));
+	}
+
+	public String bindingCredentialName(String brokerAppName, String serviceDefinitionId,
+										String bindingId, String credentialName) {
+		return "/c/" + brokerAppName + "/" + serviceDefinitionId + "/" + bindingId + "/" + credentialName;
 	}
 
 	private String credhub(String fileRoot) {

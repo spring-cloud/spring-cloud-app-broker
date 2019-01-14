@@ -23,7 +23,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.appbroker.extensions.credentials.CredHubCredentialsGenerator;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
+import org.springframework.cloud.appbroker.service.DeleteServiceInstanceBindingWorkflow;
 import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCreateServiceInstanceAppBindingWorkflow;
+import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingDeleteServiceInstanceBindingWorkflow;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.credhub.autoconfig.CredHubTemplateAutoConfiguration;
@@ -42,6 +44,11 @@ public class CredHubAutoConfiguration {
 	@Bean
 	public CreateServiceInstanceAppBindingWorkflow credhubPersistingCreateServiceInstanceAppBindingWorkflow(CredHubOperations credHubOperations) {
 		return new CredHubPersistingCreateServiceInstanceAppBindingWorkflow(credHubOperations, appName);
+	}
+
+	@Bean
+	public DeleteServiceInstanceBindingWorkflow credhubPersistingDeleteServiceInstanceAppBindingWorkflow(CredHubOperations credHubOperations) {
+		return new CredHubPersistingDeleteServiceInstanceBindingWorkflow(credHubOperations, appName);
 	}
 
 	@Bean

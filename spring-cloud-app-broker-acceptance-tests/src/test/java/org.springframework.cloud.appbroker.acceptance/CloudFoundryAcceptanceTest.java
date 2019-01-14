@@ -41,7 +41,6 @@ import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.cloud.appbroker.acceptance.fixtures.uaa.UaaService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -50,6 +49,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
+import org.springframework.cloud.appbroker.acceptance.fixtures.uaa.UaaService;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
 
@@ -146,23 +146,23 @@ class CloudFoundryAcceptanceTest {
 							   String planName,
 							   String serviceInstanceName,
 							   Map<String, Object> parameters) {
-		blockingSubscribe(
-			cloudFoundryService.createServiceInstance(planName, serviceName, serviceInstanceName, parameters)
-				.then(getServiceInstanceMono(serviceInstanceName))
-				.flatMap(serviceInstance -> {
-					assertThat(serviceInstance.getStatus()).isEqualTo("succeeded");
-					return Mono.empty();
-				}));
+		cloudFoundryService.createServiceInstance(planName, serviceName, serviceInstanceName, parameters)
+						   .then(getServiceInstanceMono(serviceInstanceName))
+						   .flatMap(serviceInstance -> {
+							   assertThat(serviceInstance.getStatus()).isEqualTo("succeeded");
+							   return Mono.empty();
+						   })
+						   .block();
 	}
 
 	void updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
-		blockingSubscribe(
-			cloudFoundryService.updateServiceInstance(serviceInstanceName, parameters)
-				.then(getServiceInstanceMono(serviceInstanceName))
-				.flatMap(serviceInstance -> {
-					assertThat(serviceInstance.getStatus()).isEqualTo("succeeded");
-					return Mono.empty();
-				}));
+		cloudFoundryService.updateServiceInstance(serviceInstanceName, parameters)
+						   .then(getServiceInstanceMono(serviceInstanceName))
+						   .flatMap(serviceInstance -> {
+							   assertThat(serviceInstance.getStatus()).isEqualTo("succeeded");
+							   return Mono.empty();
+						   })
+						   .block();
 	}
 
 	void deleteServiceInstance(String serviceInstanceName) {

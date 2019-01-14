@@ -1,0 +1,6 @@
+[[introduction]]
+== Introduction
+
+Spring Cloud App Broker builds on Spring Cloud Open Service Broker. It can be used to create a service broker which complies with the Open Service Broker API and deploys applications and backing services to a platform.
+
+A service broker using Spring Cloud App Broker is a Spring Boot application. The broker can deploy applications written in any language supported by the targeted platform.

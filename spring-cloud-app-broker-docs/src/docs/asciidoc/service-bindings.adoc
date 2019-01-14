@@ -1,0 +1,6 @@
+[[service-bindings]]
+== Service Bindings
+
+=== Service Binding Creation
+
+=== Service Binding Deletion

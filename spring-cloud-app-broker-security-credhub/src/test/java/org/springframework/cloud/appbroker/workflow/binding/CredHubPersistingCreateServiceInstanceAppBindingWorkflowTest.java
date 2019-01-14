@@ -25,6 +25,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cloud.servicebroker.model.binding.BindResource;
+import org.springframework.credhub.core.permissionV2.CredHubPermissionV2Operations;
+import org.springframework.credhub.support.CredentialName;
+import org.springframework.credhub.support.ServiceInstanceCredentialName;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
@@ -38,6 +42,7 @@ import org.springframework.credhub.support.CredentialDetails;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -50,6 +55,9 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 
 	@Mock
 	private CredHubCredentialOperations credHubCredentialOperations;
+
+	@Mock
+	private CredHubPermissionV2Operations credHubPermissionOperations;
 
 	private CredHubPersistingCreateServiceInstanceAppBindingWorkflow workflow;
 
@@ -96,11 +104,22 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 	@Test
 	@SuppressWarnings("serial")
 	void storeCredentialsInCredHub() {
+		CredentialName credentialName = ServiceInstanceCredentialName.builder()
+			.serviceBrokerName("test-app-name")
+			.serviceOfferingName("foo-definition-id")
+			.serviceBindingId("foo-binding-id")
+			.credentialName("credentials-json")
+			.build();
+
 		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest
 			.builder()
 			.bindingId("foo-binding-id")
 			.serviceInstanceId("foo-instance-id")
 			.serviceDefinitionId("foo-definition-id")
+			.bindResource(BindResource.builder()
+				.appGuid("app-id")
+				.properties("credential_client_id", "client-id")
+				.build())
 			.build();
 
 		Map<String, Object> credentials = new HashMap<String, Object>() {{
@@ -125,6 +144,8 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 
 		given(this.credHubOperations.credentials())
 			.willReturn(credHubCredentialOperations);
+		given(this.credHubOperations.permissionsV2())
+			.willReturn(credHubPermissionOperations);
 
 		given(this.credHubCredentialOperations.write(any()))
 			.willReturn(new CredentialDetails<>());
@@ -135,7 +156,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 				CreateServiceInstanceAppBindingResponse response = createServiceInstanceAppBindingResponseBuilder.build();
 				assertThat(response.isBindingExisted()).isEqualTo(true);
 				assertThat(response.getCredentials()).hasSize(1);
-				assertThat(response.getCredentials().get("credhub-ref")).isEqualTo("/c/test-app-name/foo-definition-id/foo-binding-id/credentials-json");
+				assertThat(response.getCredentials().get("credhub-ref")).isEqualTo(credentialName.getName());
 				assertThat(response.getSyslogDrainUrl()).isEqualTo("https://logs.example.com");
 				assertThat(response.getVolumeMounts()).hasSize(4);
 
@@ -143,6 +164,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 			.verifyComplete();
 
 		verify(this.credHubCredentialOperations).write(any());
+		verify(this.credHubPermissionOperations, times(2)).addPermissions(any(), any());
 		verifyNoMoreInteractions(this.credHubCredentialOperations);
 	}
 }

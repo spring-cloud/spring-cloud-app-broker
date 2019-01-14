@@ -25,6 +25,7 @@ import org.springframework.cloud.appbroker.extensions.credentials.CredHubCredent
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
 import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
 import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCreateServiceInstanceAppBindingWorkflow;
+import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingDeleteServiceInstanceBindingWorkflow;
 import org.springframework.context.annotation.Bean;
 import org.springframework.credhub.core.CredHubOperations;
 
@@ -57,7 +58,8 @@ class CredHubAutoConfigurationTest {
 					.isExactlyInstanceOf(SimpleCredentialGenerator.class);
 
 				assertThat(context)
-					.doesNotHaveBean(CredHubPersistingCreateServiceInstanceAppBindingWorkflow.class);
+					.doesNotHaveBean(CredHubPersistingCreateServiceInstanceAppBindingWorkflow.class)
+					.doesNotHaveBean(CredHubPersistingDeleteServiceInstanceBindingWorkflow.class);
 			});
 	}
 
@@ -71,7 +73,8 @@ class CredHubAutoConfigurationTest {
 					.isExactlyInstanceOf(CredHubCredentialsGenerator.class);
 
 				assertThat(context)
-					.hasSingleBean(CredHubPersistingCreateServiceInstanceAppBindingWorkflow.class);
+					.hasSingleBean(CredHubPersistingCreateServiceInstanceAppBindingWorkflow.class)
+					.hasSingleBean(CredHubPersistingDeleteServiceInstanceBindingWorkflow.class);
 			});
 	}
 

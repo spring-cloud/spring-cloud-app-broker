@@ -1,0 +1,77 @@
+[[getting-started]]
+== Getting Started
+
+Create a Spring Boot application and include the Spring Cloud App Broker dependency in the application's build file.
+
+=== Maven Dependencies
+
+Include the following in your application's `pom.xml` file:
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-app-broker-cloudfoundry</artifactId>
+        <version>1.0.0.BUILD-SNAPSHOT</version>
+    </dependency>
+</dependencies>
+```
+
+=== Gradle Dependencies
+
+Include the following in your application's `build.gradle` file:
+
+```groovy
+dependencies {
+    compile 'org.springframework.cloud:spring-cloud-starter-app-broker-cloudfoundry:1.0.0.BUILD-SNAPSHOT'
+}
+```
+
+=== Configuring the Service Broker
+
+The service broker is configured using Spring Boot externalized configuration, supplied using a YAML or Java Properties file (for example, you can provide configuration in the `application.yml` file). Because Spring Cloud App Broker builds on Spring Cloud Open Service Broker, you must provide Spring Cloud Open Service Broker configuration to use Spring Cloud App Broker.
+
+Include Spring Cloud Open Servce Broker configuration using properties under `spring.cloud.openservicebroker` as in the following example:
+
+```yml
+spring:
+  cloud:
+    openservicebroker:
+      catalog:
+        services:
+        - name: example
+          id: ebca66fd-461d-415b-bba3-5e379d671c88
+          description: A useful service
+          bindable: true
+          tags:
+          - example
+          plans:
+          - name: standard
+            id: e19e6bc3-37c1-4478-b70f-c7157ebbb28c
+            description: A standard plan
+            free: true
+```
+
+Include Spring Cloud App Broker configuration using properties under `spring.cloud.appbroker` as in the following example:
+
+```yml
+spring:
+  cloud:
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          apps:
+            - name: example-service-app1
+              path: classpath:app1.jar
+            - name: example-service-app2
+              path: classpath:app2.jar
+      deployer:
+        cloudfoundry:
+          api-host: api.sys.example.com
+          api-port: 443
+          username: admin
+          password: adminpass
+          default-org: test
+          default-space: development
+```

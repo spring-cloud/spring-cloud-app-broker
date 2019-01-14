@@ -21,4 +21,12 @@
 
 [[abstract]]
 
-Spring Cloud Open Service Broker is a framework for building {springboot-href} applications that implement the {osbapi-href} and deploy applications to back service instances.
+Spring Cloud App Broker is a framework for building {springboot-href} applications that implement the {osbapi-href} and deploy applications as brokered services.
+
+include::introduction.adoc[]
+include::getting-started.adoc[]
+include::service-instances.adoc[]
+include::service-bindings.adoc[]
+include::service-broker-security.adoc[]
+include::data-storage.adoc[]
+include::example-service-broker.adoc[]

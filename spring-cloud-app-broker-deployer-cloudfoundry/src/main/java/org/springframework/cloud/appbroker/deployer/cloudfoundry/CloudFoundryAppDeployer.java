@@ -170,7 +170,18 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		final Map<String, Object> environmentVariables =
 			getApplicationEnvironment(request.getProperties(), request.getEnvironment());
 
-		return this.operations
+		Map<String, String> deploymentProperties = request.getProperties();
+		CloudFoundryOperations operations;
+
+		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
+			operations = createCloudFoundryOperationsForSpace(space);
+		}
+		else {
+			operations = this.operations;
+		}
+
+		return operations
 			.applications()
 			.get(GetApplicationRequest.builder().name(name).build())
 			.map(ApplicationDetail::getId)

@@ -23,12 +23,11 @@ dependencyManagement {
 }
 
 dependencies {
-	implementation project(":spring-cloud-app-broker-deployer")
-	implementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
-	implementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
-	api("org.immutables:value:${immutablesVersion}")
-
-	implementation("org.springframework.boot:spring-boot-starter-validation")
+	compile project(":spring-cloud-app-broker-deployer")
+	compile("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
+	compile("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
+	compile("org.springframework.boot:spring-boot-starter-validation")
+	compile("org.immutables:value:${immutablesVersion}")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 

@@ -29,8 +29,7 @@ buildscript {
 
 configure(allprojects) {
 	group = "org.springframework.cloud"
-
-	apply plugin: "java-library"
+	
 	apply plugin: "maven"
 	apply plugin: "eclipse"
 	apply plugin: "idea"
@@ -63,8 +62,8 @@ configure(allprojects) {
 
 	repositories {
 		mavenCentral()
-		maven { url "https://repo.spring.io/libs-snapshot-local" }
-		maven { url "https://repo.spring.io/libs-milestone-local" }
+		maven { url "https://repo.spring.io/libs-milestone" }
+		maven { url "https://repo.spring.io/libs-snapshot" }
 	}
 
 	if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion") || project.hasProperty("reactorVersion")) {

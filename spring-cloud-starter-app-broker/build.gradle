@@ -23,9 +23,9 @@ dependencyManagement {
 }
 
 dependencies {
-	api project(":spring-cloud-app-broker-core")
-	api project(":spring-cloud-app-broker-autoconfigure")
-	api("org.springframework.cloud:spring-cloud-starter-open-service-broker:${openServiceBrokerVersion}")
+	compile project(":spring-cloud-app-broker-core")
+	compile project(":spring-cloud-app-broker-autoconfigure")
+	compile("org.springframework.cloud:spring-cloud-starter-open-service-broker:${openServiceBrokerVersion}")
 }
 
 install {

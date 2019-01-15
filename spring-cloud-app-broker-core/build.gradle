@@ -28,13 +28,12 @@ dependencyManagement {
 }
 
 dependencies {
-	api project(":spring-cloud-app-broker-deployer")
-	api("io.projectreactor:reactor-core")
-	api("org.apache.commons:commons-text:1.4")
-	api("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
-
-	implementation("org.springframework:spring-core")
-	implementation("org.springframework:spring-context")
+	compile project(":spring-cloud-app-broker-deployer")
+	compile("org.springframework:spring-core")
+	compile("org.springframework:spring-context")
+	compile("io.projectreactor:reactor-core")
+	compile("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
+	compile("org.apache.commons:commons-text:1.4")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
 

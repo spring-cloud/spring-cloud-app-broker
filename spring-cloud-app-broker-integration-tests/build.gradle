@@ -41,9 +41,8 @@ ext['jetty.version'] = "9.4.8.v20171121"
 apply plugin: 'org.springframework.boot'
 
 dependencies {
-	implementation project(":spring-cloud-starter-app-broker-cloudfoundry")
-
-	implementation("org.springframework.boot:spring-boot-starter-webflux")
+	compile project(":spring-cloud-starter-app-broker-cloudfoundry")
+	compile("org.springframework.boot:spring-boot-starter-webflux")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 

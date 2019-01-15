@@ -23,15 +23,14 @@ dependencyManagement {
 }
 
 dependencies {
-	implementation project(":spring-cloud-app-broker-core")
-	implementation project(":spring-cloud-app-broker-deployer")
-	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")
-	implementation project(":spring-cloud-app-broker-security-credhub")
-	implementation("org.springframework.boot:spring-boot-starter")
-
-	compileOnly("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
-	compileOnly("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
-	compileOnly("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
+	compile project(":spring-cloud-app-broker-core")
+	compile project(":spring-cloud-app-broker-deployer")
+	compile project(":spring-cloud-app-broker-deployer-cloudfoundry")
+	compile project(":spring-cloud-app-broker-security-credhub")
+	compile("org.springframework.boot:spring-boot-starter")
+	compile("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
+	compile("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
+	compile("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
 
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.springframework.boot:spring-boot-autoconfigure-processor")

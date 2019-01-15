@@ -23,6 +23,6 @@ dependencyManagement {
 }
 
 dependencies {
-	implementation("org.springframework:spring-core")
-	implementation("io.projectreactor:reactor-core")
+	compile("org.springframework:spring-core")
+	compile("io.projectreactor:reactor-core")
 }

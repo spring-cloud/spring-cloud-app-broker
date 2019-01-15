@@ -1,2 +1,0 @@
-[[example-service-broker]]
-== Example Service Broker Application

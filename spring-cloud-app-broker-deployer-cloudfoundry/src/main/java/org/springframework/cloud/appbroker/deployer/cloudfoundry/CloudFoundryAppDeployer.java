@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cloudfoundry.AbstractCloudFoundryException;
 import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
 import org.cloudfoundry.client.v2.spaces.CreateSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
 import org.cloudfoundry.client.v3.Relationship;
@@ -76,9 +77,8 @@ import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
-import org.cloudfoundry.operations.spaces.GetSpaceRequest;
-import org.cloudfoundry.operations.spaces.SpaceDetail;
 import org.cloudfoundry.util.DelayUtils;
+import org.cloudfoundry.util.PaginationUtils;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -513,12 +513,16 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<String> getSpaceIdFromName(String spaceName) {
-		return this.operations.spaces()
-							  .get(GetSpaceRequest.builder()
-												  .name(spaceName)
-												  .build())
-							  .map(SpaceDetail::getId)
-							  .onErrorResume(e -> Mono.empty());
+		return getDefaultOrganizationId()
+			.flatMap(orgId -> PaginationUtils.requestClientV2Resources(page -> client.organizations()
+				.listSpaces(ListOrganizationSpacesRequest.builder()
+					.name(spaceName)
+					.organizationId(orgId)
+					.page(page)
+					.build()))
+			.filter(resource -> resource.getEntity().getName().equals(spaceName))
+			.map(resource -> resource.getMetadata().getId())
+			.next());
 	}
 
 	private CloudFoundryOperations createCloudFoundryOperationsForSpace(String space) {

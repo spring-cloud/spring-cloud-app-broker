@@ -19,17 +19,17 @@
 		}
 	},
 	"package": {
-		"guid": "8e4da443-f255-499c-8b47-b3729b5b7432"
+		"guid": "@package-guid"
 	},
 	"droplet": {
 		"guid": "1e1186e7-d803-4c46-b9d6-5c81e50fe55a"
 	},
 	"links": {
 		"self": {
-			"href": "https://api.example.org/v3/builds/585bc3c1-3743-497d-88b0-403ad6b56d16"
+			"href": "https://api.example.org/v3/builds/@guid"
 		},
 		"app": {
-			"href": "https://api.example.org/v3/apps/7b34f1cf-7e73-428a-bb5a-8a17a8058396"
+			"href": "https://api.example.org/v3/apps/@app-guid"
 		}
 	}
 }

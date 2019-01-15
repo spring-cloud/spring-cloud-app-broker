@@ -82,12 +82,14 @@ public class UaaStubFixture extends WiremockStubFixture {
 	 */
 	private void stubRetrieveAccessToken() {
 		stubFor(post(urlPathEqualTo("/oauth/token"))
+			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(uaa("put-oauth-token"))));
 	}
 
 	private void stubRetrieveTokenKeys() {
 		stubFor(get(urlPathEqualTo("/token_keys"))
+			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(uaa("get-token-keys"))));
 	}

@@ -6,7 +6,7 @@
 		"updated_at": "2018-07-19T20:34:16Z"
 	},
 	"entity": {
-		"name": "development",
+		"name": "@name",
 		"organization_guid": "@org-guid",
 		"space_quota_definition_guid": null,
 		"isolation_segment_guid": null,

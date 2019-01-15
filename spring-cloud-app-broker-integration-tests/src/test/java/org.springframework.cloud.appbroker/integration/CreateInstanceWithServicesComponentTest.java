@@ -61,10 +61,7 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME);
 
-		// given that service instances does not exist
-		cloudControllerFixture.stubServiceInstanceDoesNotExists(BACKING_SI_NAME);
-
-		// and the services are available in the marketplace
+		// given services are available in the marketplace
 		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
 
 		// will create and bind the service instance

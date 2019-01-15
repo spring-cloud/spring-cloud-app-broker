@@ -51,26 +51,28 @@ class CreateInstanceWithTargetComponentTest extends WiremockComponentTest {
 	@Test
 	void shouldPushAppWithTargetWhenCreateServiceCalled() {
 		String serviceInstanceId = "instance-id";
-		cloudControllerFixture.stubAppDoesNotExistInSpace(APP_NAME, serviceInstanceId);
-		final String host = APP_NAME + "-" + serviceInstanceId;
-		cloudControllerFixture.stubPushAppWithHost(APP_NAME, host);
+
+		cloudControllerFixture.stubSpaceDoesNotExist(serviceInstanceId);
+		cloudControllerFixture.stubCreateSpace(serviceInstanceId);
+
+		cloudControllerFixture.stubPushAppWithHost(APP_NAME, APP_NAME + "-" + serviceInstanceId);
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
+			.put(brokerFixture.createServiceInstanceUrl(), serviceInstanceId)
 			.then()
 			.statusCode(HttpStatus.ACCEPTED.value());
 
 		// when the "last_operation" API is polled
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.get(brokerFixture.getLastInstanceOperationUrl(), serviceInstanceId)
 			.then()
 			.statusCode(HttpStatus.OK.value())
 			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
 
-		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		String state = brokerFixture.waitForAsyncOperationComplete(serviceInstanceId);
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
 	}
 

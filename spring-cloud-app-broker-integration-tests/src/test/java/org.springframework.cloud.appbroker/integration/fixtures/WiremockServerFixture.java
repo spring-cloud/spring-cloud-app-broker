@@ -60,8 +60,7 @@ public class WiremockServerFixture {
 	}
 
 	public void verifyAllRequiredStubsUsed() {
-		// todo: cleanup CC and UAA stubbing so used/unused can be verified
-		// verifyStubs(ccUaaWiremockServer);
+		verifyStubs(ccUaaWiremockServer);
 		verifyStubs(credHubWiremockServer);
 	}
 

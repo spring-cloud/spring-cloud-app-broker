@@ -184,10 +184,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return operations
 			.applications()
 			.get(GetApplicationRequest.builder().name(name).build())
+			.doOnRequest(l -> logger.debug("Getting application {}", name))
+			.doOnSuccess(response -> logger.info("Success getting application {}", name))
+			.doOnError(e -> logger.warn(String.format("Error getting application %s: %s", name, e.getMessage())))
 			.map(ApplicationDetail::getId)
 			.flatMap(applicationId ->
-				updateApplicationEnvironment(applicationId, environmentVariables)
-					.thenReturn(applicationId)
+				updateApplicationEnvironment(applicationId, environmentVariables).thenReturn(applicationId)
 			)
 			.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
 				createPackageForApplication(applicationId)))
@@ -221,69 +223,92 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			})
 			.map(CreateDeploymentResponse::getId)
 			.flatMap(this::waitForDeploymentDeployed)
+			.doOnRequest(l -> logger.debug("Updating application {}", name))
+			.doOnSuccess(item -> logger.info("Successfully updated application {}", name))
+			.doOnError(error -> logger.error("Failed to update application {}", name))
 			.thenReturn(UpdateApplicationResponse.builder().name(name).build());
 	}
 
 	private Mono<GetDeploymentResponse> waitForDeploymentDeployed(String deploymentId) {
-		return this.client.deploymentsV3()
-						  .get(GetDeploymentRequest
-							  .builder()
-							  .deploymentId(deploymentId)
-							  .build())
-						  .filter(p -> p.getState().equals(DeploymentState.DEPLOYED))
-						  .repeatWhenEmpty(getExponentialBackOff());
-	}
-
-	private Function<Flux<Long>, Publisher<?>> getExponentialBackOff() {
-		return DelayUtils.exponentialBackOff(Duration.ofSeconds(2), Duration.ofSeconds(15), Duration.ofMinutes(10));
+		return this.client
+			.deploymentsV3()
+			.get(GetDeploymentRequest
+				.builder()
+				.deploymentId(deploymentId)
+				.build())
+			.filter(p -> p.getState().equals(DeploymentState.DEPLOYED))
+			.repeatWhenEmpty(getExponentialBackOff())
+			.doOnRequest(l -> logger.debug("Waiting for deployment deployed {}", deploymentId))
+			.doOnSuccess(response -> logger.info("Deployment deployed {}", deploymentId))
+			.doOnError(e -> logger.warn(String.format("Error waiting for deployment deployed %s: %s", deploymentId, e.getMessage())));
 	}
 
 	private Mono<CreateDeploymentResponse> createDeployment(String dropletId, String applicationId) {
-		return this.client.deploymentsV3()
-						  .create(CreateDeploymentRequest
-					   .builder()
-					   .droplet(Relationship
-						   .builder()
-						   .id(dropletId).build()).relationships(DeploymentRelationships
-						   .builder()
-						   .app(ToOneRelationship
-							   .builder()
-							   .data(Relationship.builder().id(applicationId).build())
-							   .build()
-						   ).build())
-					   .build());
+		return this.client
+			.deploymentsV3()
+			.create(CreateDeploymentRequest
+				.builder()
+				.droplet(Relationship
+					.builder()
+					.id(dropletId).build()).relationships(DeploymentRelationships
+					.builder()
+					.app(ToOneRelationship
+						.builder()
+						.data(Relationship.builder().id(applicationId).build())
+						.build()
+					).build())
+				.build())
+			.doOnRequest(l -> logger.debug("Creating deployment for application {}", applicationId))
+			.doOnSuccess(response -> logger.info("Created deployment for application {}", applicationId))
+			.doOnError(e -> logger.warn(String.format("Error creating deployment for application %s: %s", applicationId, e.getMessage())));
 	}
 
 	private Mono<GetBuildResponse> waitForBuildStaged(String buildId) {
-		return this.client.builds().get(GetBuildRequest.builder().buildId(buildId).build())
-				   .filter(p -> p.getState().equals(BuildState.STAGED))
-				   .repeatWhenEmpty(getExponentialBackOff());
+		return this.client
+			.builds().get(GetBuildRequest.builder().buildId(buildId).build())
+			.filter(p -> p.getState().equals(BuildState.STAGED))
+			.repeatWhenEmpty(getExponentialBackOff())
+			.doOnRequest(l -> logger.debug("Waiting for build staged {}", buildId))
+			.doOnSuccess(response -> logger.info("Build staged {}", buildId))
+			.doOnError(e -> logger.warn(String.format("Error waiting for build staged %s: %s", buildId, e.getMessage())));
 	}
 
 	private Mono<String> createBuildForPackage(String packageId) {
-		return this.client.builds()
-						  .create(CreateBuildRequest
-							  .builder()
-							  .getPackage(Relationship.builder().id(packageId).build())
-							  .build())
-						  .map(CreateBuildResponse::getId);
+		return this.client
+			.builds()
+			.create(CreateBuildRequest
+				.builder()
+				.getPackage(Relationship.builder().id(packageId).build())
+				.build())
+			.map(CreateBuildResponse::getId)
+			.doOnRequest(l -> logger.debug("Creating build for package {}", packageId))
+			.doOnSuccess(response -> logger.info("Created build for package {}", packageId))
+			.doOnError(e -> logger.warn(String.format("Error creating build package %s: %s", packageId, e.getMessage())));
 	}
 
-	private Mono<GetPackageResponse> waitForPackageReady(String packageId1) {
-		return this.client.packages()
-				   .get(GetPackageRequest.builder().packageId(packageId1).build())
-				   .filter(p -> p.getState().equals(PackageState.READY))
-				   .repeatWhenEmpty(getExponentialBackOff());
+	private Mono<GetPackageResponse> waitForPackageReady(String packageId) {
+		return this.client
+			.packages()
+			.get(GetPackageRequest.builder().packageId(packageId).build())
+			.filter(p -> p.getState().equals(PackageState.READY))
+			.repeatWhenEmpty(getExponentialBackOff())
+			.doOnRequest(l -> logger.debug("Waiting for package ready {}", packageId))
+			.doOnSuccess(response -> logger.info("Package ready {}", packageId))
+			.doOnError(e -> logger.warn(String.format("Error waiting for package ready %s: %s", packageId, e.getMessage())));
 	}
 
 	private Mono<UploadPackageResponse> uploadPackage(UpdateApplicationRequest request, String packageId) {
 		try {
-			return this.client.packages()
-							  .upload(UploadPackageRequest
-								  .builder()
-								  .packageId(packageId)
-								  .bits(Paths.get(getAppResource(request.getPath()).getURI()))
-								  .build());
+			return this.client
+				.packages()
+				.upload(UploadPackageRequest
+					.builder()
+					.packageId(packageId)
+					.bits(Paths.get(getAppResource(request.getPath()).getURI()))
+					.build())
+				.doOnRequest(l -> logger.debug("Uploading package {}", packageId))
+				.doOnSuccess(response -> logger.info("Package uploaded {}", packageId))
+				.doOnError(e -> logger.warn(String.format("Error uploading package %s: %s", packageId, e.getMessage())));
 		}
 		catch (IOException e) {
 			throw Exceptions.propagate(e);
@@ -306,17 +331,28 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 						.build())
 					.build())
 				.type(PackageType.BITS)
-				.build());
+				.build())
+			.doOnRequest(l -> logger.debug("Creating package for application {}", applicationId))
+			.doOnSuccess(response -> logger.info("Created package for application {}", applicationId))
+			.doOnError(e -> logger.warn(String.format("Error creating package for application %s: %s", applicationId, e.getMessage())));
 	}
 
 	private Mono<org.cloudfoundry.client.v2.applications.UpdateApplicationResponse> updateApplicationEnvironment(
 		String applicationId, Map<String, Object> environmentVariables) {
-		return this.client.applicationsV2()
-						  .update(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest
-							  .builder()
-							  .applicationId(applicationId)
-							  .putAllEnvironmentJsons(environmentVariables)
-							  .build());
+		return this.client
+			.applicationsV2()
+			.update(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest
+				.builder()
+				.applicationId(applicationId)
+				.putAllEnvironmentJsons(environmentVariables)
+				.build())
+			.doOnRequest(l -> logger.debug("Updating environment for application {}", applicationId))
+			.doOnSuccess(response -> logger.info("Updated environment for application {}", applicationId))
+			.doOnError(e -> logger.warn(String.format("Error Updating environment for application %s: %s", applicationId, e.getMessage())));
+	}
+
+	private Function<Flux<Long>, Publisher<?>> getExponentialBackOff() {
+		return DelayUtils.exponentialBackOff(Duration.ofSeconds(2), Duration.ofMinutes(5), Duration.ofMinutes(10));
 	}
 
 	private Mono<Void> pushApplication(DeployApplicationRequest request,

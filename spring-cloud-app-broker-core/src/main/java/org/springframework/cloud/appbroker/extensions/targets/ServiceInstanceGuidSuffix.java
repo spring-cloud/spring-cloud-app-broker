@@ -31,9 +31,9 @@ public class ServiceInstanceGuidSuffix extends TargetFactory<ServiceInstanceGuid
 
 	private ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId) {
 		return ArtifactDetails.builder()
-							  .name(name + "-" + serviceInstanceId)
-							  .properties(properties)
-							  .build();
+			.name(name + "-" + serviceInstanceId)
+			.properties(properties)
+			.build();
 	}
 
 	static class Config {

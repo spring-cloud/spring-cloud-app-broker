@@ -29,18 +29,29 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithTargetComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServiceInstanceGuidSuffixTargetComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServiceInstanceGuidSuffixTargetComponentTest.BACKING_SERVICE_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServiceInstanceGuidSuffixTargetComponentTest.BACKING_SI_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SI_NAME,
+
+	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
+	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
+	"spring.cloud.appbroker.services[0].services[0].plan=standard",
+
 	"spring.cloud.appbroker.services[0].target.name=ServiceInstanceGuidSuffix"
 })
 class CreateInstanceWithServiceInstanceGuidSuffixTargetComponentTest extends WiremockComponentTest {
 
 	static final String APP_NAME = "app-with-target";
+
+	static final String BACKING_SI_NAME = "my-db-service";
+	static final String BACKING_SERVICE_NAME = "db-service";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -52,8 +63,18 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetComponentTest extends Wir
 	void deployAppsWithServiceInstanceGuidSuffixOnCreateService() {
 		String serviceInstanceId = "instance-id";
 		String applicationName = APP_NAME + "-" + serviceInstanceId;
+		String backingServiceInstanceName = BACKING_SI_NAME + "-" + serviceInstanceId;
+		
 		cloudControllerFixture.stubAppDoesNotExist(applicationName);
 		cloudControllerFixture.stubPushApp(applicationName);
+
+		// given services are available in the marketplace
+		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
+
+		// will create and bind the service instance
+		cloudControllerFixture.stubCreateServiceInstance(backingServiceInstanceName);
+		cloudControllerFixture.stubCreateServiceBinding(applicationName, backingServiceInstanceName);
+		cloudControllerFixture.stubServiceInstanceExists(backingServiceInstanceName);
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

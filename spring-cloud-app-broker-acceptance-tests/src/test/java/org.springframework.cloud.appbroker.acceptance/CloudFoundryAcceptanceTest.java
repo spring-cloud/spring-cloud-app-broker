@@ -147,22 +147,26 @@ class CloudFoundryAcceptanceTest {
 							   String serviceInstanceName,
 							   Map<String, Object> parameters) {
 		cloudFoundryService.createServiceInstance(planName, serviceName, serviceInstanceName, parameters)
-						   .then(getServiceInstanceMono(serviceInstanceName))
-						   .flatMap(serviceInstance -> {
-							   assertThat(serviceInstance.getStatus()).isEqualTo("succeeded");
-							   return Mono.empty();
-						   })
-						   .block();
+			.then(getServiceInstanceMono(serviceInstanceName))
+			.flatMap(serviceInstance -> {
+				assertThat(serviceInstance.getStatus())
+					.withFailMessage("Create service instance failed:" + serviceInstance.getMessage())
+					.isEqualTo("succeeded");
+				return Mono.empty();
+			})
+			.block();
 	}
 
 	void updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
 		cloudFoundryService.updateServiceInstance(serviceInstanceName, parameters)
-						   .then(getServiceInstanceMono(serviceInstanceName))
-						   .flatMap(serviceInstance -> {
-							   assertThat(serviceInstance.getStatus()).isEqualTo("succeeded");
-							   return Mono.empty();
-						   })
-						   .block();
+			.then(getServiceInstanceMono(serviceInstanceName))
+			.flatMap(serviceInstance -> {
+				assertThat(serviceInstance.getStatus())
+					.withFailMessage("Update service instance failed:" + serviceInstance.getMessage())
+					.isEqualTo("succeeded");
+				return Mono.empty();
+			})
+			.block();
 	}
 
 	void deleteServiceInstance(String serviceInstanceName) {

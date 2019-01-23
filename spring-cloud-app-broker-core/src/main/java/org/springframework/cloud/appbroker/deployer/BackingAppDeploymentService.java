@@ -37,12 +37,12 @@ public class BackingAppDeploymentService {
 			.parallel()
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::deploy)
+			.sequential()
 			.doOnRequest(l -> log.debug("Deploying applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished deploying application {}", response))
 			.doOnComplete(() -> log.debug("Finished deploying application {}", backingApps))
 			.doOnError(exception -> log.error("Error deploying applications {} with error '{}'",
-				backingApps, exception.getMessage()))
-			.sequential();
+				backingApps, exception.getMessage()));
 	}
 
 	public Flux<String> update(List<BackingApplication> backingApps) {
@@ -50,11 +50,11 @@ public class BackingAppDeploymentService {
 			.parallel()
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::update)
+			.sequential()
 			.doOnRequest(l -> log.debug("Updating applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished updating application {}", response))
 			.doOnComplete(() -> log.debug("Finished updating application {}", backingApps))
-			.doOnError(exception -> log.error("Error updating applications {} with error {}", backingApps, exception))
-			.sequential();
+			.doOnError(exception -> log.error("Error updating applications {} with error {}", backingApps, exception));
 	}
 
 	public Flux<String> undeploy(List<BackingApplication> backingApps) {
@@ -62,11 +62,11 @@ public class BackingAppDeploymentService {
 			.parallel()
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::undeploy)
+			.sequential()
 			.doOnRequest(l -> log.debug("Undeploying applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished undeploying application {}", response))
 			.doOnComplete(() -> log.debug("Finished undeploying application {}", backingApps))
 			.doOnError(exception -> log.error("Error undeploying applications {} with error '{}'",
-				backingApps, exception.getMessage()))
-			.sequential();
+				backingApps, exception.getMessage()));
 	}
 }

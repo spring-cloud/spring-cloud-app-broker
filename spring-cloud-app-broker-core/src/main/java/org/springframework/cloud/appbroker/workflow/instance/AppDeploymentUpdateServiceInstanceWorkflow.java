@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
@@ -60,31 +61,44 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 	}
 
 	public Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
-		return
-			getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-				.flatMap(backingService ->
-					targetService.addToBackingServices(backingService,
-						getTargetForService(request.getServiceDefinition(), request.getPlan()),
-						request.getServiceInstanceId()))
-				.flatMap(backingServices ->
-					servicesParametersTransformationService.transformParameters(backingServices,
-						request.getParameters()))
-				.flatMapMany(backingServicesProvisionService::updateServiceInstance)
-				.thenMany(
-					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
-						.flatMap(backingApps ->
-							targetService.addToBackingApplications(backingApps,
-								getTargetForService(request.getServiceDefinition(), request.getPlan()),
-								request.getServiceInstanceId()))
-						.flatMap(backingApps ->
-							appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
-						.flatMapMany(deploymentService::update)
-						.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
-						.doOnEach(result -> log.debug("Finished deploying {}", result))
-						.doOnComplete(() -> log.debug("Finished deploying applications {}", brokeredServices))
-						.doOnError(exception -> log.error("Error deploying applications {} with error '{}'",
-							brokeredServices, exception.getMessage())))
-				.then();
+		return updateBackingServices(request)
+			.thenMany(updateBackingApplications(request))
+			.then();
+	}
+
+	private Flux<String> updateBackingServices(UpdateServiceInstanceRequest request) {
+		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
+			.flatMap(backingServices ->
+				targetService.addToBackingServices(backingServices,
+					getTargetForService(request.getServiceDefinition(), request.getPlan()),
+					request.getServiceInstanceId()))
+			.flatMap(backingServices ->
+				servicesParametersTransformationService.transformParameters(backingServices,
+					request.getParameters()))
+			.flatMapMany(backingServicesProvisionService::updateServiceInstance)
+			.doOnRequest(l -> log.debug("Updating backing services for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnComplete(() -> log.debug("Finished updating backing services for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnError(exception -> log.error("Error updating backing services for {}/{} with error '{}'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
+	}
+
+	private Flux<String> updateBackingApplications(UpdateServiceInstanceRequest request) {
+		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
+			.flatMap(backingApps ->
+				targetService.addToBackingApplications(backingApps,
+					getTargetForService(request.getServiceDefinition(), request.getPlan()),
+					request.getServiceInstanceId()))
+			.flatMap(backingApps ->
+				appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
+			.flatMapMany(deploymentService::update)
+			.doOnRequest(l -> log.debug("Updating backing applications for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnComplete(() -> log.debug("Finished updating backing applications for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnError(exception -> log.error("Error updating backing applications for {}/{} with error '{}'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
 	}
 
 	@Override

@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
@@ -65,35 +66,48 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 
 	@Override
 	public Mono<Void> create(CreateServiceInstanceRequest request, CreateServiceInstanceResponse response) {
-		return
-			getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-				.flatMap(backingService ->
-					targetService.addToBackingServices(backingService,
-						getTargetForService(request.getServiceDefinition(), request.getPlan()) ,
-						request.getServiceInstanceId()))
-				.flatMap(backingServices ->
-					servicesParametersTransformationService.transformParameters(backingServices,
-						request.getParameters()))
-				.flatMapMany(backingServicesProvisionService::createServiceInstance)
-				.thenMany(
-					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
-						.flatMap(backingApps ->
-							targetService.addToBackingApplications(backingApps,
-								getTargetForService(request.getServiceDefinition(),
-									request.getPlan()) , request.getServiceInstanceId()))
-						.flatMap(backingApps ->
-							appsParametersTransformationService.transformParameters(backingApps,
-								request.getParameters()))
-						.flatMap(backingApplications ->
-							credentialProviderService.addCredentials(backingApplications,
-								request.getServiceInstanceId()))
-						.flatMapMany(deploymentService::deploy)
-						.doOnRequest(l -> log.debug("Deploying applications {}", brokeredServices))
-						.doOnEach(result -> log.debug("Finished deploying {}", result))
-						.doOnComplete(() -> log.debug("Finished deploying applications {}", brokeredServices))
-						.doOnError(exception -> log.error("Error deploying applications {} with error '{}'",
-							brokeredServices, exception.getMessage())))
+		return createBackingServices(request)
+			.thenMany(deployBackingApplications(request))
 			.then();
+	}
+
+	private Flux<String> createBackingServices(CreateServiceInstanceRequest request) {
+		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
+			.flatMap(backingServices ->
+				targetService.addToBackingServices(backingServices,
+					getTargetForService(request.getServiceDefinition(), request.getPlan()) ,
+					request.getServiceInstanceId()))
+			.flatMap(backingServices ->
+				servicesParametersTransformationService.transformParameters(backingServices,
+					request.getParameters()))
+			.flatMapMany(backingServicesProvisionService::createServiceInstance)
+			.doOnRequest(l -> log.debug("Creating backing services for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnComplete(() -> log.debug("Finished creating backing services for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnError(exception -> log.error("Error creating backing services for {}/{} with error '{}'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
+	}
+
+	private Flux<String> deployBackingApplications(CreateServiceInstanceRequest request) {
+		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
+			.flatMap(backingApps ->
+				targetService.addToBackingApplications(backingApps,
+					getTargetForService(request.getServiceDefinition(),
+						request.getPlan()) , request.getServiceInstanceId()))
+			.flatMap(backingApps ->
+				appsParametersTransformationService.transformParameters(backingApps,
+					request.getParameters()))
+			.flatMap(backingApps ->
+				credentialProviderService.addCredentials(backingApps,
+					request.getServiceInstanceId()))
+			.flatMapMany(deploymentService::deploy)
+			.doOnRequest(l -> log.debug("Deploying backing applications for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnComplete(() -> log.debug("Finished deploying backing applications for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnError(exception -> log.error("Error deploying backing applications for {}/{} with error '{}'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
 	}
 
 	@Override

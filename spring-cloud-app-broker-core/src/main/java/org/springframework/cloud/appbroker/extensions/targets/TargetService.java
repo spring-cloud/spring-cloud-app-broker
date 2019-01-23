@@ -39,17 +39,17 @@ public class TargetService {
 																   TargetSpec targetSpec,
 																   String serviceInstanceId) {
 		return Flux.fromIterable(backingApplications)
-				   .flatMap(backingApplication -> {
-					   if (targetSpec != null) {
-						   Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
-						   ArtifactDetails artifactDetails = target.apply(backingApplication.getProperties(), backingApplication.getName(), serviceInstanceId);
-						   backingApplication.setName(artifactDetails.getName());
-						   backingApplication.setProperties(artifactDetails.getProperties());
-					   }
-					   return Mono.just(backingApplication);
-
-				   })
-				   .collectList();
+			.flatMap(backingApplication -> {
+				if (targetSpec != null) {
+					Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
+					ArtifactDetails artifactDetails = target.apply(backingApplication.getProperties(),
+						backingApplication.getName(), serviceInstanceId);
+					backingApplication.setName(artifactDetails.getName());
+					backingApplication.setProperties(artifactDetails.getProperties());
+				}
+				return Mono.just(backingApplication);
+			})
+			.collectList();
 	}
 
 
@@ -57,16 +57,16 @@ public class TargetService {
 														   TargetSpec targetSpec,
 														   String serviceInstanceId) {
 		return Flux.fromIterable(backingServices)
-				   .flatMap(backingService -> {
-					   if (targetSpec != null) {
-						   Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
-						   ArtifactDetails artifactDetails = target.apply(backingService.getProperties(), backingService.getName(), serviceInstanceId);
-						   backingService.setProperties(artifactDetails.getProperties());
-					   }
-					   return Mono.just(backingService);
-				   })
-				   .collectList();
-
+			.flatMap(backingService -> {
+				if (targetSpec != null) {
+					Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
+					ArtifactDetails artifactDetails = target.apply(backingService.getProperties(),
+						backingService.getName(), serviceInstanceId);
+					backingService.setProperties(artifactDetails.getProperties());
+				}
+				return Mono.just(backingService);
+			})
+			.collectList();
 	}
 
 }

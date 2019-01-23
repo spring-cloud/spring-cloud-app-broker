@@ -36,9 +36,9 @@ public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstan
 		properties.put(DeploymentProperties.TARGET_PROPERTY_KEY, serviceInstanceId);
 
 		return ArtifactDetails.builder()
-							  .name(name)
-							  .properties(properties)
-							  .build();
+			.name(name)
+			.properties(properties)
+			.build();
 	}
 
 	static class Config {

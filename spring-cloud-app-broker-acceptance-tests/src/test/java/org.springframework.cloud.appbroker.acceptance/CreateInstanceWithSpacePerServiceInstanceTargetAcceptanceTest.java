@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CreateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
+class CreateInstanceWithSpacePerServiceInstanceTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	private static final String APP_NAME_1 = "app-create-target1";
 	private static final String APP_NAME_2 = "app-create-target2";

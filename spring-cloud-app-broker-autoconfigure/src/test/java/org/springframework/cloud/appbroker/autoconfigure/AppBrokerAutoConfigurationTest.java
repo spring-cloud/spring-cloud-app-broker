@@ -40,7 +40,6 @@ import org.springframework.cloud.appbroker.extensions.parameters.ParameterMappin
 import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.targets.ServiceInstanceGuidSuffix;
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
-import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceRouteBindingWorkflow;
@@ -186,14 +185,6 @@ class AppBrokerAutoConfigurationTest {
 
 		assertThat(context).hasSingleBean(TargetService.class);
 
-		assertThat(context.getBeansOfType(TargetFactory.class)).hasSize(2);
-//	TODO why?
-//		assertThat(context.getBeansOfType(TargetFactory.class)
-//						  .values()
-//						  .stream()
-//						  .map(TargetFactory::getClass)
-//						  .collect(Collectors.toList()))
-//			.contains(SpacePerServiceInstance.class, ServiceInstanceGuidSuffix.class);
 		assertThat(context).hasSingleBean(SpacePerServiceInstance.class);
 		assertThat(context).hasSingleBean(ServiceInstanceGuidSuffix.class);
 

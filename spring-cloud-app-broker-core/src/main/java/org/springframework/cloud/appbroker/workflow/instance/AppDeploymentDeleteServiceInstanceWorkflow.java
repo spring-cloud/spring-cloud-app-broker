@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
@@ -57,29 +58,42 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	@Override
 	public Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
-		return
-			getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-				.flatMapMany(backingService ->
-					targetService.addToBackingServices(backingService,
-						getTargetForService(request.getServiceDefinition(), request.getPlan()) ,
-						request.getServiceInstanceId()))
-				.flatMap(backingServicesProvisionService::deleteServiceInstance)
-				.thenMany(
-					getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
-						.flatMap(backingApplications ->
-							credentialProviderService.deleteCredentials(backingApplications,
-								request.getServiceInstanceId()))
-						.flatMap(backingApps ->
-							targetService.addToBackingApplications(backingApps,
-								getTargetForService(request.getServiceDefinition(), request.getPlan()),
-								request.getServiceInstanceId()))
-						.flatMapMany(deploymentService::undeploy)
-						.doOnRequest(l -> log.debug("Undeploying applications {}", brokeredServices))
-						.doOnEach(result -> log.debug("Finished undeploying {}", result))
-						.doOnComplete(() -> log.debug("Finished undeploying applications {}", brokeredServices))
-						.doOnError(exception -> log.error("Error undeploying applications {} with error '{}'",
-							brokeredServices, exception.getMessage())))
-				.then();
+		return deleteBackingServices(request)
+			.thenMany(undeployBackingApplications(request))
+			.then();
+	}
+
+	private Flux<String> deleteBackingServices(DeleteServiceInstanceRequest request) {
+		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
+			.flatMapMany(backingServices ->
+				targetService.addToBackingServices(backingServices,
+					getTargetForService(request.getServiceDefinition(), request.getPlan()) ,
+					request.getServiceInstanceId()))
+			.flatMap(backingServicesProvisionService::deleteServiceInstance)
+			.doOnRequest(l -> log.debug("Deleting backing services for{}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnComplete(() -> log.debug("Finished deleting backing services for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnError(exception -> log.error("Error deleting backing services for {}/{} with error '{}'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
+	}
+
+	private Flux<String> undeployBackingApplications(DeleteServiceInstanceRequest request) {
+		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
+			.flatMap(backingApps ->
+				credentialProviderService.deleteCredentials(backingApps,
+					request.getServiceInstanceId()))
+			.flatMap(backingApps ->
+				targetService.addToBackingApplications(backingApps,
+					getTargetForService(request.getServiceDefinition(), request.getPlan()),
+					request.getServiceInstanceId()))
+			.flatMapMany(deploymentService::undeploy)
+			.doOnRequest(l -> log.debug("Undeploying backing applications for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnComplete(() -> log.debug("Finished undeploying backing applications for {}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.doOnError(exception -> log.error("Error undeploying backing applications for {}/{} with error '{}'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
 	}
 
 	@Override

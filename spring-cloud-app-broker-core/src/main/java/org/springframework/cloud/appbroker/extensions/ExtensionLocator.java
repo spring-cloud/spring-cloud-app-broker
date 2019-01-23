@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.extensions;
 
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,10 @@ public class ExtensionLocator<T> {
 
 	public ExtensionLocator(List<? extends ExtensionFactory<T, ?>> factories) {
 		factories.forEach(extension -> this.factoriesByName.put(extension.getName(), extension));
+	}
+
+	public T getByName(String name) {
+		return getByName(name, Collections.emptyMap());
 	}
 
 	public T getByName(String name, Map<String, Object> args) {

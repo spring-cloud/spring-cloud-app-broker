@@ -19,14 +19,17 @@ package org.springframework.cloud.appbroker.acceptance;
 import java.util.Optional;
 
 import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithServiceInstanceGuidSuffixTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String APP_NAME_1 = "app-create-siguid";
-	private static final String SI_NAME = "si-create-target-siguid";
+	private static final String APP_NAME_1 = "app-create-suffix";
+	private static final String SI_NAME = "si-create-suffix";
+
+	private static final String BACKING_SI_NAME = "backing-si";
 
 	@Test
 	@AppBrokerTestProperties({
@@ -35,6 +38,11 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetAcceptanceTest extends Cl
 
 		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
 		"spring.cloud.appbroker.services[0].apps[0].path=" + BACKING_APP_PATH,
+		"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SI_NAME,
+
+		"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
+		"spring.cloud.appbroker.services[0].services[0].plan=" + PLAN_NAME,
+		"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 
 		"spring.cloud.appbroker.services[0].target.name=ServiceInstanceGuidSuffix"
 	})
@@ -52,6 +60,11 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetAcceptanceTest extends Cl
 			assertThat(app.getName()).isEqualTo(expectedApplicationName);
 			assertThat(app.getRunningInstances()).isEqualTo(1);
 		});
+
+		// and the services are bound to it
+		final String expectedServiceInstanceName = BACKING_SI_NAME + "-" + serviceInstanceGuid;
+		ServiceInstance serviceInstance1 = getServiceInstance(expectedServiceInstanceName);
+		assertThat(serviceInstance1.getApplications()).contains(expectedApplicationName);
 
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);

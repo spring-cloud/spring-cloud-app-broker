@@ -29,9 +29,9 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesAndTargetComponentTest.APP_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesAndTargetComponentTest.BACKING_SERVICE_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesAndTargetComponentTest.BACKING_SI_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithSpacePerServiceInstanceTargetComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithSpacePerServiceInstanceTargetComponentTest.BACKING_SERVICE_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithSpacePerServiceInstanceTargetComponentTest.BACKING_SI_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -39,12 +39,14 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SI_NAME,
+
 	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 	"spring.cloud.appbroker.services[0].services[0].plan=standard",
+
 	"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance"
 })
-class CreateInstanceWithServicesAndTargetComponentTest extends WiremockComponentTest {
+class CreateInstanceWithSpacePerServiceInstanceTargetComponentTest extends WiremockComponentTest {
 
 	static final String APP_NAME = "app-new-services-target";
 

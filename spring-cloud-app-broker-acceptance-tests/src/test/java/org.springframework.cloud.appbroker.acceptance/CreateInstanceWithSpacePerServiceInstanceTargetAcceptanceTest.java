@@ -27,11 +27,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithSpacePerServiceInstanceTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String APP_NAME_1 = "app-create-target1";
-	private static final String APP_NAME_2 = "app-create-target2";
-	private static final String SI_NAME = "si-create-target";
+	private static final String APP_NAME_1 = "app-create-space-per1";
+	private static final String APP_NAME_2 = "app-create-space-per2";
+	private static final String SI_NAME = "si-create-space-per";
 
-	private static final String BACKING_SI_NAME = "backing-service-instance-target";
+	private static final String BACKING_SI_NAME = "backing-service-space-per-target";
 
 	@Test
 	@AppBrokerTestProperties({

@@ -16,8 +16,9 @@
 
 package org.springframework.cloud.appbroker.extensions.targets;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -41,17 +42,21 @@ public class TargetService {
 		return Flux.fromIterable(backingApplications)
 			.flatMap(backingApplication -> {
 				if (targetSpec != null) {
-					Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
-					ArtifactDetails artifactDetails = target.apply(backingApplication.getProperties(),
-						backingApplication.getName(), serviceInstanceId);
-					backingApplication.setName(artifactDetails.getName());
-					backingApplication.setProperties(artifactDetails.getProperties());
+					ArtifactDetails appDetails = getArtifactDetails(targetSpec, serviceInstanceId,
+						backingApplication.getName(), backingApplication.getProperties());
+					backingApplication.setName(appDetails.getName());
+					backingApplication.setProperties(appDetails.getProperties());
+
+					backingApplication.getServices().forEach(servicesSpec -> {
+						ArtifactDetails serviceDetails = getArtifactDetails(targetSpec, serviceInstanceId,
+							servicesSpec.getServiceInstanceName(), new HashMap<>());
+						servicesSpec.setServiceInstanceName(serviceDetails.getName());
+					});
 				}
 				return Mono.just(backingApplication);
 			})
 			.collectList();
 	}
-
 
 	public Mono<List<BackingService>> addToBackingServices(List<BackingService> backingServices,
 														   TargetSpec targetSpec,
@@ -59,14 +64,19 @@ public class TargetService {
 		return Flux.fromIterable(backingServices)
 			.flatMap(backingService -> {
 				if (targetSpec != null) {
-					Target target = locator.getByName(targetSpec.getName(), Collections.emptyMap());
-					ArtifactDetails artifactDetails = target.apply(backingService.getProperties(),
-						backingService.getName(), serviceInstanceId);
-					backingService.setProperties(artifactDetails.getProperties());
+					ArtifactDetails serviceDetails = getArtifactDetails(targetSpec, serviceInstanceId,
+						backingService.getServiceInstanceName(), backingService.getProperties());
+					backingService.setServiceInstanceName(serviceDetails.getName());
+					backingService.setProperties(serviceDetails.getProperties());
 				}
 				return Mono.just(backingService);
 			})
 			.collectList();
 	}
 
+	private ArtifactDetails getArtifactDetails(TargetSpec targetSpec, String serviceInstanceId,
+											   String name, Map<String, String> properties) {
+		Target target = locator.getByName(targetSpec.getName());
+		return target.apply(properties, name, serviceInstanceId);
+	}
 }

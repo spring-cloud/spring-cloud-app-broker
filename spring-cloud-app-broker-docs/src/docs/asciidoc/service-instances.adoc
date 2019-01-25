@@ -1,6 +1,140 @@
 [[service-instances]]
 == Service Instances
 
+=== Configuring App Deployment
+
+Deployment details for a backing application can be configured statically in the service broker's application configuration and dynamically using service instance parameters and customization implementations.
+
+==== Static Customization
+
+You can statically configure backing application deployment details in the application configuration for the service broker, using properties under `spring.cloud.appbroker`.
+
+===== Properties Configuration
+
+You can specify app deployment properties in configuration. These properties can have default values and service-specific values.
+
+For Cloud Foundry, set default values for all services under `spring.cloud.appbroker.deployer.cloudfoundry.*`, as shown in the following example:
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      deployer:
+        cloudfoundry:
+          *properties:*
+            *memory: 1G*
+            *health-check: http*
+            *health-check-http-endpoint: /health*
+            *health-check-timeout: 180*
+```
+
+Set overriding values for a specific service in the service's configuration under `spring.cloud.appbroker.services.*`, as shown in the following example:
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          apps:
+            - name: example-service-app1
+              path: classpath:app1.jar
+              *properties:*
+                *memory: 2G*
+                *count: 2*
+                *no-route: true*
+```
+
+The following table lists properties that can be set for all or specific app deployments.
+
+[%header,cols="2,2,1"] 
+|===
+|Property
+|Description
+|Default
+
+|`count`
+| 
+|
+
+|`memory`
+|
+|
+
+|`disk`
+|
+|
+
+|`host`
+|
+|
+
+|`target`
+|
+|
+
+|`buildpack`
+|The buildpack to use for deploying the application.
+|
+
+|`domain`
+|The domain to use when mapping routes for the deployed application. `domain` and `host` are mutually exclusive with `routes`.
+|
+
+|`routes`
+|The routes to which to bind the deployed application.
+|
+
+|`health-check`
+|The type of health check to perform on the deployed application.
+|`PORT`
+
+|`health-check-http-endpoint`
+|The path used by the HTTP health check.
+|`/health`
+
+|`health-check-timeout`
+|The timeout value used by the health check, in seconds.
+|`120`
+
+|`api-timeout`
+|The timeout value used for blocking API calls, in seconds.
+|`360`
+
+|`status-timeout`
+|
+|
+
+|`staging-timeout`
+|
+|
+
+|`startup-timeout`
+|
+|
+
+|`delete-routes`
+|Whether to delete routes when un-deploying an application.
+|`true`
+
+|`java-opts`
+|
+|
+|===
+
+===== Environment Configuration
+
+===== Service Configuration
+
+==== Dynamic Customization
+
+To customize the backing application deployment using information that is only available when performing a service broker operation or that must be generated per service instance, you can use the service broker application configuration to provide the names of customization implementations.
+
+===== Backing Application Target
+
 === Creating a Service Instance
 
 === Updating a Service Instance

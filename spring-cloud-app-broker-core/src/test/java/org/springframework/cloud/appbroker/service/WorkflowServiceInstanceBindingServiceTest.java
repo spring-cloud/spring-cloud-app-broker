@@ -26,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
@@ -234,6 +235,92 @@ class WorkflowServiceInstanceBindingServiceTest {
 				assertThat(r.getOperation()).isEqualTo("working2");
 			})
 			.verifyComplete();
+	}
+
+	@Test
+	void appBindingBuildResponseAppliesFlowsSequentially() {
+		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest
+			.builder()
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
+			.bindResource(BindResource.builder()
+			                          .appGuid("foo-guid")
+			                          .build())
+			.build();
+
+		CreateServiceInstanceAppBindingResponseBuilder builder = CreateServiceInstanceAppBindingResponse.builder();
+
+		TestPublisher<CreateServiceInstanceAppBindingResponseBuilder> response1 = TestPublisher.create();
+		TestPublisher<CreateServiceInstanceAppBindingResponseBuilder> response2 = TestPublisher.create();
+
+		CreateServiceInstanceAppBindingWorkflow flow1 = new CreateServiceInstanceAppBindingWorkflow() {
+			@Override
+			public Mono<CreateServiceInstanceAppBindingResponseBuilder> buildResponse(CreateServiceInstanceBindingRequest request, CreateServiceInstanceAppBindingResponseBuilder responseBuilder) {
+				return response1.mono();
+			}
+		};
+
+		CreateServiceInstanceAppBindingWorkflow flow2 = new CreateServiceInstanceAppBindingWorkflow() {
+			@Override
+			public Mono<CreateServiceInstanceAppBindingResponseBuilder> buildResponse(CreateServiceInstanceBindingRequest request, CreateServiceInstanceAppBindingResponseBuilder responseBuilder) {
+				return response2.mono();
+			}
+		};
+
+		Flux<CreateServiceInstanceAppBindingResponseBuilder> buildAppResponse =
+			workflowServiceInstanceBindingService.invokeAppBindingBuildResponse(builder, request, Arrays.asList(flow1, flow2));
+
+		StepVerifier.create(buildAppResponse)
+		            .then(() -> response1.next(builder))
+		            .then(() -> response2.next(builder))
+		            .assertNext(r -> response2.assertWasNotRequested())
+		            .then(response1::complete)
+		            .assertNext(r -> response2.assertWasRequested())
+		            .then(response2::complete)
+		            .verifyComplete();
+	}
+
+	@Test
+	void routeBindingBuildResponseAppliesFlowsSequentially() {
+		CreateServiceInstanceBindingRequest request = CreateServiceInstanceBindingRequest
+			.builder()
+			.serviceInstanceId("foo-service")
+			.bindingId("foo-binding")
+			.bindResource(BindResource.builder()
+			                          .appGuid("foo-guid")
+			                          .build())
+			.build();
+
+		CreateServiceInstanceRouteBindingResponseBuilder builder = CreateServiceInstanceRouteBindingResponse.builder();
+
+		TestPublisher<CreateServiceInstanceRouteBindingResponseBuilder> response1 = TestPublisher.create();
+		TestPublisher<CreateServiceInstanceRouteBindingResponseBuilder> response2 = TestPublisher.create();
+
+		CreateServiceInstanceRouteBindingWorkflow flow1 = new CreateServiceInstanceRouteBindingWorkflow() {
+			@Override
+			public Mono<CreateServiceInstanceRouteBindingResponseBuilder> buildResponse(CreateServiceInstanceBindingRequest request, CreateServiceInstanceRouteBindingResponseBuilder responseBuilder) {
+				return response1.mono();
+			}
+		};
+
+		CreateServiceInstanceRouteBindingWorkflow flow2 = new CreateServiceInstanceRouteBindingWorkflow() {
+			@Override
+			public Mono<CreateServiceInstanceRouteBindingResponseBuilder> buildResponse(CreateServiceInstanceBindingRequest request, CreateServiceInstanceRouteBindingResponseBuilder responseBuilder) {
+				return response2.mono();
+			}
+		};
+
+		Flux<CreateServiceInstanceRouteBindingResponseBuilder> buildRouteResponse =
+			workflowServiceInstanceBindingService.invokeRouteBindingBuildResponse(builder, request, Arrays.asList(flow1, flow2));
+
+		StepVerifier.create(buildRouteResponse)
+		            .then(() -> response1.next(builder))
+		            .then(() -> response2.next(builder))
+		            .assertNext(r -> response2.assertWasNotRequested())
+		            .then(response1::complete)
+		            .assertNext(r -> response2.assertWasRequested())
+		            .then(response2::complete)
+		            .verifyComplete();
 	}
 
 	@Test

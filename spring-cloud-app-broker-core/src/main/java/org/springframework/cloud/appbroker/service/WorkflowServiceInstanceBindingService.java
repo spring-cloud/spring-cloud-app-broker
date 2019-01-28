@@ -88,25 +88,35 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	private Mono<CreateServiceInstanceBindingResponse> invokeCreateResponseBuilders(CreateServiceInstanceBindingRequest request) {
 		return Mono.defer(() -> {
 			if (isAppBindingRequest(request)) {
-				return Mono.just(new AtomicReference<>(CreateServiceInstanceAppBindingResponse.builder()))
-					.flatMap(responseBuilder -> Flux.fromIterable(createServiceInstanceAppBindingWorkflows)
-						.filterWhen(workflow -> workflow.accept(request))
-						.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
-							.doOnNext(responseBuilder::set))
-						.last(responseBuilder.get())
-						.map(CreateServiceInstanceAppBindingResponseBuilder::build));
+				CreateServiceInstanceAppBindingResponseBuilder builder = CreateServiceInstanceAppBindingResponse.builder();
+				return invokeAppBindingBuildResponse(builder, request, this.createServiceInstanceAppBindingWorkflows)
+					.last(builder)
+					.map(CreateServiceInstanceAppBindingResponseBuilder::build);
 			}
 			else if (isRouteBindingRequest(request)) {
-				return Mono.just(new AtomicReference<>(CreateServiceInstanceRouteBindingResponse.builder()))
-					.flatMap(responseBuilder -> Flux.fromIterable(createServiceInstanceRouteBindingWorkflows)
-						.filterWhen(workflow -> workflow.accept(request))
-						.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
-							.doOnNext(responseBuilder::set))
-						.last(responseBuilder.get())
-						.map(CreateServiceInstanceRouteBindingResponseBuilder::build));
+				CreateServiceInstanceRouteBindingResponseBuilder builder = CreateServiceInstanceRouteBindingResponse.builder();
+				return invokeRouteBindingBuildResponse(builder, request, this.createServiceInstanceRouteBindingWorkflows)
+					.last(builder)
+					.map(CreateServiceInstanceRouteBindingResponseBuilder::build);
 			}
 			return Mono.empty();
 		});
+	}
+
+	Flux<CreateServiceInstanceAppBindingResponseBuilder> invokeAppBindingBuildResponse(CreateServiceInstanceAppBindingResponseBuilder builder, CreateServiceInstanceBindingRequest request, List<CreateServiceInstanceAppBindingWorkflow> workflows) {
+		AtomicReference<CreateServiceInstanceAppBindingResponseBuilder> responseBuilder = new AtomicReference<>(builder);
+		return Flux.fromIterable(workflows)
+		           .filterWhen(workflow -> workflow.accept(request))
+		           .concatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
+		                                          .doOnNext(responseBuilder::set));
+	}
+
+	Flux<CreateServiceInstanceRouteBindingResponseBuilder> invokeRouteBindingBuildResponse(CreateServiceInstanceRouteBindingResponseBuilder builder, CreateServiceInstanceBindingRequest request, List<CreateServiceInstanceRouteBindingWorkflow> workflows) {
+		AtomicReference<CreateServiceInstanceRouteBindingResponseBuilder> responseBuilder = new AtomicReference<>(builder);
+		return Flux.fromIterable(workflows)
+		           .filterWhen(workflow -> workflow.accept(request))
+		           .concatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
+		                                          .doOnNext(responseBuilder::set));
 	}
 
 	private boolean isAppBindingRequest(CreateServiceInstanceBindingRequest request) {

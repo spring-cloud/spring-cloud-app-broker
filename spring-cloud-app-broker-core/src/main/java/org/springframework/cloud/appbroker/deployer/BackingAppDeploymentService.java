@@ -32,11 +32,11 @@ public class BackingAppDeploymentService {
 		this.deployerClient = deployerClient;
 	}
 
-	public Flux<String> deploy(List<BackingApplication> backingApps) {
+	public Flux<String> deploy(List<BackingApplication> backingApps, String serviceInstanceId) {
 		return Flux.fromIterable(backingApps)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			.flatMap(deployerClient::deploy)
+			.flatMap(backingApplication -> deployerClient.deploy(backingApplication, serviceInstanceId))
 			.sequential()
 			.doOnRequest(l -> log.debug("Deploying applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished deploying application {}", response))
@@ -45,11 +45,11 @@ public class BackingAppDeploymentService {
 				backingApps, exception.getMessage()));
 	}
 
-	public Flux<String> update(List<BackingApplication> backingApps) {
+	public Flux<String> update(List<BackingApplication> backingApps, String serviceInstanceId) {
 		return Flux.fromIterable(backingApps)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			.flatMap(deployerClient::update)
+			.flatMap(backingApplication -> deployerClient.update(backingApplication, serviceInstanceId))
 			.sequential()
 			.doOnRequest(l -> log.debug("Updating applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished updating application {}", response))

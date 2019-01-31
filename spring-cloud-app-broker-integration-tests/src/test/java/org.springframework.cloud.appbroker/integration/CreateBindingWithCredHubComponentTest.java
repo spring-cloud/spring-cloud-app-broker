@@ -27,7 +27,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static io.restassured.RestAssured.given;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithBasicAuthCredentialsComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateBindingWithCredHubComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -38,6 +38,8 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.credhub.url=http://localhost:8888"
 })
 class CreateBindingWithCredHubComponentTest extends WiremockComponentTest {
+
+	static final String APP_NAME = "create-binding-credhub";
 
 	private static final String SERVICE_INSTANCE_ID = "instance-id";
 	private static final String BINDING_ID = "binding-id";

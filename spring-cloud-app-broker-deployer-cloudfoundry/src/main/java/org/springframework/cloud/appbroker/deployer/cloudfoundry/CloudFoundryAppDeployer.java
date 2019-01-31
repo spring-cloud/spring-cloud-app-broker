@@ -388,7 +388,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		ApplicationManifest.Builder manifest = ApplicationManifest.builder()
 			.name(request.getName())
 			.path(getApplication(appResource))
-			.environmentVariables(getEnvironmentVariables(deploymentProperties, request.getEnvironment()))
+			.environmentVariables(getEnvironmentVariables(deploymentProperties,
+				request.getEnvironment(), request.getServiceInstanceId()))
 			.services(request.getServices())
 			.instances(instances(deploymentProperties))
 			.memory(memory(deploymentProperties))
@@ -533,7 +534,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Map<String, Object> getEnvironmentVariables(Map<String, String> properties,
-														Map<String, Object> environment) {
+														Map<String, Object> environment,
+														String serviceInstanceId) {
 		Map<String, Object> envVariables = getApplicationEnvironment(properties, environment);
 
 		String javaOpts = javaOpts(properties);
@@ -541,15 +543,16 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			envVariables.put("JAVA_OPTS", javaOpts);
 		}
 
-		envVariables.put("SPRING_CLOUD_APPLICATION_GUID", "${vcap.application.name}:${vcap.application.instance_index}");
-		envVariables.put("SPRING_APPLICATION_INDEX", "${vcap.application.instance_index}");
+		if (serviceInstanceId != null) {
+			envVariables.put("SPRING_CLOUD_APPBROKER_SERVICE_INSTANCE_ID", serviceInstanceId);
+		}
 
 		return envVariables;
 	}
 
 	private Map<String, Object> getApplicationEnvironment(Map<String, String> properties,
 														  Map<String, Object> environment) {
-		Map<String, Object> applicationEnvironment = getSanitizedApplicationEnvironment(environment);
+		Map<String, Object> applicationEnvironment = sanitizeApplicationEnvironment(environment);
 
 		if (!applicationEnvironment.isEmpty() && useSpringApplicationJson(properties)) {
 			try {
@@ -564,7 +567,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return applicationEnvironment;
 	}
 
-	private Map<String, Object> getSanitizedApplicationEnvironment(Map<String, Object> environment) {
+	private Map<String, Object> sanitizeApplicationEnvironment(Map<String, Object> environment) {
 		Map<String, Object> applicationEnvironment = new HashMap<>(environment);
 
 		// Remove server.port as CF assigns a port for us, and we don't want to override that

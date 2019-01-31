@@ -32,7 +32,7 @@ public class DeployerClient {
 		this.appDeployer = appDeployer;
 	}
 
-	Mono<String> deploy(BackingApplication backingApplication) {
+	Mono<String> deploy(BackingApplication backingApplication, String serviceInstanceId) {
 		return appDeployer
 			.deploy(DeployApplicationRequest
 				.builder()
@@ -40,7 +40,10 @@ public class DeployerClient {
 				.path(backingApplication.getPath())
 				.properties(backingApplication.getProperties())
 				.environment(backingApplication.getEnvironment())
-				.services(backingApplication.getServices().stream().map(ServicesSpec::getServiceInstanceName).collect(Collectors.toList()))
+				.services(backingApplication.getServices().stream()
+					.map(ServicesSpec::getServiceInstanceName)
+					.collect(Collectors.toList()))
+				.serviceInstanceId(serviceInstanceId)
 				.build())
 			.doOnRequest(l -> log.debug("Deploying application {}", backingApplication))
 			.doOnSuccess(response -> log.debug("Finished deploying application {}", backingApplication))
@@ -49,7 +52,7 @@ public class DeployerClient {
 			.map(DeployApplicationResponse::getName);
 	}
 
-	Mono<String> update(BackingApplication backingApplication) {
+	Mono<String> update(BackingApplication backingApplication, String serviceInstanceId) {
 		return appDeployer
 			.update(UpdateApplicationRequest
 				.builder()
@@ -57,11 +60,15 @@ public class DeployerClient {
 				.path(backingApplication.getPath())
 				.properties(backingApplication.getProperties())
 				.environment(backingApplication.getEnvironment())
-				.services(backingApplication.getServices().stream().map(ServicesSpec::getServiceInstanceName).collect(Collectors.toList()))
+				.services(backingApplication.getServices().stream()
+					.map(ServicesSpec::getServiceInstanceName)
+					.collect(Collectors.toList()))
+				.serviceInstanceId(serviceInstanceId)
 				.build())
 			.doOnRequest(l -> log.debug("Updating application {}", backingApplication))
 			.doOnSuccess(response -> log.debug("Finished updating application {}", backingApplication))
-			.doOnError(exception -> log.error("Error updating application {} with error {}", backingApplication, exception))
+			.doOnError(exception -> log.error("Error updating application {} with error {}",
+				backingApplication, exception))
 			.map(UpdateApplicationResponse::getName);
 	}
 

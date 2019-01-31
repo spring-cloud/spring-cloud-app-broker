@@ -44,7 +44,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithCustomCreationParametersComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithCustomParametersMappingComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -53,8 +53,8 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=CustomMapping"
 })
-@ContextConfiguration(classes = CreateInstanceWithCustomCreationParametersComponentTest.CustomConfig.class)
-class CreateInstanceWithCustomCreationParametersComponentTest extends WiremockComponentTest {
+@ContextConfiguration(classes = CreateInstanceWithCustomParametersMappingComponentTest.CustomConfig.class)
+class CreateInstanceWithCustomParametersMappingComponentTest extends WiremockComponentTest {
 
 	static final String APP_NAME = "app-with-request-create-params";
 

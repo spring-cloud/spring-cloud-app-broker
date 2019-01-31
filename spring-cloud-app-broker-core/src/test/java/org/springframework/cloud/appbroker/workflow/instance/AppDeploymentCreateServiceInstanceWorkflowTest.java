@@ -146,7 +146,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		verify(appDeploymentService).deploy(backingApps);
+		verify(appDeploymentService).deploy(backingApps, request.getServiceInstanceId());
 		verify(servicesProvisionService).createServiceInstance(backingServices);
 
 		final String expectedServiceId = "service-instance-id";
@@ -161,8 +161,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	void createServiceInstanceWithParametersSucceeds() {
 		Map<String, Object> parameters = singletonMap("ENV_VAR_1", "value from parameters");
 		
-		CreateServiceInstanceRequest request = buildRequest("service1", "plan1",
-			parameters);
+		CreateServiceInstanceRequest request = buildRequest("service1", "plan1", parameters);
 		CreateServiceInstanceResponse response = CreateServiceInstanceResponse.builder().build();
 
 		setupMocks(request);
@@ -173,7 +172,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		verify(appDeploymentService).deploy(backingApps);
+		verify(appDeploymentService).deploy(backingApps, request.getServiceInstanceId());
 		verify(servicesProvisionService).createServiceInstance(backingServices);
 
 		verify(appsParametersTransformationService)
@@ -198,7 +197,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	}
 
 	private void setupMocks(CreateServiceInstanceRequest request) {
-		given(this.appDeploymentService.deploy(eq(backingApps)))
+		given(this.appDeploymentService.deploy(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Flux.just("app1", "app2"));
 		given(this.servicesProvisionService.createServiceInstance(eq(backingServices)))
 			.willReturn(Flux.just("my-service-instance"));

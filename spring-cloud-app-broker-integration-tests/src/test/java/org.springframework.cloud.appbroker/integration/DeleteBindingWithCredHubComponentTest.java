@@ -25,7 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
 import static io.restassured.RestAssured.given;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithBasicAuthCredentialsComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.DeleteBindingWithCredHubComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -36,6 +36,8 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.credhub.url=http://localhost:8888"
 })
 class DeleteBindingWithCredHubComponentTest extends WiremockComponentTest {
+
+	static final String APP_NAME = "delete-binding-credhub";
 
 	private static final String SERVICE_INSTANCE_ID = "instance-id";
 	private static final String BINDING_ID = "binding-id";

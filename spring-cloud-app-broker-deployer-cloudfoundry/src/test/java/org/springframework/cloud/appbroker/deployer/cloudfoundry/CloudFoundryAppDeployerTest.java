@@ -69,6 +69,7 @@ class CloudFoundryAppDeployerTest {
 
 	private static final String APP_NAME = "test-app";
 	private static final String APP_PATH = "test.jar";
+	private static final String SERVICE_INSTANCE_ID = "service-instance-id";
 
 	private AppDeployer appDeployer;
 
@@ -117,6 +118,7 @@ class CloudFoundryAppDeployerTest {
 		DeployApplicationRequest request = DeployApplicationRequest.builder()
 			.name(APP_NAME)
 			.path(APP_PATH)
+			.serviceInstanceId(SERVICE_INSTANCE_ID)
 			.build();
 
 		StepVerifier.create(appDeployer.deploy(request))
@@ -136,6 +138,7 @@ class CloudFoundryAppDeployerTest {
 		DeployApplicationRequest request = DeployApplicationRequest.builder()
 			.name(APP_NAME)
 			.path(APP_PATH)
+			.serviceInstanceId(SERVICE_INSTANCE_ID)
 			.property(DeploymentProperties.COUNT_PROPERTY_KEY, "3")
 			.property(DeploymentProperties.MEMORY_PROPERTY_KEY, "2G")
 			.property(DeploymentProperties.DISK_PROPERTY_KEY, "3G")
@@ -182,6 +185,7 @@ class CloudFoundryAppDeployerTest {
 		DeployApplicationRequest request = DeployApplicationRequest.builder()
 			.name(APP_NAME)
 			.path(APP_PATH)
+			.serviceInstanceId(SERVICE_INSTANCE_ID)
 			.build();
 
 		StepVerifier.create(appDeployer.deploy(request))
@@ -218,6 +222,7 @@ class CloudFoundryAppDeployerTest {
 		DeployApplicationRequest request = DeployApplicationRequest.builder()
 			.name(APP_NAME)
 			.path(APP_PATH)
+			.serviceInstanceId(SERVICE_INSTANCE_ID)
 			.property(DeploymentProperties.COUNT_PROPERTY_KEY, "5")
 			.property(DeploymentProperties.MEMORY_PROPERTY_KEY, "4G")
 			.property(DeploymentProperties.DISK_PROPERTY_KEY, "5G")
@@ -257,6 +262,7 @@ class CloudFoundryAppDeployerTest {
 		DeployApplicationRequest request = DeployApplicationRequest.builder()
 			.name(APP_NAME)
 			.path(APP_PATH)
+			.serviceInstanceId(SERVICE_INSTANCE_ID)
 			.property(CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY, "-Xms512m -Xmx1024m")
 			.environment("ENV_VAR_1", "value1")
 			.environment("ENV_VAR_2", "value2")
@@ -283,6 +289,7 @@ class CloudFoundryAppDeployerTest {
 		DeployApplicationRequest request = DeployApplicationRequest.builder()
 			.name(APP_NAME)
 			.path(APP_PATH)
+			.serviceInstanceId(SERVICE_INSTANCE_ID)
 			.property(CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY, "-Xms512m -Xmx1024m")
 			.environment("ENV_VAR_1", "value1")
 			.environment("ENV_VAR_2", "value2")
@@ -469,8 +476,7 @@ class CloudFoundryAppDeployerTest {
 
 	private ApplicationManifest.Builder baseManifest() {
 		return ApplicationManifest.builder()
-			.environmentVariable("SPRING_APPLICATION_INDEX", "${vcap.application.instance_index}")
-			.environmentVariable("SPRING_CLOUD_APPLICATION_GUID", "${vcap.application.name}:${vcap.application.instance_index}")
+			.environmentVariable("SPRING_CLOUD_APPBROKER_SERVICE_INSTANCE_ID", SERVICE_INSTANCE_ID)
 			.services(new ArrayList<>());
 	}
 

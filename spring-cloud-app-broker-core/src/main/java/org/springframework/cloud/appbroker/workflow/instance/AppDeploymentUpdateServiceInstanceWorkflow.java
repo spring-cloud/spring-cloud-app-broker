@@ -92,7 +92,7 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 					request.getServiceInstanceId()))
 			.flatMap(backingApps ->
 				appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
-			.flatMapMany(deploymentService::update)
+			.flatMapMany(backingApps -> deploymentService.update(backingApps, request.getServiceInstanceId()))
 			.doOnRequest(l -> log.debug("Updating backing applications for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished updating backing applications for {}/{}",

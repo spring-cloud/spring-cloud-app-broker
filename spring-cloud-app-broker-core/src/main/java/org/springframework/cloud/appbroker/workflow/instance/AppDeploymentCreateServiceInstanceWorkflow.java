@@ -101,7 +101,7 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 			.flatMap(backingApps ->
 				credentialProviderService.addCredentials(backingApps,
 					request.getServiceInstanceId()))
-			.flatMapMany(deploymentService::deploy)
+			.flatMapMany(backingApps -> deploymentService.deploy(backingApps, request.getServiceInstanceId()))
 			.doOnRequest(l -> log.debug("Deploying backing applications for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished deploying backing applications for {}/{}",

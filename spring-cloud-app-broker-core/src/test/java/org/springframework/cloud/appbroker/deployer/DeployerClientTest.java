@@ -64,7 +64,7 @@ class DeployerClientTest {
 			.build();
 
 		// when
-		StepVerifier.create(deployerClient.deploy(application))
+		StepVerifier.create(deployerClient.deploy(application, "instance-id"))
 			// then
 			.expectNext(APP_NAME)
 			.verifyComplete();
@@ -90,7 +90,7 @@ class DeployerClientTest {
 			.build();
 
 		// when
-		StepVerifier.create(deployerClient.deploy(application))
+		StepVerifier.create(deployerClient.deploy(application, "instance-id"))
 			// then
 			.expectNext(APP_NAME)
 			.verifyComplete();
@@ -116,7 +116,7 @@ class DeployerClientTest {
 				.build();
 
 		// when
-		StepVerifier.create(deployerClient.deploy(application))
+		StepVerifier.create(deployerClient.deploy(application, "instance-id"))
 			// then
 			.expectNext(APP_NAME)
 			.verifyComplete();
@@ -142,7 +142,7 @@ class DeployerClientTest {
 			.build();
 
 		// when
-		StepVerifier.create(deployerClient.deploy(application))
+		StepVerifier.create(deployerClient.deploy(application, "instance-id"))
 			// then
 			.expectNext(APP_NAME)
 			.verifyComplete();

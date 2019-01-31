@@ -24,6 +24,7 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -37,12 +38,15 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceComp
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
 	"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
-	"spring.cloud.appbroker.services[0].apps[1].name=" + APP_NAME_2
+	"spring.cloud.appbroker.services[0].apps[1].name=" + APP_NAME_2,
+	"spring.cloud.appbroker.services[0].apps[1].properties.use-spring-application-json=false"
 })
 class CreateInstanceComponentTest extends WiremockComponentTest {
 
 	static final String APP_NAME_1 = "first-app";
 	static final String APP_NAME_2 = "second-app";
+
+	private static final String SERVICE_INSTANCE_ID = "instance-id";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -53,26 +57,30 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 	@Test
 	void pushAppsWhenTheyDoNotExist() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
-		cloudControllerFixture.stubPushApp(APP_NAME_1);
+		cloudControllerFixture.stubPushApp(APP_NAME_1,
+			matchingJsonPath("$.environment_json[?(@.SPRING_CLOUD_APPBROKER_SERVICE_INSTANCE_ID =~ " +
+				"/.*" + SERVICE_INSTANCE_ID + ".*/)]"));
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
-		cloudControllerFixture.stubPushApp(APP_NAME_2);
+		cloudControllerFixture.stubPushApp(APP_NAME_2,
+			matchingJsonPath("$.environment_json[?(@.SPRING_CLOUD_APPBROKER_SERVICE_INSTANCE_ID =~ " +
+				"/.*" + SERVICE_INSTANCE_ID + ".*/)]"));
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
+			.put(brokerFixture.createServiceInstanceUrl(), SERVICE_INSTANCE_ID)
 			.then()
 			.statusCode(HttpStatus.ACCEPTED.value());
 
 		// when the "last_operation" API is polled
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.get(brokerFixture.getLastInstanceOperationUrl(), SERVICE_INSTANCE_ID)
 			.then()
 			.statusCode(HttpStatus.OK.value())
 			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
 
-		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		String state = brokerFixture.waitForAsyncOperationComplete(SERVICE_INSTANCE_ID);
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
 	}
 }

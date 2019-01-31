@@ -32,7 +32,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithCreationParametersComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithParametersMappingComponentTest.APP_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -47,7 +47,7 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].name=PropertyMapping",
 	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].args.include=count,memory"
 })
-class CreateInstanceWithCreationParametersComponentTest extends WiremockComponentTest {
+class CreateInstanceWithParametersMappingComponentTest extends WiremockComponentTest {
 
 	static final String APP_NAME = "app-with-env-create-params";
 

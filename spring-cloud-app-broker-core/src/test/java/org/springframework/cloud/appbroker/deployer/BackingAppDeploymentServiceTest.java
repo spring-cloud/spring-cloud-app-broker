@@ -41,15 +41,15 @@ class BackingAppDeploymentServiceTest {
 	@SuppressWarnings("UnassignedFluxMonoInstance")
 	void shouldDeployApplications() {
 		doReturn(Mono.just("app1"))
-			.when(deployerClient).deploy(backingApps.get(0));
+			.when(deployerClient).deploy(backingApps.get(0), "instance-id");
 		doReturn(Mono.just("app2"))
-			.when(deployerClient).deploy(backingApps.get(1));
+			.when(deployerClient).deploy(backingApps.get(1), "instance-id");
 
 		List<String> expectedValues = new ArrayList<>();
 		expectedValues.add("app1");
 		expectedValues.add("app2");
 
-		StepVerifier.create(backingAppDeploymentService.deploy(backingApps))
+		StepVerifier.create(backingAppDeploymentService.deploy(backingApps, "instance-id"))
 			// deployments are run in parallel, so the order of completion is not predictable
 			// ensure that both expected signals are sent in any order
 			.expectNextMatches(expectedValues::remove)

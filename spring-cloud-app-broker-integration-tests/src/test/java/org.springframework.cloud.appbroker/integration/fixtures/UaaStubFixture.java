@@ -20,6 +20,7 @@ import org.springframework.boot.test.context.TestComponent;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -94,10 +95,12 @@ public class UaaStubFixture extends WiremockStubFixture {
 				.withBody(uaa("get-token-keys"))));
 	}
 
-	public void stubCreateClient() {
+	public void stubCreateClient(String clientId) {
 		stubFor(post(urlPathEqualTo("/oauth/clients"))
+			.withRequestBody(matchingJsonPath("$.[?(@.client_id == '" + clientId + "')]"))
 			.willReturn(ok()
-				.withBody(uaa("post-oauth-clients"))));
+				.withBody(uaa("post-oauth-clients",
+					replace("@client-id", clientId)))));
 	}
 
 	public void stubDeleteClient(String clientId) {
@@ -106,7 +109,11 @@ public class UaaStubFixture extends WiremockStubFixture {
 				.withBody(uaa("delete-oauth-clients"))));
 	}
 
-	private String uaa(String fileRoot) {
-		return readResponseFromFile(fileRoot, "uaa");
+	private String uaa(String fileRoot, StringReplacementPair... replacements) {
+		String response = readResponseFromFile(fileRoot, "uaa");
+		for (StringReplacementPair pair : replacements) {
+			response = response.replaceAll(pair.getRegex(), pair.getReplacement());
+		}
+		return response;
 	}
 }

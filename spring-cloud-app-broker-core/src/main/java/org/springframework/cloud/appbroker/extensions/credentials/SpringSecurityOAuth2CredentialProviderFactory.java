@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -36,13 +32,9 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 
 	private static final String CREDENTIAL_DESCRIPTOR = "oauth2";
 
-	static final String SPRING_KEY = "spring";
-	static final String SPRING_SECURITY_KEY = "security";
-	static final String SPRING_SECURITY_OAUTH2_KEY = "oauth2";
-	static final String SPRING_SECURITY_CLIENT_KEY = "client";
-	static final String SPRING_SECURITY_REGISTRATION_KEY = "registration";
-	static final String SPRING_SECURITY_CLIENT_ID_KEY = "client-id";
-	static final String SPRING_SECURITY_CLIENT_SECRET_KEY = "client-secret";
+	static final String SPRING_SECURITY_OAUTH2_REGISTRATION_KEY = "spring.security.oauth2.client.registration.";
+	static final String SPRING_SECURITY_OAUTH2_CLIENT_ID_KEY = ".client-id";
+	static final String SPRING_SECURITY_OAUTH2_CLIENT_SECRET_KEY = ".client-secret";
 
 	private final CredentialGenerator credentialGenerator;
 	private final OAuth2Client oAuth2Client;
@@ -86,20 +78,12 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 	}
 
 	private Mono<Tuple2<String, String>> addClientToEnvironment(Config config,
-															  BackingApplication backingApplication,
-															  Tuple2<String, String> client) {
+																BackingApplication backingApplication,
+																Tuple2<String, String> client) {
+		String registrationKey = SPRING_SECURITY_OAUTH2_REGISTRATION_KEY + config.getRegistration();
 
-
-		Map<String, String> clientProperties = new HashMap<>(2);
-		clientProperties.put(SPRING_SECURITY_CLIENT_ID_KEY, client.getT1());
-		clientProperties.put(SPRING_SECURITY_CLIENT_SECRET_KEY, client.getT2());
-
-		backingApplication.addEnvironment(SPRING_KEY,
-			Collections.singletonMap(SPRING_SECURITY_KEY,
-				Collections.singletonMap(SPRING_SECURITY_OAUTH2_KEY,
-				Collections.singletonMap(SPRING_SECURITY_CLIENT_KEY,
-				Collections.singletonMap(SPRING_SECURITY_REGISTRATION_KEY,
-				Collections.singletonMap(config.getRegistration(), clientProperties))))));
+		backingApplication.addEnvironment(registrationKey + SPRING_SECURITY_OAUTH2_CLIENT_ID_KEY, client.getT1());
+		backingApplication.addEnvironment(registrationKey + SPRING_SECURITY_OAUTH2_CLIENT_SECRET_KEY, client.getT2());
 
 		return Mono.just(client);
 	}

@@ -125,7 +125,7 @@ class CloudFoundryAppDeployerTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		ApplicationManifest expectedManifest = baseManifest()
+		ApplicationManifest expectedManifest = baseManifestWithSpringAppJson()
 			.name(APP_NAME)
 			.path(new File(APP_PATH).toPath())
 			.build();
@@ -154,7 +154,7 @@ class CloudFoundryAppDeployerTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		ApplicationManifest expectedManifest = baseManifest()
+		ApplicationManifest expectedManifest = baseManifestWithSpringAppJson()
 			.name(APP_NAME)
 			.path(new File(APP_PATH).toPath())
 			.instances(3)
@@ -192,7 +192,7 @@ class CloudFoundryAppDeployerTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		ApplicationManifest expectedManifest = baseManifest()
+		ApplicationManifest expectedManifest = baseManifestWithSpringAppJson()
 			.name(APP_NAME)
 			.path(new File(APP_PATH).toPath())
 			.instances(3)
@@ -238,7 +238,7 @@ class CloudFoundryAppDeployerTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		ApplicationManifest expectedManifest = baseManifest()
+		ApplicationManifest expectedManifest = baseManifestWithSpringAppJson()
 			.name(APP_NAME)
 			.path(new File(APP_PATH).toPath())
 			.instances(5)
@@ -272,11 +272,10 @@ class CloudFoundryAppDeployerTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		ApplicationManifest expectedManifest = baseManifest()
+		ApplicationManifest expectedManifest = baseManifestWithSpringAppJson("\"ENV_VAR_2\":\"value2\",\"ENV_VAR_1\":\"value1\"")
 			.name(APP_NAME)
 			.path(new File(APP_PATH).toPath())
 			.environmentVariable("JAVA_OPTS", "-Xms512m -Xmx1024m")
-			.environmentVariable("SPRING_APPLICATION_JSON", "{\"ENV_VAR_2\":\"value2\",\"ENV_VAR_1\":\"value1\"}")
 			.build();
 
 		verify(operationsApplications).pushManifest(argThat(matchesManifest(expectedManifest)));
@@ -303,6 +302,7 @@ class CloudFoundryAppDeployerTest {
 			.name(APP_NAME)
 			.path(new File(APP_PATH).toPath())
 			.environmentVariable("JAVA_OPTS", "-Xms512m -Xmx1024m")
+			.environmentVariable("spring.cloud.appbroker.service-instance-id", SERVICE_INSTANCE_ID)
 			.environmentVariable("ENV_VAR_1", "value1")
 			.environmentVariable("ENV_VAR_2", "value2")
 			.build();
@@ -476,7 +476,20 @@ class CloudFoundryAppDeployerTest {
 
 	private ApplicationManifest.Builder baseManifest() {
 		return ApplicationManifest.builder()
-			.environmentVariable("SPRING_CLOUD_APPBROKER_SERVICE_INSTANCE_ID", SERVICE_INSTANCE_ID)
+			.services(new ArrayList<>());
+	}
+
+	private ApplicationManifest.Builder baseManifestWithSpringAppJson() {
+		return ApplicationManifest.builder()
+			.environmentVariable("SPRING_APPLICATION_JSON",
+				"{\"spring.cloud.appbroker.service-instance-id\":\"" + SERVICE_INSTANCE_ID + "\"}")
+			.services(new ArrayList<>());
+	}
+
+	private ApplicationManifest.Builder baseManifestWithSpringAppJson(String json) {
+		return ApplicationManifest.builder()
+			.environmentVariable("SPRING_APPLICATION_JSON",
+				"{" + json + ",\"spring.cloud.appbroker.service-instance-id\":\"" + SERVICE_INSTANCE_ID + "\"}")
 			.services(new ArrayList<>());
 	}
 

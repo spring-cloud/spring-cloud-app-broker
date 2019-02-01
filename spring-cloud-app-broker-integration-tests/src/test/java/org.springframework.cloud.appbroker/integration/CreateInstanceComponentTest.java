@@ -58,12 +58,12 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 	void pushAppsWhenTheyDoNotExist() {
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
 		cloudControllerFixture.stubPushApp(APP_NAME_1,
-			matchingJsonPath("$.environment_json[?(@.SPRING_CLOUD_APPBROKER_SERVICE_INSTANCE_ID =~ " +
-				"/.*" + SERVICE_INSTANCE_ID + ".*/)]"));
+			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ " +
+				"/.*spring.cloud.appbroker.service-instance-id.*:.*" + SERVICE_INSTANCE_ID + ".*/)]"));
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
 		cloudControllerFixture.stubPushApp(APP_NAME_2,
-			matchingJsonPath("$.environment_json[?(@.SPRING_CLOUD_APPBROKER_SERVICE_INSTANCE_ID =~ " +
-				"/.*" + SERVICE_INSTANCE_ID + ".*/)]"));
+			matchingJsonPath("$.environment_json[?(@.['spring.cloud.appbroker.service-instance-id'] =~ " +
+				"/" + SERVICE_INSTANCE_ID + "/)]"));
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

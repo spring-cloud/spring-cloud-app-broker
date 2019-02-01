@@ -30,26 +30,44 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithOAuth2CredentialsComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithOAuth2CredentialsComponentTest.APP_NAME_1;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithOAuth2CredentialsComponentTest.APP_NAME_2;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
 	"spring.cloud.appbroker.services[0].plan-name=standard",
+
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
-	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].name=SpringSecurityOAuth2",
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.registration=example-app-client",
-	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.client-id=test-client",
+	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.client-id=test-client1",
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.grant-types=[\"client_credentials\"]",
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.length=14",
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-uppercase-alpha=true",
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-lowercase-alpha=true",
 	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-numeric=false",
-	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false"
+	"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false",
+
+	"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[1].name=" + APP_NAME_2,
+	"spring.cloud.appbroker.services[0].apps[1].credential-providers[0].name=SpringSecurityOAuth2",
+	"spring.cloud.appbroker.services[0].apps[1].credential-providers[0].args.registration=example-app-client",
+	"spring.cloud.appbroker.services[0].apps[1].credential-providers[0].args.client-id=test-client2",
+	"spring.cloud.appbroker.services[0].apps[1].credential-providers[0].args.grant-types=[\"client_credentials\"]",
+	"spring.cloud.appbroker.services[0].apps[1].credential-providers[0].args.length=14",
+	"spring.cloud.appbroker.services[0].apps[1].credential-providers[0].args.include-uppercase-alpha=true",
+	"spring.cloud.appbroker.services[0].apps[1].credential-providers[0].args.include-lowercase-alpha=true",
+	"spring.cloud.appbroker.services[0].apps[1].credential-providers[0].args.include-numeric=false",
+	"spring.cloud.appbroker.services[0].apps[1].credential-providers[0].args.include-special=false",
+	"spring.cloud.appbroker.services[0].apps[1].properties.use-spring-application-json=false"
 })
 class CreateInstanceWithOAuth2CredentialsComponentTest extends WiremockComponentTest {
 
-	static final String APP_NAME = "app-with-outh2-credentials";
+	static final String APP_NAME_1 = "app-with-outh2-credentials1";
+	static final String APP_NAME_2 = "app-with-outh2-credentials2";
+
+	private static final String SERVICE_INSTANCE_ID = "instance-id";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -62,58 +80,71 @@ class CreateInstanceWithOAuth2CredentialsComponentTest extends WiremockComponent
 	
 	@Test
 	void pushAppWithOAuth2Credentials() {
-		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
-		cloudControllerFixture.stubPushApp(APP_NAME,
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
+		cloudControllerFixture.stubPushApp(APP_NAME_1,
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ " +
-				"/.*spring.*security.*oauth2.*client.*registration.*example-app-client.*client-id.*:.*test-client.*/)]"),
+				"/.*spring.security.oauth2.client.registration.example-app-client.client-id.*:.*test-client1.*/)]"),
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ " +
-				"/.*spring.*security.*oauth2.*client.*registration.*example-app-client.*client-secret.*:.*[a-zA-Z]{14}.*/)]"));
+				"/.*spring.security.oauth2.client.registration.example-app-client.client-secret.*:.*[a-zA-Z]{14}.*/)]"));
 
-		uaaFixture.stubCreateClient();
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
+		cloudControllerFixture.stubPushApp(APP_NAME_2,
+			matchingJsonPath("$.environment_json[?(@.['spring.security.oauth2.client.registration.example-app-client.client-id'] =~ " +
+				"/test-client2/)]"),
+			matchingJsonPath("$.environment_json[?(@.['spring.security.oauth2.client.registration.example-app-client.client-secret'] =~ " +
+				"/[a-zA-Z]{14}/)]"));
+
+		uaaFixture.stubCreateClient("test-client1");
+		uaaFixture.stubCreateClient("test-client2");
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
+			.put(brokerFixture.createServiceInstanceUrl(), SERVICE_INSTANCE_ID)
 			.then()
 			.statusCode(HttpStatus.ACCEPTED.value());
 
 		// when the "last_operation" API is polled
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.get(brokerFixture.getLastInstanceOperationUrl(), SERVICE_INSTANCE_ID)
 			.then()
 			.statusCode(HttpStatus.OK.value())
 			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
 
-		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		String state = brokerFixture.waitForAsyncOperationComplete(SERVICE_INSTANCE_ID);
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
 	}
 
 	@Test
 	void deleteAppWithOAuth2Credentials() {
-		cloudControllerFixture.stubAppExists(APP_NAME);
-		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
-		cloudControllerFixture.stubDeleteApp(APP_NAME);
+		cloudControllerFixture.stubAppExists(APP_NAME_1);
+		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME_1);
+		cloudControllerFixture.stubDeleteApp(APP_NAME_1);
 
-		uaaFixture.stubDeleteClient("test-client");
+		cloudControllerFixture.stubAppExists(APP_NAME_2);
+		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME_2);
+		cloudControllerFixture.stubDeleteApp(APP_NAME_2);
+
+		uaaFixture.stubDeleteClient("test-client1");
+		uaaFixture.stubDeleteClient("test-client2");
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.delete(brokerFixture.deleteServiceInstanceUrl(), "instance-id")
+			.delete(brokerFixture.deleteServiceInstanceUrl(), SERVICE_INSTANCE_ID)
 			.then()
 			.statusCode(HttpStatus.ACCEPTED.value());
 
 		// when the "last_operation" API is polled
 		given(brokerFixture.serviceInstanceRequest())
 			.when()
-			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.get(brokerFixture.getLastInstanceOperationUrl(), SERVICE_INSTANCE_ID)
 			.then()
 			.statusCode(HttpStatus.OK.value())
 			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
 
-		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		String state = brokerFixture.waitForAsyncOperationComplete(SERVICE_INSTANCE_ID);
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
 	}
 

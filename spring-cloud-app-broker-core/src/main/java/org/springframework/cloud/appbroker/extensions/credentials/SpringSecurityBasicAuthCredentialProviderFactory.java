@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import java.util.Collections;
-import java.util.HashMap;
-
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
@@ -29,11 +26,8 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 
 	private static final String CREDENTIAL_DESCRIPTOR = "basic";
 
-	static final String SPRING_KEY = "spring";
-	static final String SPRING_SECURITY_KEY = "security";
-	static final String SPRING_SECURITY_USER_KEY = "user";
-	static final String SPRING_SECURITY_USER_NAME_KEY = "name";
-	static final String SPRING_SECURITY_USER_PASSWORD_KEY = "password";
+	static final String SPRING_SECURITY_USER_NAME_KEY = "spring.security.user.name";
+	static final String SPRING_SECURITY_USER_PASSWORD_KEY = "spring.security.user.password";
 
 	private final CredentialGenerator credentialGenerator;
 
@@ -71,14 +65,8 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 	}
 
 	private Mono<Void> addUserToEnvironment(BackingApplication backingApplication, Tuple2<String, String> user) {
-		return Mono.just(new HashMap<>(2))
-				   .flatMap(userProperties -> {
-					   userProperties.put(SPRING_SECURITY_USER_NAME_KEY, user.getT1());
-					   userProperties.put(SPRING_SECURITY_USER_PASSWORD_KEY, user.getT2());
-					   backingApplication.addEnvironment(SPRING_KEY,
-						   Collections.singletonMap(SPRING_SECURITY_KEY,
-							   Collections.singletonMap(SPRING_SECURITY_USER_KEY, userProperties)));
-					   return Mono.empty();
-				   });
+		backingApplication.addEnvironment(SPRING_SECURITY_USER_NAME_KEY, user.getT1());
+		backingApplication.addEnvironment(SPRING_SECURITY_USER_PASSWORD_KEY, user.getT2());
+		return Mono.empty();
 	}
 }

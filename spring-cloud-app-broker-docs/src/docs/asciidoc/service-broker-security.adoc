@@ -1,2 +1,0 @@
-[[service-broker-security]]
-== Service Broker Security

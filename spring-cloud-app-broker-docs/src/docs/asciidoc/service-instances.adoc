@@ -1,6 +1,8 @@
 [[service-instances]]
 == Service Instances
 
+You can configure details of services, including apps to deploy, app deployment details, and backing services to create, in App Broker configuration properties. These properties are generally under `spring.cloud.appbroker.services`.
+
 === Configuring App Deployment
 
 Deployment details for a backing application can be configured statically in the service broker's application configuration and dynamically using service instance parameters and customization implementations.
@@ -127,7 +129,46 @@ The following table lists properties that can be set for all or specific app dep
 
 ===== Environment Configuration
 
+You can provide environment variables to be set on a deployed app. Environment variables are set using properties under `environment` for the deployed app, as in the following example:
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          apps:
+            - name: example-service-app1
+              path: classpath:app1.jar
+              *environment:*
+                *logging.level.spring.security: DEBUG*
+                *spring.profiles.active: cloud*
+```
+
 ===== Service Configuration
+
+You can configure services which should be bound to a deployed app. Services are configured using properties under `services` for the deployed app, as in the following example:
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          apps:
+            - name: example-service-app1
+              path: classpath:app1.jar
+              *services:*
+              *- service-instance-name: example-db*
+                *name: mysql*
+                *plan: small*
+                *parameters:*
+                  *param-key: param-value*
+```
 
 ==== Dynamic Customization
 
@@ -135,8 +176,152 @@ To customize the backing application deployment using information that is only a
 
 ===== Backing Application Target
 
+You can configure the target location for backing applications (in Cloud Foundry, an org and space) using a `target` specification, as in the following example:
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          *target:*
+          *- name: SpacePerServiceInstance*
+        apps:
+          apps:
+            - name: example-service-app1
+              path: classpath:app1.jar
+```
+
+By default (if you do not provide a `target` specification), all backing applications are deployed to the default target specified under `spring.cloud.appbroker.deployer`. For Cloud Foundry, this is the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org` and the space named by `spring.cloud.appbroker.deployer.cloudfoundry.default-space`.
+
+====== The `SpacePerServiceInstance` Target
+
+If you use the `SpacePerServiceInstance` target, App Broker will deploy backing applications to a unique target location that is named using the service instance GUID provided by the platform at service instance create time. For Cloud Foundry, this target location will be the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org` and a new space created using the service instance GUID as the space name.
+
+===== Service Instance Parameters
+
+When a user provides parameters while creating or updating a service instance, App Broker can transform these parameters into details of the backing app deployment using parameters transformers. You can configure parameters transformers using properties under `parameters-transformers`, as in the following example:
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          apps:
+            - name: example-service-app1
+              path: classpath:app1.jar
+              *parameters-transformers:*
+                *- name: EnvironmentMapping*
+                  *args:*
+                    *- include: parameter1,parameter2*
+                *- name: PropertyMapping*
+                  *args:*
+                    *- include: count,memory*
+```
+
+In this example, the named `parameters-transformers` refer to Java objects which have been contributed to the Spring application context. A parameters transformer can accept one or more arguments that configure its behavior, and can modify any aspect of the backing application deployment (properties, environment variables, services, etc.).
+
+====== The `EnvironmentMapping` Parameters Transformer
+
+The `EnvironmentMapping` parameters transformer populates environment variables on the backing application from parameters provided when a service instance is created or updated. It supports a single argument, `include`, which specifies the names of parameters that will be mapped to environment variables. 
+
+====== The `PropertyMapping` Parameters Transformer
+
+The `PropertyMapping` parameters transformer sets deployment properties of the backing application from parameters provided when a service instance is created or updated. It supports a single argument, `include`, which specifies the names of deployment properties that should be recognized.
+
+===== Credentials Generation
+
+App Broker can generate and assign unique credentials for each backing app deployment. You can configure credential providers using properties under `credential-providers`, as in the following example:
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          apps:
+            - name: example-service-app1
+              path: classpath:app1.jar
+              *credential-providers:*
+                *- name: SpringSecurityBasicAuth*
+                *- name: SpringSecurityOAuth2*
+```
+
+In this example, the named `credential-providers` refer to Java objects which have been contributed to the Spring application context. A credential provider can accept one or more arguments that configure its behavior. A credential provider typically generates credentials and set environment variables on the backing application.
+
+====== The `SpringSecurityBasicAuth` Credential Provider
+
+The `SpringSecurityBasicAuth` credential provider generates a username and password and sets Spring Boot security properties to the generated values. Username and password generation can be configured with arguments, as in the following example:
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          apps:
+            - name: example-service-app1
+              path: classpath:app1.jar
+              *credential-providers:*
+                *- name: SpringSecurityBasicAuth*
+                  *args:*
+                    *- length: 14*
+                      *include-uppercase-alpha: true*
+                      *include-lowercase-alpha: true*
+                      *include-numeric: true*
+                      *include-special: true*
+```
+
+====== The `SpringSecurityOAuth2` Credential Provider
+
+The `SpringSecurityOAuth2` credential provider creates an OAuth2 client in a token server (e.g. UAA for Cloud Foundry) using details provided as arguments and a generated client secret, and sets Spring Boot security properties to the generated values. Client secret generation can also be configured with arguments, as in the following example: 
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      services:
+        - service-name: example
+          plan-name: standard
+          apps:
+            - name: example-service-app1
+              path: classpath:app1.jar
+              *credential-providers:*
+                *- name: SpringSecurityOAuth2*
+                  *args:*
+                  *- registration: my-client-1*
+                    *client-id: example-client*
+                    *client-name: example-client*
+                    *scopes: ["uaa.resource"]*
+                    *authorities: ["uaa.resource"]*
+                    *grant-types: ["client_credentials"]*
+                    *identity-zone-subdomain:*
+                    *identity-zone-id:*
+                    *length: 14*
+                    *include-uppercase-alpha: true*
+                    *include-lowercase-alpha: true*
+                    *include-numeric: true*
+                    *include-special: true*
+```
+
+////
+
+TODO: Document `CreateServiceInstanceWorkflow`, `UpdateServiceInstanceWorkflow`, and `DeleteServiceInstanceWorkflow`.
+
 === Creating a Service Instance
 
 === Updating a Service Instance
 
 === Deleting a Service Instance
+
+////

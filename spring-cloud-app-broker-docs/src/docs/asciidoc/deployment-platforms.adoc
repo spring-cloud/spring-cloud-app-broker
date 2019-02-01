@@ -1,4 +1,21 @@
 [[deployment-platforms]]
 == Deployment Platforms
 
+You can configure details of deployment platforms in App Broker configuration properties. These properties are under `spring.cloud.appbroker.deployer`. Currently, Spring Cloud App Broker supports only Cloud Foundry as a deployment platform.
 
+To configure a Cloud Foundry deployment platform, use properties under `spring.cloud.appbroker.deployer.cloudfoundry`, as in the following example:
+
+[subs=+quotes]
+```yml
+spring:
+  cloud:
+    appbroker:
+      deployer:
+        *cloudfoundry:*
+          *api-host: api.sys.example.com*
+          *api-port: 443*
+          *username: admin*
+          *password: adminpass*
+          *default-org: test*
+          *default-space: development*
+```

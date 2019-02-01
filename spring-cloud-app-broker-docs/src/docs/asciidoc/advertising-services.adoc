@@ -1,0 +1,6 @@
+[[advertising-services]]
+== Advertising Services
+
+The service broker catalog, through which the broker advertises service offerings, is provided by Spring Cloud Open Service Broker. In App Broker configuration (using properties under `spring.cloud.appbroker.services`), you can list services and their plans. This listing must correspond to the service and service plan listing given to Spring Cloud Open Service Broker (using properties under `spring.cloud.openservicebroker.catalog.services`).
+
+For more information about configuring the broker catalog, see the {scosb-docs}#service-catalog[Spring Cloud Open Service Broker documentation].

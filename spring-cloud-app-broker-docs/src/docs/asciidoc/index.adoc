@@ -12,6 +12,7 @@
 :source: {github}/tree/{branch-or-tag}
 :scosb: https://cloud.spring.io/spring-cloud-open-service-broker/
 :scosb-href: {scosb}[Spring Cloud Open Service Broker]
+:scosb-docs: https://docs.spring.io/spring-cloud-open-service-broker/docs/current/reference/html5/
 :osbapi: https://www.openservicebrokerapi.org/
 :osbapi-href: {osbapi}[Open Service Broker API]
 :springboot: https://projects.spring.io/spring-boot/
@@ -25,8 +26,7 @@ Spring Cloud App Broker is a framework for building {springboot-href} applicatio
 
 include::introduction.adoc[]
 include::getting-started.adoc[]
+include::advertising-services.adoc[]
 include::service-instances.adoc[]
 include::service-bindings.adoc[]
-include::service-broker-security.adoc[]
-include::data-storage.adoc[]
 include::deployment-platforms.adoc[]

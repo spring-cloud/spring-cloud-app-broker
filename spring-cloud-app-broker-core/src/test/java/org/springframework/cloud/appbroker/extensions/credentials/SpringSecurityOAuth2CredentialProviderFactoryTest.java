@@ -38,13 +38,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_KEY;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_CLIENT_ID_KEY;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_CLIENT_KEY;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_CLIENT_SECRET_KEY;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_KEY;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_OAUTH2_KEY;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_REGISTRATION_KEY;
+import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_OAUTH2_CLIENT_ID_KEY;
+import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_OAUTH2_CLIENT_SECRET_KEY;
+import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_OAUTH2_REGISTRATION_KEY;
 
 @ExtendWith(MockitoExtension.class)
 class SpringSecurityOAuth2CredentialProviderFactoryTest {
@@ -113,13 +109,11 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 	private void assertEnvironmentContainsProperties(BackingApplication backingApplication, String id) {
 		Map<String, Object> environment = backingApplication.getEnvironment();
 
-		Map<String, Object> clientProperties = MapUtils.getNestedMap(environment,
-			SPRING_KEY, SPRING_SECURITY_KEY, SPRING_SECURITY_OAUTH2_KEY, SPRING_SECURITY_CLIENT_KEY,
-			SPRING_SECURITY_REGISTRATION_KEY, CLIENT_REGISTRATION);
-
-		assertThat(clientProperties)
-			.containsEntry(SPRING_SECURITY_CLIENT_ID_KEY, id)
-			.containsEntry(SPRING_SECURITY_CLIENT_SECRET_KEY, "test-secret");
+		assertThat(environment)
+			.containsEntry(SPRING_SECURITY_OAUTH2_REGISTRATION_KEY + CLIENT_REGISTRATION +
+				SPRING_SECURITY_OAUTH2_CLIENT_ID_KEY, id)
+			.containsEntry(SPRING_SECURITY_OAUTH2_REGISTRATION_KEY + CLIENT_REGISTRATION +
+				SPRING_SECURITY_OAUTH2_CLIENT_SECRET_KEY, "test-secret");
 	}
 
 	@Test

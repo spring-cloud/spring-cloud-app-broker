@@ -92,9 +92,9 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 	}
 
 	private void assertBasicAuthCredentialsProvided(DocumentContext json) {
-		assertThat(json).jsonPathAsString("$.spring.security.user.name")
+		assertThat(json).jsonPathAsString("$.['spring.security.user.name']")
 			.matches("[a-zA-Z]{14}");
-		assertThat(json).jsonPathAsString("$.spring.security.user.password")
+		assertThat(json).jsonPathAsString("$.['spring.security.user.password']")
 			.matches("[a-zA-Z]{14}");
 	}
 }

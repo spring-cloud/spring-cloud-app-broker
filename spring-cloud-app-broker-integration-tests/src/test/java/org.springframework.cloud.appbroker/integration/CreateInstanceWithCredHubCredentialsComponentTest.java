@@ -79,7 +79,7 @@ class CreateInstanceWithCredHubCredentialsComponentTest extends WiremockComponen
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME);
 
-		uaaFixture.stubCreateClient();
+		uaaFixture.stubCreateClient("test-client");
 
 		credHubFixture.stubGenerateUser(APP_NAME, SERVICE_INSTANCE_ID, "basic", 14);
 		credHubFixture.stubGeneratePassword(APP_NAME, SERVICE_INSTANCE_ID, "oauth2", 12);

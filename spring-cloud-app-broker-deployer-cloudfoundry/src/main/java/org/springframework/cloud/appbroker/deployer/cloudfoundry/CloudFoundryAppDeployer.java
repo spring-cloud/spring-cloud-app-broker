@@ -168,7 +168,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	public Mono<UpdateApplicationResponse> update(UpdateApplicationRequest request) {
 		final String name = request.getName();
 		final Map<String, Object> environmentVariables =
-			getApplicationEnvironment(request.getProperties(), request.getEnvironment());
+			getApplicationEnvironment(request.getProperties(), request.getEnvironment(), request.getServiceInstanceId());
 
 		Map<String, String> deploymentProperties = request.getProperties();
 		CloudFoundryOperations operations;
@@ -536,23 +536,24 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private Map<String, Object> getEnvironmentVariables(Map<String, String> properties,
 														Map<String, Object> environment,
 														String serviceInstanceId) {
-		Map<String, Object> envVariables = getApplicationEnvironment(properties, environment);
+		Map<String, Object> envVariables = getApplicationEnvironment(properties, environment, serviceInstanceId);
 
 		String javaOpts = javaOpts(properties);
 		if (StringUtils.hasText(javaOpts)) {
 			envVariables.put("JAVA_OPTS", javaOpts);
 		}
 
-		if (serviceInstanceId != null) {
-			envVariables.put("SPRING_CLOUD_APPBROKER_SERVICE_INSTANCE_ID", serviceInstanceId);
-		}
-
 		return envVariables;
 	}
 
 	private Map<String, Object> getApplicationEnvironment(Map<String, String> properties,
-														  Map<String, Object> environment) {
+														  Map<String, Object> environment,
+														  String serviceInstanceId) {
 		Map<String, Object> applicationEnvironment = sanitizeApplicationEnvironment(environment);
+
+		if (serviceInstanceId != null) {
+			applicationEnvironment.put("spring.cloud.appbroker.service-instance-id", serviceInstanceId);
+		}
 
 		if (!applicationEnvironment.isEmpty() && useSpringApplicationJson(properties)) {
 			try {

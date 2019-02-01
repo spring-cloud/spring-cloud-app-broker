@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,9 +32,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_KEY;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_KEY;
-import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_KEY;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_NAME_KEY;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_PASSWORD_KEY;
 
@@ -75,11 +70,7 @@ class SpringSecurityBasicAuthCredentialProviderFactoryTest {
 			.expectNext(backingApplication)
 			.verifyComplete();
 
-		Map<String, Object> environment = backingApplication.getEnvironment();
-		Map<String, Object> userProperties = MapUtils.getNestedMap(environment,
-			SPRING_KEY, SPRING_SECURITY_KEY, SPRING_SECURITY_USER_KEY);
-
-		assertThat(userProperties)
+		assertThat(backingApplication.getEnvironment())
 			.containsEntry(SPRING_SECURITY_USER_NAME_KEY, "username")
 			.containsEntry(SPRING_SECURITY_USER_PASSWORD_KEY, "password");
 	}

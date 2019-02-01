@@ -1,7 +1,7 @@
 {
-	"client_id" : "foo",
-	"name" : "Foo Client Name",
-	"client_secret" : "fooclientsecret",
+	"name" : "Client Name",
+	"client_id" : "@client-id",
+	"client_secret" : "client-secret",
 	"scope" : ["uaa.none"],
 	"authorities" : ["cloud_controller.read","cloud_controller.write","openid"],
 	"authorized_grant_types" : ["client_credentials"],

@@ -31,6 +31,11 @@ public class ParametersTransformerSpec {
 		this.args = args;
 	}
 
+	ParametersTransformerSpec(ParametersTransformerSpec parametersTransformerSpecToClone) {
+		this.name = parametersTransformerSpecToClone.name;
+		this.args = parametersTransformerSpecToClone.args;
+	}
+
 	public String getName() {
 		return name;
 	}

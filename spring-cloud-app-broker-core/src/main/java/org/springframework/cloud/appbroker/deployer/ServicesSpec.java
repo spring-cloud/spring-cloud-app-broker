@@ -23,6 +23,10 @@ public class ServicesSpec {
 	private ServicesSpec() {
 	}
 
+	ServicesSpec(ServicesSpec servicesSpecToClone) {
+		this.serviceInstanceName = servicesSpecToClone.serviceInstanceName;
+	}
+
 	ServicesSpec(String serviceInstanceName) {
 		this.serviceInstanceName = serviceInstanceName;
 	}

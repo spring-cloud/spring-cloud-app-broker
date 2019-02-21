@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class BackingApplication {
 
@@ -46,13 +47,13 @@ public class BackingApplication {
 			: new HashMap<>(backingApplicationToCopy.environment);
 		this.services = backingApplicationToCopy.services == null
 			? new ArrayList<>()
-			: new ArrayList<>(backingApplicationToCopy.services);
+			: backingApplicationToCopy.services.stream().map(ServicesSpec::new).collect(Collectors.toList());
 		this.parametersTransformers = backingApplicationToCopy.parametersTransformers == null
 			? new ArrayList<>()
-			: new ArrayList<>(backingApplicationToCopy.parametersTransformers);
+			: backingApplicationToCopy.parametersTransformers.stream().map(ParametersTransformerSpec::new).collect(Collectors.toList());
 		this.credentialProviders = backingApplicationToCopy.credentialProviders == null
 			? new ArrayList<>()
-			: new ArrayList<>(backingApplicationToCopy.credentialProviders);
+			: backingApplicationToCopy.credentialProviders.stream().map(CredentialProviderSpec::new).collect(Collectors.toList());
 	}
 
 	private BackingApplication() {
@@ -136,6 +137,7 @@ public class BackingApplication {
 	public void setCredentialProviders(List<CredentialProviderSpec> credentialProviders) {
 		this.credentialProviders = credentialProviders;
 	}
+
 	public static BackingApplicationBuilder builder() {
 		return new BackingApplicationBuilder();
 	}

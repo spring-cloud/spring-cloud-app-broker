@@ -60,7 +60,7 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetComponentTest extends Wir
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void deployAppsWithServiceInstanceGuidSuffixOnCreateService() {
+	void deployAppsWithServiceInstanceGuidSuffixOnCreateServiceWhenCreatingMoreThanOnceInstance() {
 		String serviceInstanceId = "instance-id";
 		String applicationName = APP_NAME + "-" + serviceInstanceId;
 		String backingServiceInstanceName = BACKING_SI_NAME + "-" + serviceInstanceId;
@@ -91,8 +91,39 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetComponentTest extends Wir
 			.statusCode(HttpStatus.OK.value())
 			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
 
+		// then a new service instance was created
 		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
 		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
+
+		// when a second service instance is created
+		String otherServiceInstanceId = "other-instance-id";
+		String otherBackingServiceInstanceName = BACKING_SI_NAME + "-" + otherServiceInstanceId;
+		String otherApplicationName = APP_NAME + "-" + otherServiceInstanceId;
+
+		cloudControllerFixture.stubAppDoesNotExist(otherApplicationName);
+		cloudControllerFixture.stubPushApp(otherApplicationName);
+
+		cloudControllerFixture.stubCreateServiceInstance(otherBackingServiceInstanceName);
+		cloudControllerFixture.stubCreateServiceBinding(otherApplicationName, otherBackingServiceInstanceName);
+		cloudControllerFixture.stubServiceInstanceExists(otherBackingServiceInstanceName);
+
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.put(brokerFixture.createServiceInstanceUrl(), "other-instance-id")
+			.then()
+			.statusCode(HttpStatus.ACCEPTED.value());
+
+		// when the "last_operation" API is polled
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.get(brokerFixture.getLastInstanceOperationUrl(), "other-instance-id")
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
+
+		// then the second instance was created
+		String otherState = brokerFixture.waitForAsyncOperationComplete("other-instance-id");
+		assertThat(otherState).isEqualTo(OperationState.SUCCEEDED.toString());
 	}
 
 }

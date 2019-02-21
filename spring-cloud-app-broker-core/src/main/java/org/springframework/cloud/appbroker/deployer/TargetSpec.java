@@ -27,6 +27,10 @@ public class TargetSpec {
 		this.name = name;
 	}
 
+	TargetSpec(TargetSpec targetSpecToClone) {
+		this.name = targetSpecToClone.name;
+	}
+
 	public String getName() {
 		return name;
 	}

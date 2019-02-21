@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class CredentialProviderSpec {
+
 	private String name;
 	private Map<String, Object> args;
 
@@ -29,6 +30,11 @@ public class CredentialProviderSpec {
 	CredentialProviderSpec(String name, Map<String, Object> args) {
 		this.name = name;
 		this.args = args;
+	}
+
+	CredentialProviderSpec(CredentialProviderSpec credentialProviderSpecToClone) {
+		this.name = credentialProviderSpecToClone.name;
+		this.args = credentialProviderSpecToClone.args;
 	}
 
 	public String getName() {
@@ -52,6 +58,7 @@ public class CredentialProviderSpec {
 	}
 
 	public static class CredentialProviderSpecBuilder {
+
 		private String name;
 		private final Map<String, Object> args = new LinkedHashMap<>();
 

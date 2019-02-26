@@ -16,6 +16,10 @@ spring:
           *api-port: 443*
           *username: admin*
           *password: adminpass*
+          *client-id: EXAMPLE_ID*
+          *client-secret: EXAMPLE_SECRET*
           *default-org: test*
           *default-space: development*
 ```
+
+NOTE: The two properties `username` and `password` and the two properties `client-id` and `client-secret` are mutually exclusive. The `client-id` and `client-secret` properties are for use with OAuth 2.0.

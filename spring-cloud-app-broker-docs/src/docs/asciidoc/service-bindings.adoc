@@ -7,8 +7,8 @@ By default, Spring Cloud App Broker does not include functionality for managing 
 
 === Creating a Service Binding
 
-The service broker application must implement the https://docs.spring.io/spring-cloud-app-broker/docs/1.0.0.BUILD-SNAPSHOT/api/org/springframework/cloud/appbroker/service/CreateServiceInstanceAppBindingWorkflow.html[`CreateServiceInstanceAppBindingWorkflow`] interface.
+The service broker application can implement the https://docs.spring.io/spring-cloud-app-broker/docs/1.0.0.BUILD-SNAPSHOT/api/org/springframework/cloud/appbroker/service/CreateServiceInstanceAppBindingWorkflow.html[`CreateServiceInstanceAppBindingWorkflow`] interface. Alternatively, the service broker application can implement the `ServiceInstanceBindingService` interface provided by Spring Cloud Open Service Broker. See https://docs.spring.io/spring-cloud-open-service-broker/docs/current/reference/html5/#service-bindings[Service Bindings] in the https://docs.spring.io/spring-cloud-open-service-broker/docs/current/reference/html5/[Spring Cloud Open Service Broker documentation].
 
 === Deleting a Service Binding
 
-The service broker application must implement the https://docs.spring.io/spring-cloud-app-broker/docs/1.0.0.BUILD-SNAPSHOT/api/org/springframework/cloud/appbroker/service/DeleteServiceInstanceBindingWorkflow.html[`DeleteServiceInstanceBindingWorkflow`] interface.
+The service broker application can implement the https://docs.spring.io/spring-cloud-app-broker/docs/1.0.0.BUILD-SNAPSHOT/api/org/springframework/cloud/appbroker/service/DeleteServiceInstanceBindingWorkflow.html[`DeleteServiceInstanceBindingWorkflow`] interface. Alternatively, the service broker application can implement the `ServiceInstanceBindingService` interface provided by Spring Cloud Open Service Broker. See https://docs.spring.io/spring-cloud-open-service-broker/docs/current/reference/html5/#service-bindings[Service Bindings] in the https://docs.spring.io/spring-cloud-open-service-broker/docs/current/reference/html5/[Spring Cloud Open Service Broker documentation].

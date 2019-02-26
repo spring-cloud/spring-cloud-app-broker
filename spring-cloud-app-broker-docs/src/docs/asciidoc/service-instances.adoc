@@ -200,6 +200,10 @@ By default (if you do not provide a `target` specification), all backing applica
 
 If you use the `SpacePerServiceInstance` target, App Broker will deploy backing applications to a unique target location that is named using the service instance GUID provided by the platform at service instance create time. For Cloud Foundry, this target location will be the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org` and a new space created using the service instance GUID as the space name.
 
+====== The `ServiceInstanceGuidSuffix` Target
+
+If you use the `ServiceInstanceGuidSuffix` target, App Broker will deploy backing applications using a unique name and hostname that incorporates the service instance GUID provided by the platform at service instance create time. For Cloud Foundry, the target location will be the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org`, the space named by `spring.cloud.appbroker.deployer.cloudfoundry.default-space`, and an application name as `[APP-NAME]-[SI-GUID]`, where `[APP-NAME]` is the `name` listed for the application under `spring.cloud.appbroker.services.apps` and `[SI-GUID]` is the service instance GUID. The application will also use a hostname incorporating the service instance GUID as a suffix, as `[APP-NAME]-[SI-GUID]`.
+
 ===== Service Instance Parameters
 
 When a user provides parameters while creating or updating a service instance, App Broker can transform these parameters into details of the backing app deployment using parameters transformers. You can configure parameters transformers using properties under `parameters-transformers`, as in the following example:

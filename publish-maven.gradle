@@ -38,7 +38,7 @@ def customizePom(pom, gradleProject) {
 		generatedPom.project {
 			name = gradleProject.description
 			description = gradleProject.description
-			url = "https://projects.spring.io/spring-cloud"
+			url = "https://spring.io/projects/spring-cloud-app-broker"
 			organization {
 				name = "Pivotal Software, Inc."
 				url = "https://www.spring.io"
@@ -60,11 +60,16 @@ def customizePom(pom, gradleProject) {
 					id = "royclarkson"
 					name = "Roy Clarkson"
 					email = "rclarkson@pivotal.io"
+				},
+				developer {
+					id = "sfrederick"
+					name = "Scott Frederick"
+					email = "sfrederick@pivotal.io"
 				}
 			}
 			issueManagement {
 				system = "GitHub"
-				url = "https://github.com/spring-cloud-incubator/spring-cloud-app-broker/issues"
+				url = "https://github.com/spring-cloud/spring-cloud-app-broker/issues"
 			}
 		}
 	}

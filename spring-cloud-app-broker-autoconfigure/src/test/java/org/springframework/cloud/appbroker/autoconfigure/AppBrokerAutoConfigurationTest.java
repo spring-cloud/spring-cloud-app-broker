@@ -41,6 +41,8 @@ import org.springframework.cloud.appbroker.extensions.parameters.PropertyMapping
 import org.springframework.cloud.appbroker.extensions.targets.ServiceInstanceGuidSuffix;
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
+import org.springframework.cloud.appbroker.manager.ManagementClient;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceRouteBindingWorkflow;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceBindingWorkflow;
@@ -164,12 +166,14 @@ class AppBrokerAutoConfigurationTest {
 
 	private void assertBeansCreated(AssertableApplicationContext context) {
 		assertThat(context).hasSingleBean(DeployerClient.class);
+		assertThat(context).hasSingleBean(ManagementClient.class);
 		assertThat(context).hasSingleBean(BrokeredServices.class);
 
 		assertThat(context).hasSingleBean(ServiceInstanceStateRepository.class);
 		assertThat(context).hasSingleBean(ServiceInstanceBindingStateRepository.class);
 
 		assertThat(context).hasSingleBean(BackingAppDeploymentService.class);
+		assertThat(context).hasSingleBean(BackingAppManagementService.class);
 		assertThat(context).hasSingleBean(BackingServicesProvisionService.class);
 
 		assertThat(context).hasSingleBean(BackingApplicationsParametersTransformationService.class);

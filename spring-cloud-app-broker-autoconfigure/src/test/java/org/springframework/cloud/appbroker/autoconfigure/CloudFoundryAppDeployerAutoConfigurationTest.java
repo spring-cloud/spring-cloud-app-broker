@@ -31,7 +31,9 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryOperationsUtils;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryTargetProperties;
+import org.springframework.cloud.appbroker.manager.AppManager;
 import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,12 +76,14 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				assertThat(deploymentProperties.getDomain()).isEqualTo("example.com");
 
 				assertThat(context).hasSingleBean(AppDeployer.class);
+				assertThat(context).hasSingleBean(AppManager.class);
 				assertThat(context).hasSingleBean(OAuth2Client.class);
 
 				assertThat(context).hasSingleBean(ReactorCloudFoundryClient.class);
 				assertThat(context).hasSingleBean(ReactorDopplerClient.class);
 				assertThat(context).hasSingleBean(ReactorUaaClient.class);
 				assertThat(context).hasSingleBean(CloudFoundryOperations.class);
+				assertThat(context).hasSingleBean(CloudFoundryOperationsUtils.class);
 				assertThat(context).hasSingleBean(DefaultConnectionContext.class);
 				assertThat(context).hasSingleBean(PasswordGrantTokenProvider.class);
 			});
@@ -107,11 +111,13 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				assertThat(targetProperties.getClientSecret()).isEqualTo("secret");
 
 				assertThat(context).hasSingleBean(AppDeployer.class);
+				assertThat(context).hasSingleBean(AppManager.class);
 
 				assertThat(context).hasSingleBean(ReactorCloudFoundryClient.class);
 				assertThat(context).hasSingleBean(ReactorDopplerClient.class);
 				assertThat(context).hasSingleBean(ReactorUaaClient.class);
 				assertThat(context).hasSingleBean(CloudFoundryOperations.class);
+				assertThat(context).hasSingleBean(CloudFoundryOperationsUtils.class);
 				assertThat(context).hasSingleBean(DefaultConnectionContext.class);
 				assertThat(context).hasSingleBean(ClientCredentialsGrantTokenProvider.class);
 			});
@@ -127,6 +133,7 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				assertThat(context).doesNotHaveBean(ReactorDopplerClient.class);
 				assertThat(context).doesNotHaveBean(ReactorUaaClient.class);
 				assertThat(context).doesNotHaveBean(CloudFoundryOperations.class);
+				assertThat(context).doesNotHaveBean(CloudFoundryOperationsUtils.class);
 				assertThat(context).doesNotHaveBean(ConnectionContext.class);
 				assertThat(context).doesNotHaveBean(TokenProvider.class);
 			});

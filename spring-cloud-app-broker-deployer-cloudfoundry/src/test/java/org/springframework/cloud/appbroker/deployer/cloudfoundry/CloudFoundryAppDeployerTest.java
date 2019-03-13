@@ -22,7 +22,12 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceResponse;
+import org.cloudfoundry.client.v2.serviceinstances.ServiceInstanceEntity;
 import org.cloudfoundry.client.v2.serviceinstances.ServiceInstances;
+import org.cloudfoundry.client.v2.spaces.GetSpaceRequest;
+import org.cloudfoundry.client.v2.spaces.GetSpaceResponse;
+import org.cloudfoundry.client.v2.spaces.SpaceEntity;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -54,12 +59,17 @@ import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.UpdateServiceInstanceRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.CollectionUtils;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("UnassignedFluxMonoInstance")
@@ -86,10 +96,16 @@ class CloudFoundryAppDeployerTest {
 	private ServiceInstances clientServiceInstances;
 
 	@Mock
+	private org.cloudfoundry.client.v2.spaces.Spaces clientSpaces;
+
+	@Mock
 	private CloudFoundryOperations cloudFoundryOperations;
 
 	@Mock
 	private CloudFoundryClient cloudFoundryClient;
+
+	@Mock
+	private CloudFoundryOperationsUtils operationsUtils;
 
 	@Mock
 	private ResourceLoader resourceLoader;
@@ -108,9 +124,12 @@ class CloudFoundryAppDeployerTest {
 		when(cloudFoundryOperations.applications()).thenReturn(operationsApplications);
 		when(cloudFoundryOperations.services()).thenReturn(operationsServices);
 		when(cloudFoundryClient.serviceInstances()).thenReturn(clientServiceInstances);
+		when(cloudFoundryClient.spaces()).thenReturn(clientSpaces);
+		when(operationsUtils.getOperations(anyMap())).thenReturn(Mono.just(cloudFoundryOperations));
+		when(operationsUtils.getOperationsForSpace(anyString())).thenReturn(Mono.just(cloudFoundryOperations));
 
-		appDeployer = new CloudFoundryAppDeployer(deploymentProperties,
-			cloudFoundryOperations, cloudFoundryClient, targetProperties, resourceLoader);
+		appDeployer = new CloudFoundryAppDeployer(deploymentProperties, cloudFoundryOperations, cloudFoundryClient,
+			operationsUtils, targetProperties, resourceLoader);
 	}
 
 	@Test
@@ -472,6 +491,124 @@ class CloudFoundryAppDeployerTest {
 		StepVerifier.create(
 			appDeployer.updateServiceInstance(request))
 			.verifyComplete();
+	}
+
+	@Test
+	void getServiceInstanceById() {
+		when(operationsServices.getInstance(any(GetServiceInstanceRequest.class)))
+			.thenReturn(Mono.just(ServiceInstance.builder()
+				.id("foo-service-instance-id")
+				.name("my-foo-service")
+				.service("foo-service")
+				.plan("foo-plan")
+				.type(ServiceInstanceType.MANAGED)
+				.build()));
+
+		when(clientServiceInstances
+			.get(any(org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceRequest.class)))
+			.thenReturn(Mono.just(GetServiceInstanceResponse.builder()
+				.entity(ServiceInstanceEntity.builder()
+					.name("my-foo-service")
+					.spaceId("foo-space-id")
+					.build())
+				.build()));
+
+		when(clientSpaces.get(GetSpaceRequest.builder()
+			.spaceId("foo-space-id")
+			.build()))
+			.thenReturn(Mono.just(GetSpaceResponse.builder()
+				.entity(SpaceEntity.builder()
+					.name("foo-space")
+					.build())
+				.build()));
+
+		org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest request =
+			org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest
+			.builder()
+			.serviceInstanceId("foo-service-instance-id")
+			.properties(emptyMap())
+			.build();
+
+		StepVerifier.create(appDeployer.getServiceInstance(request))
+			.assertNext(response -> {
+				assertThat(response.getName()).isEqualTo("my-foo-service");
+				assertThat(response.getService()).isEqualTo("foo-service");
+				assertThat(response.getPlan()).isEqualTo("foo-plan");
+			})
+			.verifyComplete();
+
+		verify(operationsUtils).getOperationsForSpace(argThat("foo-space"::equals));
+		verify(cloudFoundryClient).serviceInstances();
+		verify(clientServiceInstances).get(argThat(req -> "foo-service-instance-id".equals(req.getServiceInstanceId())));
+		verify(cloudFoundryClient).spaces();
+		verify(clientSpaces).get(argThat(req -> "foo-space-id".equals(req.getSpaceId())));
+		verify(cloudFoundryOperations).services();
+		verify(operationsServices).getInstance(argThat(req -> "my-foo-service".equals(req.getName())));
+		verifyNoMoreInteractions(cloudFoundryClient, cloudFoundryOperations, operationsUtils);
+	}
+
+	@Test
+	void getServiceInstanceByName() {
+		when(operationsServices.getInstance(any(GetServiceInstanceRequest.class)))
+			.thenReturn(Mono.just(ServiceInstance.builder()
+				.id("foo-service-instance-id")
+				.name("my-foo-service")
+				.service("foo-service")
+				.plan("foo-plan")
+				.type(ServiceInstanceType.MANAGED)
+				.build()));
+
+		org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest request = org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest
+			.builder()
+			.name("my-foo-service")
+			.build();
+
+		StepVerifier.create(appDeployer.getServiceInstance(request))
+			.assertNext(response -> {
+				assertThat(response.getName()).isEqualTo("my-foo-service");
+				assertThat(response.getService()).isEqualTo("foo-service");
+				assertThat(response.getPlan()).isEqualTo("foo-plan");
+			})
+			.verifyComplete();
+
+		verify(operationsUtils).getOperations(argThat(CollectionUtils::isEmpty));
+		verify(cloudFoundryOperations).services();
+		verify(operationsServices).getInstance(argThat(req -> "my-foo-service".equals(req.getName())));
+		verifyZeroInteractions(cloudFoundryClient);
+		verifyNoMoreInteractions(cloudFoundryOperations, operationsUtils);
+	}
+
+	@Test
+	void getServiceInstanceByNameAndSpace() {
+		when(operationsServices.getInstance(any(GetServiceInstanceRequest.class)))
+			.thenReturn(Mono.just(ServiceInstance.builder()
+				.id("foo-service-instance-id")
+				.name("my-foo-service")
+				.service("foo-service")
+				.plan("foo-plan")
+				.type(ServiceInstanceType.MANAGED)
+				.build()));
+
+		org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest request = org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest
+			.builder()
+			.name("my-foo-service")
+			.properties(Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, "foo-space"))
+			.build();
+
+		StepVerifier.create(appDeployer.getServiceInstance(request))
+			.assertNext(response -> {
+				assertThat(response.getName()).isEqualTo("my-foo-service");
+				assertThat(response.getService()).isEqualTo("foo-service");
+				assertThat(response.getPlan()).isEqualTo("foo-plan");
+			})
+			.verifyComplete();
+
+		verify(operationsUtils).getOperations(
+			argThat(argument -> "foo-space".equals(argument.get(DeploymentProperties.TARGET_PROPERTY_KEY))));
+		verify(cloudFoundryOperations).services();
+		verify(operationsServices).getInstance(argThat(req -> "my-foo-service".equals(req.getName())));
+		verifyZeroInteractions(cloudFoundryClient);
+		verifyNoMoreInteractions(cloudFoundryOperations, operationsUtils);
 	}
 
 	private ApplicationManifest.Builder baseManifest() {

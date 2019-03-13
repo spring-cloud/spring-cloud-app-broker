@@ -67,7 +67,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnableConfigurationProperties(AcceptanceTestProperties.class)
 class CloudFoundryAcceptanceTest {
 
-	private static final String TEST_BROKER_APP_NAME = "test-broker-app";
+	static final String TEST_BROKER_APP_NAME = "test-broker-app";
 	private static final String SERVICE_BROKER_NAME = "test-broker";
 	
 	static final String APP_SERVICE_NAME = "app-service";
@@ -76,7 +76,7 @@ class CloudFoundryAcceptanceTest {
 	static final String BACKING_APP_PATH = "classpath:backing-app.jar";
 
 	@Autowired
-	private CloudFoundryService cloudFoundryService;
+	protected CloudFoundryService cloudFoundryService;
 
 	@Autowired
 	private UaaService uaaService;
@@ -201,7 +201,7 @@ class CloudFoundryAcceptanceTest {
 	}
 
 	Optional<ApplicationSummary> getApplicationSummary(String appName, String space) {
-		return cloudFoundryService.getApplicationSummary(appName, space).blockOptional();
+		return cloudFoundryService.getApplication(appName, space).blockOptional();
 	}
 
 	ApplicationEnvironments getApplicationEnvironment(String appName) {
@@ -210,6 +210,10 @@ class CloudFoundryAcceptanceTest {
 
 	ApplicationEnvironments getApplicationEnvironment(String appName, String space) {
 		return cloudFoundryService.getApplicationEnvironment(appName, space).block();
+	}
+
+	String getTestBrokerAppRoute() {
+		return cloudFoundryService.getApplicationRoute(TEST_BROKER_APP_NAME).block();
 	}
 
 	DocumentContext getSpringAppJson(String appName) {

@@ -36,8 +36,10 @@ import org.cloudfoundry.AbstractCloudFoundryException;
 import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
+import org.cloudfoundry.client.v2.serviceinstances.ServiceInstanceEntity;
 import org.cloudfoundry.client.v2.spaces.CreateSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
+import org.cloudfoundry.client.v2.spaces.SpaceEntity;
 import org.cloudfoundry.client.v3.Relationship;
 import org.cloudfoundry.client.v3.ToOneRelationship;
 import org.cloudfoundry.client.v3.builds.BuildState;
@@ -62,7 +64,6 @@ import org.cloudfoundry.client.v3.packages.PackageType;
 import org.cloudfoundry.client.v3.packages.UploadPackageRequest;
 import org.cloudfoundry.client.v3.packages.UploadPackageResponse;
 import org.cloudfoundry.operations.CloudFoundryOperations;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -74,11 +75,11 @@ import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.organizations.OrganizationDetail;
 import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
-import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.cloudfoundry.util.DelayUtils;
 import org.cloudfoundry.util.PaginationUtils;
+import org.cloudfoundry.util.ResourceUtils;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +95,8 @@ import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRespons
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationResponse;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.GetServiceInstanceResponse;
 import org.springframework.cloud.appbroker.deployer.UndeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.UndeployApplicationResponse;
 import org.springframework.cloud.appbroker.deployer.UpdateApplicationRequest;
@@ -117,7 +120,11 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private final CloudFoundryDeploymentProperties defaultDeploymentProperties;
 
 	private final CloudFoundryOperations operations;
+
 	private final CloudFoundryClient client;
+
+	private final CloudFoundryOperationsUtils operationsUtils;
+
 	private final CloudFoundryTargetProperties targetProperties;
 
 	private ResourceLoader resourceLoader;
@@ -125,11 +132,13 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	public CloudFoundryAppDeployer(CloudFoundryDeploymentProperties deploymentProperties,
 								   CloudFoundryOperations operations,
 								   CloudFoundryClient client,
+								   CloudFoundryOperationsUtils operationsUtils,
 								   CloudFoundryTargetProperties targetProperties,
 								   ResourceLoader resourceLoader) {
 		this.defaultDeploymentProperties = deploymentProperties;
 		this.operations = operations;
 		this.client = client;
+		this.operationsUtils = operationsUtils;
 		this.targetProperties = targetProperties;
 		this.resourceLoader = resourceLoader;
 	}
@@ -170,63 +179,52 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		final Map<String, Object> environmentVariables =
 			getApplicationEnvironment(request.getProperties(), request.getEnvironment(), request.getServiceInstanceId());
 
-		Map<String, String> deploymentProperties = request.getProperties();
-		CloudFoundryOperations operations;
+		return operationsUtils.getOperations(request.getProperties())
+			.flatMap(cfOperations -> cfOperations.applications()
+				.get(GetApplicationRequest.builder().name(name).build())
+				.doOnRequest(l -> logger.debug("Getting application {}", name))
+				.doOnSuccess(response -> logger.info("Success getting application {}", name))
+				.doOnError(e -> logger.warn(String.format("Error getting application %s: %s", name, e.getMessage())))
+				.map(ApplicationDetail::getId)
+				.flatMap(applicationId ->
+					updateApplicationEnvironment(applicationId, environmentVariables).thenReturn(applicationId)
+				)
+				.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
+					createPackageForApplication(applicationId)))
+				.map(tuple2 -> tuple2.mapT2(CreatePackageResponse::getId))
+				.flatMap(tuple2 -> {
+					String packageId = tuple2.getT2();
+					return Mono.zip(Mono.just(tuple2.getT1()), uploadPackage(request, packageId));
+				})
 
-		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
-			operations = createCloudFoundryOperationsForSpace(space);
-		}
-		else {
-			operations = this.operations;
-		}
-
-		return operations
-			.applications()
-			.get(GetApplicationRequest.builder().name(name).build())
-			.doOnRequest(l -> logger.debug("Getting application {}", name))
-			.doOnSuccess(response -> logger.info("Success getting application {}", name))
-			.doOnError(e -> logger.warn(String.format("Error getting application %s: %s", name, e.getMessage())))
-			.map(ApplicationDetail::getId)
-			.flatMap(applicationId ->
-				updateApplicationEnvironment(applicationId, environmentVariables).thenReturn(applicationId)
-			)
-			.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
-				createPackageForApplication(applicationId)))
-			.map(tuple2 -> tuple2.mapT2(CreatePackageResponse::getId))
-			.flatMap(tuple2 -> {
-				String packageId = tuple2.getT2();
-				return Mono.zip(Mono.just(tuple2.getT1()), uploadPackage(request, packageId));
-			})
-
-			.map(tuple2 -> tuple2.mapT2(Package::getId))
-			.flatMap(tuple2 -> {
-					String packageId1 = tuple2.getT2();
-					return Mono.zip(Mono.just(tuple2.getT1()), waitForPackageReady(packageId1));
-				}
-			)
-			.map(tuple2 -> tuple2.mapT2(Package::getId))
-			.flatMap(tuple2 -> {
-				String packageId = tuple2.getT2();
-				return Mono.zip(Mono.just(tuple2.getT1()), createBuildForPackage(packageId));
-			})
-			.flatMap(tuple2 -> {
-					String buildId = tuple2.getT2();
-					return Mono.zip(Mono.just(tuple2.getT1()), waitForBuildStaged(buildId));
-				}
-			)
-			.map(tuple2 -> tuple2.mapT2((t2) -> t2.getDroplet().getId()))
-			.flatMap(tuple2 -> {
-				String dropletId = tuple2.getT2();
-				String applicationId = tuple2.getT1();
-				return createDeployment(dropletId, applicationId);
-			})
-			.map(CreateDeploymentResponse::getId)
-			.flatMap(this::waitForDeploymentDeployed)
-			.doOnRequest(l -> logger.debug("Updating application {}", name))
-			.doOnSuccess(item -> logger.info("Successfully updated application {}", name))
-			.doOnError(error -> logger.error("Failed to update application {}", name))
-			.thenReturn(UpdateApplicationResponse.builder().name(name).build());
+				.map(tuple2 -> tuple2.mapT2(Package::getId))
+				.flatMap(tuple2 -> {
+						String packageId1 = tuple2.getT2();
+						return Mono.zip(Mono.just(tuple2.getT1()), waitForPackageReady(packageId1));
+					}
+				)
+				.map(tuple2 -> tuple2.mapT2(Package::getId))
+				.flatMap(tuple2 -> {
+					String packageId = tuple2.getT2();
+					return Mono.zip(Mono.just(tuple2.getT1()), createBuildForPackage(packageId));
+				})
+				.flatMap(tuple2 -> {
+						String buildId = tuple2.getT2();
+						return Mono.zip(Mono.just(tuple2.getT1()), waitForBuildStaged(buildId));
+					}
+				)
+				.map(tuple2 -> tuple2.mapT2((t2) -> t2.getDroplet().getId()))
+				.flatMap(tuple2 -> {
+					String dropletId = tuple2.getT2();
+					String applicationId = tuple2.getT1();
+					return createDeployment(dropletId, applicationId);
+				})
+				.map(CreateDeploymentResponse::getId)
+				.flatMap(this::waitForDeploymentDeployed)
+				.doOnRequest(l -> logger.debug("Updating application {}", name))
+				.doOnSuccess(item -> logger.info("Successfully updated application {}", name))
+				.doOnError(error -> logger.error("Failed to update application {}", name))
+				.thenReturn(UpdateApplicationResponse.builder().name(name).build()));
 	}
 
 	private Mono<GetDeploymentResponse> waitForDeploymentDeployed(String deploymentId) {
@@ -429,9 +427,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Mono<Void> pushManifestInSpace(PushApplicationManifestRequest request, String spaceName) {
 		return createSpace(spaceName)
-			.then(createCloudFoundryOperationsForSpace(spaceName)
-				.applications()
-				.pushManifest(request));
+			.then(operationsUtils.getOperationsForSpace(spaceName))
+			.flatMap(cfOperations -> cfOperations.applications().pushManifest(request));
 	}
 
 	private Mono<Void> createSpace(String spaceName) {
@@ -491,21 +488,20 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Mono<Void> deleteApplicationInSpace(String name, String spaceName) {
 		return getSpaceIdFromName(spaceName)
-			.doOnError(error -> logger.warn("Unable get space name: {} ", spaceName))
-			.then(createCloudFoundryOperationsForSpace(spaceName)
-				.applications()
-				.delete(DeleteApplicationRequest.builder()
-												.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
-												.name(name)
-												.build())
-				.doOnError(error -> logger.warn("Unable delete application: {} ", name))
+			.doOnError(error -> logger.warn("Unable to get space name: {} ", spaceName))
+			.then(operationsUtils.getOperationsForSpace(spaceName))
+			.flatMap(cfOperations -> cfOperations.applications().delete(DeleteApplicationRequest.builder()
+				.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
+				.name(name)
+				.build())
+				.doOnError(error -> logger.warn("Unable to delete application: {} ", name))
 				.then(deleteSpace(spaceName)))
 			.onErrorResume(e -> Mono.empty());
 	}
 
 	private Mono<Void> deleteSpace(String spaceName) {
 		return getSpaceIdFromName(spaceName)
-			.doOnError(error -> logger.warn("Unable get space name: {} ", spaceName))
+			.doOnError(error -> logger.warn("Unable to get space name: {} ", spaceName))
 			.flatMap(spaceId -> this.client.spaces()
 				.delete(DeleteSpaceRequest.builder()
 					.spaceId(spaceId)
@@ -524,13 +520,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.filter(resource -> resource.getEntity().getName().equals(spaceName))
 			.map(resource -> resource.getMetadata().getId())
 			.next());
-	}
-
-	private CloudFoundryOperations createCloudFoundryOperationsForSpace(String space) {
-		return DefaultCloudFoundryOperations.builder()
-			.from((DefaultCloudFoundryOperations) this.operations)
-			.space(space)
-			.build();
 	}
 
 	private Map<String, Object> getEnvironmentVariables(Map<String, String> properties,
@@ -722,6 +711,51 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	@Override
+	public Mono<GetServiceInstanceResponse> getServiceInstance(GetServiceInstanceRequest request) {
+		return Mono.defer(() -> {
+			if (StringUtils.hasText(request.getServiceInstanceId())) {
+				return getServiceInstance(request.getServiceInstanceId())
+					.flatMap(serviceInstanceEntity -> getSpace(serviceInstanceEntity.getSpaceId())
+						.flatMap(spaceEntity -> getServiceInstance(serviceInstanceEntity.getName(), spaceEntity.getName())));
+			}
+			else {
+				return operationsUtils.getOperations(request.getProperties())
+					.flatMap(cfOperations -> cfOperations.services()
+						.getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
+							.name(request.getName())
+							.build()));
+			}
+		})
+			.map(serviceInstance -> GetServiceInstanceResponse.builder()
+				.name(serviceInstance.getName())
+				.service(serviceInstance.getService())
+				.plan(serviceInstance.getPlan())
+				.build());
+	}
+
+	private Mono<ServiceInstance> getServiceInstance(String name, String space) {
+		return operationsUtils.getOperationsForSpace(space)
+			.flatMap(cfOperations -> cfOperations.services()
+				.getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
+					.name(name)
+					.build()));
+	}
+
+	private Mono<ServiceInstanceEntity> getServiceInstance(String serviceInstanceId) {
+		return client.serviceInstances().get(org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceRequest.builder()
+			.serviceInstanceId(serviceInstanceId)
+			.build())
+			.map(ResourceUtils::getEntity);
+	}
+
+	private Mono<SpaceEntity> getSpace(String spaceId) {
+		return client.spaces().get(org.cloudfoundry.client.v2.spaces.GetSpaceRequest.builder()
+			.spaceId(spaceId)
+			.build())
+			.map(ResourceUtils::getEntity);
+	}
+
+	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
 		org.cloudfoundry.operations.services.CreateServiceInstanceRequest createServiceInstanceRequest =
 			org.cloudfoundry.operations.services.CreateServiceInstanceRequest
@@ -740,11 +774,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		if (request.getProperties().containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
 			return createSpace(request.getProperties().get(DeploymentProperties.TARGET_PROPERTY_KEY))
 				.then(
-					createCloudFoundryOperationsForSpace(request.getProperties().get(DeploymentProperties.TARGET_PROPERTY_KEY))
-						.services()
-						.createInstance(createServiceInstanceRequest)
-						.then(createServiceInstanceResponseMono));
-		} else {
+					operationsUtils.getOperations(request.getProperties())
+						.flatMap(cfOperations -> cfOperations.services()
+							.createInstance(createServiceInstanceRequest)
+							.then(createServiceInstanceResponseMono)));
+		}
+		else {
 			return operations
 				.services()
 				.createInstance(createServiceInstanceRequest)
@@ -754,22 +789,20 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
-		CloudFoundryOperations cloudFoundryOperations = getOperations(request.getProperties());
-		return rebindServiceInstanceIfNecessary(request, cloudFoundryOperations)
-			.then(updateServiceInstanceIfNecessary(request, cloudFoundryOperations));
+		return operationsUtils.getOperations(request.getProperties())
+			.flatMap(cfOperations -> rebindServiceInstanceIfNecessary(request, cfOperations)
+				.then(updateServiceInstanceIfNecessary(request, cfOperations)));
 	}
-
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		final String serviceInstanceName = request.getServiceInstanceName();
-
-		CloudFoundryOperations cloudFoundryOperations = getOperations(request.getProperties());
-		return unbindServiceInstance(serviceInstanceName, cloudFoundryOperations)
-			.then(deleteServiceInstance(serviceInstanceName, cloudFoundryOperations)
-				.then(Mono.just(DeleteServiceInstanceResponse.builder()
-					.name(serviceInstanceName)
-					.build())));
+		return operationsUtils.getOperations(request.getProperties())
+			.flatMap(cfOperations -> Mono.just(request.getServiceInstanceName())
+				.flatMap(serviceInstanceName -> unbindServiceInstance(serviceInstanceName, cfOperations)
+					.then(deleteServiceInstance(serviceInstanceName, cfOperations)
+						.thenReturn(DeleteServiceInstanceResponse.builder()
+							.name(serviceInstanceName)
+							.build()))));
 	}
 
 	private Mono<Void> deleteServiceInstance(String serviceInstanceName, CloudFoundryOperations cloudFoundryOperations) {
@@ -782,7 +815,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Mono<Void> unbindServiceInstance(String serviceInstanceName,
 											 CloudFoundryOperations cloudFoundryOperations) {
-		return cloudFoundryOperations.services().getInstance(GetServiceInstanceRequest.builder()
+		return cloudFoundryOperations.services().getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
 			.name(serviceInstanceName)
 			.build())
 			.map(ServiceInstance::getApplications)
@@ -798,7 +831,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Mono<Void> rebindServiceInstance(String serviceInstanceName,
 											 CloudFoundryOperations cloudFoundryOperations) {
-		return cloudFoundryOperations.services().getInstance(GetServiceInstanceRequest.builder()
+		return cloudFoundryOperations.services().getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
 			.name(serviceInstanceName)
 			.build())
 			.map(ServiceInstance::getApplications)
@@ -844,14 +877,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.then(Mono.just(UpdateServiceInstanceResponse.builder()
 				.name(serviceInstanceName)
 				.build()));
-	}
-
-	private CloudFoundryOperations getOperations(Map<String, String> properties) {
-		if (properties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			return createCloudFoundryOperationsForSpace(properties.get(DeploymentProperties.TARGET_PROPERTY_KEY));
-		} else {
-			return this.operations;
-		}
 	}
 
 	/**

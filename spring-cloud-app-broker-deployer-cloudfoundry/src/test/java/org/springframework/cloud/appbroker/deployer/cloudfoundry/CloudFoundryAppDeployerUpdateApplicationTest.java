@@ -60,6 +60,8 @@ import org.springframework.core.io.ResourceLoader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -93,6 +95,9 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	private CloudFoundryClient cloudFoundryClient;
 
 	@Mock
+	private CloudFoundryOperationsUtils operationsUtils;
+
+	@Mock
 	private ResourceLoader resourceLoader;
 
 	@BeforeEach
@@ -108,9 +113,11 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 		when(cloudFoundryClient.packages()).thenReturn(packages);
 		when(cloudFoundryClient.builds()).thenReturn(builds);
 		when(cloudFoundryClient.deploymentsV3()).thenReturn(deploymentsV3);
+		when(operationsUtils.getOperations(anyMap())).thenReturn(Mono.just(cloudFoundryOperations));
+		when(operationsUtils.getOperationsForSpace(anyString())).thenReturn(Mono.just(cloudFoundryOperations));
 
 		appDeployer = new CloudFoundryAppDeployer(deploymentProperties,
-			cloudFoundryOperations, cloudFoundryClient, targetProperties, resourceLoader);
+			cloudFoundryOperations, cloudFoundryClient, operationsUtils, targetProperties, resourceLoader);
 	}
 
 	@Test

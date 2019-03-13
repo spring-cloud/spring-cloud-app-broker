@@ -19,6 +19,8 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.util.CollectionUtils;
+
 public class BackingApplications extends ArrayList<BackingApplication> {
 	private static final long serialVersionUID = 159473836238657105L;
 
@@ -43,6 +45,13 @@ public class BackingApplications extends ArrayList<BackingApplication> {
 
 		public BackingApplicationsBuilder backingApplication(BackingApplication backingApplication) {
 			this.backingApplications.add(backingApplication);
+			return this;
+		}
+
+		public BackingApplicationsBuilder backingApplications(List<BackingApplication> backingApplications) {
+			if (!CollectionUtils.isEmpty(backingApplications)) {
+				this.backingApplications.addAll(backingApplications);
+			}
 			return this;
 		}
 

@@ -32,6 +32,7 @@ import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.GetApplicationEnvironmentsRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.StopApplicationRequest;
 import org.cloudfoundry.operations.organizations.CreateOrganizationRequest;
 import org.cloudfoundry.operations.organizations.OrganizationSummary;
 import org.cloudfoundry.operations.organizations.Organizations;
@@ -93,7 +94,7 @@ public class CloudFoundryService {
 				.doOnError(error -> LOGGER.error("Error creating service broker " + brokerName + ": " + error)));
 	}
 
-	private Mono<String> getApplicationRoute(String appName) {
+	public Mono<String> getApplicationRoute(String appName) {
 		return cloudFoundryOperations.applications()
 			.get(GetApplicationRequest.builder()
 				.name(appName)
@@ -203,7 +204,13 @@ public class CloudFoundryService {
 			.collectList();
 	}
 
-	public Mono<ApplicationSummary> getApplicationSummary(String appName, String space) {
+	public Mono<ApplicationDetail> getApplication(String appName) {
+		return cloudFoundryOperations.applications().get(GetApplicationRequest.builder()
+			.name(appName)
+			.build());
+	}
+
+	public Mono<ApplicationSummary> getApplication(String appName, String space) {
 		return listApplications(createOperationsForSpace(space))
 			.filter(applicationSummary -> applicationSummary.getName().equals(appName))
 			.single();
@@ -231,6 +238,12 @@ public class CloudFoundryService {
 				.build())
 			.doOnSuccess(item -> LOGGER.info("Got environment for application " + appName))
 			.doOnError(error -> LOGGER.error("Error getting environment for application " + appName + ": " + error));
+	}
+
+	public Mono<Void> stopApplication(String appName) {
+		return cloudFoundryOperations.applications().stop(StopApplicationRequest.builder()
+			.name(appName)
+			.build());
 	}
 
 	public Mono<List<String>> getSpaces() {

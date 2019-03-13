@@ -16,9 +16,15 @@
 
 package org.springframework.cloud.appbroker.autoconfigure;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.doppler.DopplerClient;
-
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.ConnectionContext;
@@ -36,22 +42,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
-import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
+import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryAppManager;
+import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryOperationsUtils;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryAppDeployer;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryOAuth2Client;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryTargetProperties;
+import org.springframework.cloud.appbroker.manager.AppManager;
+import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.StringUtils;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 @Configuration
 @ConditionalOnProperty(CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".api-host")
@@ -75,10 +77,16 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	AppDeployer cloudFoundryAppDeployer(CloudFoundryDeploymentProperties deploymentProperties,
 										CloudFoundryOperations cloudFoundryOperations,
 										CloudFoundryClient cloudFoundryClient,
+										CloudFoundryOperationsUtils operationsUtils,
 										CloudFoundryTargetProperties targetProperties,
 										ResourceLoader resourceLoader) {
 		return new CloudFoundryAppDeployer(deploymentProperties, cloudFoundryOperations, cloudFoundryClient,
-			targetProperties, resourceLoader);
+			operationsUtils, targetProperties, resourceLoader);
+	}
+
+	@Bean
+	AppManager cloudFoundryAppManager(CloudFoundryOperationsUtils cloudFoundryOperationsUtils) {
+		return new CloudFoundryAppManager(cloudFoundryOperationsUtils);
 	}
 
 	@Bean
@@ -107,6 +115,11 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 			.organization(properties.getDefaultOrg())
 			.space(properties.getDefaultSpace())
 			.build();
+	}
+
+	@Bean
+	CloudFoundryOperationsUtils cloudFoundryOperationsUtils(CloudFoundryOperations operations) {
+		return new CloudFoundryOperationsUtils(operations);
 	}
 
 	@Bean

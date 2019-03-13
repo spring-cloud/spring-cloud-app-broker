@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018. the original author or authors.
+ * Copyright 2016-2019. the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ dependencies {
 	testImplementation("com.revinate:assertj-json:1.2.0")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testCompile("io.projectreactor:reactor-test")
 }
 
 // build the test broker from /src into a jar that the tests can deploy

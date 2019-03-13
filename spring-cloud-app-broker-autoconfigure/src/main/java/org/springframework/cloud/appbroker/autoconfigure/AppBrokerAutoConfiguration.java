@@ -46,6 +46,9 @@ import org.springframework.cloud.appbroker.extensions.targets.ServiceInstanceGui
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
 import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.manager.AppManager;
+import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
+import org.springframework.cloud.appbroker.manager.ManagementClient;
 import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceRouteBindingWorkflow;
@@ -74,13 +77,24 @@ public class AppBrokerAutoConfiguration {
 	private static final String PROPERTY_PREFIX = "spring.cloud.appbroker";
 
 	@Bean
+	public DeployerClient deployerClient(AppDeployer appDeployer) {
+		return new DeployerClient(appDeployer);
+	}
+
+	@Bean
 	public BackingAppDeploymentService backingAppDeploymentService(DeployerClient deployerClient) {
 		return new BackingAppDeploymentService(deployerClient);
 	}
 
 	@Bean
-	public DeployerClient deployerClient(AppDeployer appDeployer) {
-		return new DeployerClient(appDeployer);
+	public ManagementClient managementClient(AppManager appManager) {
+		return new ManagementClient(appManager);
+	}
+
+	@Bean
+	public BackingAppManagementService backingAppManagementService(ManagementClient managementClient,
+		AppDeployer appDeployer, BrokeredServices brokeredServices, TargetService targetService) {
+		return new BackingAppManagementService(managementClient, appDeployer, brokeredServices, targetService);
 	}
 
 	@Bean

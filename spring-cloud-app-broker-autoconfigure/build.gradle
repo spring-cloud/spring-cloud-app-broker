@@ -40,7 +40,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webflux")
 	testImplementation("org.junit.jupiter:junit-jupiter-api")
-	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+	testImplementation("org.mockito:mockito-junit-jupiter")
 
 	testCompileOnly("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
 	testCompileOnly("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")

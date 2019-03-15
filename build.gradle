@@ -48,17 +48,15 @@ configure(allprojects) {
 		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
 		springCredhubVersion = "2.0.0.BUILD-SNAPSHOT"
 		cfJavaClientVersion = "3.15.0.RELEASE"
-		mockitoVersion = "2.23.4"
-		immutablesVersion = "2.7.3"
-		assertjVersion = "3.9.1"
 	}
 
 	//override managed Spring Boot versions
 	if (project.hasProperty("springVersion")) {
 		ext['spring-framework.version'] = ext.springVersion
 	}
-	ext['reactor-bom.version'] = ext.reactorVersion
-	ext['mockito.version'] = ext.mockitoVersion
+	if (project.hasProperty("reactorVersion")) {
+		ext['reactor-bom.version'] = ext.reactorVersion
+	}
 
 	repositories {
 		mavenCentral()

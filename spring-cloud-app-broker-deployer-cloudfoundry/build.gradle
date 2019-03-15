@@ -16,6 +16,10 @@
 
 description = "Spring Cloud App Broker Deployer Cloud Foundry"
 
+ext {
+	immutablesVersion = "2.7.3"
+}
+
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
@@ -36,5 +40,5 @@ dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-api")
 	testImplementation("org.assertj:assertj-core")
 	testImplementation("org.mockito:mockito-core")
-	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+	testImplementation("org.mockito:mockito-junit-jupiter")
 }

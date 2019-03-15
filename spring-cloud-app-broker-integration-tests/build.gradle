@@ -48,9 +48,9 @@ dependencies {
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.junit.jupiter:junit-jupiter-api")
-	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
 	testImplementation("io.rest-assured:rest-assured")
 	testImplementation("com.github.tomakehurst:wiremock:${wiremockVersion}")
+	testImplementation("org.mockito:mockito-junit-jupiter")
 }
 
 test {

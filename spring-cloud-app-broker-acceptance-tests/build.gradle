@@ -35,15 +35,11 @@ apply plugin: 'org.springframework.boot'
 dependencies {
 	compile project(":spring-cloud-starter-app-broker-cloudfoundry")
 	compile("org.springframework.boot:spring-boot-starter-webflux")
-
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-
-	testImplementation("org.junit.jupiter:junit-jupiter-api")
-	testImplementation("org.assertj:assertj-core:${assertjVersion}")
-	testImplementation("com.revinate:assertj-json:1.2.0")
-
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testCompile("org.junit.jupiter:junit-jupiter-api")
+	testCompile("org.springframework.boot:spring-boot-starter-test")
 	testCompile("io.projectreactor:reactor-test")
+	testCompile("org.assertj:assertj-core")
 }
 
 // build the test broker from /src into a jar that the tests can deploy

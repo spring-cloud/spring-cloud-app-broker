@@ -22,7 +22,6 @@ import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.Test;
 
-import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -87,14 +86,14 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 	}
 
 	private void assertEnvironmentVariablesSet(DocumentContext json) {
-		assertThat(json).jsonPathAsString("$.ENV_VAR_1").isEqualTo("value1");
-		assertThat(json).jsonPathAsString("$.ENV_VAR_2").isEqualTo("value2");
+		assertThat(json.read("$.ENV_VAR_1").toString()).isEqualTo("value1");
+		assertThat(json.read("$.ENV_VAR_2").toString()).isEqualTo("value2");
 	}
 
 	private void assertBasicAuthCredentialsProvided(DocumentContext json) {
-		assertThat(json).jsonPathAsString("$.['spring.security.user.name']")
+		assertThat(json.read("$.['spring.security.user.name']").toString())
 			.matches("[a-zA-Z]{14}");
-		assertThat(json).jsonPathAsString("$.['spring.security.user.password']")
+		assertThat(json.read("$.['spring.security.user.password']").toString())
 			.matches("[a-zA-Z]{14}");
 	}
 }

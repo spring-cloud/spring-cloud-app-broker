@@ -24,7 +24,6 @@ import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.Test;
 
-import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -70,9 +69,9 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 
 		// and has the environment variables
 		DocumentContext json = getSpringAppJson(APP_NAME);
-		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("value1");
-		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
-		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("value3");
+		assertThat(json.read("$.parameter1").toString()).isEqualTo("value1");
+		assertThat(json.read("$.parameter2").toString()).isEqualTo("config2");
+		assertThat(json.read("$.parameter3").toString()).isEqualTo("value3");
 
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);

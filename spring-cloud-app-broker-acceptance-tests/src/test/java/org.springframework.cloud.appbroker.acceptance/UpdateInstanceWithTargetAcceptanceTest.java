@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -77,7 +76,7 @@ class UpdateInstanceWithTargetAcceptanceTest extends CloudFoundryAcceptanceTest 
 
 		// then the service instance has the initial parameters
 		DocumentContext json = getSpringAppJson(APP_NAME, spaceName);
-		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("config1");
+		assertThat(json.read("$.parameter1").toString()).isEqualTo("config1");
 
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);

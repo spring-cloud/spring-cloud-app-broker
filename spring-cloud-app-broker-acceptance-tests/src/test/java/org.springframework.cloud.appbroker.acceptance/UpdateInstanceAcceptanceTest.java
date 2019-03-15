@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.revinate.assertj.json.JsonPathAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -61,9 +60,9 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		DocumentContext json = getSpringAppJson(APP_NAME);
-		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("config1");
-		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
-		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("config3");
+		assertThat(json.read("$.parameter1").toString()).isEqualTo("config1");
+		assertThat(json.read("$.parameter2").toString()).isEqualTo("config2");
+		assertThat(json.read("$.parameter3").toString()).isEqualTo("config3");
 
 		String path = backingApplication.get().getUrls().get(0);
 		healthListener.start(path);
@@ -82,10 +81,10 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 		// the backing application is updated with the new parameters
 		json = getSpringAppJson(APP_NAME);
-		assertThat(json).jsonPathAsString("$.parameter1").isEqualTo("value1");
-		assertThat(json).jsonPathAsString("$.parameter2").isEqualTo("config2");
-		assertThat(json).jsonPathAsString("$.parameter3").isEqualTo("value3");
-		assertThat(json).jsonPathAsString("$.parameter4").isEqualTo("config4");
+		assertThat(json.read("$.parameter1").toString()).isEqualTo("value1");
+		assertThat(json.read("$.parameter2").toString()).isEqualTo("config2");
+		assertThat(json.read("$.parameter3").toString()).isEqualTo("value3");
+		assertThat(json.read("$.parameter4").toString()).isEqualTo("config4");
 
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);

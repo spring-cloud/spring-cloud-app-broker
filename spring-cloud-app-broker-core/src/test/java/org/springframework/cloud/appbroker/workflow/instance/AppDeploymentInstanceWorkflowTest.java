@@ -38,7 +38,7 @@ class AppDeploymentInstanceWorkflowTest {
 		backingApps = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()
 				.name("app1")
-				.path("http://myfiles/app.jar")
+				.path("https://myfiles/app.jar")
 				.build())
 			.build();
 

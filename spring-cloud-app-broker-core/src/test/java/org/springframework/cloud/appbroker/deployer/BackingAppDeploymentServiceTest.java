@@ -28,11 +28,11 @@ class BackingAppDeploymentServiceTest {
 		backingApps = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()
 				.name("testApp1")
-				.path("http://myfiles/app1.jar")
+				.path("https://myfiles/app1.jar")
 				.build())
 			.backingApplication(BackingApplication.builder()
 				.name("testApp2")
-				.path("http://myfiles/app2.jar")
+				.path("https://myfiles/app2.jar")
 				.build())
 			.build();
 	}

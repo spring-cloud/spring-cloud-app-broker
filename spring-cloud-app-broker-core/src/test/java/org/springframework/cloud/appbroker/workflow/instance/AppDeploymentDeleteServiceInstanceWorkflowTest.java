@@ -74,12 +74,12 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.backingApplication(BackingApplication
 				.builder()
 				.name("app1")
-				.path("http://myfiles/app1.jar")
+				.path("https://myfiles/app1.jar")
 				.build())
 			.backingApplication(BackingApplication
 				.builder()
 				.name("app2")
-				.path("http://myfiles/app2.jar")
+				.path("https://myfiles/app2.jar")
 				.build())
 			.build();
 

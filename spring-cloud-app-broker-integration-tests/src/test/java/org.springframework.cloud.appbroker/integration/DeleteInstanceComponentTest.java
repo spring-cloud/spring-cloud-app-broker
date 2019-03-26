@@ -102,6 +102,6 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
 
 		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
-		assertThat(state).isEqualTo(OperationState.FAILED.toString());
+		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
 	}
 }

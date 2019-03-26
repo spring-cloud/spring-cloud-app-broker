@@ -47,6 +47,7 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 	static final String APP_NAME = "app-delete-with-services";
 
 	static final String BACKING_SI_NAME = "my-db-service";
+
 	static final String BACKING_SERVICE_NAME = "db-service";
 
 	@Autowired
@@ -67,6 +68,58 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 		cloudControllerFixture.stubServiceBindingExists(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubDeleteServiceBinding(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubDeleteServiceInstance(BACKING_SI_NAME);
+
+		// when the service instance is deleted
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.delete(brokerFixture.deleteServiceInstanceUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.ACCEPTED.value());
+
+		// when the "last_operation" API is polled
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
+
+		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
+	}
+
+	@Test
+	void deleteAppsWhenTheyExistAndServicesWhenTheyDoNotExist() {
+		cloudControllerFixture.stubAppExists(APP_NAME);
+		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
+		cloudControllerFixture.stubDeleteApp(APP_NAME);
+
+		cloudControllerFixture.stubServiceInstanceDoesNotExist(BACKING_SI_NAME);
+
+		// when the service instance is deleted
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.delete(brokerFixture.deleteServiceInstanceUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.ACCEPTED.value());
+
+		// when the "last_operation" API is polled
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
+
+		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
+	}
+
+	@Test
+	void deleteAppsAndServicesWhenTheyDoNotExist() {
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
+
+		cloudControllerFixture.stubServiceInstanceDoesNotExist(BACKING_SI_NAME);
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())

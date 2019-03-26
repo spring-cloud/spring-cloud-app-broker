@@ -83,6 +83,9 @@ public class DeployerClient {
 			.doOnSuccess(response -> log.debug("Finished undeploying application {}", backingApplication))
 			.doOnError(exception -> log.error("Error undeploying application {} with error '{}'",
 				backingApplication, exception.getMessage()))
+			.onErrorReturn(UndeployApplicationResponse.builder()
+				.name(backingApplication.getName())
+				.build())
 			.map(UndeployApplicationResponse::getName);
 	}
 
@@ -129,11 +132,13 @@ public class DeployerClient {
 					.serviceInstanceName(backingService.getServiceInstanceName())
 					.properties(backingService.getProperties())
 					.build())
-
 			.doOnRequest(l -> log.debug("Deleting backing service {}", backingService.getName()))
 			.doOnSuccess(response -> log.debug("Finished deleting backing service {}", backingService.getName()))
 			.doOnError(exception -> log.error("Error deleting backing service {} with error '{}'",
 				backingService.getName(), exception.getMessage()))
+			.onErrorReturn(DeleteServiceInstanceResponse.builder()
+				.name(backingService.getServiceInstanceName())
+				.build())
 			.map(DeleteServiceInstanceResponse::getName);
 	}
 }

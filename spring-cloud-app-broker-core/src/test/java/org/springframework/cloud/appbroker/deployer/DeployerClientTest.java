@@ -40,8 +40,12 @@ import static org.mockito.Mockito.when;
 class DeployerClientTest {
 
 	private static final String APP_NAME = "helloworld";
+
 	private static final String APP_ARCHIVE = "app.jar";
+
 	private static final String APP_PATH = "classpath:/jars/" + APP_ARCHIVE;
+
+	private static final String SERVICE_INSTANCE_NAME = "helloservice";
 
 	private DeployerClient deployerClient;
 
@@ -174,9 +178,10 @@ class DeployerClientTest {
 	}
 
 	@Test
-	void shouldNotUndeployAppThatDoesNotExist() {
+	void shouldNotReturnErrorWhenUndeployingAppThatDoesNotExist() {
 		// given
-		when(appDeployer.undeploy(any())).thenReturn(Mono.error(new IllegalStateException("app does not exist")));
+		when(appDeployer.undeploy(any()))
+			.thenReturn(Mono.error(new IllegalStateException("app does not exist")));
 
 		BackingApplication application = BackingApplication.builder()
 			.name(APP_NAME)
@@ -186,10 +191,116 @@ class DeployerClientTest {
 		// when
 		StepVerifier.create(deployerClient.undeploy(application))
 			// then
-			.expectErrorMessage("app does not exist")
-			.verify();
+			.expectNext(APP_NAME)
+			.verifyComplete();
 
 		verify(appDeployer).undeploy(argThat(request -> APP_NAME.equals(request.getName())));
+	}
+
+	@Test
+	void shouldCreateServiceInstance() {
+		// given
+		when(appDeployer.createServiceInstance(any()))
+			.thenReturn(Mono.just(CreateServiceInstanceResponse.builder()
+				.name(SERVICE_INSTANCE_NAME)
+				.build()));
+
+		BackingService service = BackingService.builder()
+			.serviceInstanceName(SERVICE_INSTANCE_NAME)
+			.build();
+
+		// when
+		StepVerifier.create(deployerClient.createServiceInstance(service))
+			// then
+			.expectNext(SERVICE_INSTANCE_NAME)
+			.verifyComplete();
+
+		verify(appDeployer).createServiceInstance(argThat(request ->
+			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
+	}
+
+	@Test
+	void shouldUpdateServiceInstance() {
+		// given
+		when(appDeployer.updateServiceInstance(any()))
+			.thenReturn(Mono.just(UpdateServiceInstanceResponse.builder()
+				.name(SERVICE_INSTANCE_NAME)
+				.build()));
+
+		BackingService service = BackingService.builder()
+			.serviceInstanceName(SERVICE_INSTANCE_NAME)
+			.build();
+
+		// when
+		StepVerifier.create(deployerClient.updateServiceInstance(service))
+			// then
+			.expectNext(SERVICE_INSTANCE_NAME)
+			.verifyComplete();
+
+		verify(appDeployer).updateServiceInstance(argThat(request ->
+			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
+	}
+
+	@Test
+	void shouldReturnErrorWhenUpdatingServiceInstanceThatDoesNotExist() {
+		// given
+		when(appDeployer.updateServiceInstance(any()))
+			.thenReturn(Mono.error(new IllegalStateException("service instance does not exist")));
+
+		BackingService service = BackingService.builder()
+			.serviceInstanceName(SERVICE_INSTANCE_NAME)
+			.build();
+
+		// when
+		StepVerifier.create(deployerClient.updateServiceInstance(service))
+			// then
+			.expectErrorMessage("service instance does not exist")
+			.verify();
+
+		verify(appDeployer).updateServiceInstance(argThat(request ->
+			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
+	}
+
+	@Test
+	void shouldDeleteServiceInstance() {
+		// given
+		when(appDeployer.deleteServiceInstance(any()))
+			.thenReturn(Mono.just(DeleteServiceInstanceResponse.builder()
+				.name(SERVICE_INSTANCE_NAME)
+				.build()));
+
+		BackingService service = BackingService.builder()
+			.serviceInstanceName(SERVICE_INSTANCE_NAME)
+			.build();
+
+		// when
+		StepVerifier.create(deployerClient.deleteServiceInstance(service))
+			// then
+			.expectNext(SERVICE_INSTANCE_NAME)
+			.verifyComplete();
+
+		verify(appDeployer).deleteServiceInstance(argThat(request ->
+			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
+	}
+
+	@Test
+	void shouldNotReturnErrorWhenDeletingServiceInstanceThatDoesNotExist() {
+		// given
+		when(appDeployer.deleteServiceInstance(any()))
+			.thenReturn(Mono.error(new IllegalStateException("service instance does not exist")));
+
+		BackingService service = BackingService.builder()
+			.serviceInstanceName(SERVICE_INSTANCE_NAME)
+			.build();
+
+		// when
+		StepVerifier.create(deployerClient.deleteServiceInstance(service))
+			// then
+			.expectNext(SERVICE_INSTANCE_NAME)
+			.verifyComplete();
+
+		verify(appDeployer).deleteServiceInstance(argThat(request ->
+			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
 	}
 
 	private ArgumentMatcher<DeployApplicationRequest> matchesRequest(String appName, String appArchive,

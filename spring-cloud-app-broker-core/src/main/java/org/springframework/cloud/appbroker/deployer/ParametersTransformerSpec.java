@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,12 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.util.CollectionUtils;
+
 public class ParametersTransformerSpec {
+
 	private String name;
+
 	private Map<String, Object> args;
 
 	private ParametersTransformerSpec() {
@@ -29,11 +33,6 @@ public class ParametersTransformerSpec {
 	ParametersTransformerSpec(String name, Map<String, Object> args) {
 		this.name = name;
 		this.args = args;
-	}
-
-	ParametersTransformerSpec(ParametersTransformerSpec parametersTransformerSpecToClone) {
-		this.name = parametersTransformerSpecToClone.name;
-		this.args = parametersTransformerSpecToClone.args;
 	}
 
 	public String getName() {
@@ -57,10 +56,17 @@ public class ParametersTransformerSpec {
 	}
 
 	public static class ParametersTransformerSpecBuilder {
+
 		private String name;
+
 		private final Map<String, Object> args = new LinkedHashMap<>();
 
 		ParametersTransformerSpecBuilder() {
+		}
+
+		public ParametersTransformerSpecBuilder spec(ParametersTransformerSpec spec) {
+			return this.name(spec.getName())
+				.args(spec.getArgs());
 		}
 
 		public ParametersTransformerSpecBuilder name(String name) {
@@ -69,12 +75,16 @@ public class ParametersTransformerSpec {
 		}
 
 		public ParametersTransformerSpecBuilder arg(String key, Object value) {
-			this.args.put(key, value);
+			if (key != null && value != null) {
+				this.args.put(key, value);
+			}
 			return this;
 		}
 
 		public ParametersTransformerSpecBuilder args(Map<String, Object> args) {
-			this.args.putAll(args);
+			if (!CollectionUtils.isEmpty(args)) {
+				this.args.putAll(args);
+			}
 			return this;
 		}
 

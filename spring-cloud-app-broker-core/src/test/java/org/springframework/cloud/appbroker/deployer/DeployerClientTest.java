@@ -135,7 +135,7 @@ class DeployerClientTest {
 		// given
 		setupAppDeployer();
 
-		Map<String, String> environment = new HashMap<String, String>() {{
+		Map<String, Object> environment = new HashMap<String, Object>() {{
 			put("ENV_VAR_1", "value1");
 			put("ENV_VAR_2", "value2");
 		}};
@@ -305,7 +305,7 @@ class DeployerClientTest {
 
 	private ArgumentMatcher<DeployApplicationRequest> matchesRequest(String appName, String appArchive,
 																	 Map<String, String> properties,
-																	 Map<String, String> environment,
+																	 Map<String, Object> environment,
 																	 List<String> services) {
 		return request ->
 			request.getName().equals(appName) &&

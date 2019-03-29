@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.util.CollectionUtils;
+
 public class UpdateApplicationRequest {
 
 	private final String name;
@@ -97,38 +99,44 @@ public class UpdateApplicationRequest {
 		}
 
 		public UpdateApplicationRequestBuilder property(String key, String value) {
-			this.properties.put(key, value);
+			if (key != null && value != null) {
+				this.properties.put(key, value);
+			}
 			return this;
 		}
 
 		public UpdateApplicationRequestBuilder properties(Map<String, String> properties) {
-			if (properties == null) {
-				return this;
+			if (!CollectionUtils.isEmpty(properties)) {
+				this.properties.putAll(properties);
 			}
-			this.properties.putAll(properties);
 			return this;
 		}
 
 		public UpdateApplicationRequestBuilder environment(String key, String value) {
-			this.environment.put(key, value);
+			if (key != null && value != null) {
+				this.environment.put(key, value);
+			}
 			return this;
 		}
 
 		public UpdateApplicationRequestBuilder environment(Map<String, Object> environment) {
-			if (environment == null) {
-				return this;
+			if (!CollectionUtils.isEmpty(environment)) {
+				this.environment.putAll(environment);
 			}
-			this.environment.putAll(environment);
 			return this;
 		}
 
 		public UpdateApplicationRequestBuilder service(String service) {
-			this.services.add(service);
+			if (service != null) {
+				this.services.add(service);
+			}
 			return this;
 		}
 
 		public UpdateApplicationRequestBuilder services(List<String> services) {
-			this.services.addAll(services);
+			if (!CollectionUtils.isEmpty(services)) {
+				this.services.addAll(services);
+			}
 			return this;
 		}
 

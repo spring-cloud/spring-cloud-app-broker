@@ -24,6 +24,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.util.CollectionUtils;
+
+@SuppressWarnings("PMD.GodClass")
 public class BackingApplication {
 
 	private static final String VALUE_HIDDEN = "<value hidden>";
@@ -35,26 +38,6 @@ public class BackingApplication {
 	private List<ServicesSpec> services;
 	private List<ParametersTransformerSpec> parametersTransformers;
 	private List<CredentialProviderSpec> credentialProviders;
-
-	public BackingApplication(BackingApplication backingApplicationToCopy) {
-		this.name = backingApplicationToCopy.name;
-		this.path = backingApplicationToCopy.path;
-		this.properties = backingApplicationToCopy.properties == null
-			? new HashMap<>()
-			: new HashMap<>(backingApplicationToCopy.properties);
-		this.environment = backingApplicationToCopy.environment == null
-			? new HashMap<>()
-			: new HashMap<>(backingApplicationToCopy.environment);
-		this.services = backingApplicationToCopy.services == null
-			? new ArrayList<>()
-			: backingApplicationToCopy.services.stream().map(ServicesSpec::new).collect(Collectors.toList());
-		this.parametersTransformers = backingApplicationToCopy.parametersTransformers == null
-			? new ArrayList<>()
-			: backingApplicationToCopy.parametersTransformers.stream().map(ParametersTransformerSpec::new).collect(Collectors.toList());
-		this.credentialProviders = backingApplicationToCopy.credentialProviders == null
-			? new ArrayList<>()
-			: backingApplicationToCopy.credentialProviders.stream().map(CredentialProviderSpec::new).collect(Collectors.toList());
-	}
 
 	private BackingApplication() {
 	}
@@ -193,14 +176,49 @@ public class BackingApplication {
 	public static class BackingApplicationBuilder {
 
 		private String name;
+
 		private String path;
+
 		private final Map<String, String> properties = new HashMap<>();
+
 		private final Map<String, Object> environment = new HashMap<>();
+
 		private final List<ServicesSpec> services = new ArrayList<>();
+
 		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
+
 		private final List<CredentialProviderSpec> credentialProviders = new ArrayList<>();
 
 		BackingApplicationBuilder() {
+		}
+
+		public BackingApplicationBuilder backingApplication(BackingApplication backingApplication) {
+			this.name(backingApplication.getName())
+				.path(backingApplication.getPath())
+				.properties(backingApplication.getProperties())
+				.environment(backingApplication.getEnvironment());
+				if (!CollectionUtils.isEmpty(backingApplication.getServices())) {
+					this.services(backingApplication.getServices().stream()
+						.map(spec -> ServicesSpec.builder()
+							.spec(spec)
+							.build())
+						.collect(Collectors.toList()));
+				}
+				if (!CollectionUtils.isEmpty(backingApplication.getParametersTransformers())) {
+					this.parameterTransformers(backingApplication.getParametersTransformers().stream()
+						.map(spec -> ParametersTransformerSpec.builder()
+							.spec(spec)
+							.build())
+						.collect(Collectors.toList()));
+				}
+				if (!CollectionUtils.isEmpty(backingApplication.getCredentialProviders())) {
+					this.credentialProviders(backingApplication.getCredentialProviders().stream()
+						.map(spec -> CredentialProviderSpec.builder()
+							.spec(spec)
+							.build())
+						.collect(Collectors.toList()));
+				}
+				return this;
 		}
 
 		public BackingApplicationBuilder name(String name) {
@@ -214,37 +232,72 @@ public class BackingApplication {
 		}
 
 		public BackingApplicationBuilder property(String key, String value) {
-			this.properties.put(key, value);
+			if (key != null && value != null) {
+				this.properties.put(key, value);
+			}
 			return this;
 		}
 
 		public BackingApplicationBuilder properties(Map<String, String> properties) {
-			this.properties.putAll(properties);
+			if (!CollectionUtils.isEmpty(properties)) {
+				this.properties.putAll(properties);
+			}
 			return this;
 		}
 
 		public BackingApplicationBuilder environment(String key, String value) {
-			this.environment.put(key, value);
+			if (key != null && value != null) {
+				this.environment.put(key, value);
+			}
 			return this;
 		}
 
-		public BackingApplicationBuilder environment(Map<String, String> environment) {
-			this.environment.putAll(environment);
+		public BackingApplicationBuilder environment(Map<String, Object> environment) {
+			if (!CollectionUtils.isEmpty(environment)) {
+				this.environment.putAll(environment);
+			}
+			return this;
+		}
+
+		public BackingApplicationBuilder services(List<ServicesSpec> services) {
+			if (!CollectionUtils.isEmpty(services)) {
+				this.services.addAll(services);
+			}
 			return this;
 		}
 
 		public BackingApplicationBuilder services(ServicesSpec... services) {
-			this.services.addAll(Arrays.asList(services));
+			if (services != null) {
+				this.services(Arrays.asList(services));
+			}
+			return this;
+		}
+
+		public BackingApplicationBuilder parameterTransformers(List<ParametersTransformerSpec> parameterTransformers) {
+			if (!CollectionUtils.isEmpty(parameterTransformers)) {
+				this.parameterTransformers.addAll(parameterTransformers);
+			}
 			return this;
 		}
 
 		public BackingApplicationBuilder parameterTransformers(ParametersTransformerSpec... parameterTransformers) {
-			this.parameterTransformers.addAll(Arrays.asList(parameterTransformers));
+			if (parameterTransformers != null) {
+				this.parameterTransformers(Arrays.asList(parameterTransformers));
+			}
+			return this;
+		}
+
+		public BackingApplicationBuilder credentialProviders(List<CredentialProviderSpec> credentialProviders) {
+			if (!CollectionUtils.isEmpty(credentialProviders)) {
+				this.credentialProviders.addAll(credentialProviders);
+			}
 			return this;
 		}
 
 		public BackingApplicationBuilder credentialProviders(CredentialProviderSpec... credentialProviders) {
-			this.credentialProviders.addAll(Arrays.asList(credentialProviders));
+			if (credentialProviders != null) {
+				this.credentialProviders(Arrays.asList(credentialProviders));
+			}
 			return this;
 		}
 

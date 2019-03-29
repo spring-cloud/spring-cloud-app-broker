@@ -19,6 +19,8 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.util.CollectionUtils;
+
 public class BrokeredServices extends ArrayList<BrokeredService> {
 	private static final long serialVersionUID = 6303127383252611352L;
 
@@ -37,7 +39,16 @@ public class BrokeredServices extends ArrayList<BrokeredService> {
 		private final List<BrokeredService> brokeredServices = new ArrayList<>();
 
 		public BrokeredServicesBuilder service(BrokeredService brokeredService) {
-			this.brokeredServices.add(brokeredService);
+			if (brokeredService != null) {
+				this.brokeredServices.add(brokeredService);
+			}
+			return this;
+		}
+
+		public BrokeredServicesBuilder services(BrokeredServices brokeredServices) {
+			if (!CollectionUtils.isEmpty(brokeredServices)) {
+				this.brokeredServices.addAll(brokeredServices);
+			}
 			return this;
 		}
 

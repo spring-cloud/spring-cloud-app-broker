@@ -31,11 +31,6 @@ public class BackingApplications extends ArrayList<BackingApplication> {
 		super.addAll(backingApplications);
 	}
 
-	public BackingApplications(BackingApplications backingApplicationsToCopy) {
-		backingApplicationsToCopy.forEach(backingApplicationToCopy ->
-			this.add(new BackingApplication(backingApplicationToCopy)));
-	}
-
 	public static BackingApplicationsBuilder builder() {
 		return new BackingApplicationsBuilder();
 	}
@@ -44,13 +39,17 @@ public class BackingApplications extends ArrayList<BackingApplication> {
 		private final List<BackingApplication> backingApplications = new ArrayList<>();
 
 		public BackingApplicationsBuilder backingApplication(BackingApplication backingApplication) {
-			this.backingApplications.add(backingApplication);
+			if (backingApplication != null) {
+				this.backingApplications.add(backingApplication);
+			}
 			return this;
 		}
 
 		public BackingApplicationsBuilder backingApplications(List<BackingApplication> backingApplications) {
 			if (!CollectionUtils.isEmpty(backingApplications)) {
-				this.backingApplications.addAll(backingApplications);
+				backingApplications.forEach(backingApplication -> this.backingApplication(BackingApplication.builder()
+					.backingApplication(backingApplication)
+					.build()));
 			}
 			return this;
 		}

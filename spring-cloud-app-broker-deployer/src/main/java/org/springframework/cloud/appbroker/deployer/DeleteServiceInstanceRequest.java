@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.util.CollectionUtils;
 
 public class DeleteServiceInstanceRequest {
 
@@ -43,7 +46,7 @@ public class DeleteServiceInstanceRequest {
 	public static class DeleteServiceInstanceRequestBuilder {
 
 		private String serviceInstanceName;
-		private Map<String, String> properties;
+		private final Map<String, String> properties = new HashMap<>();
 
 		DeleteServiceInstanceRequestBuilder() {
 		}
@@ -54,7 +57,9 @@ public class DeleteServiceInstanceRequest {
 		}
 
 		public DeleteServiceInstanceRequestBuilder properties(Map<String, String> properties) {
-			this.properties = properties;
+			if (!CollectionUtils.isEmpty(properties)) {
+				this.properties.putAll(properties);
+			}
 			return this;
 		}
 

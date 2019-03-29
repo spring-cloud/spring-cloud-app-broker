@@ -19,6 +19,8 @@ package org.springframework.cloud.appbroker.extensions.targets;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.util.CollectionUtils;
+
 public class ArtifactDetails {
 
 	private final String name;
@@ -55,10 +57,9 @@ public class ArtifactDetails {
 		}
 
 		public ArtifactDetailsBuilder properties(Map<String, String> properties) {
-			if (properties == null) {
-				return this;
+			if (!CollectionUtils.isEmpty(properties)) {
+				this.properties.putAll(properties);
 			}
-			this.properties.putAll(properties);
 			return this;
 		}
 

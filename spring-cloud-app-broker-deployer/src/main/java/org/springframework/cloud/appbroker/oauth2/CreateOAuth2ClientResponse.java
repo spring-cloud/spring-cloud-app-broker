@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.appbroker.oauth2;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import org.springframework.util.CollectionUtils;
 
 public class CreateOAuth2ClientResponse {
 
@@ -97,9 +100,9 @@ public class CreateOAuth2ClientResponse {
 	public static class CreateOAuth2ClientResponseBuilder {
 		private String clientId;
 		private String clientName;
-		private List<String> scopes;
-		private List<String> authorities;
-		private List<String> grantTypes;
+		private final List<String> scopes = new ArrayList<>();
+		private final List<String> authorities = new ArrayList<>();
+		private final List<String> grantTypes = new ArrayList<>();
 
 		CreateOAuth2ClientResponseBuilder() {
 		}
@@ -115,17 +118,23 @@ public class CreateOAuth2ClientResponse {
 		}
 
 		public CreateOAuth2ClientResponseBuilder scopes(List<String> scopes) {
-			this.scopes = scopes;
+			if (scopes != null) {
+				this.scopes.addAll(scopes);
+			}
 			return this;
 		}
 
 		public CreateOAuth2ClientResponseBuilder authorities(List<String> authorities) {
-			this.authorities = authorities;
+			if (!CollectionUtils.isEmpty(authorities)) {
+				this.authorities.addAll(authorities);
+			}
 			return this;
 		}
 
 		public CreateOAuth2ClientResponseBuilder grantTypes(List<String> grantTypes) {
-			this.grantTypes = grantTypes;
+			if (!CollectionUtils.isEmpty(grantTypes)) {
+				this.grantTypes.addAll(grantTypes);
+			}
 			return this;
 		}
 

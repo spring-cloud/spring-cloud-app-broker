@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.oauth2;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -124,9 +125,9 @@ public class CreateOAuth2ClientRequest {
 		private String clientId;
 		private String clientSecret;
 		private String clientName;
-		private List<String> scopes;
-		private List<String> authorities;
-		private List<String> grantTypes;
+		private final List<String> scopes = new ArrayList<>();
+		private final List<String> authorities = new ArrayList<>();
+		private final List<String> grantTypes = new ArrayList<>();
 		private String identityZoneSubdomain;
 		private String identityZoneId;
 
@@ -149,17 +150,23 @@ public class CreateOAuth2ClientRequest {
 		}
 
 		public CreateOAuth2ClientRequestBuilder scopes(String... scopes) {
-			this.scopes = Arrays.asList(scopes);
+			if (scopes != null) {
+				this.scopes.addAll(Arrays.asList(scopes));
+			}
 			return this;
 		}
 
 		public CreateOAuth2ClientRequestBuilder authorities(String... authorities) {
-			this.authorities = Arrays.asList(authorities);
+			if (authorities != null) {
+				this.authorities.addAll(Arrays.asList(authorities));
+			}
 			return this;
 		}
 
 		public CreateOAuth2ClientRequestBuilder grantTypes(String... grantTypes) {
-			this.grantTypes = Arrays.asList(grantTypes);
+			if (grantTypes != null) {
+				this.grantTypes.addAll(Arrays.asList(grantTypes));
+			}
 			return this;
 		}
 

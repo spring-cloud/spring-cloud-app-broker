@@ -29,6 +29,7 @@ import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
+import org.springframework.util.CollectionUtils;
 
 class AppDeploymentInstanceWorkflow {
 
@@ -63,15 +64,25 @@ class AppDeploymentInstanceWorkflow {
 	private BackingApplications findBackingApplications(ServiceDefinition serviceDefinition,
 														Plan plan) {
 		BrokeredService brokeredService = findBrokeredService(serviceDefinition, plan);
-		return brokeredService == null ? null : new BackingApplications(brokeredService.getApps());
+		BackingApplications backingApplications = null;
+		if (brokeredService != null) {
+			backingApplications = BackingApplications.builder()
+				.backingApplications(brokeredService.getApps())
+				.build();
+		}
+		return backingApplications;
 	}
 
 	private BackingServices findBackingServices(ServiceDefinition serviceDefinition,
 												Plan plan) {
 		BrokeredService brokeredService = findBrokeredService(serviceDefinition, plan);
-		return brokeredService == null || brokeredService.getServices() == null
-			? null
-			: new BackingServices(brokeredService.getServices());
+		BackingServices backingServices = null;
+		if (brokeredService != null && !CollectionUtils.isEmpty(brokeredService.getServices())) {
+			backingServices = BackingServices.builder()
+				.backingServices(brokeredService.getServices())
+				.build();
+		}
+		return backingServices;
 	}
 
 	private BrokeredService findBrokeredService(ServiceDefinition serviceDefinition,

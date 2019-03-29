@@ -19,6 +19,8 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.util.CollectionUtils;
+
 public class UpdateServiceInstanceRequest {
 
 	private final String serviceInstanceName;
@@ -72,23 +74,23 @@ public class UpdateServiceInstanceRequest {
 		}
 
 		public UpdateServiceInstanceRequestBuilder parameters(String key, String value) {
-			this.parameters.put(key, value);
+			if (key != null && value != null) {
+				this.parameters.put(key, value);
+			}
 			return this;
 		}
 
 		public UpdateServiceInstanceRequestBuilder parameters(Map<String, Object> parameters) {
-			if (parameters == null) {
-				return this;
+			if (!CollectionUtils.isEmpty(parameters)) {
+				this.parameters.putAll(parameters);
 			}
-			this.parameters.putAll(parameters);
 			return this;
 		}
 
 		public UpdateServiceInstanceRequestBuilder properties(Map<String, String> properties) {
-			if (properties == null) {
-				return this;
+			if (!CollectionUtils.isEmpty(properties)) {
+				this.properties.putAll(properties);
 			}
-			this.properties.putAll(properties);
 			return this;
 		}
 

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.springframework.util.CollectionUtils;
+
 public class BackingService {
 
 	private String serviceInstanceName;
@@ -50,22 +52,6 @@ public class BackingService {
 		this.properties = properties;
 		this.parametersTransformers = parametersTransformers;
 		this.rebindOnUpdate = rebindOnUpdate;
-	}
-
-	BackingService(BackingService backingServiceToCopy) {
-		this.serviceInstanceName = backingServiceToCopy.serviceInstanceName;
-		this.name = backingServiceToCopy.name;
-		this.plan = backingServiceToCopy.plan;
-		this.parameters = backingServiceToCopy.parameters == null
-			? new HashMap<>()
-			: new HashMap<>(backingServiceToCopy.parameters);
-		this.properties = backingServiceToCopy.properties == null
-			? new HashMap<>()
-			: new HashMap<>(backingServiceToCopy.properties);
-		this.parametersTransformers = backingServiceToCopy.parametersTransformers == null
-			? new ArrayList<>()
-			: new ArrayList<>(backingServiceToCopy.parametersTransformers);
-		this.rebindOnUpdate = backingServiceToCopy.rebindOnUpdate;
 	}
 
 	public String getServiceInstanceName() {
@@ -171,12 +157,22 @@ public class BackingService {
 		private String serviceInstanceName;
 		private String name;
 		private String plan;
-		private Map<String, Object> parameters = new HashMap<>();
-		private Map<String, String> properties = new HashMap<>();
+		private final Map<String, Object> parameters = new HashMap<>();
+		private final Map<String, String> properties = new HashMap<>();
 		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
 		private boolean rebindOnUpdate;
 
 		BackingServiceBuilder() {
+		}
+
+		public BackingServiceBuilder backingService(BackingService backingService) {
+			return this.serviceInstanceName(backingService.getServiceInstanceName())
+				.name(backingService.getName())
+				.plan(backingService.getPlan())
+				.parameters(backingService.getParameters())
+				.properties(backingService.getProperties())
+				.parameterTransformers(backingService.getParametersTransformers())
+				.rebindOnUpdate(backingService.isRebindOnUpdate());
 		}
 
 		public BackingServiceBuilder serviceInstanceName(String serviceInstanceName) {
@@ -195,17 +191,30 @@ public class BackingService {
 		}
 
 		public BackingServiceBuilder parameters(Map<String, Object> parameters) {
-			this.parameters = parameters;
+			if (!CollectionUtils.isEmpty(parameters)) {
+				this.parameters.putAll(parameters);
+			}
 			return this;
 		}
 
 		public BackingServiceBuilder properties(Map<String, String> properties) {
-			this.properties = properties;
+			if (!CollectionUtils.isEmpty(properties)) {
+				this.properties.putAll(properties);
+			}
+			return this;
+		}
+
+		public BackingServiceBuilder parameterTransformers(List<ParametersTransformerSpec> parameterTransformers) {
+			if (!CollectionUtils.isEmpty(parameterTransformers)) {
+				this.parameterTransformers.addAll(parameterTransformers);
+			}
 			return this;
 		}
 
 		public BackingServiceBuilder parameterTransformers(ParametersTransformerSpec... parameterTransformers) {
-			this.parameterTransformers.addAll(Arrays.asList(parameterTransformers));
+			if (parameterTransformers != null) {
+				this.parameterTransformers(Arrays.asList(parameterTransformers));
+			}
 			return this;
 		}
 

@@ -19,6 +19,8 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.util.CollectionUtils;
+
 public class BackingServices extends ArrayList<BackingService> {
 
 	private static final long serialVersionUID = 1L;
@@ -30,11 +32,6 @@ public class BackingServices extends ArrayList<BackingService> {
 		super.addAll(backingServices);
 	}
 
-	public BackingServices(BackingServices backingServicesToCopy) {
-		backingServicesToCopy.forEach(backingServiceToCopy ->
-			this.add(new BackingService(backingServiceToCopy)));
-	}
-
 	public static BackingServicesBuilder builder() {
 		return new BackingServicesBuilder();
 	}
@@ -44,7 +41,18 @@ public class BackingServices extends ArrayList<BackingService> {
 		private final List<BackingService> backingServices = new ArrayList<>();
 
 		public BackingServicesBuilder backingService(BackingService backingService) {
-			this.backingServices.add(backingService);
+			if (backingService != null) {
+				this.backingServices.add(backingService);
+			}
+			return this;
+		}
+
+		public BackingServicesBuilder backingServices(BackingServices backingServices) {
+			if (!CollectionUtils.isEmpty(backingServices)) {
+				backingServices.forEach(backingService -> this.backingService(BackingService.builder()
+					.backingService(backingService)
+					.build()));
+			}
 			return this;
 		}
 

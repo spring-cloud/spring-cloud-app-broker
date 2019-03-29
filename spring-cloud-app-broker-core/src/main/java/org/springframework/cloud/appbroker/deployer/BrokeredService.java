@@ -18,6 +18,8 @@ package org.springframework.cloud.appbroker.deployer;
 
 import java.util.Objects;
 
+import org.springframework.util.CollectionUtils;
+
 public class BrokeredService {
 
 	private String serviceName;
@@ -132,12 +134,20 @@ public class BrokeredService {
 		}
 
 		public BrokeredServiceBuilder apps(BackingApplications backingApplications) {
-			this.backingApplications = backingApplications;
+			if (!CollectionUtils.isEmpty(backingApplications)) {
+				this.backingApplications = BackingApplications.builder()
+					.backingApplications(backingApplications)
+					.build();
+			}
 			return this;
 		}
 
 		public BrokeredServiceBuilder services(BackingServices backingServices) {
-			this.backingServices = backingServices;
+			if (!CollectionUtils.isEmpty(backingServices)) {
+				this.backingServices = BackingServices.builder()
+					.backingServices(backingServices)
+					.build();
+			}
 			return this;
 		}
 

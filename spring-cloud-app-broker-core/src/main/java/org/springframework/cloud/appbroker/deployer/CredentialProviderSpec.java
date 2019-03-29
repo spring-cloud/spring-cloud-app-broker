@@ -19,6 +19,8 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.util.CollectionUtils;
+
 public class CredentialProviderSpec {
 
 	private String name;
@@ -30,11 +32,6 @@ public class CredentialProviderSpec {
 	CredentialProviderSpec(String name, Map<String, Object> args) {
 		this.name = name;
 		this.args = args;
-	}
-
-	CredentialProviderSpec(CredentialProviderSpec credentialProviderSpecToClone) {
-		this.name = credentialProviderSpecToClone.name;
-		this.args = credentialProviderSpecToClone.args;
 	}
 
 	public String getName() {
@@ -60,9 +57,15 @@ public class CredentialProviderSpec {
 	public static class CredentialProviderSpecBuilder {
 
 		private String name;
+
 		private final Map<String, Object> args = new LinkedHashMap<>();
 
 		CredentialProviderSpecBuilder() {
+		}
+
+		public CredentialProviderSpecBuilder spec(CredentialProviderSpec spec) {
+			return this.name(spec.getName())
+				.args(spec.getArgs());
 		}
 
 		public CredentialProviderSpecBuilder name(String name) {
@@ -71,12 +74,16 @@ public class CredentialProviderSpec {
 		}
 
 		public CredentialProviderSpecBuilder arg(String key, Object value) {
-			this.args.put(key, value);
+			if (key != null && value != null) {
+				this.args.put(key, value);
+			}
 			return this;
 		}
 
 		public CredentialProviderSpecBuilder args(Map<String, Object> args) {
-			this.args.putAll(args);
+			if (!CollectionUtils.isEmpty(args)) {
+				this.args.putAll(args);
+			}
 			return this;
 		}
 

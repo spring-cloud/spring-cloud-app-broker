@@ -464,7 +464,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		Mono<Void> requestDeleteApplication;
 		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
 			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
-			requestDeleteApplication = deleteApplicationInSpace(appName, space);
+			requestDeleteApplication = deleteApplicationInSpace(appName, space)
+				.then(deleteSpace(space));
 		} else {
 			requestDeleteApplication = deleteApplication(appName);
 		}
@@ -494,8 +495,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
 				.name(name)
 				.build())
-				.doOnError(error -> logger.warn("Unable to delete application: {} ", name))
-				.then(deleteSpace(spaceName)))
+				.doOnError(error -> logger.warn("Unable to delete application: {} ", name)))
 			.onErrorResume(e -> Mono.empty());
 	}
 

@@ -137,6 +137,34 @@ class AppBrokerAutoConfigurationTest {
 			});
 	}
 
+	@Test
+	void serviceInstanceStateRepositoryIsNotCreatedIfProvided() {
+		configuredContext()
+			.withUserConfiguration(CustomStateRepositoriesConfiguration.class)
+			.run(context -> {
+				assertBeansCreated(context);
+
+				assertThat(context)
+					.hasSingleBean(ServiceInstanceStateRepository.class)
+					.getBean(ServiceInstanceStateRepository.class)
+					.isExactlyInstanceOf(TestServiceInstanceStateRepository.class);
+			});
+	}
+
+	@Test
+	void serviceInstanceBindingStateRepositoryIsNotCreatedIfProvided() {
+		configuredContext()
+			.withUserConfiguration(CustomStateRepositoriesConfiguration.class)
+			.run(context -> {
+				assertBeansCreated(context);
+
+				assertThat(context)
+					.hasSingleBean(ServiceInstanceBindingStateRepository.class)
+					.getBean(ServiceInstanceBindingStateRepository.class)
+					.isExactlyInstanceOf(TestServiceInstanceBindingStateRepository.class);
+			});
+	}
+
 	private ApplicationContextRunner configuredContext() {
 		return this.contextRunner
 			.withPropertyValues(
@@ -240,6 +268,23 @@ class AppBrokerAutoConfigurationTest {
 		}
 	}
 
+	@Configuration
+	public static class CustomStateRepositoriesConfiguration {
+		@Bean
+		public ServiceInstanceStateRepository serviceInstanceStateRepository() {
+			return new TestServiceInstanceStateRepository();
+		}
+
+		@Bean
+		public ServiceInstanceBindingStateRepository serviceInstanceBindingStateRepository() {
+			return new TestServiceInstanceBindingStateRepository();
+		}
+	}
+
 	private static class TestServiceInstanceBindingService implements ServiceInstanceBindingService {
 	}
+
+	private static class TestServiceInstanceStateRepository implements ServiceInstanceStateRepository {}
+
+	private static class TestServiceInstanceBindingStateRepository implements ServiceInstanceBindingStateRepository {}
 }

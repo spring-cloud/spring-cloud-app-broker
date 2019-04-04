@@ -104,11 +104,13 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean(ServiceInstanceStateRepository.class)
 	public ServiceInstanceStateRepository serviceInstanceStateRepository() {
 		return new InMemoryServiceInstanceStateRepository();
 	}
 
 	@Bean
+	@ConditionalOnMissingBean(ServiceInstanceBindingStateRepository.class)
 	public ServiceInstanceBindingStateRepository serviceInstanceBindingStateRepository() {
 		return new InMemoryServiceInstanceBindingStateRepository();
 	}

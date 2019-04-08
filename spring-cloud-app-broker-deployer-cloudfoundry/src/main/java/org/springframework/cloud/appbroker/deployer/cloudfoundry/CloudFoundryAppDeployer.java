@@ -35,7 +35,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cloudfoundry.AbstractCloudFoundryException;
 import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.organizations.GetOrganizationRequest;
+import org.cloudfoundry.client.v2.organizations.GetOrganizationResponse;
 import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
+import org.cloudfoundry.client.v2.organizations.OrganizationEntity;
 import org.cloudfoundry.client.v2.serviceinstances.ServiceInstanceEntity;
 import org.cloudfoundry.client.v2.spaces.CreateSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
@@ -716,7 +719,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			if (StringUtils.hasText(request.getServiceInstanceId())) {
 				return getServiceInstance(request.getServiceInstanceId())
 					.flatMap(serviceInstanceEntity -> getSpace(serviceInstanceEntity.getSpaceId())
-						.flatMap(spaceEntity -> getServiceInstance(serviceInstanceEntity.getName(), spaceEntity.getName())));
+						.flatMap(spaceEntity -> getServiceInstance(serviceInstanceEntity.getName(), spaceEntity)));
 			}
 			else {
 				return operationsUtils.getOperations(request.getProperties())
@@ -733,12 +736,14 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.build());
 	}
 
-	private Mono<ServiceInstance> getServiceInstance(String name, String space) {
-		return operationsUtils.getOperationsForSpace(space)
-			.flatMap(cfOperations -> cfOperations.services()
-				.getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
-					.name(name)
-					.build()));
+	private Mono<ServiceInstance> getServiceInstance(String name, SpaceEntity spaceEntity) {
+		return getOrganization(spaceEntity.getOrganizationId())
+			.flatMap(organizationEntity ->
+							operationsUtils.getOperationsForOrgAndSpace(organizationEntity.getName(), spaceEntity.getName())
+						   		.flatMap(cfOperations -> cfOperations.services()
+										.getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
+	  								    .name(name)
+									 	.build())));
 	}
 
 	private Mono<ServiceInstanceEntity> getServiceInstance(String serviceInstanceId) {
@@ -753,6 +758,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.spaceId(spaceId)
 			.build())
 			.map(ResourceUtils::getEntity);
+	}
+
+	private Mono<OrganizationEntity> getOrganization(String organizationId) {
+		return client.organizations()
+					 .get(GetOrganizationRequest.builder().organizationId(organizationId).build())
+					 .map(GetOrganizationResponse::getEntity);
 	}
 
 	@Override

@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.organizations.GetOrganizationRequest;
+import org.cloudfoundry.client.v2.organizations.GetOrganizationResponse;
+import org.cloudfoundry.client.v2.organizations.OrganizationEntity;
 import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceResponse;
 import org.cloudfoundry.client.v2.serviceinstances.ServiceInstanceEntity;
 import org.cloudfoundry.client.v2.serviceinstances.ServiceInstances;
@@ -99,6 +102,9 @@ class CloudFoundryAppDeployerTest {
 	private org.cloudfoundry.client.v2.spaces.Spaces clientSpaces;
 
 	@Mock
+	private org.cloudfoundry.client.v2.organizations.Organizations clientOrganizations;
+
+	@Mock
 	private CloudFoundryOperations cloudFoundryOperations;
 
 	@Mock
@@ -125,8 +131,10 @@ class CloudFoundryAppDeployerTest {
 		when(cloudFoundryOperations.services()).thenReturn(operationsServices);
 		when(cloudFoundryClient.serviceInstances()).thenReturn(clientServiceInstances);
 		when(cloudFoundryClient.spaces()).thenReturn(clientSpaces);
+		when(cloudFoundryClient.organizations()).thenReturn(clientOrganizations);
 		when(operationsUtils.getOperations(anyMap())).thenReturn(Mono.just(cloudFoundryOperations));
 		when(operationsUtils.getOperationsForSpace(anyString())).thenReturn(Mono.just(cloudFoundryOperations));
+		when(operationsUtils.getOperationsForOrgAndSpace(anyString(), anyString())).thenReturn(Mono.just(cloudFoundryOperations));
 
 		appDeployer = new CloudFoundryAppDeployer(deploymentProperties, cloudFoundryOperations, cloudFoundryClient,
 			operationsUtils, targetProperties, resourceLoader);
@@ -519,8 +527,18 @@ class CloudFoundryAppDeployerTest {
 			.thenReturn(Mono.just(GetSpaceResponse.builder()
 				.entity(SpaceEntity.builder()
 					.name("foo-space")
+					.organizationId("foo-organization-id")
 					.build())
 				.build()));
+
+		when(clientOrganizations.get(GetOrganizationRequest.builder()
+	   		.organizationId("foo-organization-id")
+		   	.build()))
+			.thenReturn(Mono.just(GetOrganizationResponse.builder()
+				 .entity(OrganizationEntity.builder()
+				   .name("foo-organization")
+				   .build())
+				 .build()));
 
 		org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest request =
 			org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest
@@ -537,11 +555,13 @@ class CloudFoundryAppDeployerTest {
 			})
 			.verifyComplete();
 
-		verify(operationsUtils).getOperationsForSpace(argThat("foo-space"::equals));
+		verify(operationsUtils).getOperationsForOrgAndSpace(argThat("foo-organization"::equals), argThat("foo-space"::equals));
 		verify(cloudFoundryClient).serviceInstances();
 		verify(clientServiceInstances).get(argThat(req -> "foo-service-instance-id".equals(req.getServiceInstanceId())));
 		verify(cloudFoundryClient).spaces();
+		verify(cloudFoundryClient).organizations();
 		verify(clientSpaces).get(argThat(req -> "foo-space-id".equals(req.getSpaceId())));
+		verify(clientOrganizations).get(argThat(req -> "foo-organization-id".equals(req.getOrganizationId())));
 		verify(cloudFoundryOperations).services();
 		verify(operationsServices).getInstance(argThat(req -> "my-foo-service".equals(req.getName())));
 		verifyNoMoreInteractions(cloudFoundryClient, cloudFoundryOperations, operationsUtils);

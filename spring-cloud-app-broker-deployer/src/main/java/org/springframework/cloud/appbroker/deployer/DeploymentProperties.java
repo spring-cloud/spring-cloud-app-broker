@@ -58,6 +58,12 @@ public class DeploymentProperties {
 	 */
 	public static final String TARGET_PROPERTY_KEY = "target";
 
+	/**
+	 * The deployment property indicating whether the application should be automatically started after deployment.
+	 * Defaults to true.
+	 */
+	public static final String START_PROPERTY_KEY = "start";
+
 	public static final String USE_SPRING_APPLICATION_JSON_KEY = "use-spring-application-json";
 
 	private String host;

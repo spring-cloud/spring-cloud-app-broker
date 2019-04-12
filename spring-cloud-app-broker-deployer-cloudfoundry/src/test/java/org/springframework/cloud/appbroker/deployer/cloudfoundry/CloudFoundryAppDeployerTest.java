@@ -338,6 +338,37 @@ class CloudFoundryAppDeployerTest {
 	}
 
 	@Test
+	void deployAppWithStartOption() {
+		DeployApplicationRequest request = DeployApplicationRequest.builder()
+		                                                           .name(APP_NAME)
+		                                                           .path(APP_PATH)
+		                                                           .property(CloudFoundryDeploymentProperties.START_PROPERTY_KEY, "false")
+		                                                           .serviceInstanceId(SERVICE_INSTANCE_ID)
+		                                                           .build();
+
+		StepVerifier.create(appDeployer.deploy(request))
+		            .assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+		            .verifyComplete();
+
+		verify(operationsApplications).pushManifest(argThat(PushApplicationManifestRequest::getNoStart));
+	}
+
+	@Test
+	void deployAppWithStartTrueByDefault() {
+		DeployApplicationRequest request = DeployApplicationRequest.builder()
+		                                                           .name(APP_NAME)
+		                                                           .path(APP_PATH)
+		                                                           .serviceInstanceId(SERVICE_INSTANCE_ID)
+		                                                           .build();
+
+		StepVerifier.create(appDeployer.deploy(request))
+		            .assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+		            .verifyComplete();
+
+		verify(operationsApplications).pushManifest(argThat(r -> !r.getNoStart()));
+	}
+
+	@Test
 	void deleteServiceInstanceShouldUnbindServices() {
 		when(operationsServices.deleteInstance(
 			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest.builder()

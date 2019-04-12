@@ -368,6 +368,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 										  .manifest(manifest)
 										  .stagingTimeout(this.defaultDeploymentProperties.getStagingTimeout())
 										  .startupTimeout(this.defaultDeploymentProperties.getStartupTimeout())
+										  .noStart(!start(deploymentProperties))
 										  .build();
 
 		Mono<Void> requestPushApplication;
@@ -666,6 +667,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private String javaOpts(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.JAVA_OPTS_PROPERTY_KEY))
 			.orElse(this.defaultDeploymentProperties.getJavaOpts());
+	}
+
+	private Boolean start(Map<String, String> deploymentProperties) {
+		return Optional.ofNullable(deploymentProperties.get(DeploymentProperties.START_PROPERTY_KEY))
+		                           .map(Boolean::valueOf)
+		                           .orElse(true);
 	}
 
 	private Predicate<Throwable> isNotFoundError() {

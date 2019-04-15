@@ -46,7 +46,7 @@ configure(allprojects) {
 		springVersion = project.findProperty("springVersion") ?: "5.1.6.RELEASE"
 		reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR6"
 		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
-		springCredhubVersion = "2.0.0.BUILD-SNAPSHOT"
+		springCredhubVersion = "2.0.1.RELEASE"
 		cfJavaClientVersion = "3.15.0.RELEASE"
 	}
 

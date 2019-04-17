@@ -45,7 +45,7 @@ configure(allprojects) {
 		springBootVersion = project.findProperty("springBootVersion") ?: "2.1.4.RELEASE"
 		springVersion = project.findProperty("springVersion") ?: "5.1.6.RELEASE"
 		reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR6"
-		openServiceBrokerVersion = "3.0.0.BUILD-SNAPSHOT"
+		openServiceBrokerVersion = "3.0.0.RC1"
 		springCredhubVersion = "2.0.1.RELEASE"
 		cfJavaClientVersion = "3.15.0.RELEASE"
 	}
@@ -61,7 +61,6 @@ configure(allprojects) {
 	repositories {
 		mavenCentral()
 		maven { url "https://repo.spring.io/libs-milestone" }
-		maven { url "https://repo.spring.io/libs-snapshot" }
 	}
 
 	if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion") || project.hasProperty("reactorVersion")) {

@@ -24,7 +24,16 @@ buildscript {
 		classpath("io.spring.gradle:spring-io-plugin:0.0.8.RELEASE")
 		classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.5.3")
 		classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.7.5")
+		classpath("io.spring.nohttp:nohttp-gradle:0.0.1.RELEASE")
 	}
+}
+
+// NoHttp has to be applied at the root level
+// so that it reads all the root files, including the gradle ones.
+apply plugin: "io.spring.nohttp"
+
+checkstyle {
+	toolVersion = 8.16
 }
 
 configure(allprojects) {
@@ -61,6 +70,10 @@ configure(allprojects) {
 	repositories {
 		mavenCentral()
 		maven { url "https://repo.spring.io/libs-release" }
+	}
+
+	dependencies {
+		testRuntimeOnly("io.spring.nohttp:nohttp:0.0.1.RELEASE")
 	}
 
 	if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion") || project.hasProperty("reactorVersion")) {

@@ -22,6 +22,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.organizations.AssociateOrganizationManagerRequest;
+import org.cloudfoundry.client.v2.organizations.AssociateOrganizationManagerResponse;
+import org.cloudfoundry.client.v2.organizations.AssociateOrganizationUserRequest;
+import org.cloudfoundry.client.v2.organizations.AssociateOrganizationUserResponse;
+import org.cloudfoundry.client.v2.organizations.RemoveOrganizationManagerRequest;
+import org.cloudfoundry.client.v2.organizations.RemoveOrganizationUserRequest;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperRequest;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperResponse;
+import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperRequest;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
@@ -63,11 +73,16 @@ public class CloudFoundryService {
 	
 	private static final String DEPLOYER_PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry.";
 
+	private final CloudFoundryClient cloudFoundryClient;
+
 	private final CloudFoundryOperations cloudFoundryOperations;
+
 	private final CloudFoundryProperties cloudFoundryProperties;
 
-	public CloudFoundryService(CloudFoundryOperations cloudFoundryOperations,
+	public CloudFoundryService(CloudFoundryClient cloudFoundryClient,
+							   CloudFoundryOperations cloudFoundryOperations,
 							   CloudFoundryProperties cloudFoundryProperties) {
+		this.cloudFoundryClient = cloudFoundryClient;
 		this.cloudFoundryOperations = cloudFoundryOperations;
 		this.cloudFoundryProperties = cloudFoundryProperties;
 	}
@@ -303,6 +318,63 @@ public class CloudFoundryService {
 			.next();
 	}
 
+	public Mono<Void> associateAppBrokerClientWithOrgAndSpace(String orgId, String spaceId) {
+		return Mono.justOrEmpty(CloudFoundryClientConfiguration.APP_BROKER_CLIENT_ID)
+			.flatMap(userId -> associateOrgUser(orgId, userId)
+				.then(associateOrgManager(orgId, userId))
+				.then(associateSpaceDeveloper(spaceId, userId)))
+			.then();
+	}
+
+	public Mono<Void> removeAppBrokerClientFromOrgAndSpace(String orgId, String spaceId) {
+		return Mono.justOrEmpty(CloudFoundryClientConfiguration.APP_BROKER_CLIENT_ID)
+			.flatMap(userId -> removeSpaceDeveloper(spaceId, userId)
+				.then(removeOrgManager(orgId, userId))
+				.then(removeOrgUser(orgId, userId)));
+	}
+
+	private Mono<AssociateOrganizationUserResponse> associateOrgUser(String orgId, String userId) {
+		return cloudFoundryClient.organizations().associateUser(AssociateOrganizationUserRequest.builder()
+			.organizationId(orgId)
+			.userId(userId)
+			.build());
+	}
+
+	private Mono<AssociateOrganizationManagerResponse> associateOrgManager(String orgId, String userId) {
+		return cloudFoundryClient.organizations().associateManager(AssociateOrganizationManagerRequest.builder()
+			.organizationId(orgId)
+			.managerId(userId)
+			.build());
+	}
+
+	private Mono<AssociateSpaceDeveloperResponse> associateSpaceDeveloper(String spaceId, String userId) {
+		return cloudFoundryClient.spaces().associateDeveloper(AssociateSpaceDeveloperRequest.builder()
+			.spaceId(spaceId)
+			.developerId(userId)
+			.build());
+	}
+
+	private Mono<Void> removeOrgUser(String orgId, String userId) {
+		return cloudFoundryClient.organizations().removeUser(RemoveOrganizationUserRequest.builder()
+			.organizationId(orgId)
+			.userId(userId)
+			.build());
+	}
+
+	private Mono<Void> removeOrgManager(String orgId, String userId) {
+		return cloudFoundryClient.organizations().removeManager(RemoveOrganizationManagerRequest.builder()
+			.organizationId(orgId)
+			.managerId(userId)
+			.build());
+	}
+
+	private Mono<Void> removeSpaceDeveloper(String spaceId, String userId) {
+		return cloudFoundryClient.spaces().removeDeveloper(RemoveSpaceDeveloperRequest.builder()
+			.spaceId(spaceId)
+			.developerId(userId)
+			.build());
+	}
+
 	private CloudFoundryOperations createOperationsForSpace(String space) {
 		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
 		return DefaultCloudFoundryOperations.builder()
@@ -326,17 +398,10 @@ public class CloudFoundryService {
 			String.valueOf(cloudFoundryProperties.isSkipSslValidation()));
 		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "properties.memory", "1024M");
 
-		if (cloudFoundryProperties.getUsername() == null || cloudFoundryProperties.getPassword() == null) {
-			deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "client-id",
-				CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_ID);
-			deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "client-secret",
-				CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET);
-		} else {
-			deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "username",
-				cloudFoundryProperties.getUsername());
-			deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "password",
-				cloudFoundryProperties.getPassword());
-		}
+		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "client-id",
+			CloudFoundryClientConfiguration.APP_BROKER_CLIENT_ID);
+		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "client-secret",
+			CloudFoundryClientConfiguration.APP_BROKER_CLIENT_SECRET);
 
 		return deployerVariables;
 	}

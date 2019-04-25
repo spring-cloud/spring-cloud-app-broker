@@ -37,11 +37,12 @@ import org.cloudfoundry.uaa.clients.Clients;
 import org.cloudfoundry.uaa.clients.CreateClientRequest;
 import org.cloudfoundry.uaa.clients.DeleteClientRequest;
 import org.cloudfoundry.uaa.tokens.GrantType;
+import reactor.core.publisher.Mono;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import reactor.core.publisher.Mono;
 
 @Configuration
 @EnableConfigurationProperties(CloudFoundryProperties.class)
@@ -52,6 +53,12 @@ public class CloudFoundryClientConfiguration {
 	private static final String[] ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES = {
 		"openid", "cloud_controller.admin", "cloud_controller.read", "cloud_controller.write",
 		"clients.read", "clients.write"
+	};
+
+	static final String APP_BROKER_CLIENT_ID = "app-broker-client";
+	static final String APP_BROKER_CLIENT_SECRET = "app-broker-client-secret";
+	private static final String[] APP_BROKER_CLIENT_AUTHORITIES = {
+		"cloud_controller.read", "cloud_controller.write"
 	};
 
 	@Bean
@@ -123,12 +130,25 @@ public class CloudFoundryClientConfiguration {
 			.build())
 			.onErrorResume(UaaException.class, e -> Mono.empty())
 			.onErrorResume(UnknownCloudFoundryException.class, e -> Mono.empty())
+			.then(uaaClients.delete(DeleteClientRequest.builder()
+				.clientId(APP_BROKER_CLIENT_ID)
+				.build())
+				.onErrorResume(UaaException.class, e -> Mono.empty())
+				.onErrorResume(UnknownCloudFoundryException.class, e -> Mono.empty()))
 			.then(uaaClients.create(CreateClientRequest.builder()
 				.clientId(ACCEPTANCE_TEST_OAUTH_CLIENT_ID)
 				.clientSecret(ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET)
 				.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
 				.authorities(ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES)
-				.build()))
+				.build())
+				.onErrorResume(e -> Mono.empty()))
+			.then(uaaClients.create(CreateClientRequest.builder()
+				.clientId(APP_BROKER_CLIENT_ID)
+				.clientSecret(APP_BROKER_CLIENT_SECRET)
+				.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
+				.authorities(APP_BROKER_CLIENT_AUTHORITIES)
+				.build())
+				.onErrorResume(e -> Mono.empty()))
 			.block();
 
 		return ClientCredentialsGrantTokenProvider.builder()

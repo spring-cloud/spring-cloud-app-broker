@@ -36,7 +36,9 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.organizations.OrganizationSummary;
 import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.spaces.SpaceSummary;
 import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,24 +116,30 @@ class CloudFoundryAcceptanceTest {
 
 	@AfterEach
 	void tearDown() {
-		blockingSubscribe(cleanup());
+		blockingSubscribe(cloudFoundryService.getOrCreateDefaultOrganization()
+			.map(OrganizationSummary::getId)
+			.flatMap(orgId -> cloudFoundryService.getOrCreateDefaultSpace()
+				.map(SpaceSummary::getId)
+				.flatMap(spaceId -> cleanup(orgId, spaceId))));
 	}
 
 	private Mono<Void> initializeBroker(String... appBrokerProperties) {
-		return cleanup()
-			.then(
-				cloudFoundryService
-					.getOrCreateDefaultOrganization()
-					.then(cloudFoundryService.getOrCreateDefaultSpace())
-					.then(cloudFoundryService.pushBrokerApp(TEST_BROKER_APP_NAME, getTestBrokerAppPath(), appBrokerProperties))
-					.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, TEST_BROKER_APP_NAME))
-					.then(cloudFoundryService.enableServiceBrokerAccess(APP_SERVICE_NAME))
-					.then(cloudFoundryService.enableServiceBrokerAccess(BACKING_SERVICE_NAME)));
+		return cloudFoundryService.getOrCreateDefaultOrganization()
+				.map(OrganizationSummary::getId)
+				.flatMap(orgId -> cloudFoundryService.getOrCreateDefaultSpace()
+					.map(SpaceSummary::getId)
+					.flatMap(spaceId -> cleanup(orgId, spaceId)
+						.then(cloudFoundryService.associateAppBrokerClientWithOrgAndSpace(orgId, spaceId))
+						.then(cloudFoundryService.pushBrokerApp(TEST_BROKER_APP_NAME, getTestBrokerAppPath(), appBrokerProperties))
+						.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, TEST_BROKER_APP_NAME))
+						.then(cloudFoundryService.enableServiceBrokerAccess(APP_SERVICE_NAME))
+						.then(cloudFoundryService.enableServiceBrokerAccess(BACKING_SERVICE_NAME))));
 	}
 
-	private Mono<Void> cleanup() {
+	private Mono<Void> cleanup(String orgId, String spaceId) {
 		return cloudFoundryService.deleteServiceBroker(SERVICE_BROKER_NAME)
-			.then(cloudFoundryService.deleteApp(TEST_BROKER_APP_NAME));
+			.then(cloudFoundryService.deleteApp(TEST_BROKER_APP_NAME))
+			.then(cloudFoundryService.removeAppBrokerClientFromOrgAndSpace(orgId, spaceId));
 	}
 
 	void createServiceInstance(String serviceInstanceName) {

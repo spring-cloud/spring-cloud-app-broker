@@ -142,13 +142,6 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@org-guid", TEST_ORG_GUID)))));
 	}
 
-	public void stubSpaceDoesNotExist(final String spaceName) {
-		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/spaces"))
-			.withQueryParam("q", equalTo("name:" + spaceName))
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
-	}
-
 	public void stubCreateSpace(final String spaceName) {
 		stubFor(post(urlPathEqualTo("/v2/spaces"))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + spaceName + "')]"))
@@ -510,6 +503,26 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/service_bindings"))
 			.willReturn(ok()
 				.withBody(cc("empty-query-results"))));
+	}
+
+	public void stubAssociatePermissions(final String spaceName) {
+		stubFor(get(urlPathEqualTo("/v2/config/feature_flags/set_roles_by_username"))
+			.willReturn(ok()
+				.withBody(cc("get-feature-flag-roles"))));
+		stubSpaceExists(spaceName);
+
+		stubFor(put(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/users"))
+			.willReturn(ok()));
+	}
+
+	private void stubSpaceExists(final String spaceName) {
+		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/spaces"))
+			.withQueryParam("q", equalTo("name:" + spaceName))
+			.willReturn(ok()
+				.withBody(cc("list-spaces",
+					replace("@org-guid", TEST_ORG_GUID),
+					replace("@space-guid", TEST_SPACE_GUID),
+					replace("@name", spaceName)))));
 	}
 
 	private String cc(String fileRoot, StringReplacementPair... replacements) {

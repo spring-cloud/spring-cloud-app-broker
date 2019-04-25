@@ -63,8 +63,8 @@ class CreateInstanceWithSpacePerServiceInstanceTargetComponentTest extends Wirem
 	void pushAppWithServicesInSpace() {
 		String serviceInstanceId = "instance-id";
 
-		cloudControllerFixture.stubSpaceDoesNotExist(serviceInstanceId);
 		cloudControllerFixture.stubCreateSpace(serviceInstanceId);
+		cloudControllerFixture.stubAssociatePermissions(serviceInstanceId);
 		cloudControllerFixture.stubPushAppWithHost(APP_NAME, APP_NAME + "-" + serviceInstanceId);
 
 		// given services are available in the marketplace

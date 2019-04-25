@@ -40,6 +40,7 @@ import org.cloudfoundry.client.v2.organizations.GetOrganizationResponse;
 import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
 import org.cloudfoundry.client.v2.organizations.OrganizationEntity;
 import org.cloudfoundry.client.v2.serviceinstances.ServiceInstanceEntity;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperRequest;
 import org.cloudfoundry.client.v2.spaces.CreateSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.SpaceEntity;
@@ -80,6 +81,8 @@ import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
+import org.cloudfoundry.operations.useradmin.SetSpaceRoleRequest;
+import org.cloudfoundry.operations.useradmin.SpaceRole;
 import org.cloudfoundry.util.DelayUtils;
 import org.cloudfoundry.util.PaginationUtils;
 import org.cloudfoundry.util.ResourceUtils;
@@ -435,26 +438,50 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.flatMap(cfOperations -> cfOperations.applications().pushManifest(request));
 	}
 
-	private Mono<Void> createSpace(String spaceName) {
-		Mono<String> createSpacePublisher = getDefaultOrganizationId()
-			.flatMap(orgId -> this.client.spaces()
-										 .create(CreateSpaceRequest.builder()
-																   .organizationId(orgId)
-																   .name(spaceName)
-																   .build())
-										 .doOnSuccess(response -> logger.info("Created space {}", spaceName))
-										 .doOnError(e -> logger.warn(String.format("Error creating space %s: %s", spaceName, e.getMessage())))
-										 .onErrorResume(e -> Mono.empty())
-										 .then(Mono.empty()));
-		return getSpaceIdFromName(spaceName)
-			.switchIfEmpty(createSpacePublisher).then();
+	private Mono<String> createSpace(String spaceName) {
+		return getSpaceId(spaceName)
+			.switchIfEmpty(Mono.justOrEmpty(targetProperties.getDefaultOrg())
+				.flatMap(orgName -> getOrganizationId(orgName)
+					.flatMap(orgId -> client.spaces().create(CreateSpaceRequest.builder()
+						.organizationId(orgId)
+						.name(spaceName)
+						.build())
+						.doOnSuccess(response -> logger.info("Created space {}", spaceName))
+						.doOnError(e -> logger.warn(String.format("Error creating space %s: %s", spaceName, e.getMessage())))
+						.map(response -> response.getMetadata().getId())
+						.flatMap(spaceId -> setSpaceDeveloperRoleForCurrentUser(orgName, spaceName, spaceId)
+							.thenReturn(spaceId)))));
 	}
 
-	private Mono<String> getDefaultOrganizationId() {
-		return this.operations.organizations()
-			.get(OrganizationInfoRequest.builder()
-				.name(targetProperties.getDefaultOrg())
-				.build())
+	private Mono<Void> setSpaceDeveloperRoleForCurrentUser(String orgName, String spaceName, String spaceId) {
+		return Mono.defer(() -> {
+			if (StringUtils.hasText(targetProperties.getClientId())){
+				return client.spaces().associateDeveloper(AssociateSpaceDeveloperRequest.builder()
+					.spaceId(spaceId)
+					.developerId(targetProperties.getClientId())
+					.build())
+					.doOnSuccess(v -> logger.info("Set space developer role for space {}", spaceName))
+					.doOnError(e -> logger.warn(String.format("Error setting space developer role for space %s: %s", spaceName, e.getMessage())))
+					.then();
+			}
+			else if (StringUtils.hasText(targetProperties.getUsername())) {
+				return operations.userAdmin().setSpaceRole(SetSpaceRoleRequest.builder()
+					.spaceRole(SpaceRole.DEVELOPER)
+					.organizationName(orgName)
+					.spaceName(spaceName)
+					.username(targetProperties.getUsername())
+					.build())
+					.doOnSuccess(v -> logger.info("Set space developer role for space {}", spaceName))
+					.doOnError(e -> logger.warn(String.format("Error setting space developer role for space %s: %s", spaceName, e.getMessage())));
+			}
+			return Mono.empty();
+		});
+	}
+
+	private Mono<String> getOrganizationId(String orgName) {
+		return operations.organizations().get(OrganizationInfoRequest.builder()
+			.name(orgName)
+			.build())
 			.map(OrganizationDetail::getId);
 	}
 
@@ -492,7 +519,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<Void> deleteApplicationInSpace(String name, String spaceName) {
-		return getSpaceIdFromName(spaceName)
+		return getSpaceId(spaceName)
 			.doOnError(error -> logger.warn("Unable to get space name: {} ", spaceName))
 			.then(operationsUtils.getOperationsForSpace(spaceName))
 			.flatMap(cfOperations -> cfOperations.applications().delete(DeleteApplicationRequest.builder()
@@ -504,7 +531,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<Void> deleteSpace(String spaceName) {
-		return getSpaceIdFromName(spaceName)
+		return getSpaceId(spaceName)
 			.doOnError(error -> logger.warn("Unable to get space name: {} ", spaceName))
 			.flatMap(spaceId -> this.client.spaces()
 				.delete(DeleteSpaceRequest.builder()
@@ -513,17 +540,18 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.then(Mono.empty()));
 	}
 
-	private Mono<String> getSpaceIdFromName(String spaceName) {
-		return getDefaultOrganizationId()
-			.flatMap(orgId -> PaginationUtils.requestClientV2Resources(page -> client.organizations()
-				.listSpaces(ListOrganizationSpacesRequest.builder()
-					.name(spaceName)
-					.organizationId(orgId)
-					.page(page)
-					.build()))
-			.filter(resource -> resource.getEntity().getName().equals(spaceName))
-			.map(resource -> resource.getMetadata().getId())
-			.next());
+	private Mono<String> getSpaceId(String spaceName) {
+		return Mono.justOrEmpty(targetProperties.getDefaultOrg())
+			.flatMap(orgName -> getOrganizationId(orgName)
+				.flatMap(orgId -> PaginationUtils.requestClientV2Resources(page -> client.organizations()
+					.listSpaces(ListOrganizationSpacesRequest.builder()
+						.name(spaceName)
+						.organizationId(orgId)
+						.page(page)
+						.build()))
+					.filter(resource -> resource.getEntity().getName().equals(spaceName))
+					.map(resource -> resource.getMetadata().getId())
+					.next()));
 	}
 
 	private Map<String, Object> getEnvironmentVariables(Map<String, String> properties,

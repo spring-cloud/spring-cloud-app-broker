@@ -17,13 +17,22 @@
 package org.springframework.cloud.appbroker.acceptance.fixtures.uaa;
 
 import org.cloudfoundry.uaa.UaaClient;
+import org.cloudfoundry.uaa.clients.CreateClientRequest;
+import org.cloudfoundry.uaa.clients.DeleteClientRequest;
 import org.cloudfoundry.uaa.clients.GetClientRequest;
 import org.cloudfoundry.uaa.clients.GetClientResponse;
-import org.springframework.stereotype.Service;
+import org.cloudfoundry.uaa.tokens.GrantType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
+
+import org.springframework.stereotype.Service;
 
 @Service
 public class UaaService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(UaaService.class);
+
 	private final UaaClient uaaClient;
 
 	public UaaService(UaaClient uaaClient) {
@@ -31,9 +40,30 @@ public class UaaService {
 	}
 
 	public Mono<GetClientResponse> getUaaClient(String clientId) {
-		return uaaClient.clients().get(GetClientRequest.builder()
+		return uaaClient.clients().get(GetClientRequest
+			.builder()
 			.clientId(clientId)
 			.build())
 			.onErrorResume(e -> Mono.empty());
 	}
+
+	public Mono<Void> createClient(String clientId, String clientSecret, String... authorities) {
+		return uaaClient.clients().delete(DeleteClientRequest
+			.builder()
+			.clientId(clientId)
+			.build())
+			.doOnError(error -> LOGGER.warn("Error deleting client: " + clientId + " with error: " + error))
+			.onErrorResume(e -> Mono.empty())
+			.then(uaaClient.clients().create(CreateClientRequest
+				.builder()
+				.clientId(clientId)
+				.clientSecret(clientSecret)
+				.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
+				.authorities(authorities)
+				.build())
+				.doOnError(error -> LOGGER.error("Error creating client: " + clientId + " with error: " + error))
+				.onErrorResume(e -> Mono.empty()))
+			.then();
+	}
+
 }

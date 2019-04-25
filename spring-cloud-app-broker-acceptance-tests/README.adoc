@@ -16,14 +16,8 @@ The tests require the following properties to be set:
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.default-org` - The CF organization where the tests are going to run.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.default-space` - The CF space where the tests are going to run.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.skip-ssl-validation` - If SSL validation should be skipped.
-
-To authenticate to the target CF with a user account, set the following properties:
-
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.username` - The CF API username.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.password` - The CF API password.
-
-To authenticate to the target CF with an OAuth2 client in UAA, set the following properties:
-
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.client-id` - The CF API OAuth2 client ID.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.client-secret` - The CF API OAuth2 client secret.
 

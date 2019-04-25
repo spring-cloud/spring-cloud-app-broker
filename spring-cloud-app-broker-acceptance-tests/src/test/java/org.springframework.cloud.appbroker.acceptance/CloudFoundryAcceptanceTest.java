@@ -36,7 +36,9 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.organizations.OrganizationSummary;
 import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.spaces.SpaceSummary;
 import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +56,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES;
+import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_ID;
+import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET;
+import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_AUTHORITIES;
+import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_ID;
+import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_SECRET;
 
 @SpringBootTest(classes = {
 	CloudFoundryClientConfiguration.class,
@@ -114,24 +122,41 @@ class CloudFoundryAcceptanceTest {
 
 	@AfterEach
 	void tearDown() {
-		blockingSubscribe(cleanup());
+		blockingSubscribe(cloudFoundryService.getOrCreateDefaultOrganization()
+			.map(OrganizationSummary::getId)
+			.flatMap(orgId -> cloudFoundryService.getOrCreateDefaultSpace()
+				.map(SpaceSummary::getId)
+				.flatMap(spaceId -> cleanup(orgId, spaceId))));
 	}
 
 	private Mono<Void> initializeBroker(String... appBrokerProperties) {
-		return cleanup()
-			.then(
-				cloudFoundryService
-					.getOrCreateDefaultOrganization()
-					.then(cloudFoundryService.getOrCreateDefaultSpace())
+		return cloudFoundryService
+			.getOrCreateDefaultOrganization()
+			.map(OrganizationSummary::getId)
+			.flatMap(orgId -> cloudFoundryService
+				.getOrCreateDefaultSpace()
+				.map(SpaceSummary::getId)
+				.flatMap(spaceId -> cleanup(orgId, spaceId)
+					.then(uaaService.createClient(
+						ACCEPTANCE_TEST_OAUTH_CLIENT_ID,
+						ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET,
+						ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES))
+					.then(uaaService.createClient(
+						APP_BROKER_CLIENT_ID,
+						APP_BROKER_CLIENT_SECRET,
+						APP_BROKER_CLIENT_AUTHORITIES))
+					.then(cloudFoundryService.associateAppBrokerClientWithOrgAndSpace(orgId, spaceId))
 					.then(cloudFoundryService.pushBrokerApp(TEST_BROKER_APP_NAME, getTestBrokerAppPath(), appBrokerProperties))
 					.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, TEST_BROKER_APP_NAME))
 					.then(cloudFoundryService.enableServiceBrokerAccess(APP_SERVICE_NAME))
-					.then(cloudFoundryService.enableServiceBrokerAccess(BACKING_SERVICE_NAME)));
+					.then(cloudFoundryService.enableServiceBrokerAccess(BACKING_SERVICE_NAME))));
 	}
 
-	private Mono<Void> cleanup() {
+	private Mono<Void> cleanup(String orgId, String spaceId) {
 		return cloudFoundryService.deleteServiceBroker(SERVICE_BROKER_NAME)
-			.then(cloudFoundryService.deleteApp(TEST_BROKER_APP_NAME));
+			.then(cloudFoundryService.deleteApp(TEST_BROKER_APP_NAME))
+			.then(cloudFoundryService.removeAppBrokerClientFromOrgAndSpace(orgId, spaceId))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	void createServiceInstance(String serviceInstanceName) {

@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.applications.ApplicationsV2;
 import org.cloudfoundry.client.v2.applications.UpdateApplicationResponse;
@@ -46,6 +49,7 @@ import org.cloudfoundry.operations.applications.Applications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -118,14 +122,10 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 
 		appDeployer = new CloudFoundryAppDeployer(deploymentProperties,
 			cloudFoundryOperations, cloudFoundryClient, operationsUtils, targetProperties, resourceLoader);
-	}
 
-	@Test
-	void updateApp() {
 		when(operationsApplications.get(any()))
 			.thenReturn(Mono.just(createApplicationDetail()));
-		when(applicationsV2.update(any()))
-			.thenReturn(Mono.just(UpdateApplicationResponse.builder().build()));
+
 		when(packages.create(any()))
 			.thenReturn(Mono.just(CreatePackageResponse
 				.builder()
@@ -193,6 +193,13 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 				.createdAt("DATETIME")
 				.id("deployment-id")
 				.build()));
+	}
+
+
+	@Test
+	void updateApp() {
+		when(applicationsV2.update(any()))
+			.thenReturn(Mono.just(UpdateApplicationResponse.builder().build()));
 
 		UpdateApplicationRequest request =
 			UpdateApplicationRequest
@@ -204,6 +211,37 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 		StepVerifier.create(appDeployer.update(request))
 					.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 					.verifyComplete();
+	}
+
+	@Test
+	void updateAppProperties() {
+		ArgumentCaptor<org.cloudfoundry.client.v2.applications.UpdateApplicationRequest> updateApplicationRequestCaptor =
+			ArgumentCaptor.forClass(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class);
+
+		when(applicationsV2.update(updateApplicationRequestCaptor.capture()))
+			.thenReturn(Mono.just(UpdateApplicationResponse.builder().build()));
+
+		Map<String, String> properties = new HashMap<>();
+		properties.put("count", "2");
+		properties.put("disk", "2G");
+		properties.put("memory", "1G");
+
+		UpdateApplicationRequest request =
+			UpdateApplicationRequest
+				.builder()
+				.name(APP_NAME)
+				.path(APP_PATH)
+				.properties(properties)
+				.build();
+
+		StepVerifier.create(appDeployer.update(request))
+					.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+					.verifyComplete();
+
+		org.cloudfoundry.client.v2.applications.UpdateApplicationRequest updateApplicationRequest = updateApplicationRequestCaptor.getValue();
+		assertThat(updateApplicationRequest.getInstances()).isEqualTo(2);
+		assertThat(updateApplicationRequest.getDiskQuota()).isEqualTo(2048);
+		assertThat(updateApplicationRequest.getMemory()).isEqualTo(1024);
 	}
 
 	private ApplicationDetail createApplicationDetail() {

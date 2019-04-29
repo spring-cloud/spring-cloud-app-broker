@@ -193,7 +193,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.doOnError(e -> logger.warn(String.format("Error getting application %s: %s", name, e.getMessage())))
 				.map(ApplicationDetail::getId)
 				.flatMap(applicationId ->
-					updateApplicationEnvironment(applicationId, environmentVariables).thenReturn(applicationId)
+					updateApplicationEnvironment(applicationId, environmentVariables, request.getProperties()).thenReturn(applicationId)
 				)
 				.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
 					createPackageForApplication(applicationId)))
@@ -342,12 +342,15 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<org.cloudfoundry.client.v2.applications.UpdateApplicationResponse> updateApplicationEnvironment(
-		String applicationId, Map<String, Object> environmentVariables) {
+		String applicationId, Map<String, Object> environmentVariables, Map<String, String> properties) {
 		return this.client
 			.applicationsV2()
 			.update(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest
 				.builder()
 				.applicationId(applicationId)
+				.instances(instances(properties))
+				.diskQuota(diskQuota(properties))
+				.memory(memory(properties))
 				.putAllEnvironmentJsons(environmentVariables)
 				.build())
 			.doOnRequest(l -> logger.debug("Updating environment for application {}", applicationId))

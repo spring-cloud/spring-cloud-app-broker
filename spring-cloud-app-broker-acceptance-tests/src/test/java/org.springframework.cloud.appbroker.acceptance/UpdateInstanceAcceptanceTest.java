@@ -48,7 +48,9 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=config3",
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter4=config4",
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=EnvironmentMapping",
-		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=parameter1,parameter3"
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=parameter1,parameter3",
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].name=PropertyMapping",
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].args.include=count"
 	})
 	void deployAppsOnUpdateService() {
 		// given a service instance is created
@@ -72,6 +74,7 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		parameters.put("parameter1", "value1");
 		parameters.put("parameter2", "value2");
 		parameters.put("parameter3", "value3");
+		parameters.put("count", 2);
 		updateServiceInstance(SI_NAME, parameters);
 
 		// then the backing application was updated with zero downtime
@@ -85,6 +88,10 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		assertThat(json.read("$.parameter2").toString()).isEqualTo("config2");
 		assertThat(json.read("$.parameter3").toString()).isEqualTo("value3");
 		assertThat(json.read("$.parameter4").toString()).isEqualTo("config4");
+
+		backingApplication = getApplicationSummary(APP_NAME);
+		assertThat(backingApplication).hasValueSatisfying(app ->
+			assertThat(app.getRunningInstances()).isEqualTo(2));
 
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);

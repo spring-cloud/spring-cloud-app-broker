@@ -35,6 +35,7 @@ configure(allprojects) {
 	apply plugin: "idea"
 	apply plugin: "jacoco"
 	apply plugin: "pmd"
+	apply plugin: "checkstyle"
 	apply plugin: "propdeps"
 	apply plugin: "propdeps-idea"
 	apply plugin: "propdeps-eclipse"
@@ -181,6 +182,11 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 
 	pmdTest {
 		ruleSetFiles = files("${project.rootDir}/ci/config/pmdTestRuleSet.xml")
+	}
+
+	checkstyle {
+		configDir = file("${project.rootDir}/ci/config/")
+		toolVersion = 8.16
 	}
 
 	jar {

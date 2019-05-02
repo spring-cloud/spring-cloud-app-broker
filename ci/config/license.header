@@ -13,22 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.springframework.cloud.appbroker.acceptance;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-@ConfigurationProperties(value = "tests")
-public class AcceptanceTestProperties {
-
-	private String brokerAppPath;
-
-	public String getBrokerAppPath() {
-		return brokerAppPath;
-	}
-
-	public void setBrokerAppPath(String brokerAppPath) {
-		this.brokerAppPath = brokerAppPath;
-	}
-
-}

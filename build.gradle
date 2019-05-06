@@ -39,7 +39,6 @@ configure(allprojects) {
 	apply plugin: "propdeps-idea"
 	apply plugin: "propdeps-eclipse"
 	apply plugin: "io.spring.dependency-management"
-	apply plugin: "maven-publish"
 
 	ext {
 		springBootVersion = project.findProperty("springBootVersion") ?: "2.1.4.RELEASE"
@@ -222,17 +221,6 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 	artifacts {
 		archives sourcesJar
 		archives javadocJar
-	}
-
-	publishing {
-		publications {
-			mavenJava(MavenPublication) {
-				from components.java
-
-				artifact sourcesJar
-				artifact javadocJar
-			}
-		}
 	}
 
 	configurations {

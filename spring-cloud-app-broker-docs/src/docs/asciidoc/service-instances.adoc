@@ -278,11 +278,11 @@ spring:
               *credential-providers:*
                 *- name: SpringSecurityBasicAuth*
                   *args:*
-                    *- length: 14*
-                      *include-uppercase-alpha: true*
-                      *include-lowercase-alpha: true*
-                      *include-numeric: true*
-                      *include-special: true*
+                    *length: 14*
+                    *include-uppercase-alpha: true*
+                    *include-lowercase-alpha: true*
+                    *include-numeric: true*
+                    *include-special: true*
 ```
 
 ====== The `SpringSecurityOAuth2` Credential Provider
@@ -303,7 +303,7 @@ spring:
               *credential-providers:*
                 *- name: SpringSecurityOAuth2*
                   *args:*
-                  *- registration: my-client-1*
+                    *registration: my-client-1*
                     *client-id: example-client*
                     *client-name: example-client*
                     *scopes: ["uaa.resource"]*

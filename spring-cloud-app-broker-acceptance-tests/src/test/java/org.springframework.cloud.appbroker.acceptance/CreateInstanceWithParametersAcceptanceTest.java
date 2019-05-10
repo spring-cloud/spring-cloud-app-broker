@@ -31,6 +31,25 @@ class CreateInstanceWithParametersAcceptanceTest extends CloudFoundryAcceptanceT
 	private static final String APP_NAME = "app-create-params";
 	private static final String SI_NAME = "si-create-params";
 
+	private static final String SUFFIX = "create-instance-with-params";
+	private static final String APP_SERVICE_NAME = "app-service-"+ SUFFIX;
+	private static final String BACKING_SERVICE_NAME = "backing-service-"+ SUFFIX;
+
+	@Override
+	protected String testSuffix() {
+		return SUFFIX;
+	}
+
+	@Override
+	protected String appServiceName() {
+		return APP_SERVICE_NAME;
+	}
+
+	@Override
+	protected String backingServiceName() {
+		return BACKING_SERVICE_NAME;
+	}
+
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=" + APP_SERVICE_NAME,

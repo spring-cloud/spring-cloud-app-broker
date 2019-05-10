@@ -26,10 +26,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithServiceInstanceGuidSuffixTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String APP_NAME_1 = "app-create-suffix";
-	private static final String SI_NAME = "si-create-suffix";
+	private static final String SUFFIX = "create-si-guid";
+	private static final String APP_NAME_1 = "app-create-" + SUFFIX;
+	private static final String SI_NAME = "si-create-" + SUFFIX;
 
 	private static final String BACKING_SI_NAME = "backing-si";
+
+	private static final String APP_SERVICE_NAME = "app-service-"+ SUFFIX;
+	private static final String BACKING_SERVICE_NAME = "backing-service-"+ SUFFIX;
+
+	@Override
+	protected String testSuffix() {
+		return SUFFIX;
+	}
+
+	@Override
+	protected String appServiceName() {
+		return APP_SERVICE_NAME;
+	}
+
+	@Override
+	protected String backingServiceName() {
+		return BACKING_SERVICE_NAME;
+	}
 
 	@Test
 	@AppBrokerTestProperties({

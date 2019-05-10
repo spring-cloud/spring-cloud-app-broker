@@ -33,8 +33,27 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 	private static final String APP_NAME = "app-update";
 	private static final String SI_NAME = "si-update";
 
+	private static final String SUFFIX = "update-instance";
+	private static final String APP_SERVICE_NAME = "app-service-"+ SUFFIX;
+	private static final String BACKING_SERVICE_NAME = "backing-service-"+ SUFFIX;
+
 	@Autowired
 	private HealthListener healthListener;
+
+	@Override
+	protected String testSuffix() {
+		return SUFFIX;
+	}
+
+	@Override
+	protected String appServiceName() {
+		return APP_SERVICE_NAME;
+	}
+
+	@Override
+	protected String backingServiceName() {
+		return BACKING_SERVICE_NAME;
+	}
 
 	@Test
 	@AppBrokerTestProperties({

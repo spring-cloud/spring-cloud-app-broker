@@ -30,6 +30,25 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 	private static final String APP_CREATE_2 = "app-create-2";
 	private static final String SI_NAME = "si-create";
 
+	private static final String SUFFIX = "create-instance";
+	private static final String APP_SERVICE_NAME = "app-service-"+ SUFFIX;
+	private static final String BACKING_SERVICE_NAME = "backing-service-"+ SUFFIX;
+
+	@Override
+	protected String testSuffix() {
+		return SUFFIX;
+	}
+
+	@Override
+	protected String appServiceName() {
+		return APP_SERVICE_NAME;
+	}
+
+	@Override
+	protected String backingServiceName() {
+		return BACKING_SERVICE_NAME;
+	}
+
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=" + APP_SERVICE_NAME,
@@ -37,7 +56,7 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_CREATE_1,
 		"spring.cloud.appbroker.services[0].apps[0].path=" + BACKING_APP_PATH,
-		
+
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=value2",
 		"spring.cloud.appbroker.services[0].apps[0].properties.memory=2G",

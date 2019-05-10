@@ -53,7 +53,6 @@ public class CloudFoundryClientConfiguration {
 		"clients.write"
 	};
 
-	public static final String APP_BROKER_CLIENT_ID = "app-broker-client";
 	public static final String APP_BROKER_CLIENT_SECRET = "app-broker-client-secret";
 	public static final String[] APP_BROKER_CLIENT_AUTHORITIES = {
 		"cloud_controller.read", "cloud_controller.write"

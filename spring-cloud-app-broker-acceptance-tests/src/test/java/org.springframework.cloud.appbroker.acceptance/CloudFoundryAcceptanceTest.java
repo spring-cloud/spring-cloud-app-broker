@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
+import javax.net.ssl.SSLException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import com.jayway.jsonpath.Configuration;
@@ -34,6 +37,10 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.apache.commons.lang3.ArrayUtils;
+import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.organizations.OrganizationSummary;
@@ -45,6 +52,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.netty.http.client.HttpClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -52,15 +61,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
 import org.springframework.cloud.appbroker.acceptance.fixtures.uaa.UaaService;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES;
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_ID;
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET;
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_AUTHORITIES;
-import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_ID;
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_SECRET;
 
 @SpringBootTest(classes = {
@@ -73,13 +84,8 @@ import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFo
 @ExtendWith(SpringExtension.class)
 @ExtendWith(BrokerPropertiesParameterResolver.class)
 @EnableConfigurationProperties(AcceptanceTestProperties.class)
-class CloudFoundryAcceptanceTest {
+abstract class CloudFoundryAcceptanceTest {
 
-	static final String TEST_BROKER_APP_NAME = "test-broker-app";
-	private static final String SERVICE_BROKER_NAME = "test-broker";
-	
-	static final String APP_SERVICE_NAME = "app-service";
-	static final String BACKING_SERVICE_NAME = "backing-service";
 	static final String PLAN_NAME = "standard";
 	static final String BACKING_APP_PATH = "classpath:backing-app.jar";
 
@@ -92,9 +98,52 @@ class CloudFoundryAcceptanceTest {
 	@Autowired
 	private AcceptanceTestProperties acceptanceTestProperties;
 
+	private final WebClient webClient = getSslIgnoringWebClient();
+
+	protected abstract String testSuffix();
+	protected abstract String appServiceName();
+	protected abstract String backingServiceName();
+
+	private String testBrokerAppName() {
+		return "test-broker-app-" + testSuffix();
+	}
+	private String serviceBrokerName() {
+		return "test-broker-" + testSuffix();
+	}
+
+	private String brokerClientId() {
+		return appServiceName();
+	}
+
 	@BeforeEach
 	void setUp(BrokerProperties brokerProperties) {
-		blockingSubscribe(initializeBroker(brokerProperties.getProperties()));
+		String[] openServiceBrokerProperties = {
+			"spring.cloud.openservicebroker.catalog.services[0].id=" + UUID.randomUUID().toString(),
+			"spring.cloud.openservicebroker.catalog.services[0].name=" + appServiceName(),
+			"spring.cloud.openservicebroker.catalog.services[0].description=A service that deploys a backing app",
+			"spring.cloud.openservicebroker.catalog.services[0].bindable=true",
+			"spring.cloud.openservicebroker.catalog.services[0].plans[0].id=" + UUID.randomUUID().toString() ,
+			"spring.cloud.openservicebroker.catalog.services[0].plans[0].name=standard",
+			"spring.cloud.openservicebroker.catalog.services[0].plans[0].bindable=true",
+			"spring.cloud.openservicebroker.catalog.services[0].plans[0].description=A simple plan",
+			"spring.cloud.openservicebroker.catalog.services[0].plans[0].free=true",
+
+			"spring.cloud.openservicebroker.catalog.services[1].id=" + UUID.randomUUID().toString(),
+			"spring.cloud.openservicebroker.catalog.services[1].name=" + backingServiceName(),
+			"spring.cloud.openservicebroker.catalog.services[1].description=A backing service that can be bound to backing apps",
+			"spring.cloud.openservicebroker.catalog.services[1].bindable=true",
+			"spring.cloud.openservicebroker.catalog.services[1].plans[0].id=" + UUID.randomUUID().toString(),
+			"spring.cloud.openservicebroker.catalog.services[1].plans[0].name=standard",
+			"spring.cloud.openservicebroker.catalog.services[1].plans[0].bindable=true",
+			"spring.cloud.openservicebroker.catalog.services[1].plans[0].description=A simple plan",
+			"spring.cloud.openservicebroker.catalog.services[1].plans[0].free=true"
+		};
+
+		String[] appBrokerProperties = ArrayUtils.addAll(
+			openServiceBrokerProperties,
+			brokerProperties.getProperties());
+
+		blockingSubscribe(initializeBroker(appBrokerProperties));
 	}
 
 	@BeforeEach
@@ -142,20 +191,20 @@ class CloudFoundryAcceptanceTest {
 						ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET,
 						ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES))
 					.then(uaaService.createClient(
-						APP_BROKER_CLIENT_ID,
+						brokerClientId(),
 						APP_BROKER_CLIENT_SECRET,
 						APP_BROKER_CLIENT_AUTHORITIES))
-					.then(cloudFoundryService.associateAppBrokerClientWithOrgAndSpace(orgId, spaceId))
-					.then(cloudFoundryService.pushBrokerApp(TEST_BROKER_APP_NAME, getTestBrokerAppPath(), appBrokerProperties))
-					.then(cloudFoundryService.createServiceBroker(SERVICE_BROKER_NAME, TEST_BROKER_APP_NAME))
-					.then(cloudFoundryService.enableServiceBrokerAccess(APP_SERVICE_NAME))
-					.then(cloudFoundryService.enableServiceBrokerAccess(BACKING_SERVICE_NAME))));
+					.then(cloudFoundryService.associateAppBrokerClientWithOrgAndSpace(brokerClientId(), orgId, spaceId))
+					.then(cloudFoundryService.pushBrokerApp(testBrokerAppName(), getTestBrokerAppPath(), brokerClientId(), appBrokerProperties))
+					.then(cloudFoundryService.createServiceBroker(serviceBrokerName(), testBrokerAppName()))
+					.then(cloudFoundryService.enableServiceBrokerAccess(appServiceName()))
+					.then(cloudFoundryService.enableServiceBrokerAccess(backingServiceName()))));
 	}
 
 	private Mono<Void> cleanup(String orgId, String spaceId) {
-		return cloudFoundryService.deleteServiceBroker(SERVICE_BROKER_NAME)
-			.then(cloudFoundryService.deleteApp(TEST_BROKER_APP_NAME))
-			.then(cloudFoundryService.removeAppBrokerClientFromOrgAndSpace(orgId, spaceId))
+		return cloudFoundryService.deleteServiceBroker(serviceBrokerName())
+			.then(cloudFoundryService.deleteApp(testBrokerAppName()))
+			.then(cloudFoundryService.removeAppBrokerClientFromOrgAndSpace(brokerClientId(), orgId, spaceId))
 			.onErrorResume(e -> Mono.empty());
 	}
 
@@ -164,7 +213,7 @@ class CloudFoundryAcceptanceTest {
 	}
 
 	void createServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
-		createServiceInstance(APP_SERVICE_NAME, PLAN_NAME, serviceInstanceName, parameters);
+		createServiceInstance(appServiceName(), PLAN_NAME, serviceInstanceName, parameters);
 	}
 
 	void createServiceInstance(String serviceName,
@@ -237,10 +286,6 @@ class CloudFoundryAcceptanceTest {
 		return cloudFoundryService.getApplicationEnvironment(appName, space).block();
 	}
 
-	String getTestBrokerAppRoute() {
-		return cloudFoundryService.getApplicationRoute(TEST_BROKER_APP_NAME).block();
-	}
-
 	DocumentContext getSpringAppJson(String appName) {
 		ApplicationEnvironments env = getApplicationEnvironment(appName);
 		String saj = (String) env.getUserProvided().get("SPRING_APPLICATION_JSON");
@@ -278,6 +323,48 @@ class CloudFoundryAcceptanceTest {
 		catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	Mono<String> manageApps(String serviceInstanceName, String operation) {
+		return cloudFoundryService
+			.getServiceInstance(serviceInstanceName)
+			.map(ServiceInstance::getId)
+			.flatMap(serviceInstanceId ->
+				cloudFoundryService
+					.getApplicationRoute(testBrokerAppName())
+					.flatMap(appRoute ->
+						webClient.get()
+								 .uri(URI.create(appRoute + "/" + operation + "/" + serviceInstanceId))
+								 .exchange()
+								 .flatMap(clientResponse -> clientResponse.toEntity(String.class))
+								 .map(HttpEntity::getBody)));
+	}
+
+	private WebClient getSslIgnoringWebClient() {
+		return WebClient.builder()
+						.clientConnector(new ReactorClientHttpConnector(HttpClient
+							.create()
+							.secure(t -> {
+								try {
+									t.sslContext(SslContextBuilder
+										.forClient()
+										.trustManager(InsecureTrustManagerFactory.INSTANCE)
+										.build());
+								}
+								catch (SSLException e) {
+									e.printStackTrace();
+								}
+							})))
+						.build();
+	}
+
+	protected Mono<List<ApplicationDetail>> getApplications(String app1, String app2) {
+		return Flux.merge(cloudFoundryService.getApplication(app1),
+			cloudFoundryService.getApplication(app2))
+				   .parallel()
+				   .runOn(Schedulers.parallel())
+				   .sequential()
+				   .collectList();
 	}
 
 }

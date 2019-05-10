@@ -33,6 +33,25 @@ class CreateInstanceWithSpacePerServiceInstanceTargetAcceptanceTest extends Clou
 
 	private static final String BACKING_SI_NAME = "backing-service-space-per-target";
 
+	private static final String SUFFIX = "create-instance-space-per-si";
+	private static final String APP_SERVICE_NAME = "app-service-"+ SUFFIX;
+	private static final String BACKING_SERVICE_NAME = "backing-service-"+ SUFFIX;
+
+	@Override
+	protected String testSuffix() {
+		return SUFFIX;
+	}
+
+	@Override
+	protected String appServiceName() {
+		return APP_SERVICE_NAME;
+	}
+
+	@Override
+	protected String backingServiceName() {
+		return BACKING_SERVICE_NAME;
+	}
+
 	@Test
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=" + APP_SERVICE_NAME,

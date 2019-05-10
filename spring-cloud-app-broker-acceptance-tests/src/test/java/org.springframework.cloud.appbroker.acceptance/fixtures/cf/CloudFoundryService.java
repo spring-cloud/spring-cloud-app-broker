@@ -122,11 +122,11 @@ public class CloudFoundryService {
 			.map(url -> "https://" + url);
 	}
 
-	public Mono<Void> pushBrokerApp(String appName, Path appPath, String... appBrokerProperties) {
+	public Mono<Void> pushBrokerApp(String appName, Path appPath, String brokerClientId, String... appBrokerProperties) {
 		return cloudFoundryOperations.applications()
 			.pushManifest(PushApplicationManifestRequest.builder()
 				.manifest(ApplicationManifest.builder()
-					.putAllEnvironmentVariables(appBrokerDeployerEnvironmentVariables())
+					.putAllEnvironmentVariables(appBrokerDeployerEnvironmentVariables(brokerClientId))
 					.putAllEnvironmentVariables(propertiesToEnvironment(appBrokerProperties))
 					.name(appName)
 					.path(appPath)
@@ -318,16 +318,16 @@ public class CloudFoundryService {
 			.next();
 	}
 
-	public Mono<Void> associateAppBrokerClientWithOrgAndSpace(String orgId, String spaceId) {
-		return Mono.justOrEmpty(CloudFoundryClientConfiguration.APP_BROKER_CLIENT_ID)
+	public Mono<Void> associateAppBrokerClientWithOrgAndSpace(String brokerClientId, String orgId, String spaceId) {
+		return Mono.justOrEmpty(brokerClientId)
 			.flatMap(userId -> associateOrgUser(orgId, userId)
 				.then(associateOrgManager(orgId, userId))
 				.then(associateSpaceDeveloper(spaceId, userId)))
 			.then();
 	}
 
-	public Mono<Void> removeAppBrokerClientFromOrgAndSpace(String orgId, String spaceId) {
-		return Mono.justOrEmpty(CloudFoundryClientConfiguration.APP_BROKER_CLIENT_ID)
+	public Mono<Void> removeAppBrokerClientFromOrgAndSpace(String brokerClientId, String orgId, String spaceId) {
+		return Mono.justOrEmpty(brokerClientId)
 			.flatMap(userId -> removeSpaceDeveloper(spaceId, userId)
 				.then(removeOrgManager(orgId, userId))
 				.then(removeOrgUser(orgId, userId)));
@@ -384,7 +384,7 @@ public class CloudFoundryService {
 			.build();
 	}
 
-	private Map<String, String> appBrokerDeployerEnvironmentVariables() {
+	private Map<String, String> appBrokerDeployerEnvironmentVariables(String brokerClientId) {
 		Map<String, String> deployerVariables = new HashMap<>();
 		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "api-host",
 			cloudFoundryProperties.getApiHost());
@@ -397,8 +397,7 @@ public class CloudFoundryService {
 		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "skip-ssl-validation",
 			String.valueOf(cloudFoundryProperties.isSkipSslValidation()));
 		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "properties.memory", "1024M");
-		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "client-id",
-			CloudFoundryClientConfiguration.APP_BROKER_CLIENT_ID);
+		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "client-id", brokerClientId);
 		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "client-secret",
 			CloudFoundryClientConfiguration.APP_BROKER_CLIENT_SECRET);
 		return deployerVariables;

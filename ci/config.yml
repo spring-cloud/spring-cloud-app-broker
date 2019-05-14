@@ -22,23 +22,6 @@ jobs:
         key: sc-app-broker-{{ .Branch }}
 
     - run:
-        name: "Populate Secrets from Environment"
-        command: |
-          cd ~/repo/ci/
-          if [[ ${CIRCLE_BUILD_NUM} = "" ]]; then
-              echo "populating from .envrc"
-              [[ -f ".envrc-localci" ]] || (printf "Ensure .envrc is present in ci directory before running script"; exit 1)
-              cat .envrc-localci >> $BASH_ENV
-              source .envrc-localci
-              ./scripts/manage-bosh-bbl-environment.sh generate-bbl-state-directory -b "${ACTIVE_BBL_ENV_LOCAL}"
-              bbl -s "bosh-env-${ACTIVE_BBL_ENV_LOCAL}/bbl-state" print-env >> $BASH_ENV
-          else
-              echo "populating from bbl env"
-              ./scripts/manage-bosh-bbl-environment.sh generate-bbl-state-directory -b "${ACTIVE_BBL_ENV_CIRCLE}"
-              bbl -s "bosh-env-${ACTIVE_BBL_ENV_CIRCLE}/bbl-state" print-env >> $BASH_ENV
-          fi
-
-    - run:
         name: "Download dependencies"
         command: ./gradlew assemble
 
@@ -79,6 +62,23 @@ jobs:
         command: |
           cd ~/repo/ci/scripts
           ./wait-for-other-builds-to-finish.sh 60
+
+    - run:
+        name: "Populate Secrets from Environment"
+        command: |
+          cd ~/repo/ci/
+          if [[ ${CIRCLE_BUILD_NUM} = "" ]]; then
+              echo "populating from .envrc"
+              [[ -f ".envrc-localci" ]] || (printf "Ensure .envrc is present in ci directory before running script"; exit 1)
+              cat .envrc-localci >> $BASH_ENV
+              source .envrc-localci
+              ./scripts/manage-bosh-bbl-environment.sh generate-bbl-state-directory -b "${ACTIVE_BBL_ENV_LOCAL}"
+              bbl -s "bosh-env-${ACTIVE_BBL_ENV_LOCAL}/bbl-state" print-env >> $BASH_ENV
+          else
+              echo "populating from bbl env"
+              ./scripts/manage-bosh-bbl-environment.sh generate-bbl-state-directory -b "${ACTIVE_BBL_ENV_CIRCLE}"
+              bbl -s "bosh-env-${ACTIVE_BBL_ENV_CIRCLE}/bbl-state" print-env >> $BASH_ENV
+          fi
 
     - run:
         name: "Start BOSH Lite"

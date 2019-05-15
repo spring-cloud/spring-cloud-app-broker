@@ -7,7 +7,6 @@ readonly PROJECT_ROOT=$(dirname "${CI_DIR}")
 
 validate(){
 	[[ $(type circleci) ]] || (echo "circleci tool not installed" >&2 ; circle_usage ; exit 2)
-	[[ -f "${CI_DIR}/.envrc" ]] || (printf "Download .envrc from LastPass using \"lpass show --notes 7083089362665788436\" in directory ${CI_DIR} before running script"; exit 1)
 }
 
 circle_usage() {

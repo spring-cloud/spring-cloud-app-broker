@@ -1,0 +1,3 @@
+app-broker-github-url: https://github.com/spring-cloud/spring-cloud-app-broker
+app-broker-git-branch-current: master
+scs-slack-failure-channel: "#sc-app-broker"

@@ -1,0 +1,60 @@
+---
+aliases:
+- &slack-failure-notification
+  put: alert
+  params:
+    icon_emoji: ":animal:"
+    username: concourse
+    channel: {{scs-slack-failure-channel}}
+    text: <!here> Build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
+
+jobs:
+  - name: build
+    plan:
+      - get: app-broker
+        trigger: true
+      - task: build
+        file: app-broker/ci/tasks/build.yml
+    on_failure:
+      *slack-failure-notification
+
+  - name: run-acceptance-tests
+    serial: true
+    disable_manual_trigger: true
+    plan:
+      - get: app-broker
+        passed: [build]
+        trigger: true
+      - task: acceptance-tests
+        file: app-broker/ci/tasks/acceptance-tests.yml
+        params:
+          API_HOST: {{API_HOST}}
+          API_PORT: {{API_PORT}}
+          USERNAME: {{USERNAME}}
+          PASSWORD: {{PASSWORD}}
+          CLIENT_ID: {{CLIENT_ID}}
+          CLIENT_SECRET: {{CLIENT_SECRET}}
+          DEFAULT_ORG: {{DEFAULT_ORG}}
+          DEFAULT_SPACE: {{DEFAULT_SPACE}}
+          SKIP_SSL_VALIDATION: {{SKIP_SSL_VALIDATION}}
+    on_failure:
+      *slack-failure-notification
+
+resource_types:
+  - name: slack-notification
+    type: docker-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: latest
+
+resources:
+  - name: app-broker
+    type: git
+    source:
+      uri: {{app-broker-github-url}}
+      branch: {{app-broker-git-branch-current}}
+
+  - name: alert
+    type: slack-notification
+    source:
+      url: {{scs-slack-webhook}}

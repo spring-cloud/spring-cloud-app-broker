@@ -22,13 +22,10 @@ import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.cloudfoundry.uaa.tokens.GrantType;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Disabled("This test can only be run with a Cloud Foundry user or client that has 'client.write' authority, " +
-	"so it should not be run in CI")
 class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	private static final String APP_NAME = "app-create-oauth2";
@@ -84,9 +81,9 @@ class CreateInstanceWithOAuth2CredentialsAcceptanceTest extends CloudFoundryAcce
 
 		// and has the environment variables
 		DocumentContext json = getSpringAppJson(APP_NAME);
-		assertThat(json.read("$.spring.security.oauth2.client.registration.sample-app-client.client-id").toString())
+		assertThat(json.read("$.['spring.security.oauth2.client.registration.sample-app-client.client-id']").toString())
 			.isEqualTo(uaaClientId(serviceInstanceGuid));
-		assertThat(json.read("$.spring.security.oauth2.client.registration.sample-app-client.client-secret").toString())
+		assertThat(json.read("$.['spring.security.oauth2.client.registration.sample-app-client.client-secret']").toString())
 			.matches("[a-zA-Z]{12}");
 
 		// and a UAA client is created

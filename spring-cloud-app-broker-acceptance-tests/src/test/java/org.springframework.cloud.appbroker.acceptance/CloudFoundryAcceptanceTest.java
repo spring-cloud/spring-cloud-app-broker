@@ -68,9 +68,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES;
-import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_ID;
-import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET;
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_AUTHORITIES;
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_SECRET;
 
@@ -186,10 +183,6 @@ abstract class CloudFoundryAcceptanceTest {
 				.getOrCreateDefaultSpace()
 				.map(SpaceSummary::getId)
 				.flatMap(spaceId -> cleanup(orgId, spaceId)
-					.then(uaaService.createClient(
-						ACCEPTANCE_TEST_OAUTH_CLIENT_ID,
-						ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET,
-						ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES))
 					.then(uaaService.createClient(
 						brokerClientId(),
 						APP_BROKER_CLIENT_SECRET,

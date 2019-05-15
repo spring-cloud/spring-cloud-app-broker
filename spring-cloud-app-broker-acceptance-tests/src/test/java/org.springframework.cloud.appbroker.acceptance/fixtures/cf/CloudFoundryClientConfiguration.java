@@ -42,20 +42,9 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(CloudFoundryProperties.class)
 public class CloudFoundryClientConfiguration {
 
-	public static final String ACCEPTANCE_TEST_OAUTH_CLIENT_ID = "acceptance-test-client";
-	public static final String ACCEPTANCE_TEST_OAUTH_CLIENT_SECRET = "acceptance-test-client-secret";
-	public static final String[] ACCEPTANCE_TEST_OAUTH_CLIENT_AUTHORITIES = {
-		"openid",
-		"cloud_controller.admin",
-		"cloud_controller.read",
-		"cloud_controller.write",
-		"clients.read",
-		"clients.write"
-	};
-
 	public static final String APP_BROKER_CLIENT_SECRET = "app-broker-client-secret";
 	public static final String[] APP_BROKER_CLIENT_AUTHORITIES = {
-		"cloud_controller.read", "cloud_controller.write"
+		"cloud_controller.read", "cloud_controller.write", "clients.write"
 	};
 
 	@Bean

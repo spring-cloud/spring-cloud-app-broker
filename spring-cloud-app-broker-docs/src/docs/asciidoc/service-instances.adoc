@@ -164,10 +164,12 @@ spring:
               path: classpath:app1.jar
               *services:*
               *- service-instance-name: example-db*
-                *name: mysql*
-                *plan: small*
-                *parameters:*
-                  *param-key: param-value*
+          *services:*
+          *- service-instance-name: example-db*
+            *name: mysql*
+            *plan: small*
+            *parameters:*
+            *param-key: param-value*
 ```
 
 ==== Dynamic Customization

@@ -1,4 +1,0 @@
----
-- type: replace
-  path: /resource_pools/name=vms/cloud_properties/ip_forwarding?
-  value: true

@@ -1,8 +1,0 @@
----
-- type: replace
-  path: /resource_pools/name=vms/cloud_properties?
-  value:
-    zone: ((zone))
-    machine_type: g1-small
-    root_disk_size_gb: 20
-    root_disk_type: pd-standard

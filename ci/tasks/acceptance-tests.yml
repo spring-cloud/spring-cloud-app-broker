@@ -1,0 +1,25 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: openjdk
+    tag: 8
+
+inputs:
+  - name: app-broker
+
+run:
+  path: app-broker/ci/tasks/acceptance-tests.sh
+
+params:
+  API_HOST:
+  API_PORT:
+  USERNAME:
+  PASSWORD:
+  CLIENT_ID:
+  CLIENT_SECRET:
+  DEFAULT_ORG:
+  DEFAULT_SPACE:
+  SKIP_SSL_VALIDATION:

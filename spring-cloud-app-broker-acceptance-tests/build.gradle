@@ -54,7 +54,7 @@ bootJar {
 }
 
 test {
-	maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+	maxParallelForks = Runtime.runtime.availableProcessors() - 1 ?: 1
 
 	// Only run the tests if acceptanceTests is specified
 	onlyIf {

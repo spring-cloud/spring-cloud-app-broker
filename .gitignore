@@ -22,3 +22,4 @@ bbl-env.sh
 bbl-env-creds.sh
 bosh-env-*/
 *key.json
+secrets.yml

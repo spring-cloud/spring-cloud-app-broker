@@ -160,7 +160,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		Resource appResource = getAppResource(request.getPath());
 		Map<String, String> deploymentProperties = request.getProperties();
 
-		logger.trace("Deploying application: request={}, resource={}",
+		logger.trace("Deploying application: name={}, resource={}",
 			appName, appResource);
 
 		return pushApplication(request, deploymentProperties, appResource)

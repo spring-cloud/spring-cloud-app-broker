@@ -70,7 +70,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@AutoConfigureAfter(CloudFoundryAppDeployerAutoConfiguration.class)
+@AutoConfigureAfter({
+		CloudFoundryAppDeployerAutoConfiguration.class,
+		KubernetesAppDeployerAutoConfiguration.class
+})
 @ConditionalOnBean(AppDeployer.class)
 public class AppBrokerAutoConfiguration {
 

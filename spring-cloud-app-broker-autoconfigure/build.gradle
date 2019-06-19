@@ -26,10 +26,12 @@ dependencies {
 	compile project(":spring-cloud-app-broker-core")
 	compile project(":spring-cloud-app-broker-deployer")
 	compile project(":spring-cloud-app-broker-deployer-cloudfoundry")
+	compile project(":spring-cloud-app-broker-deployer-kubernetes")
 	compile project(":spring-cloud-app-broker-security-credhub")
 	compile("org.springframework.boot:spring-boot-starter")
 	compile("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
 	compile("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
+	compile("io.fabric8:kubernetes-client:${kubernetesClientVersion}")
 	compile("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
 
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

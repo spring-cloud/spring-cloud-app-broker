@@ -216,9 +216,16 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubAppAfterCreation(appName, host);
 	}
 
-	public void stubUpdateApp(final String appName) {
+	public void stubUpdateAppWithUpgrade(final String appName) {
 		stubUpdateEnvironment(appName);
 		stubCreatePackage(appName);
+		stubCreateBuild(appName);
+		stubCreateDeployment(appName);
+	}
+
+	public void stubUpdateApp(final String appName) {
+		stubUpdateEnvironment(appName);
+		stubGetPackage(appName);
 		stubCreateBuild(appName);
 		stubCreateDeployment(appName);
 	}
@@ -259,6 +266,14 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 				.withBody(cc("get-package-READY",
 					replace("@guid", packageGuid(appName)),
 					replace("@app-guid", appGuid(appName))))));
+	}
+
+	private void stubGetPackage(String appName) {
+		stubFor(get(urlPathEqualTo("/v3/apps/" + appGuid(appName) + "/packages"))
+				.withQueryParam("states", equalTo("READY"))
+				.willReturn(ok()
+						.withBody(cc("get-packages-READY",
+								replace("@package-guid", packageGuid(appName))))));
 	}
 
 	private void stubCreateBuild(String appName) {

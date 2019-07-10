@@ -1,0 +1,84 @@
+{
+	"pagination": {
+		"total_results": 2,
+		"total_pages": 1,
+		"first": {
+			"href": "https://api.example.org/v3/apps/@guid/packages?page=1&per_page=50&states=READY"
+		},
+		"last": {
+			"href": "https://api.example.org/v3/apps/@guid/packages?page=1&per_page=50&states=READY"
+		},
+		"next": null,
+		"previous": null
+	},
+	"resources": [
+		{
+			"guid": "@package-guid",
+			"type": "bits",
+			"data": {
+				"error": null,
+				"checksum": {
+					"type": "sha256",
+					"value": "f0b54c3487602705ff0d25d69d629a6d46c7314496897e651caca6d99c04710c"
+				}
+			},
+			"state": "READY",
+			"created_at": "2019-07-05T10:32:56Z",
+			"updated_at": "2019-07-05T10:33:02Z",
+			"links": {
+				"self": {
+					"href": "https://api.example.org/v3/packages/07b68615-4d07-4322-975e-2f1e8d001a09"
+				},
+				"upload": {
+					"href": "https://api.example.org/v3/packages/07b68615-4d07-4322-975e-2f1e8d001a09/upload",
+					"method": "POST"
+				},
+				"download": {
+					"href": "https://api.example.org/v3/packages/07b68615-4d07-4322-975e-2f1e8d001a09/download",
+					"method": "GET"
+				},
+				"app": {
+					"href": "https://api.example.org/v3/apps/@guid"
+				}
+			},
+			"metadata": {
+				"labels": {},
+				"annotations": {}
+			}
+		},
+		{
+			"guid": "@package-guid",
+			"type": "bits",
+			"data": {
+				"error": null,
+				"checksum": {
+					"type": "sha256",
+					"value": "f03e4ab0bda4f3012e85e66f7dfb8c311d79a71e182173a5dc41a3fe1a961a92"
+				}
+			},
+			"state": "READY",
+			"created_at": "2019-07-05T10:37:38Z",
+			"updated_at": "2019-07-05T10:37:47Z",
+			"links": {
+				"self": {
+					"href": "https://api.example.org/v3/packages/989e5b16-4ce0-4005-87cb-19203dccfe3f"
+				},
+				"upload": {
+					"href": "https://api.example.org/v3/packages/989e5b16-4ce0-4005-87cb-19203dccfe3f/upload",
+					"method": "POST"
+				},
+				"download": {
+					"href": "https://api.example.org/v3/packages/989e5b16-4ce0-4005-87cb-19203dccfe3f/download",
+					"method": "GET"
+				},
+				"app": {
+					"href": "https://api.example.org/v3/apps/@guid"
+				}
+			},
+			"metadata": {
+				"labels": {},
+				"annotations": {}
+			}
+		}
+	]
+}

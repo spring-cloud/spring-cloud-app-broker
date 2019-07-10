@@ -26,6 +26,8 @@ import org.cloudfoundry.client.v3.BuildpackData;
 import org.cloudfoundry.client.v3.Lifecycle;
 import org.cloudfoundry.client.v3.LifecycleType;
 import org.cloudfoundry.client.v3.Relationship;
+import org.cloudfoundry.client.v3.applications.ApplicationsV3;
+import org.cloudfoundry.client.v3.applications.ListApplicationPackagesResponse;
 import org.cloudfoundry.client.v3.builds.BuildState;
 import org.cloudfoundry.client.v3.builds.Builds;
 import org.cloudfoundry.client.v3.builds.CreateBuildResponse;
@@ -39,6 +41,7 @@ import org.cloudfoundry.client.v3.deployments.GetDeploymentResponse;
 import org.cloudfoundry.client.v3.packages.BitsData;
 import org.cloudfoundry.client.v3.packages.CreatePackageResponse;
 import org.cloudfoundry.client.v3.packages.GetPackageResponse;
+import org.cloudfoundry.client.v3.packages.PackageResource;
 import org.cloudfoundry.client.v3.packages.PackageState;
 import org.cloudfoundry.client.v3.packages.PackageType;
 import org.cloudfoundry.client.v3.packages.Packages;
@@ -84,6 +87,9 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	private ApplicationsV2 applicationsV2;
 
 	@Mock
+	private ApplicationsV3 applicationsV3;
+
+	@Mock
 	private Builds builds;
 
 	@Mock
@@ -114,6 +120,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 
 		when(cloudFoundryOperations.applications()).thenReturn(operationsApplications);
 		when(cloudFoundryClient.applicationsV2()).thenReturn(applicationsV2);
+		when(cloudFoundryClient.applicationsV3()).thenReturn(applicationsV3);
 		when(cloudFoundryClient.packages()).thenReturn(packages);
 		when(cloudFoundryClient.builds()).thenReturn(builds);
 		when(cloudFoundryClient.deploymentsV3()).thenReturn(deploymentsV3);
@@ -142,7 +149,8 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 				.data(BitsData.builder().build())
 				.state(PackageState.READY)
 				.type(PackageType.BITS)
-				.createdAt("DATETIME")
+				.createdAt("2019-07-05T10:37:47Z")
+				.createdAt("2019-07-05T10:37:47Z")
 				.id("package-id")
 				.build()));
 
@@ -156,6 +164,15 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 				.createdAt("DATETIME")
 				.id("package-id")
 				.build()));
+
+		when(applicationsV3.listPackages(any()))
+				.thenReturn(Mono.just(ListApplicationPackagesResponse
+						.builder()
+						.resource(createPackage("2019-07-05T10:37:47Z", "package-id-1"))
+						.resource(createPackage("2019-07-05T12:37:47Z", "package-id-2"))
+						.resource(createPackage("2019-07-06T10:37:47Z", "package-id-3"))
+						.resource(createPackage("2019-07-06T11:37:47Z", "package-id-4"))
+						.build()));
 
 		when(builds.create(any()))
 			.thenReturn(Mono.just(CreateBuildResponse
@@ -194,7 +211,6 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 				.id("deployment-id")
 				.build()));
 	}
-
 
 	@Test
 	void updateApp() {
@@ -244,6 +260,30 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 		assertThat(updateApplicationRequest.getMemory()).isEqualTo(1024);
 	}
 
+	@Test
+	void updateAppWithUpgrade() {
+		ArgumentCaptor<org.cloudfoundry.client.v2.applications.UpdateApplicationRequest> updateApplicationRequestCaptor =
+				ArgumentCaptor.forClass(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class);
+
+		when(applicationsV2.update(updateApplicationRequestCaptor.capture()))
+				.thenReturn(Mono.just(UpdateApplicationResponse.builder().build()));
+
+		Map<String, String> properties = new HashMap<>();
+		properties.put("upgrade", "true");
+
+		UpdateApplicationRequest request =
+				UpdateApplicationRequest
+						.builder()
+						.name(APP_NAME)
+						.path(APP_PATH)
+						.properties(properties)
+						.build();
+
+		StepVerifier.create(appDeployer.update(request))
+					.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+					.verifyComplete();
+	}
+
 	private ApplicationDetail createApplicationDetail() {
 		return ApplicationDetail
 			.builder()
@@ -256,6 +296,18 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.requestedState("STARTED")
 			.runningInstances(1)
 			.build();
+	}
+
+	private PackageResource createPackage(String dateTime, String id) {
+		return PackageResource
+				.builder()
+				.data(BitsData.builder().build())
+				.state(PackageState.READY)
+				.type(PackageType.BITS)
+				.createdAt(dateTime)
+				.updatedAt(dateTime)
+				.id(id)
+				.build();
 	}
 
 	private static Lifecycle createLifecycle() {

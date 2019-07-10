@@ -20,8 +20,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -46,6 +48,8 @@ import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.SpaceEntity;
 import org.cloudfoundry.client.v3.Relationship;
 import org.cloudfoundry.client.v3.ToOneRelationship;
+import org.cloudfoundry.client.v3.applications.ListApplicationPackagesRequest;
+import org.cloudfoundry.client.v3.applications.ListApplicationPackagesResponse;
 import org.cloudfoundry.client.v3.builds.BuildState;
 import org.cloudfoundry.client.v3.builds.CreateBuildRequest;
 import org.cloudfoundry.client.v3.builds.CreateBuildResponse;
@@ -63,6 +67,7 @@ import org.cloudfoundry.client.v3.packages.GetPackageRequest;
 import org.cloudfoundry.client.v3.packages.GetPackageResponse;
 import org.cloudfoundry.client.v3.packages.Package;
 import org.cloudfoundry.client.v3.packages.PackageRelationships;
+import org.cloudfoundry.client.v3.packages.PackageResource;
 import org.cloudfoundry.client.v3.packages.PackageState;
 import org.cloudfoundry.client.v3.packages.PackageType;
 import org.cloudfoundry.client.v3.packages.UploadPackageRequest;
@@ -195,21 +200,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.flatMap(applicationId ->
 					updateApplicationEnvironment(applicationId, environmentVariables, request.getProperties()).thenReturn(applicationId)
 				)
-				.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
-					createPackageForApplication(applicationId)))
-				.map(tuple2 -> tuple2.mapT2(CreatePackageResponse::getId))
-				.flatMap(tuple2 -> {
-					String packageId = tuple2.getT2();
-					return Mono.zip(Mono.just(tuple2.getT1()), uploadPackage(request, packageId));
-				})
-
-				.map(tuple2 -> tuple2.mapT2(Package::getId))
-				.flatMap(tuple2 -> {
-						String packageId1 = tuple2.getT2();
-						return Mono.zip(Mono.just(tuple2.getT1()), waitForPackageReady(packageId1));
-					}
-				)
-				.map(tuple2 -> tuple2.mapT2(Package::getId))
+			 .flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
+					upgradeApplication(request, applicationId)))
 				.flatMap(tuple2 -> {
 					String packageId = tuple2.getT2();
 					return Mono.zip(Mono.just(tuple2.getT1()), createBuildForPackage(packageId));
@@ -317,6 +309,41 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		catch (IOException e) {
 			throw Exceptions.propagate(e);
 		}
+	}
+
+	private Mono<String> upgradeApplication(UpdateApplicationRequest request, String applicationId) {
+		if (request.getProperties().containsKey("upgrade")) {
+			return createPackageForApplication(applicationId)
+					.map(CreatePackageResponse::getId)
+					.flatMap(packageId -> uploadPackage(request, packageId))
+					.map(UploadPackageResponse::getId)
+					.flatMap(packageId -> waitForPackageReady(packageId)
+							.map(Package::getId));
+		}
+		return getPackageForApplication(applicationId);
+	}
+
+	private Mono<String> getPackageForApplication(String applicationId) {
+		return this.client
+				.applicationsV3()
+				.listPackages(ListApplicationPackagesRequest
+						.builder()
+						.applicationId(applicationId)
+						.state(PackageState.READY)
+						.build())
+				.doOnRequest(l -> logger.debug("Getting application package for application {}", applicationId))
+				.doOnSuccess(response -> logger.info("Got application package for application {}", applicationId))
+				.doOnError(e -> logger.warn(String.format("Error getting application package for application %s: %s", applicationId, e.getMessage())))
+				.map(ListApplicationPackagesResponse::getResources)
+				.map(this::getLastUpdatedPackageId);
+	}
+
+	private String getLastUpdatedPackageId(List<PackageResource> packageResources) {
+		return packageResources
+				.stream()
+				.min((h1, h2) -> Instant.parse(h2.getUpdatedAt()).compareTo(Instant.parse(h1.getUpdatedAt())))
+				.orElse(packageResources.get(0))
+				.getId();
 	}
 
 	private Mono<CreatePackageResponse> createPackageForApplication(String applicationId) {

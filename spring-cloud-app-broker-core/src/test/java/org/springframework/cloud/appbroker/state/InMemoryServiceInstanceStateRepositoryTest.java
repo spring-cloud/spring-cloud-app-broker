@@ -20,6 +20,8 @@ import java.util.Calendar;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
@@ -126,5 +128,19 @@ class InMemoryServiceInstanceStateRepositoryTest {
 		StepVerifier.create(stateRepository.removeState("foo"))
 			.expectError(IllegalArgumentException.class)
 			.verify();
+	}
+
+	@Test
+	void ensureConcurrency() {
+		StepVerifier.create(
+			Flux.range(0, 100_000)
+				.parallel(25)
+				.runOn(Schedulers.newParallel("parallel-test", 25))
+				.flatMap(value ->
+					stateRepository
+						.saveState("foo" + value, OperationState.IN_PROGRESS, "bar")
+						.then(stateRepository.removeState("foo" + value))))
+			.expectNextCount(100_000)
+			.verifyComplete();
 	}
 }

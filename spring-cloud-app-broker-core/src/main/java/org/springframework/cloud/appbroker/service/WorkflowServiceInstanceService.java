@@ -76,7 +76,6 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
 		return invokeCreateResponseBuilders(request)
-			.publishOn(Schedulers.parallel())
 			.doOnNext(response -> create(request, response)
 				.subscribe());
 	}
@@ -97,6 +96,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS,
 			"create service instance started")
+			.publishOn(Schedulers.parallel())
 			.thenMany(invokeCreateWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Creating service instance {}", request))
 				.doOnComplete(() -> log.debug("Finished creating service instance {}", request))
@@ -120,7 +120,6 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
 		return invokeDeleteResponseBuilders(request)
-			.publishOn(Schedulers.parallel())
 			.doOnNext(response -> delete(request, response)
 				.subscribe());
 	}
@@ -140,6 +139,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS, "delete service instance started")
+			.publishOn(Schedulers.parallel())
 			.thenMany(invokeDeleteWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Deleting service instance {}", request))
 				.doOnComplete(() -> log.debug("Finished deleting service instance {}", request))
@@ -163,7 +163,6 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
 		return invokeUpdateResponseBuilders(request)
-			.publishOn(Schedulers.parallel())
 			.doOnNext(response -> update(request, response)
 				.subscribe());
 	}
@@ -183,6 +182,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
 		return stateRepository.saveState(request.getServiceInstanceId(),
 			OperationState.IN_PROGRESS, "update service instance started")
+			.publishOn(Schedulers.parallel())
 			.thenMany(invokeUpdateWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Updating service instance {}", request))
 				.doOnComplete(() -> log.debug("Finished updating service instance {}", request))

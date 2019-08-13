@@ -20,12 +20,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import reactor.core.publisher.Mono;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 
 public class EnvironmentMappingParametersTransformerFactory extends
 	ParametersTransformerFactory<BackingApplication, EnvironmentMappingParametersTransformerFactory.Config> {
+
+	private final Logger logger = Loggers.getLogger(EnvironmentMappingParametersTransformerFactory.class);
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	public EnvironmentMappingParametersTransformerFactory() {
 		super(Config.class);
@@ -40,9 +47,26 @@ public class EnvironmentMappingParametersTransformerFactory extends
 											   Map<String, Object> parameters,
 											   List<String> include) {
 		if (parameters != null) {
-			parameters.keySet().stream()
-					  .filter(include::contains)
-					  .forEach(key -> backingApplication.addEnvironment(key, parameters.get(key).toString()));
+			parameters
+				.keySet().stream()
+				.filter(include::contains)
+				.forEach(key -> {
+					Object value = parameters.get(key);
+					String valueString;
+					if (value instanceof String) {
+						valueString = value.toString();
+					}
+					else {
+						try {
+							valueString = OBJECT_MAPPER.writeValueAsString(value);
+						}
+						catch (JsonProcessingException e) {
+							logger.error("Failed to write object as JSON String", e);
+							valueString = value.toString();
+						}
+					}
+					backingApplication.addEnvironment(key, valueString);
+				});
 		}
 
 		return Mono.just(backingApplication);

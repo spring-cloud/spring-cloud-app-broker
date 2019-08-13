@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.extensions.parameters;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ class EnvironmentMappingParametersTransformerFactoryTest {
 	void setUp() {
 		transformer = new EnvironmentMappingParametersTransformerFactory()
 			.createWithConfig(config ->
-				config.setInclude("parameter1,parameter2"));
+				config.setInclude("parameter1,parameter2,parameter4,parameter5"));
 	}
 
 	@Test
@@ -45,8 +46,10 @@ class EnvironmentMappingParametersTransformerFactoryTest {
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("parameter1", "value1");
-		parameters.put("parameter2", "value2");
+		parameters.put("parameter2", Collections.singletonMap("key2", "value2"));
 		parameters.put("parameter3", "value3");
+		parameters.put("parameter4", Collections.singletonList("value4"));
+		parameters.put("parameter5", Collections.singletonList(Collections.singletonMap("key5", "value5")));
 
 		StepVerifier
 			.create(transformer.transform(backingApplication, parameters))
@@ -54,8 +57,10 @@ class EnvironmentMappingParametersTransformerFactoryTest {
 			.verifyComplete();
 
 		assertThat(backingApplication.getEnvironment()).containsEntry("parameter1", "value1");
-		assertThat(backingApplication.getEnvironment()).containsEntry("parameter2", "value2");
+		assertThat(backingApplication.getEnvironment()).containsEntry("parameter2", "{\"key2\":\"value2\"}");
 		assertThat(backingApplication.getEnvironment()).doesNotContainKey("parameter3");
+		assertThat(backingApplication.getEnvironment()).containsEntry("parameter4", "[\"value4\"]");
+		assertThat(backingApplication.getEnvironment()).containsEntry("parameter5", "[{\"key5\":\"value5\"}]");
 	}
 
 	@Test

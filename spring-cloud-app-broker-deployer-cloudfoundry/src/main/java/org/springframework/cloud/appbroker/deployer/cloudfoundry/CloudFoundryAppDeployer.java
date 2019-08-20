@@ -872,13 +872,27 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		return operationsUtils.getOperations(request.getProperties())
-			.flatMap(cfOperations -> Mono.just(request.getServiceInstanceName())
-				.flatMap(serviceInstanceName -> unbindServiceInstance(serviceInstanceName, cfOperations)
-					.then(deleteServiceInstance(serviceInstanceName, cfOperations)
-						.thenReturn(DeleteServiceInstanceResponse.builder()
-							.name(serviceInstanceName)
-							.build()))));
+		String serviceInstanceName = request.getServiceInstanceName();
+		Map<String, String> deploymentProperties = request.getProperties();
+
+		Mono<Void> requestDeleteServiceInstance;
+		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
+			requestDeleteServiceInstance = operationsUtils.getOperations(deploymentProperties)
+				.flatMap(cfOperations -> unbindServiceInstance(serviceInstanceName, cfOperations)
+					.then(deleteServiceInstance(serviceInstanceName, cfOperations)))
+				.then(deleteSpace(space));
+		} else {
+			requestDeleteServiceInstance = unbindServiceInstance(serviceInstanceName, operations)
+				.then(deleteServiceInstance(serviceInstanceName, operations));
+		}
+
+		return requestDeleteServiceInstance
+			.doOnSuccess(v -> logger.info("Successfully deleted service instance {}", serviceInstanceName))
+			.doOnError(logError(String.format("Failed to delete service instance %s", serviceInstanceName)))
+			.thenReturn(DeleteServiceInstanceResponse.builder()
+				.name(serviceInstanceName)
+				.build());
 	}
 
 	private Mono<Void> deleteServiceInstance(String serviceInstanceName, CloudFoundryOperations cloudFoundryOperations) {

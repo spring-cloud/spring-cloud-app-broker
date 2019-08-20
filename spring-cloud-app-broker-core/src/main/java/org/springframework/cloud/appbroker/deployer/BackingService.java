@@ -128,12 +128,13 @@ public class BackingService {
 			Objects.equals(plan, that.plan) &&
 			Objects.equals(parameters, that.parameters) &&
 			Objects.equals(properties, that.properties) &&
-			Objects.equals(parametersTransformers, that.parametersTransformers);
+			Objects.equals(parametersTransformers, that.parametersTransformers) &&
+			rebindOnUpdate == that.rebindOnUpdate;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(serviceInstanceName, name, plan, parameters, properties, parametersTransformers);
+		return Objects.hash(serviceInstanceName, name, plan, parameters, properties, parametersTransformers, rebindOnUpdate);
 	}
 
 	@Override
@@ -145,6 +146,7 @@ public class BackingService {
 			", parameters=" + parameters +
 			", properties=" + properties +
 			", parametersTransformers=" + parametersTransformers +
+			", rebindOnUpdate=" + rebindOnUpdate +
 			'}';
 	}
 

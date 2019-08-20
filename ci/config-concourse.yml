@@ -1,3 +1,8 @@
-app-broker-github-url: https://github.com/spring-cloud/spring-cloud-app-broker
-app-broker-git-branch-current: master
 scs-slack-failure-channel: "#sc-app-broker"
+
+bintray-distribution-repo: spring-cloud-app-broker
+bintray-package: spring-cloud-app-broker
+bintray-repo: jars
+bintray-subject: spring
+build-name: spring-cloud-app-broker-build
+branch: master

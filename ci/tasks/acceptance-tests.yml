@@ -8,10 +8,10 @@ image_resource:
     tag: 8
 
 inputs:
-  - name: app-broker
+  - name: git-repo
 
 run:
-  path: app-broker/ci/tasks/acceptance-tests.sh
+  path: git-repo/ci/scripts/acceptance-tests.sh
 
 params:
   API_HOST:

@@ -58,8 +58,8 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	@Override
 	public Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
-		return undeployBackingApplications(request)
-			.thenMany(deleteBackingServices(request))
+		return deleteBackingServices(request)
+			.thenMany(undeployBackingApplications(request))
 			.then();
 	}
 

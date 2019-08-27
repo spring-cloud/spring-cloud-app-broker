@@ -566,8 +566,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.flatMap(spaceId -> this.client.spaces()
 				.delete(DeleteSpaceRequest.builder()
 					.spaceId(spaceId)
+					.recursive(true)
 					.build())
-				.then(Mono.empty()));
+				   .then())
+			.doOnError(exception -> logger.debug("Error deleting space {} with error '{}'",
+					spaceName, exception.getMessage()))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	private Mono<String> getSpaceId(String spaceName) {
@@ -900,7 +904,10 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest
 				.builder()
 				.name(serviceInstanceName)
-				.build());
+				.build())
+				.doOnError(exception -> logger.debug("Error deleting service instance {} with error '{}'",
+					 serviceInstanceName, exception.getMessage()))
+				.onErrorResume(e -> Mono.empty());
 	}
 
 	private Mono<Void> unbindServiceInstance(String serviceInstanceName,
@@ -908,6 +915,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return cloudFoundryOperations.services().getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
 			.name(serviceInstanceName)
 			.build())
+			.doOnError(exception -> logger.debug("Error unbinding service instance {} with error '{}'",
+					serviceInstanceName, exception.getMessage()))
+			.onErrorResume(e -> Mono.empty())
 			.map(ServiceInstance::getApplications)
 			.flatMap(applications -> Flux.fromIterable(applications)
 				.flatMap(application -> cloudFoundryOperations.services().unbind(
@@ -916,6 +926,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 						.serviceInstanceName(serviceInstanceName)
 						.build())
 				)
+			.onErrorResume(e -> Mono.empty())
 			.then(Mono.empty()));
 	}
 

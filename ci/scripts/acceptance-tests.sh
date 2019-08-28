@@ -31,7 +31,7 @@ run_tests() {
 }
 
 main() {
-  pushd "app-broker" > /dev/null
+  pushd "git-repo" > /dev/null
     build
     run_tests
   popd > /dev/null

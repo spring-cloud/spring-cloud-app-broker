@@ -31,7 +31,7 @@ description = "Spring Cloud App Broker Integration Tests"
 configurations.archives.artifacts.clear()
 
 ext {
-	wiremockVersion = "2.18.0"
+	wiremockVersion = "2.24.1"
 }
 
 // The latest version of jetty-server is not compatible with the latest version of wiremock yet;

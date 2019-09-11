@@ -20,11 +20,11 @@ buildscript {
 	}
 	dependencies {
 		classpath("io.spring.gradle:propdeps-plugin:0.0.10.RELEASE")
-		classpath("io.spring.gradle:dependency-management-plugin:1.0.5.RELEASE")
+		classpath("io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE")
 		classpath("io.spring.gradle:spring-io-plugin:0.0.8.RELEASE")
-		classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.5.3")
-		classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.7.5")
-		classpath("io.spring.nohttp:nohttp-gradle:0.0.1.RELEASE")
+		classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.6.1")
+		classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.9.9")
+		classpath("io.spring.nohttp:nohttp-gradle:0.0.3.RELEASE")
 	}
 }
 
@@ -51,10 +51,10 @@ configure(allprojects) {
 	apply plugin: "io.spring.dependency-management"
 
 	ext {
-		springBootVersion = project.findProperty("springBootVersion") ?: "2.1.4.RELEASE"
-		springVersion = project.findProperty("springVersion") ?: "5.1.6.RELEASE"
-		reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR6"
-		openServiceBrokerVersion = "3.0.0.RELEASE"
+		springBootVersion = "2.1.8.RELEASE"
+		springVersion = "5.1.9.RELEASE"
+		reactorVersion = "Californium-SR11"
+		openServiceBrokerVersion = "3.0.4.RELEASE"
 		springCredhubVersion = "2.0.1.RELEASE"
 		cfJavaClientVersion = "3.15.0.RELEASE"
 	}
@@ -73,7 +73,7 @@ configure(allprojects) {
 	}
 
 	dependencies {
-		testRuntimeOnly("io.spring.nohttp:nohttp:0.0.1.RELEASE")
+		testRuntimeOnly("io.spring.nohttp:nohttp:0.0.3.RELEASE")
 	}
 
 	if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion") || project.hasProperty("reactorVersion")) {

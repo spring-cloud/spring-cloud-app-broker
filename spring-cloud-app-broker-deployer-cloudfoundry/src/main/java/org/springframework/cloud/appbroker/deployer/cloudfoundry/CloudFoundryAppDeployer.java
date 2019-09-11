@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cloudfoundry.AbstractCloudFoundryException;
 import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.applications.AssociateApplicationRouteRequest;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationRequest;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationResponse;
 import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
@@ -81,6 +82,7 @@ import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.domains.Domain;
 import org.cloudfoundry.operations.organizations.OrganizationDetail;
 import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
@@ -200,6 +202,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.flatMap(applicationId ->
 					updateApplicationEnvironment(applicationId, environmentVariables, request.getProperties()).thenReturn(applicationId)
 				)
+				.flatMap(applicationId -> associateHostName(applicationId, request.getProperties()))
 			 .flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
 					upgradeApplication(request, applicationId)))
 				.flatMap(tuple2 -> {
@@ -223,6 +226,40 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.doOnSuccess(item -> logger.info("Successfully updated application {}", name))
 				.doOnError(error -> logger.error("Failed to update application {}", name))
 				.thenReturn(UpdateApplicationResponse.builder().name(name).build()));
+	}
+
+	private Mono<String> associateHostName(String applicationId, Map<String, String> properties) {
+		String domain = domain(properties);
+		String host = host(properties);
+
+		return operationsUtils
+				.getOperations(properties)
+				.flatMap(cfOperations -> cfOperations.domains().list().collectList())
+				.flatMap(d -> {
+					for (Domain dom : d) {
+						if (dom.getName().equals(domain)) {
+							return Mono.just(dom.getId());
+						}
+					}
+					return Mono.empty();
+				})
+				// TODO if empty throw new Domain should exist exception
+				.flatMap(domainId ->
+						client.routes()
+							  .create(org.cloudfoundry.client.v2.routes.CreateRouteRequest
+									  .builder()
+									  .domainId(domainId)
+									  .host(host)
+									  .build())
+							  .map(response -> response.getMetadata().getId()))
+				.flatMap(routeId ->
+						client.applicationsV2()
+							  .associateRoute(AssociateApplicationRouteRequest
+									  .builder()
+									  .applicationId(applicationId)
+									  .routeId(routeId)
+									  .build()))
+				.then(Mono.just(applicationId));
 	}
 
 	private Mono<GetDeploymentResponse> waitForDeploymentDeployed(String deploymentId) {

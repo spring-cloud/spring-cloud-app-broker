@@ -68,28 +68,6 @@ configure(allprojects) {
 		testRuntimeOnly("io.spring.nohttp:nohttp:0.0.3.RELEASE")
 	}
 
-	if (project.hasProperty("springVersion") || project.hasProperty("springBootVersion") || project.hasProperty("reactorVersion")) {
-		repositories {
-			maven { url "https://repo.spring.io/libs-snapshot" }
-		}
-	}
-
-	if (project.hasProperty('platformVersion')) {
-		apply plugin: 'spring-io'
-
-		repositories {
-			maven { url "https://repo.spring.io/libs-snapshot" }
-		}
-
-		dependencyManagement {
-			springIoTestRuntime {
-				imports {
-					mavenBom "io.spring.platform:platform-bom:${platformVersion}"
-				}
-			}
-		}
-	}
-
 	ext.javadocLinks = [
 		"https://docs.oracle.com/javase/8/docs/api/",
 		"https://docs.spring.io/spring/docs/${springVersion}/javadoc-api/",

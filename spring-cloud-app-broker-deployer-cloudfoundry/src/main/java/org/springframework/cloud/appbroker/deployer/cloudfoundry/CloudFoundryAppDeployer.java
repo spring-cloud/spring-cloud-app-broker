@@ -85,9 +85,12 @@ import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.domains.Domain;
 import org.cloudfoundry.operations.organizations.OrganizationDetail;
 import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
+import org.cloudfoundry.operations.routes.CreateRouteRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
+import org.cloudfoundry.operations.spaces.GetSpaceRequest;
+import org.cloudfoundry.operations.spaces.SpaceDetail;
 import org.cloudfoundry.operations.useradmin.SetSpaceRoleRequest;
 import org.cloudfoundry.operations.useradmin.SpaceRole;
 import org.cloudfoundry.util.DelayUtils;
@@ -231,6 +234,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private Mono<String> associateHostName(String applicationId, Map<String, String> properties) {
 		String domain = domain(properties);
 		String host = host(properties);
+		String space;
+		if (properties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			 space = properties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
+		} else {
+			space = targetProperties.getDefaultSpace();
+		}
 
 		return operationsUtils
 				.getOperations(properties)
@@ -244,11 +253,16 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 					return Mono.empty();
 				})
 				// TODO if empty throw new Domain should exist exception
-				.flatMap(domainId ->
+				.flatMap(domainId -> {
+					Mono<String> p2 = operations.spaces().get(GetSpaceRequest.builder().name(space).build()).map(SpaceDetail::getId);
+					return Mono.zip(Mono.just(domainId), p2);
+				})
+				.flatMap( t ->
 						client.routes()
 							  .create(org.cloudfoundry.client.v2.routes.CreateRouteRequest
 									  .builder()
-									  .domainId(domainId)
+									  .domainId(t.getT1())
+									  .spaceId(t.getT2())
 									  .host(host)
 									  .build())
 							  .map(response -> response.getMetadata().getId()))

@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.jayway.jsonpath.DocumentContext;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.Test;
 

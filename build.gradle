@@ -59,14 +59,6 @@ configure(allprojects) {
 		cfJavaClientVersion = "3.15.0.RELEASE"
 	}
 
-	//override managed Spring Boot versions
-	if (project.hasProperty("springVersion")) {
-		ext['spring-framework.version'] = ext.springVersion
-	}
-	if (project.hasProperty("reactorVersion")) {
-		ext['reactor-bom.version'] = ext.reactorVersion
-	}
-
 	repositories {
 		mavenCentral()
 		maven { url "https://repo.spring.io/libs-release" }

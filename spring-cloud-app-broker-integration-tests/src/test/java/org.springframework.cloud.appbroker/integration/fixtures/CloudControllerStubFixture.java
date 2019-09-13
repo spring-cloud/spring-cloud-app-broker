@@ -223,6 +223,11 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubCreateDeployment(appName);
 	}
 
+	public void stubUpdateAppWithHostAndDomain(final String appName) {
+		stubUpdateApp(appName);
+		stubCreateRoute(appName);
+	}
+
 	public void stubUpdateApp(final String appName) {
 		stubUpdateEnvironment(appName);
 		stubGetPackage(appName);
@@ -388,6 +393,28 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/instances"))
 			.willReturn(ok()
 				.withBody(cc("get-app-instances"))));
+	}
+
+	private void stubCreateRoute(final String appName) {
+		stubFor(get(urlPathEqualTo("/v2/private_domains"))
+				.withQueryParam("page", equalTo("1"))
+				.withMetadata(optionalStubMapping())
+				.willReturn(ok()
+						.withBody(cc("empty-query-results"))));
+
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/services"))
+				.withQueryParam("page", equalTo("1"))
+				.willReturn(ok()
+						.withBody(cc("list-space-services"))));
+
+		stubFor(post(urlPathEqualTo("/v2/routes"))
+				.willReturn(ok()
+						.withBody(cc("post-route")
+								.replace("@guid", routeGuid(appName)))));
+
+		stubFor(put(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/routes/" + routeGuid(appName)))
+				.willReturn(ok()
+						.withBody(cc("get-app-summary"))));
 	}
 
 	public void stubDeleteApp(String appName) {

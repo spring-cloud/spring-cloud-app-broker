@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cloudfoundry.AbstractCloudFoundryException;
 import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.applications.AssociateApplicationRouteRequest;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationRequest;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationResponse;
 import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
@@ -81,11 +82,14 @@ import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.domains.Domain;
 import org.cloudfoundry.operations.organizations.OrganizationDetail;
 import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
+import org.cloudfoundry.operations.spaces.GetSpaceRequest;
+import org.cloudfoundry.operations.spaces.SpaceDetail;
 import org.cloudfoundry.operations.useradmin.SetSpaceRoleRequest;
 import org.cloudfoundry.operations.useradmin.SpaceRole;
 import org.cloudfoundry.util.DelayUtils;
@@ -200,6 +204,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.flatMap(applicationId ->
 					updateApplicationEnvironment(applicationId, environmentVariables, request.getProperties()).thenReturn(applicationId)
 				)
+				.flatMap(applicationId -> associateHostName(applicationId, request.getProperties()))
 			 .flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
 					upgradeApplication(request, applicationId)))
 				.flatMap(tuple2 -> {
@@ -223,6 +228,79 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.doOnSuccess(item -> logger.info("Successfully updated application {}", name))
 				.doOnError(error -> logger.error("Failed to update application {}", name))
 				.thenReturn(UpdateApplicationResponse.builder().name(name).build()));
+	}
+
+	private Mono<String> associateHostName(String applicationId, Map<String, String> properties) {
+		String domain = domain(properties);
+		String host = host(properties);
+		if (host == null && domain == null) {
+			return Mono.just(applicationId);
+		}
+
+		return operationsUtils
+			.getOperations(properties)
+			.map(cfOperations -> cfOperations.domains().list())
+			.flatMap(Flux::collectList)
+			.flatMap(domains -> getDomainId(domain, domains))
+			.flatMap(domainId -> Mono.zip(Mono.just(domainId), getSpaceId(properties)))
+			.flatMap(tupleDomainIdSpaceId -> {
+				String domainId = tupleDomainIdSpaceId.getT1();
+				String spaceId = tupleDomainIdSpaceId.getT2();
+				return client.routes()
+							 .create(org.cloudfoundry.client.v2.routes.CreateRouteRequest
+								 .builder()
+								 .domainId(domainId)
+								 .spaceId(spaceId)
+								 .host(host)
+								 .build())
+							 .map(response -> response.getMetadata().getId())
+							 .doOnError(error -> logger.info("Host was already associated: " + host))
+							 .onErrorResume(e -> Mono.empty());
+			})
+			.flatMap(routeId ->
+				client.applicationsV2()
+					  .associateRoute(AssociateApplicationRouteRequest
+						  .builder()
+						  .applicationId(applicationId)
+						  .routeId(routeId)
+						  .build()))
+			.then(Mono.just(applicationId));
+	}
+
+	private Mono<String> getSpaceId(Map<String, String> properties) {
+		String space;
+		if (properties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			space = properties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
+		} else {
+			space = targetProperties.getDefaultSpace();
+		}
+		return operations
+			.spaces()
+			.get(GetSpaceRequest
+				.builder()
+				.name(space)
+				.build())
+			.map(SpaceDetail::getId);
+	}
+
+	private Mono<String> getDomainId(String domain, List<Domain> domains) {
+		if (domain == null) {
+			return getDefaultDomainId(domains);
+		}
+
+		return Mono.just(
+			domains.stream()
+				   .filter(d -> d.getName().equals(domain))
+				   .findFirst()
+				   .orElseThrow(() -> new RuntimeException("Non existing domain"))
+				   .getId());
+	}
+
+	private Mono<String> getDefaultDomainId(List<Domain> domains) {
+		return Mono.just(domains.stream()
+			   .filter(d -> !"internal".equals(d.getType()))
+			   .findFirst().orElseThrow(RuntimeException::new)
+			   .getId());
 	}
 
 	private Mono<GetDeploymentResponse> waitForDeploymentDeployed(String deploymentId) {

@@ -6,15 +6,15 @@
 		"updated_at": "2018-07-20T18:39:26Z"
 	},
 	"entity": {
-		"host": "name",
+		"host": "@name",
 		"path": "",
-		"domain_guid": "org-guid",
-		"space_guid": "space-guid",
+		"domain_guid": "@org-guid",
+		"space_guid": "@space-guid",
 		"service_instance_guid": null,
 		"port": null,
-		"domain_url": "/v2/shared_domains/org-guid",
-		"space_url": "/v2/spaces/space-guid",
-		"apps_url": "/v2/routes/guid/apps",
+		"domain_url": "/v2/shared_domains/@org-guid",
+		"space_url": "/v2/spaces/@space-guid",
+		"apps_url": "/v2/routes/@guid/apps",
 		"route_mappings_url": "/v2/routes/@guid/route_mappings"
 	}
 }

@@ -253,7 +253,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 								 .spaceId(spaceId)
 								 .host(host)
 								 .build())
-							 .map(response -> response.getMetadata().getId());
+							 .map(response -> response.getMetadata().getId())
+							 .doOnError(error -> logger.info("Host was already associated: " + host))
+							 .onErrorResume(e -> Mono.empty());
 			})
 			.flatMap(routeId ->
 				client.applicationsV2()

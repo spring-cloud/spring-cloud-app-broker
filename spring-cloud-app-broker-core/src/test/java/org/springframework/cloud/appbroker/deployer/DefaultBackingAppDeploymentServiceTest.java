@@ -30,7 +30,7 @@ import java.util.List;
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
-class BackingAppDeploymentServiceTest {
+class DefaultBackingAppDeploymentServiceTest {
 
 	@Mock
 	private DeployerClient deployerClient;
@@ -40,7 +40,7 @@ class BackingAppDeploymentServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		backingAppDeploymentService = new BackingAppDeploymentService(deployerClient);
+		backingAppDeploymentService = new DefaultBackingAppDeploymentService(deployerClient);
 		backingApps = BackingApplications.builder()
 			.backingApplication(BackingApplication.builder()
 				.name("testApp1")

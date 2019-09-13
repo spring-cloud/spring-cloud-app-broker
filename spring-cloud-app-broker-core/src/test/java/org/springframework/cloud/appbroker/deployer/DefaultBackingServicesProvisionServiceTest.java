@@ -32,7 +32,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
-class BackingServicesProvisionServiceTest {
+class DefaultBackingServicesProvisionServiceTest {
 
 	@Mock
 	private DeployerClient deployerClient;
@@ -42,7 +42,7 @@ class BackingServicesProvisionServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		backingServicesProvisionService = new BackingServicesProvisionService(deployerClient);
+		backingServicesProvisionService = new DefaultBackingServicesProvisionService(deployerClient);
 		backingServices = BackingServices.builder()
 										 .backingService(BackingService.builder()
 																	   .serviceInstanceName("si1")

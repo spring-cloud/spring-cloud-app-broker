@@ -19,56 +19,12 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.List;
 
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.Logger;
-import reactor.util.Loggers;
 
-public class BackingServicesProvisionService {
+public interface BackingServicesProvisionService {
 
-	private final Logger log = Loggers.getLogger(BackingServicesProvisionService.class);
+	Flux<String> createServiceInstance(List<BackingService> backingServices);
 
-	private final DeployerClient deployerClient;
+	Flux<String> updateServiceInstance(List<BackingService> backingServices);
 
-	public BackingServicesProvisionService(DeployerClient deployerClient) {
-		this.deployerClient = deployerClient;
-	}
-
-	public Flux<String> createServiceInstance(List<BackingService> backingServices) {
-		return Flux.fromIterable(backingServices)
-			.parallel()
-			.runOn(Schedulers.parallel())
-			.flatMap(deployerClient::createServiceInstance)
-			.sequential()
-			.doOnRequest(l -> log.debug("Creating backing services {}", backingServices))
-			.doOnEach(response -> log.debug("Finished creating backing service {}", response))
-			.doOnComplete(() -> log.debug("Finished creating backing services {}", backingServices))
-			.doOnError(exception -> log.error("Error creating backing services {} with error '{}'",
-				backingServices, exception.getMessage()));
-	}
-
-	public Flux<String> updateServiceInstance(List<BackingService> backingServices) {
-		return Flux.fromIterable(backingServices)
-			.parallel()
-			.runOn(Schedulers.parallel())
-			.flatMap(deployerClient::updateServiceInstance)
-			.sequential()
-			.doOnRequest(l -> log.debug("Updating backing services {}", backingServices))
-			.doOnEach(response -> log.debug("Finished updating backing service {}", response))
-			.doOnComplete(() -> log.debug("Finished updating backing services {}", backingServices))
-			.doOnError(exception -> log.error("Error updating backing services {} with error '{}'",
-				backingServices, exception.getMessage()));
-	}
-
-	public Flux<String> deleteServiceInstance(List<BackingService> backingServices) {
-		return Flux.fromIterable(backingServices)
-			.parallel()
-			.runOn(Schedulers.parallel())
-			.flatMap(deployerClient::deleteServiceInstance)
-			.sequential()
-			.doOnRequest(l -> log.debug("Deleting backing services {}", backingServices))
-			.doOnEach(response -> log.debug("Finished deleting backing service {}", response))
-			.doOnComplete(() -> log.debug("Finished deleting backing services {}", backingServices))
-			.doOnError(exception -> log.error("Error deleting backing services {} with error '{}'",
-				backingServices, exception.getMessage()));
-	}
+	Flux<String> deleteServiceInstance(List<BackingService> backingServices);
 }

@@ -24,11 +24,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.DefaultBackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.DefaultBackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderFactory;
@@ -82,8 +84,9 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	public BackingAppDeploymentService backingAppDeploymentService(DeployerClient deployerClient) {
-		return new BackingAppDeploymentService(deployerClient);
+		return new DefaultBackingAppDeploymentService(deployerClient);
 	}
 
 	@Bean
@@ -180,8 +183,9 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	public BackingServicesProvisionService backingServicesProvisionService(DeployerClient deployerClient) {
-		return new BackingServicesProvisionService(deployerClient);
+		return new DefaultBackingServicesProvisionService(deployerClient);
 	}
 
 	@Bean

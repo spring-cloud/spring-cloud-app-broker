@@ -29,10 +29,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateInstanceWithHostAndDomainAcceptanceTest extends CloudFoundryAcceptanceTest {
 
-	private static final String APP_NAME = "app-update";
-	private static final String SI_NAME = "si-update-domain-host";
+	private static final String APP_NAME = "app-update-domain";
+	private static final String SI_NAME = "si-update-domain";
 
-	private static final String SUFFIX = "update-instance";
+	private static final String SUFFIX = "update-instance-domain";
 	private static final String APP_SERVICE_NAME = "app-service-"+ SUFFIX;
 	private static final String BACKING_SERVICE_NAME = "backing-service-"+ SUFFIX;
 

@@ -45,7 +45,6 @@ jobs:
                 "zip.deployed": "false"
   - name: run-acceptance-tests
     serial: true
-    disable_manual_trigger: true
     plan:
       - get: git-repo
         passed: [build]

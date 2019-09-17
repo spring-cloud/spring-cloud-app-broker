@@ -300,6 +300,14 @@ abstract class CloudFoundryAcceptanceTest {
 			.blockOptional();
 	}
 
+	void createDomain(String domain) {
+		cloudFoundryService.createDomain(domain).block();
+	}
+
+	void deleteDomain(String domain) {
+		cloudFoundryService.deleteDomain(domain).block();
+	}
+
 	private Path getTestBrokerAppPath() {
 		return Paths.get(acceptanceTestProperties.getBrokerAppPath(), "");
 	}

@@ -29,6 +29,7 @@ import org.cloudfoundry.client.v2.organizations.AssociateOrganizationUserRequest
 import org.cloudfoundry.client.v2.organizations.AssociateOrganizationUserResponse;
 import org.cloudfoundry.client.v2.organizations.RemoveOrganizationManagerRequest;
 import org.cloudfoundry.client.v2.organizations.RemoveOrganizationUserRequest;
+import org.cloudfoundry.client.v2.privatedomains.DeletePrivateDomainRequest;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperRequest;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperResponse;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperRequest;
@@ -43,6 +44,8 @@ import org.cloudfoundry.operations.applications.GetApplicationEnvironmentsReques
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.StopApplicationRequest;
+import org.cloudfoundry.operations.domains.CreateDomainRequest;
+import org.cloudfoundry.operations.domains.Domain;
 import org.cloudfoundry.operations.organizations.CreateOrganizationRequest;
 import org.cloudfoundry.operations.organizations.OrganizationSummary;
 import org.cloudfoundry.operations.organizations.Organizations;
@@ -331,6 +334,32 @@ public class CloudFoundryService {
 			.flatMap(userId -> removeSpaceDeveloper(spaceId, userId)
 				.then(removeOrgManager(orgId, userId))
 				.then(removeOrgUser(orgId, userId)));
+	}
+
+	public Mono<Void> createDomain(String domain) {
+		return cloudFoundryOperations
+				.domains()
+				.create(CreateDomainRequest
+						.builder()
+						.domain(domain)
+						.organization(cloudFoundryProperties.getDefaultOrg())
+						.build())
+				.onErrorResume(e -> Mono.empty());
+	}
+
+	public Mono<Void> deleteDomain(String domain) {
+		return cloudFoundryOperations
+				.domains()
+				.list()
+				.filter(d -> d.getName().equals(domain))
+				.map(Domain::getId)
+				.flatMap(domainId -> cloudFoundryClient
+						.privateDomains()
+						.delete(DeletePrivateDomainRequest
+								.builder()
+								.privateDomainId(domainId)
+								.build()))
+				.then();
 	}
 
 	private Mono<AssociateOrganizationUserResponse> associateOrgUser(String orgId, String userId) {

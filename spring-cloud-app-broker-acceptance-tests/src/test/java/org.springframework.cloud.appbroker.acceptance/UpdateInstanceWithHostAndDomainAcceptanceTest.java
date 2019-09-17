@@ -76,6 +76,9 @@ class UpdateInstanceWithHostAndDomainAcceptanceTest extends CloudFoundryAcceptan
 		String path = backingApplication.get().getUrls().get(0);
 		healthListener.start(path);
 
+		// and the domain exists
+		createDomain("mydomain.com");
+
 		// when the service instance is updated
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("host", "myhost");
@@ -97,5 +100,7 @@ class UpdateInstanceWithHostAndDomainAcceptanceTest extends CloudFoundryAcceptan
 		// then the backing application is deleted
 		Optional<ApplicationSummary> backingApplicationAfterDeletion = getApplicationSummary(APP_NAME);
 		assertThat(backingApplicationAfterDeletion).isEmpty();
+
+		deleteDomain("mydomain.com");
 	}
 }

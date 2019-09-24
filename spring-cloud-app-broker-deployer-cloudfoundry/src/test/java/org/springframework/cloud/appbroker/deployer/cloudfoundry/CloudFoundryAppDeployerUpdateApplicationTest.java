@@ -289,12 +289,6 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 
 	@Test
 	void updateAppWithUpgrade() {
-		ArgumentCaptor<org.cloudfoundry.client.v2.applications.UpdateApplicationRequest> updateApplicationRequestCaptor =
-				ArgumentCaptor.forClass(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class);
-
-		when(applicationsV2.update(updateApplicationRequestCaptor.capture()))
-				.thenReturn(Mono.just(UpdateApplicationResponse.builder().build()));
-
 		Map<String, String> properties = new HashMap<>();
 		properties.put("upgrade", "true");
 
@@ -309,6 +303,8 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 		StepVerifier.create(appDeployer.update(request))
 					.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 					.verifyComplete();
+
+		verifyZeroInteractions(applicationsV2);
 	}
 
 	@Test

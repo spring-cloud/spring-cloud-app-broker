@@ -191,8 +191,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	@Override
 	public Mono<UpdateApplicationResponse> update(UpdateApplicationRequest request) {
 		final String name = request.getName();
-		final Map<String, Object> environmentVariables =
-			getApplicationEnvironment(request.getProperties(), request.getEnvironment(), request.getServiceInstanceId());
 
 		return operationsUtils.getOperations(request.getProperties())
 			.flatMap(cfOperations -> cfOperations.applications()
@@ -201,9 +199,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.doOnSuccess(response -> logger.info("Success getting application {}", name))
 				.doOnError(e -> logger.warn(String.format("Error getting application %s: %s", name, e.getMessage())))
 				.map(ApplicationDetail::getId)
-				.flatMap(applicationId ->
-					updateApplicationEnvironment(applicationId, environmentVariables, request.getProperties()).thenReturn(applicationId)
-				)
 				.flatMap(applicationId -> associateHostName(applicationId, request.getProperties()))
 			 .flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
 					upgradeApplication(request, applicationId)))
@@ -398,7 +393,11 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 					.flatMap(packageId -> waitForPackageReady(packageId)
 							.map(Package::getId));
 		}
-		return getPackageForApplication(applicationId);
+
+		final Map<String, Object> environmentVariables =
+				getApplicationEnvironment(request.getProperties(), request.getEnvironment(), request.getServiceInstanceId());
+		return updateApplicationEnvironment(applicationId, environmentVariables, request.getProperties())
+				.flatMap(a -> getPackageForApplication(applicationId));
 	}
 
 	private Mono<String> getPackageForApplication(String applicationId) {

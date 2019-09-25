@@ -217,7 +217,6 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubUpdateAppWithUpgrade(final String appName) {
-		stubUpdateEnvironment(appName);
 		stubCreatePackage(appName);
 		stubCreateBuild(appName);
 		stubCreateDeployment(appName);

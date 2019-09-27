@@ -42,8 +42,8 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 			.doOnRequest(l -> log.debug("Deploying applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished deploying application {}", response))
 			.doOnComplete(() -> log.debug("Finished deploying application {}", backingApps))
-			.doOnError(exception -> log.error("Error deploying applications {} with error '{}'",
-				backingApps, exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error deploying applications %s with error '%s'",
+				backingApps, exception.getMessage()), exception));
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 			.doOnRequest(l -> log.debug("Updating applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished updating application {}", response))
 			.doOnComplete(() -> log.debug("Finished updating application {}", backingApps))
-			.doOnError(exception -> log.error("Error updating applications {} with error {}", backingApps, exception));
+			.doOnError(exception -> log.error(String.format("Error updating applications %s with error '%s'", backingApps, exception)));
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 			.doOnRequest(l -> log.debug("Undeploying applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished undeploying application {}", response))
 			.doOnComplete(() -> log.debug("Finished undeploying application {}", backingApps))
-			.doOnError(exception -> log.error("Error undeploying applications {} with error '{}'",
-				backingApps, exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error undeploying applications %s with error '%s'",
+				backingApps, exception.getMessage()), exception));
 	}
 }

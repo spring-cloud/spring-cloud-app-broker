@@ -80,8 +80,8 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished updating backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error("Error updating backing services for {}/{} with error '{}'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error updating backing services for %s/%s with error '%s'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
 	}
 
 	private Flux<String> updateBackingApplications(UpdateServiceInstanceRequest request) {
@@ -97,8 +97,8 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished updating backing applications for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error("Error updating backing applications for {}/{} with error '{}'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error updating backing applications for %s/%s with error '%s'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
 	}
 
 	@Override

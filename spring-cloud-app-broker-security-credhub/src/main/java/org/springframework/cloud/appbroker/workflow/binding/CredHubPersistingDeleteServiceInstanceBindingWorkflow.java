@@ -48,8 +48,8 @@ public class CredHubPersistingDeleteServiceInstanceBindingWorkflow
 			.flatMap(credentialName -> deleteBindingCredentials(credentialName)
 					.doOnRequest(l -> LOG.debug("Deleting binding credentials with name '{}' in CredHub", credentialName.getName()))
 					.doOnSuccess(r -> LOG.debug("Finished deleting binding credentials with name '{}' in CredHub", credentialName.getName()))
-					.doOnError(exception -> LOG.error("Error deleting binding credentials with name '{}' in CredHub with error: {}",
-						credentialName.getName(), exception.getMessage())))
+					.doOnError(exception -> LOG.error(String.format("Error deleting binding credentials with name '%s' in CredHub with error: '%s'",
+						credentialName.getName(), exception.getMessage()), exception)))
 			.thenReturn(responseBuilder);
 	}
 

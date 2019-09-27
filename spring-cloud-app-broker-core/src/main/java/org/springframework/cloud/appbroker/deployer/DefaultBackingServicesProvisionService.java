@@ -43,8 +43,8 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 			.doOnRequest(l -> log.debug("Creating backing services {}", backingServices))
 			.doOnEach(response -> log.debug("Finished creating backing service {}", response))
 			.doOnComplete(() -> log.debug("Finished creating backing services {}", backingServices))
-			.doOnError(exception -> log.error("Error creating backing services {} with error '{}'",
-				backingServices, exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error creating backing services %s with error '%s'",
+				backingServices, exception.getMessage()), exception));
 	}
 
 	@Override
@@ -57,8 +57,8 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 			.doOnRequest(l -> log.debug("Updating backing services {}", backingServices))
 			.doOnEach(response -> log.debug("Finished updating backing service {}", response))
 			.doOnComplete(() -> log.debug("Finished updating backing services {}", backingServices))
-			.doOnError(exception -> log.error("Error updating backing services {} with error '{}'",
-				backingServices, exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error updating backing services %s with error '%s'",
+				backingServices, exception.getMessage()), exception));
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 			.doOnRequest(l -> log.debug("Deleting backing services {}", backingServices))
 			.doOnEach(response -> log.debug("Finished deleting backing service {}", response))
 			.doOnComplete(() -> log.debug("Finished deleting backing services {}", backingServices))
-			.doOnError(exception -> log.error("Error deleting backing services {} with error '{}'",
-				backingServices, exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error deleting backing services %s with error '%s'",
+				backingServices, exception.getMessage()), exception));
 	}
 }

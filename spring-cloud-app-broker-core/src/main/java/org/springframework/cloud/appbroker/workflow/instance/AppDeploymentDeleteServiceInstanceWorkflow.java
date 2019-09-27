@@ -74,8 +74,8 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished deleting backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error("Error deleting backing services for {}/{} with error '{}'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error deleting backing services for %s/%s with error '%s'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
 	}
 
 	private Flux<String> undeployBackingApplications(DeleteServiceInstanceRequest request) {
@@ -92,8 +92,8 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished undeploying backing applications for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error("Error undeploying backing applications for {}/{} with error '{}'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error undeploying backing applications for %s/%s with error '%s'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
 	}
 
 	@Override

@@ -85,8 +85,8 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished creating backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error("Error creating backing services for {}/{} with error '{}'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error creating backing services for %s/%s with error '%s'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
 	}
 
 	private Flux<String> deployBackingApplications(CreateServiceInstanceRequest request) {
@@ -106,8 +106,8 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished deploying backing applications for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error("Error deploying backing applications for {}/{} with error '{}'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()));
+			.doOnError(exception -> log.error(String.format("Error deploying backing applications for %s/%s with error '%s'",
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
 	}
 
 	@Override

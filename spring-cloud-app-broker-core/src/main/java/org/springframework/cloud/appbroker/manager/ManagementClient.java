@@ -40,8 +40,8 @@ public class ManagementClient {
 				.build())
 				.doOnRequest(l -> log.debug("Starting application {}", backingApp))
 				.doOnSuccess(response -> log.debug("Finished starting application {}", backingApp))
-				.doOnError(exception -> log.error("Error starting application {} with error '{}'",
-					backingApp, exception.getMessage())));
+				.doOnError(exception -> log.error(String.format("Error starting application %s with error '%s'",
+					backingApp, exception.getMessage()), exception)));
 	}
 
 	Mono<Void> stop(BackingApplication backingApplication) {
@@ -52,8 +52,8 @@ public class ManagementClient {
 				.build())
 				.doOnRequest(l -> log.debug("Stopping application {}", backingApp))
 				.doOnSuccess(response -> log.debug("Finished stopping application {}", backingApp))
-				.doOnError(exception -> log.error("Error stopping application {} with error '{}'",
-					backingApp, exception.getMessage())));
+				.doOnError(exception -> log.error(String.format("Error stopping application %s with error '%s'",
+					backingApp, exception.getMessage()), exception)));
 	}
 
 	Mono<Void> restart(BackingApplication backingApplication) {
@@ -64,8 +64,8 @@ public class ManagementClient {
 				.build())
 				.doOnRequest(l -> log.debug("Restarting application {}", backingApp))
 				.doOnSuccess(response -> log.debug("Finished restarting application {}", backingApp))
-				.doOnError(exception -> log.error("Error restarting application {} with error '{}'",
-					backingApp, exception.getMessage())));
+				.doOnError(exception -> log.error(String.format("Error restarting application %s with error '%s'",
+					backingApp, exception.getMessage()), exception)));
 	}
 
 	Mono<Void> restage(BackingApplication backingApplication) {
@@ -76,7 +76,7 @@ public class ManagementClient {
 				.build())
 				.doOnRequest(l -> log.debug("Restaging application {}", backingApp))
 				.doOnSuccess(response -> log.debug("Finished restaging application {}", backingApp))
-				.doOnError(exception -> log.error("Error restaging application {} with error '{}'",
-					backingApp, exception.getMessage())));
+				.doOnError(exception -> log.error(String.format("Error restaging application %s with error '%s'",
+					backingApp, exception.getMessage()), exception)));
 	}
 }

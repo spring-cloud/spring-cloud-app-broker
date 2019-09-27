@@ -61,8 +61,8 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow
 						.flatMap(credentialName -> persistBindingCredentials(request, response, credentialName)
 							.doOnRequest(l -> LOG.debug("Storing binding credentials with name '{}' in CredHub", credentialName.getName()))
 							.doOnSuccess(r -> LOG.debug("Finished storing binding credentials with name '{}' in CredHub", credentialName.getName()))
-							.doOnError(exception -> LOG.error("Error storing binding credentials with name '{}' in CredHub with error: {}",
-								credentialName.getName(), exception.getMessage())));
+							.doOnError(exception -> LOG.error(String.format("Error storing binding credentials with name '%s' in CredHub with error: '%s'",
+								credentialName.getName(), exception.getMessage()), exception)));
 				}
 				return Mono.just(responseBuilder);
 			});

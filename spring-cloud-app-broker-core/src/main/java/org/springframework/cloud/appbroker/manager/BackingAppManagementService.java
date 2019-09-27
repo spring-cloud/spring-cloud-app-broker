@@ -61,8 +61,8 @@ public class BackingAppManagementService {
 				.doOnRequest(l -> log.debug("Stopping applications {}", backingApps))
 				.doOnEach(response -> log.debug("Finished stopping application {}", response))
 				.doOnComplete(() -> log.debug("Finished stopping application {}", backingApps))
-				.doOnError(exception -> log.error("Error stopping applications {} with error '{}'",
-					backingApps, exception.getMessage())))
+				.doOnError(exception -> log.error(String.format("Error stopping applications %s with error '%s'",
+					backingApps, exception.getMessage()), exception)))
 			.then();
 	}
 
@@ -75,8 +75,8 @@ public class BackingAppManagementService {
 				.doOnRequest(l -> log.debug("Starting applications {}", backingApps))
 				.doOnEach(response -> log.debug("Finished starting application {}", response))
 				.doOnComplete(() -> log.debug("Finished starting application {}", backingApps))
-				.doOnError(exception -> log.error("Error starting applications {} with error '{}'",
-					backingApps, exception.getMessage())))
+				.doOnError(exception -> log.error(String.format("Error starting applications %s with error '%s'",
+					backingApps, exception.getMessage()), exception)))
 			.then();
 	}
 
@@ -89,8 +89,8 @@ public class BackingAppManagementService {
 				.doOnRequest(l -> log.debug("Restarting applications {}", backingApps))
 				.doOnEach(response -> log.debug("Finished restarting application {}", response))
 				.doOnComplete(() -> log.debug("Finished restarting application {}", backingApps))
-				.doOnError(exception -> log.error("Error restarting applications {} with error '{}'",
-					backingApps, exception.getMessage())))
+				.doOnError(exception -> log.error(String.format("Error restarting applications %s with error '%s'",
+					backingApps, exception.getMessage()), exception)))
 			.then();
 	}
 
@@ -103,8 +103,8 @@ public class BackingAppManagementService {
 				.doOnRequest(l -> log.debug("Restaging applications {}", backingApps))
 				.doOnEach(response -> log.debug("Finished restaging application {}", response))
 				.doOnComplete(() -> log.debug("Finished restaging application {}", backingApps))
-				.doOnError(exception -> log.error("Error restaging applications {} with error '{}'",
-					backingApps, exception.getMessage())))
+				.doOnError(exception -> log.error(String.format("Error restaging applications %s with error '%s'",
+					backingApps, exception.getMessage()), exception)))
 			.then();
 	}
 

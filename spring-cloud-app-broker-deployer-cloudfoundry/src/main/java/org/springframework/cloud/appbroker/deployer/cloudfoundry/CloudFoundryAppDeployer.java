@@ -982,8 +982,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.builder()
 				.name(serviceInstanceName)
 				.build())
-				.doOnError(exception -> logger.debug("Error deleting service instance {} with error '{}'",
-					 serviceInstanceName, exception.getMessage()))
+				.doOnError(exception -> logger.debug(String.format("Error deleting service instance %s with error '%s'",
+					 serviceInstanceName, exception.getMessage()), exception))
 				.onErrorResume(e -> Mono.empty());
 	}
 

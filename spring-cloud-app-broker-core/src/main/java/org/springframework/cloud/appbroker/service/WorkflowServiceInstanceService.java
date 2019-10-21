@@ -49,6 +49,7 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
  * operation.
  */
 public class WorkflowServiceInstanceService implements ServiceInstanceService {
+
 	private final Logger log = Loggers.getLogger(WorkflowServiceInstanceService.class);
 
 	private final List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows;
@@ -98,10 +99,10 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			"create service instance started")
 			.publishOn(Schedulers.parallel())
 			.thenMany(invokeCreateWorkflows(request, response)
-				.doOnRequest(l -> log.debug("Creating service instance {}", request))
-				.doOnComplete(() -> log.debug("Finished creating service instance {}", request))
-				.doOnError(exception -> log.error(String.format("Error creating service instance %s with error '%s'",
-					request, exception.getMessage()), exception)))
+				.doOnRequest(l -> log.debug("Creating service instance"))
+				.doOnComplete(() -> log.debug("Finished creating service instance"))
+				.doOnError(exception -> log.error(String.format("Error creating service instance with error '%s'",
+						exception.getMessage()), exception)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "create service instance completed")
 				.then())
@@ -141,10 +142,10 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			OperationState.IN_PROGRESS, "delete service instance started")
 			.publishOn(Schedulers.parallel())
 			.thenMany(invokeDeleteWorkflows(request, response)
-				.doOnRequest(l -> log.debug("Deleting service instance {}", request))
-				.doOnComplete(() -> log.debug("Finished deleting service instance {}", request))
-				.doOnError(exception -> log.error(String.format("Error deleting service instance {} with error '{}'",
-					request, exception.getMessage()), exception)))
+				.doOnRequest(l -> log.debug("Deleting service instance"))
+				.doOnComplete(() -> log.debug("Finished deleting service instance"))
+				.doOnError(exception -> log.error(String.format("Error deleting service instance with error '%s'",
+					exception.getMessage()), exception)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "delete service instance completed")
 				.then())
@@ -184,10 +185,10 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 			OperationState.IN_PROGRESS, "update service instance started")
 			.publishOn(Schedulers.parallel())
 			.thenMany(invokeUpdateWorkflows(request, response)
-				.doOnRequest(l -> log.debug("Updating service instance {}", request))
-				.doOnComplete(() -> log.debug("Finished updating service instance {}", request))
-				.doOnError(exception -> log.error(String.format("Error updating service instance %s with error '%s'",
-					request, exception.getMessage()), exception)))
+				.doOnRequest(l -> log.debug("Updating service instance"))
+				.doOnComplete(() -> log.debug("Finished updating service instance"))
+				.doOnError(exception -> log.error(String.format("Error updating service instance with error '%s'",
+					exception.getMessage()), exception)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "update service instance completed")
 				.then())

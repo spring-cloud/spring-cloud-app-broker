@@ -36,7 +36,7 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,7 +63,7 @@ class CloudFoundryAppManagerTest {
 		StepVerifier.create(appManager.start(null))
 			.verifyComplete();
 
-		verifyZeroInteractions(operationsApplications);
+		verifyNoInteractions(operationsApplications);
 		verifyNoMoreInteractions(operations);
 	}
 
@@ -95,7 +95,7 @@ class CloudFoundryAppManagerTest {
 		StepVerifier.create(appManager.start(request))
 			.verifyComplete();
 
-		verifyZeroInteractions(operationsApplications);
+		verifyNoInteractions(operationsApplications);
 		verifyNoMoreInteractions(operations);
 	}
 
@@ -104,7 +104,7 @@ class CloudFoundryAppManagerTest {
 		StepVerifier.create(appManager.stop(null))
 			.verifyComplete();
 
-		verifyZeroInteractions(operationsApplications);
+		verifyNoInteractions(operationsApplications);
 		verifyNoMoreInteractions(operations);
 	}
 
@@ -136,7 +136,7 @@ class CloudFoundryAppManagerTest {
 		StepVerifier.create(appManager.stop(request))
 			.verifyComplete();
 
-		verifyZeroInteractions(operationsApplications);
+		verifyNoInteractions(operationsApplications);
 		verifyNoMoreInteractions(operations);
 	}
 
@@ -145,7 +145,7 @@ class CloudFoundryAppManagerTest {
 		StepVerifier.create(appManager.restart(null))
 			.verifyComplete();
 
-		verifyZeroInteractions(operationsApplications);
+		verifyNoInteractions(operationsApplications);
 		verifyNoMoreInteractions(operations);
 	}
 
@@ -177,7 +177,7 @@ class CloudFoundryAppManagerTest {
 		StepVerifier.create(appManager.restart(request))
 			.verifyComplete();
 
-		verifyZeroInteractions(operationsApplications);
+		verifyNoInteractions(operationsApplications);
 		verifyNoMoreInteractions(operations);
 	}
 
@@ -186,7 +186,7 @@ class CloudFoundryAppManagerTest {
 		StepVerifier.create(appManager.restage(null))
 			.verifyComplete();
 
-		verifyZeroInteractions(operationsApplications);
+		verifyNoInteractions(operationsApplications);
 		verifyNoMoreInteractions(operations);
 	}
 
@@ -218,7 +218,7 @@ class CloudFoundryAppManagerTest {
 		StepVerifier.create(appManager.restage(request))
 			.verifyComplete();
 
-		verifyZeroInteractions(operationsApplications);
+		verifyNoInteractions(operationsApplications);
 		verifyNoMoreInteractions(operations);
 	}
 

@@ -82,7 +82,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 
@@ -806,7 +806,7 @@ class CloudFoundryAppDeployerTest {
 		verify(operationsUtils).getOperations(argThat(CollectionUtils::isEmpty));
 		verify(cloudFoundryOperations).services();
 		verify(operationsServices).getInstance(argThat(req -> "my-foo-service".equals(req.getName())));
-		verifyZeroInteractions(cloudFoundryClient);
+		verifyNoInteractions(cloudFoundryClient);
 		verifyNoMoreInteractions(cloudFoundryOperations, operationsUtils);
 	}
 
@@ -839,7 +839,7 @@ class CloudFoundryAppDeployerTest {
 			argThat(argument -> "foo-space".equals(argument.get(TARGET_PROPERTY_KEY))));
 		verify(cloudFoundryOperations).services();
 		verify(operationsServices).getInstance(argThat(req -> "my-foo-service".equals(req.getName())));
-		verifyZeroInteractions(cloudFoundryClient);
+		verifyNoInteractions(cloudFoundryClient);
 		verifyNoMoreInteractions(cloudFoundryOperations, operationsUtils);
 	}
 

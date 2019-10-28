@@ -40,7 +40,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class BackingAppManagementServiceTest {
@@ -145,7 +145,7 @@ class BackingAppManagementServiceTest {
 
 		verify(appDeployer).getServiceInstance(any(GetServiceInstanceRequest.class));
 		verify(targetService).addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id"));
-		verifyZeroInteractions(managementClient);
+		verifyNoInteractions(managementClient);
 		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
 	}
 
@@ -232,7 +232,7 @@ class BackingAppManagementServiceTest {
 
 		verify(appDeployer).getServiceInstance(any(GetServiceInstanceRequest.class));
 		verify(targetService).addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id"));
-		verifyZeroInteractions(managementClient);
+		verifyNoInteractions(managementClient);
 		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
 	}
 
@@ -307,7 +307,7 @@ class BackingAppManagementServiceTest {
 
 		verify(appDeployer).getServiceInstance(any(GetServiceInstanceRequest.class));
 		verify(targetService).addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id"));
-		verifyZeroInteractions(managementClient);
+		verifyNoInteractions(managementClient);
 		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
 	}
 
@@ -382,7 +382,7 @@ class BackingAppManagementServiceTest {
 
 		verify(appDeployer).getServiceInstance(any(GetServiceInstanceRequest.class));
 		verify(targetService).addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id"));
-		verifyZeroInteractions(managementClient);
+		verifyNoInteractions(managementClient);
 		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
 	}
 

@@ -81,7 +81,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -304,7 +304,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 					.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 					.verifyComplete();
 
-		verifyZeroInteractions(applicationsV2);
+		verifyNoInteractions(applicationsV2);
 	}
 
 	@Test
@@ -508,7 +508,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 					.expectError(RuntimeException.class)
 					.verify();
 
-		verifyZeroInteractions(routes);
+		verifyNoInteractions(routes);
 	}
 
 	private Flux<Domain> getDomains() {

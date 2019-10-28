@@ -45,7 +45,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
@@ -98,7 +98,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 			})
 			.verifyComplete();
 
-		verifyZeroInteractions(this.credHubCredentialOperations);
+		verifyNoInteractions(this.credHubCredentialOperations);
 	}
 
 	@Test

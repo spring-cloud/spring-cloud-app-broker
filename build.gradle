@@ -56,6 +56,9 @@ configure(allprojects) {
 		openServiceBrokerVersion = "3.0.4.RELEASE"
 		springCredhubVersion = "2.0.1.RELEASE"
 		cfJavaClientVersion = "3.15.0.RELEASE"
+		junitJupiterVersion = "5.5.2"
+		assertjVersion = "3.14.0"
+		mockitoVersion = "3.1.0"
 	}
 
 	//override managed Spring Boot versions

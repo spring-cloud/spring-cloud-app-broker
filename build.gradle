@@ -55,7 +55,7 @@ configure(allprojects) {
 		reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR11"
 		openServiceBrokerVersion = "3.0.4.RELEASE"
 		springCredhubVersion = "2.0.1.RELEASE"
-		cfJavaClientVersion = "3.15.0.RELEASE"
+		cfJavaClientVersion = "3.16.0.RELEASE"
 	}
 
 	//override managed Spring Boot versions

@@ -17,7 +17,7 @@
 description = "Spring Cloud App Broker Deployer Cloud Foundry"
 
 ext {
-	immutablesVersion = "2.8.0-CriteriaPreview3"
+	immutablesVersion = "2.8.1"
 }
 
 dependencyManagement {

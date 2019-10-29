@@ -134,10 +134,10 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 			OperationState.IN_PROGRESS, "create service instance binding started")
 			.publishOn(Schedulers.parallel())
 			.thenMany(invokeCreateWorkflows(request, response)
-				.doOnRequest(l -> log.debug("Creating service instance binding {}", request))
-				.doOnComplete(() -> log.debug("Finished creating service instance binding {}", request))
-				.doOnError(exception -> log.error(String.format("Error creating service instance binding %s with error '%s'",
-					request, exception.getMessage()), exception)))
+				.doOnRequest(l -> log.debug("Creating service instance binding"))
+				.doOnComplete(() -> log.debug("Finished creating service instance binding"))
+				.doOnError(exception -> log.error(String.format("Error creating service instance binding with error '%s'",
+					exception.getMessage()), exception)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 				OperationState.SUCCEEDED, "create service instance binding completed")
 				.then())
@@ -190,10 +190,10 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 			OperationState.IN_PROGRESS, "delete service instance binding started")
 			.publishOn(Schedulers.parallel())
 			.thenMany(invokeDeleteWorkflows(request, response)
-				.doOnRequest(l -> log.debug("Deleting service instance binding {}", request))
-				.doOnComplete(() -> log.debug("Finished deleting service instance binding {}", request))
-				.doOnError(exception -> log.error(String.format("Error deleting service instance binding %s with error '%s'",
-					request, exception.getMessage()), exception)))
+				.doOnRequest(l -> log.debug("Deleting service instance binding"))
+				.doOnComplete(() -> log.debug("Finished deleting service instance binding"))
+				.doOnError(exception -> log.error(String.format("Error deleting service instance binding with error '%s'",
+					exception.getMessage()), exception)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 				OperationState.SUCCEEDED, "delete service instance binding completed")
 				.then())

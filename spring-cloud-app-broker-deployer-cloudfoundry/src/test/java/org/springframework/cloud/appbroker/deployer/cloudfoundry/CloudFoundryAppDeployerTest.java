@@ -74,6 +74,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.CollectionUtils;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -189,7 +190,7 @@ class CloudFoundryAppDeployerTest {
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY, "http")
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY, "/healthcheck")
 			.property(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY, "buildpack")
-			.property(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY, "domain")
+			.property(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY, "domain1,domain2")
 			.property(DeploymentProperties.HOST_PROPERTY_KEY, "host")
 			.property(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY, "true")
 			.build();
@@ -207,7 +208,7 @@ class CloudFoundryAppDeployerTest {
 			.healthCheckType(ApplicationHealthCheck.HTTP)
 			.healthCheckHttpEndpoint("/healthcheck")
 			.buildpack("buildpack")
-			.domain("domain")
+			.domains("domain2", "domain1") // domains is a list so order matters
 			.host("host")
 			.noRoute(true)
 			.build();
@@ -223,7 +224,7 @@ class CloudFoundryAppDeployerTest {
 		deploymentProperties.setBuildpack("buildpack");
 		deploymentProperties.setHealthCheck(ApplicationHealthCheck.HTTP);
 		deploymentProperties.setHealthCheckHttpEndpoint("/healthcheck");
-		deploymentProperties.setDomain("domain");
+		deploymentProperties.setDomains(singleton("domain"));
 		deploymentProperties.setHost("host");
 
 		DeployApplicationRequest request = DeployApplicationRequest.builder()
@@ -260,7 +261,7 @@ class CloudFoundryAppDeployerTest {
 		deploymentProperties.setBuildpack("buildpack1");
 		deploymentProperties.setHealthCheck(ApplicationHealthCheck.HTTP);
 		deploymentProperties.setHealthCheckHttpEndpoint("/healthcheck1");
-		deploymentProperties.setDomain("domain1");
+		deploymentProperties.setDomains(singleton("domain1"));
 		deploymentProperties.setHost("host1");
 
 		DeployApplicationRequest request = DeployApplicationRequest.builder()
@@ -273,7 +274,7 @@ class CloudFoundryAppDeployerTest {
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY, "port")
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY, "/healthcheck2")
 			.property(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY, "buildpack2")
-			.property(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY, "domain2")
+			.property(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY, "domain2")
 			.property(DeploymentProperties.HOST_PROPERTY_KEY, "host2")
 			.property(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY, "true")
 			.build();
@@ -291,7 +292,55 @@ class CloudFoundryAppDeployerTest {
 			.healthCheckType(ApplicationHealthCheck.PORT)
 			.healthCheckHttpEndpoint("/healthcheck2")
 			.buildpack("buildpack2")
-			.domain("domain2")
+			.domains("domain2", "domain1")
+			.host("host2")
+			.noRoute(true)
+			.build();
+
+		verify(operationsApplications).pushManifest(argThat(matchesManifest(expectedManifest)));
+	}
+
+	@Test
+	void deployAppWithBothDomainAndDomainsProperties() {
+		deploymentProperties.setCount(3);
+		deploymentProperties.setMemory("2G");
+		deploymentProperties.setDisk("3G");
+		deploymentProperties.setBuildpack("buildpack1");
+		deploymentProperties.setHealthCheck(ApplicationHealthCheck.HTTP);
+		deploymentProperties.setHealthCheckHttpEndpoint("/healthcheck1");
+		deploymentProperties.setHost("host1");
+		deploymentProperties.setDomains(singleton("default-domain"));
+
+		DeployApplicationRequest request = DeployApplicationRequest.builder()
+		                                                           .name(APP_NAME)
+		                                                           .path(APP_PATH)
+		                                                           .serviceInstanceId(SERVICE_INSTANCE_ID)
+		                                                           .property(DeploymentProperties.COUNT_PROPERTY_KEY, "5")
+		                                                           .property(DeploymentProperties.MEMORY_PROPERTY_KEY, "4G")
+		                                                           .property(DeploymentProperties.DISK_PROPERTY_KEY, "5G")
+		                                                           .property(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY, "port")
+		                                                           .property(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY, "/healthcheck2")
+		                                                           .property(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY, "buildpack2")
+		                                                           .property(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY, "domain1")
+		                                                           .property(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY, "domain2")
+		                                                           .property(DeploymentProperties.HOST_PROPERTY_KEY, "host2")
+		                                                           .property(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY, "true")
+		                                                           .build();
+
+		StepVerifier.create(appDeployer.deploy(request))
+		            .assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+		            .verifyComplete();
+
+		ApplicationManifest expectedManifest = baseManifestWithSpringAppJson()
+			.name(APP_NAME)
+			.path(new File(APP_PATH).toPath())
+			.instances(5)
+			.memory(4096)
+			.disk(5120)
+			.healthCheckType(ApplicationHealthCheck.PORT)
+			.healthCheckHttpEndpoint("/healthcheck2")
+			.buildpack("buildpack2")
+			.domains("default-domain", "domain2")
 			.host("host2")
 			.noRoute(true)
 			.build();

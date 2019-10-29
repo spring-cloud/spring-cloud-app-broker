@@ -49,6 +49,8 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 
 	static final String DOMAIN_PROPERTY = "domain";
 
+	static final String DOMAINS_PROPERTY = "domains";
+
 	static final String BUILDPACK_PROPERTY_KEY = "buildpack";
 
 	static final String JAVA_OPTS_PROPERTY_KEY = "javaOpts";
@@ -57,6 +59,11 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	 * The domain to use when mapping routes for applications.
 	 */
 	private String domain;
+
+	/**
+	 * The list of domain to use when mapping routes for applications.
+	 */
+	private Set<String> domains = new HashSet<>();
 
 	/**
 	 * The routes that the application should be bound to.
@@ -170,6 +177,14 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 
 	public void setDomain(String domain) {
 		this.domain = domain;
+	}
+
+	public Set<String> getDomains() {
+		return domains;
+	}
+
+	public void setDomains(Set<String> domains) {
+		this.domains = domains;
 	}
 
 	public Set<String> getRoutes() {

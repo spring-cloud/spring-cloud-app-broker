@@ -526,6 +526,10 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			manifest.routes(routes);
 		}
 
+		if (!domains(deploymentProperties).isEmpty()) {
+			manifest.domains(domains(deploymentProperties));
+		}
+
 		if (getDockerImage(appResource) == null) {
 			manifest.buildpack(buildpack(deploymentProperties));
 		} else {
@@ -721,6 +725,13 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private String domain(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY))
 			.orElse(this.defaultDeploymentProperties.getDomain());
+	}
+
+	private Set<String> domains(Map<String, String> properties) {
+		Set<String> domains = new HashSet<>();
+		domains.addAll(this.defaultDeploymentProperties.getDomains());
+		domains.addAll(StringUtils.commaDelimitedListToSet(properties.get(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY)));
+		return domains;
 	}
 
 	private ApplicationHealthCheck healthCheck(Map<String, String> properties) {

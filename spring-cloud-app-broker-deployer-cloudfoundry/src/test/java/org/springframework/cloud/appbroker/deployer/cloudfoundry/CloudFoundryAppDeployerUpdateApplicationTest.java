@@ -363,6 +363,78 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	}
 
 	@Test
+	void updateAppWithHostAndMergedDomains() {
+		when(applicationsV2.update(any()))
+			.thenReturn(Mono.just(UpdateApplicationResponse.builder().build()));
+
+		when(spaces.get(any())).thenReturn(
+			Mono.just(
+				SpaceDetail.builder()
+				           .id("space-id")
+				           .name("space-name")
+				           .organization("org-name")
+				           .build()));
+
+		mockDomainsAndRoutes();
+
+		Map<String, String> properties = new HashMap<>();
+		properties.put("host", "my.host");
+		properties.put("domain", "my.domain.com");
+		properties.put("domains", "my.domain.internal.com,my.domain.default.com");
+
+		UpdateApplicationRequest request =
+			UpdateApplicationRequest
+				.builder()
+				.name(APP_NAME)
+				.path(APP_PATH)
+				.properties(properties)
+				.build();
+
+		StepVerifier.create(appDeployer.update(request))
+		            .assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+		            .verifyComplete();
+
+		verifyRouteCreatedAndMapped("myDomainComId", "my.host", "space-id", "app-id");
+		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", "app-id");
+		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", "app-id");
+	}
+
+	@Test
+	void updateAppWithHostAndDomains() {
+		when(applicationsV2.update(any()))
+			.thenReturn(Mono.just(UpdateApplicationResponse.builder().build()));
+
+		when(spaces.get(any())).thenReturn(
+			Mono.just(
+				SpaceDetail.builder()
+				           .id("space-id")
+				           .name("space-name")
+				           .organization("org-name")
+				           .build()));
+
+		mockDomainsAndRoutes();
+
+		Map<String, String> properties = new HashMap<>();
+		properties.put("host", "my.host");
+		properties.put("domains", "my.domain.internal.com,my.domain.default.com");
+
+		UpdateApplicationRequest request =
+			UpdateApplicationRequest
+				.builder()
+				.name(APP_NAME)
+				.path(APP_PATH)
+				.properties(properties)
+				.build();
+
+		StepVerifier.create(appDeployer.update(request))
+		            .assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+		            .verifyComplete();
+
+		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", "app-id");
+		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", "app-id");
+	}
+
+	@Test
 	void updateAppWithHostAndNoDomain() {
 		when(applicationsV2.update(any()))
 			.thenReturn(Mono.just(
@@ -556,6 +628,42 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 				.updatedAt(dateTime)
 				.id(id)
 				.build();
+	}
+
+	private void verifyRouteCreatedAndMapped(String domainId, String host, String spaceId, String appId) {
+		verify(routes).create(
+			CreateRouteRequest.builder()
+			                  .domainId(domainId)
+			                  .spaceId(spaceId)
+			                  .host(host)
+			                  .build());
+
+		verify(applicationsV2).associateRoute(
+			AssociateApplicationRouteRequest
+				.builder()
+				.applicationId(appId)
+				.routeId(getRouteIdForDomain(domainId))
+				.build());
+	}
+
+	private String getRouteIdForDomain(String domainId) {
+		return domainId + "-route";
+	}
+
+	private void mockDomainsAndRoutes() {
+		when(domains.list()).thenReturn(getDomains());
+		when(routes.create(any()))
+			.thenAnswer(invocation -> {
+				CreateRouteRequest createRouteRequest = invocation.getArgument(0);
+				return Mono.just(
+					CreateRouteResponse.builder()
+					                   .metadata(Metadata
+						                   .builder()
+						                   .id(getRouteIdForDomain(createRouteRequest.getDomainId()))
+						                   .build()).build());
+			});
+		when(applicationsV2.associateRoute(any()))
+			.thenReturn(Mono.empty());
 	}
 
 	private static Lifecycle createLifecycle() {

@@ -340,7 +340,7 @@ class CloudFoundryAppDeployerTest {
 			.healthCheckType(ApplicationHealthCheck.PORT)
 			.healthCheckHttpEndpoint("/healthcheck2")
 			.buildpack("buildpack2")
-			.domains("default-domain", "domain2")
+			.domains("domain1", "default-domain", "domain2")
 			.host("host2")
 			.noRoute(true)
 			.build();

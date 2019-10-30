@@ -31,6 +31,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -227,8 +228,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Mono<String> associateHostName(String applicationId, Map<String, String> properties) {
 		String domain = domain(properties);
+		Set<String> domains = domains(properties);
 		String host = host(properties);
-		if (host == null && domain == null) {
+		if (host == null && domain == null && domains.isEmpty()) {
 			return Mono.just(applicationId);
 		}
 
@@ -236,30 +238,38 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.getOperations(properties)
 			.map(cfOperations -> cfOperations.domains().list())
 			.flatMap(Flux::collectList)
-			.flatMap(domains -> getDomainId(domain, domains))
-			.flatMap(domainId -> Mono.zip(Mono.just(domainId), getSpaceId(properties)))
-			.flatMap(tupleDomainIdSpaceId -> {
-				String domainId = tupleDomainIdSpaceId.getT1();
-				String spaceId = tupleDomainIdSpaceId.getT2();
-				return client.routes()
-							 .create(org.cloudfoundry.client.v2.routes.CreateRouteRequest
-								 .builder()
-								 .domainId(domainId)
-								 .spaceId(spaceId)
-								 .host(host)
-								 .build())
-							 .map(response -> response.getMetadata().getId())
-							 .doOnError(error -> logger.info("Host was already associated: " + host))
-							 .onErrorResume(e -> Mono.empty());
+			.map(allDomains -> Stream.concat(Stream.of(domain), domains.stream())
+			                         .map(d -> getDomainId(d, allDomains))
+			                         .collect(Collectors.toSet()))
+			.zipWith(getSpaceId(properties))
+			.flatMapMany(domainIdsWithSpaceId -> {
+				Set<String> uniqueDomainIds = domainIdsWithSpaceId.getT1();
+				String spaceId = domainIdsWithSpaceId.getT2();
+
+				return Flux.fromIterable(uniqueDomainIds).flatMap(domainId -> associateHostForDomain(applicationId, host, domainId, spaceId));
 			})
-			.flatMap(routeId ->
-				client.applicationsV2()
-					  .associateRoute(AssociateApplicationRouteRequest
-						  .builder()
-						  .applicationId(applicationId)
-						  .routeId(routeId)
-						  .build()))
 			.then(Mono.just(applicationId));
+	}
+
+	private Mono<Void> associateHostForDomain(String applicationId, String host, String domainId, String spaceId) {
+		return client.routes()
+		             .create(org.cloudfoundry.client.v2.routes.CreateRouteRequest
+			             .builder()
+			             .domainId(domainId)
+			             .spaceId(spaceId)
+			             .host(host)
+			             .build())
+		             .map(response -> response.getMetadata().getId())
+		             .doOnError(error -> logger.info("Host was already associated: " + host))
+		             .onErrorResume(e -> Mono.empty())
+		             .flatMap(routeId ->
+			             client.applicationsV2()
+			                   .associateRoute(AssociateApplicationRouteRequest
+				                   .builder()
+				                   .applicationId(applicationId)
+				                   .routeId(routeId)
+				                   .build()))
+		             .then();
 	}
 
 	private Mono<String> getSpaceId(Map<String, String> properties) {
@@ -278,24 +288,23 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.map(SpaceDetail::getId);
 	}
 
-	private Mono<String> getDomainId(String domain, List<Domain> domains) {
+	private String getDomainId(String domain, List<Domain> domains) {
 		if (domain == null) {
 			return getDefaultDomainId(domains);
 		}
 
-		return Mono.just(
-			domains.stream()
+		return domains.stream()
 				   .filter(d -> d.getName().equals(domain))
 				   .findFirst()
 				   .orElseThrow(() -> new RuntimeException("Non existing domain"))
-				   .getId());
+				   .getId();
 	}
 
-	private Mono<String> getDefaultDomainId(List<Domain> domains) {
-		return Mono.just(domains.stream()
+	private String getDefaultDomainId(List<Domain> domains) {
+		return domains.stream()
 			   .filter(d -> !"internal".equals(d.getType()))
 			   .findFirst().orElseThrow(RuntimeException::new)
-			   .getId());
+			   .getId();
 	}
 
 	private Mono<GetDeploymentResponse> waitForDeploymentDeployed(String deploymentId) {
@@ -527,7 +536,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 
 		if (!domains(deploymentProperties).isEmpty()) {
-			manifest.domains(domains(deploymentProperties));
+			domains(deploymentProperties).forEach(manifest::domain);
 		}
 
 		if (getDockerImage(appResource) == null) {

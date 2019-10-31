@@ -42,7 +42,12 @@ public class AppDeploymentInstanceWorkflow {
 	protected Mono<Boolean> accept(ServiceDefinition serviceDefinition, Plan plan) {
 		return getBackingApplicationsForService(serviceDefinition, plan)
 			.map(backingApplications -> !backingApplications.isEmpty())
-			.defaultIfEmpty(false);
+			.filter(Boolean::booleanValue) // filter out Boolean.False to proceed with flux, see https://stackoverflow.com/questions/49860558/project-reactor-conditional-execution
+			.switchIfEmpty(
+				getBackingServicesForService(serviceDefinition, plan)
+				.map(backingServices -> !backingServices.isEmpty())
+				.defaultIfEmpty(false)
+			);
 	}
 
 	protected TargetSpec getTargetForService(ServiceDefinition serviceDefinition, Plan plan) {

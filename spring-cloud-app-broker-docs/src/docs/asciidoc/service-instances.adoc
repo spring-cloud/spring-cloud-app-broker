@@ -29,6 +29,7 @@ spring:
             *health-check: http*
             *health-check-http-endpoint: /health*
             *health-check-timeout: 180*
+            *api-polling-timeout: 300*
 ```
 
 Set overriding values for a specific service in the service's configuration under `spring.cloud.appbroker.services.*`, as shown in the following example:
@@ -105,6 +106,10 @@ The following table lists properties that can be set for all or specific app dep
 |`api-timeout`
 |The timeout value used for blocking API calls, in seconds.
 |`360`
+
+|`api-polling-timeout`
+|The timeout value used for polling asynchronous API endpoints (e.g. CF create/update/delete service instance), in seconds.
+|`300`
 
 |`status-timeout`
 |

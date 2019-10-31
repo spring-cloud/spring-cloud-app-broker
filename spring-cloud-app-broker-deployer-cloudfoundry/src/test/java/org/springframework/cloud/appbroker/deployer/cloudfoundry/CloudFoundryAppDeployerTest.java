@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -95,6 +96,7 @@ class CloudFoundryAppDeployerTest {
 	private static final String APP_PATH = "test.jar";
 
 	private static final String SERVICE_INSTANCE_ID = "service-instance-id";
+	private static final long EXPECTED_COMPLETION_DURATION = Duration.ofHours(4L).getSeconds();
 
 	private static final int EXPECTED_MANIFESTS = 1;
 
@@ -138,6 +140,7 @@ class CloudFoundryAppDeployerTest {
 	@BeforeEach
 	void setUp() {
 		deploymentProperties = new CloudFoundryDeploymentProperties();
+		deploymentProperties.setApiPollingTimeout(EXPECTED_COMPLETION_DURATION); //set a different value than the default to make sure it gets loaded
 		CloudFoundryTargetProperties targetProperties = new CloudFoundryTargetProperties();
 		targetProperties.setDefaultOrg("default-org");
 		targetProperties.setDefaultSpace("default-space");
@@ -444,7 +447,8 @@ class CloudFoundryAppDeployerTest {
 		given(operationsServices.deleteInstance(
 			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest.builder()
 				.name("service-instance-name")
-				.build()))
+				.completionTimeout(Duration.ofSeconds(EXPECTED_COMPLETION_DURATION))
+																			 .build()))
 			.willReturn(Mono.empty());
 
 		given(operationsServices.getInstance(GetServiceInstanceRequest.builder().name("service-instance-name").build()))
@@ -485,7 +489,8 @@ class CloudFoundryAppDeployerTest {
 		given(operationsServices.deleteInstance(
 			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest.builder()
 				.name("service-instance-name")
-				.build()))
+				.completionTimeout(Duration.ofSeconds(EXPECTED_COMPLETION_DURATION))
+																			 .build()))
 			.willReturn(Mono.empty());
 
 		given(operationsServices.getInstance(GetServiceInstanceRequest.builder().name("service-instance-name").build()))
@@ -581,7 +586,8 @@ class CloudFoundryAppDeployerTest {
 				.serviceInstanceName("service-instance-name")
 				.serviceName("db-service")
 				.planName("standard")
-				.parameters(emptyMap())
+				.completionTimeout(Duration.ofSeconds(EXPECTED_COMPLETION_DURATION))
+																			 .parameters(emptyMap())
 				.build()))
 			.willReturn(Mono.empty());
 
@@ -649,6 +655,7 @@ class CloudFoundryAppDeployerTest {
 					.serviceInstanceName("service-instance-name")
 					.serviceName("db-service")
 					.planName("standard")
+					.completionTimeout(Duration.ofSeconds(EXPECTED_COMPLETION_DURATION))
 					.parameters(emptyMap())
 					.build()))
 			.willReturn(Mono.empty());
@@ -677,6 +684,7 @@ class CloudFoundryAppDeployerTest {
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
 				.serviceInstanceName("service-instance-name")
 				.parameters(parameters)
+				.completionTimeout(Duration.ofSeconds(EXPECTED_COMPLETION_DURATION))
 				.build()))
 			.willReturn(Mono.empty());
 
@@ -698,6 +706,7 @@ class CloudFoundryAppDeployerTest {
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
 				.serviceInstanceName("service-instance-name")
 				.parameters(emptyMap())
+				.completionTimeout(Duration.ofSeconds(EXPECTED_COMPLETION_DURATION))
 				.build()))
 			.willReturn(Mono.empty());
 

@@ -975,6 +975,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.serviceName(request.getName())
 				.planName(request.getPlan())
 				.parameters(request.getParameters())
+				.completionTimeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiPollingTimeout()))
 				.build();
 
 		Mono<CreateServiceInstanceResponse> createServiceInstanceResponseMono =
@@ -1037,6 +1038,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest
 				.builder()
 				.name(serviceInstanceName)
+				.completionTimeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiPollingTimeout()))
 				.build())
 			.doOnError(exception -> LOG.debug(String.format("Error deleting service instance %s with error '%s'",
 				serviceInstanceName, exception.getMessage()), exception))
@@ -1108,6 +1110,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return cloudFoundryOperations.services().updateInstance(
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
 				.serviceInstanceName(serviceInstanceName)
+				.completionTimeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiPollingTimeout()))
 				.parameters(request.getParameters())
 				.build())
 			.then(Mono.just(UpdateServiceInstanceResponse.builder()

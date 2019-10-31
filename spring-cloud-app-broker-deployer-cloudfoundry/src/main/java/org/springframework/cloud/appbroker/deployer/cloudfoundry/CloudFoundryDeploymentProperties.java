@@ -90,6 +90,8 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	 */
 	protected static final String JAVA_OPTS_PROPERTY_KEY = "javaOpts";
 
+	public static final long DEFAULT_API_POLLING_TIMEOUT_SECONDS = Duration.ofMinutes(5).getSeconds(); // Default in cf-java-client when no completionTimeout is specified in CSI/USI/DSI
+
 	/**
 	 * The domain to use when mapping routes for applications.
 	 */
@@ -131,9 +133,14 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	private boolean enableRandomAppNamePrefix = true;
 
 	/**
-	 * Timeout for blocking API calls, in seconds.
+	 * Timeout for blocking CF API calls, in seconds.
 	 */
 	private long apiTimeout = 360L;
+
+	/**
+	 * Timeout for polled async CF API calls, in seconds. Named "completionTimeout" in cf-java-client
+	 */
+	private long apiPollingTimeout = DEFAULT_API_POLLING_TIMEOUT_SECONDS;
 
 	/**
 	 * Timeout for name API operations in milliseconds
@@ -268,5 +275,14 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	public void setJavaOpts(String javaOpts) {
 		this.javaOpts = javaOpts;
 	}
+
+	public long getApiPollingTimeout() {
+		return apiPollingTimeout;
+	}
+
+	public void setApiPollingTimeout(long apiPollingTimeout) {
+		this.apiPollingTimeout = apiPollingTimeout;
+	}
+
 
 }

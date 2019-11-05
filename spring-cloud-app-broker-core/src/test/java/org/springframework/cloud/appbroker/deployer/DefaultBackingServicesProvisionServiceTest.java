@@ -19,7 +19,10 @@ package org.springframework.cloud.appbroker.deployer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import org.assertj.core.util.Lists;
+import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -112,6 +115,65 @@ class DefaultBackingServicesProvisionServiceTest {
 		expectedValues.add("deleted2");
 
 		StepVerifier.create(backingServicesProvisionService.deleteServiceInstance(backingServices))
+			// deployments are run in parallel, so the order of completion is not predictable
+			// ensure that both expected signals are sent in any order
+			.expectNextMatches(expectedValues::remove)
+			.expectNextMatches(expectedValues::remove)
+			.verifyComplete();
+	}
+
+	@Test
+	void createServiceKey() {
+		BackingServiceKey sk1 = BackingServiceKey.builder()
+			.serviceInstanceName("si1")
+			.serviceKeyName("sk1")
+			.build();
+		BackingServiceKey sk2 = BackingServiceKey.builder()
+			.serviceInstanceName("si2")
+			.serviceKeyName("sk2")
+			.build();
+
+
+		doReturn(Mono.just(Maps.newHashMap("key1", "value1")))
+			.when(deployerClient).createServiceKey(sk1);
+		doReturn(Mono.just(Maps.newHashMap("key2", "value2")))
+			.when(deployerClient).createServiceKey(sk2);
+
+		List<Map<String,Object>> expectedValues = new ArrayList<>();
+		expectedValues.add(Maps.newHashMap("key1", "value1"));
+		expectedValues.add(Maps.newHashMap("key2", "value2"));
+
+		StepVerifier.create(backingServicesProvisionService.createServiceKeys(Lists.newArrayList(sk1, sk2)))
+			// deployments are run in parallel, so the order of completion is not predictable
+			// ensure that both expected signals are sent in any order
+			.expectNextMatches(expectedValues::remove)
+			.expectNextMatches(expectedValues::remove)
+			.verifyComplete();
+	}
+
+	@Test
+	@SuppressWarnings("UnassignedFluxMonoInstance")
+	void deleteServiceKey() {
+		BackingServiceKey sk1 = BackingServiceKey.builder()
+			.serviceInstanceName("si1")
+			.serviceKeyName("sk1")
+			.build();
+		BackingServiceKey sk2 = BackingServiceKey.builder()
+			.serviceInstanceName("si2")
+			.serviceKeyName("sk2")
+			.build();
+
+
+		doReturn(Mono.just("sk1"))
+			.when(deployerClient).deleteServiceKey(sk1);
+		doReturn(Mono.just("sk2"))
+			.when(deployerClient).deleteServiceKey(sk2);
+
+		List<String> expectedValues = new ArrayList<>();
+		expectedValues.add("sk1");
+		expectedValues.add("sk2");
+
+		StepVerifier.create(backingServicesProvisionService.deleteServiceKeys(Lists.newArrayList(sk1, sk2)))
 			// deployments are run in parallel, so the order of completion is not predictable
 			// ensure that both expected signals are sent in any order
 			.expectNextMatches(expectedValues::remove)

@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.deployer;
 
 import java.util.List;
+import java.util.Map;
 
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
@@ -48,6 +49,20 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 	}
 
 	@Override
+	public Flux<Map<String, Object>> createServiceKeys(List<BackingServiceKey> backingServiceKeys) {
+		return Flux.fromIterable(backingServiceKeys)
+			.parallel()
+			.runOn(Schedulers.parallel())
+			.flatMap(deployerClient::createServiceKey)
+			.sequential()
+			.doOnRequest(l -> log.debug("Creating backing service keys {}", backingServiceKeys))
+			.doOnEach(response -> log.debug("Finished creating backing service key {}", response))
+			.doOnComplete(() -> log.debug("Finished creating backing service keys {}", backingServiceKeys))
+			.doOnError(exception -> log.error(String.format("Error creating backing services keys %s with error '%s'",
+				backingServiceKeys, exception.getMessage()), exception));
+	}
+
+	@Override
 	public Flux<String> updateServiceInstance(List<BackingService> backingServices) {
 		return Flux.fromIterable(backingServices)
 			.parallel()
@@ -75,4 +90,17 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 				backingServices, exception.getMessage()), exception));
 	}
 
+	@Override
+	public Flux<String> deleteServiceKeys(List<BackingServiceKey> backingServiceKeys) {
+		return Flux.fromIterable(backingServiceKeys)
+			.parallel()
+			.runOn(Schedulers.parallel())
+			.flatMap(deployerClient::deleteServiceKey)
+			.sequential()
+			.doOnRequest(l -> log.debug("Deleting backing service keys {}", backingServiceKeys))
+			.doOnEach(response -> log.debug("Finished deleting backing service {}", response))
+			.doOnComplete(() -> log.debug("Finished deleting backing service keys {}", backingServiceKeys))
+			.doOnError(exception -> log.error(String.format("Error deleting backing services keys %s with error '%s'",
+				backingServiceKeys, exception.getMessage()), exception));
+	}
 }

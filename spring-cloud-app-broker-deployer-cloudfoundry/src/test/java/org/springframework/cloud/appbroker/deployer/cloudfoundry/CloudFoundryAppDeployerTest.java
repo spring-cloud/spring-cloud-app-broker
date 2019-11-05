@@ -53,6 +53,7 @@ import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
+import org.cloudfoundry.operations.services.ServiceKey;
 import org.cloudfoundry.operations.services.Services;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.Spaces;
@@ -69,7 +70,9 @@ import reactor.test.StepVerifier;
 
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.CreateServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.CreateServiceKeyRequest;
 import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.DeleteServiceKeyRequest;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
@@ -586,6 +589,73 @@ class CloudFoundryAppDeployerTest {
 		StepVerifier.create(
 			appDeployer.deleteServiceInstance(request))
 			.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
+			.verifyComplete();
+	}
+
+	@Test
+	void createServiceKey() {
+		given(operationsServices.createServiceKey(
+			org.cloudfoundry.operations.services.CreateServiceKeyRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.serviceKeyName("service-key-name")
+				.parameters(emptyMap())
+				.build()))
+			.willReturn(Mono.empty());
+		given(operationsServices.getServiceKey(
+			org.cloudfoundry.operations.services.GetServiceKeyRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.serviceKeyName("service-key-name")
+				.build()))
+			.willReturn(Mono.just(
+				ServiceKey.builder()
+					.name("service-key-name")
+					.id("service-key-guid")
+					.credential("uri", "mysql://user:password@aprovider.com:3306/instance_name?reconnect=true")
+					.build()));
+
+		CreateServiceKeyRequest request =
+			CreateServiceKeyRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.serviceKeyName("service-key-name")
+				.parameters(emptyMap())
+				.build();
+
+		StepVerifier.create(
+			appDeployer.createServiceKey(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo("service-key-name"))
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteServiceKey() {
+		given(operationsServices.deleteServiceKey(
+			org.cloudfoundry.operations.services.DeleteServiceKeyRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.serviceKeyName("service-key-name")
+				.build()))
+			.willReturn(Mono.empty());
+		given(operationsServices.getServiceKey(
+			org.cloudfoundry.operations.services.GetServiceKeyRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.serviceKeyName("service-key-name")
+				.build()))
+			.willReturn(Mono.just(
+				ServiceKey.builder()
+					.name("service-key-name")
+					.id("service-key-guid")
+					.credential("uri", "mysql://user:password@aprovider.com:3306/instance_name?reconnect=true")
+					.build()));
+
+		DeleteServiceKeyRequest request =
+			DeleteServiceKeyRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.serviceKeyName("service-key-name")
+				.properties(emptyMap())
+				.build();
+
+		StepVerifier.create(
+			appDeployer.deleteServiceKey(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo("service-key-name"))
 			.verifyComplete();
 	}
 

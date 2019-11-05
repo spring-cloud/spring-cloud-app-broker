@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
@@ -107,6 +108,28 @@ public class DeployerClient {
 			.map(CreateServiceInstanceResponse::getName);
 	}
 
+	public Mono<Map<String, Object>> createServiceKey(BackingServiceKey backingServiceKey) {
+		return appDeployer
+			.createServiceKey(
+				CreateServiceKeyRequest.builder()
+					.serviceInstanceName(backingServiceKey.getServiceInstanceName())
+					.serviceKeyName(backingServiceKey.getServiceKeyName())
+					.parameters(backingServiceKey.getParameters())
+					.properties(backingServiceKey.getProperties())
+					.build())
+			.doOnRequest(l -> log.debug("Creating backing service key {} for service {}",
+				backingServiceKey.getServiceKeyName(),
+				backingServiceKey.getServiceInstanceName()))
+			.doOnSuccess(response -> log.debug("Finished creating backing service key {} for service {}",
+				backingServiceKey.getServiceKeyName(),
+				backingServiceKey.getServiceInstanceName()))
+			.doOnError(exception -> log.error(String.format("Error creating backing service key %s from service instance %s with error '%s'",
+				backingServiceKey.getServiceKeyName(),
+				backingServiceKey.getServiceInstanceName(),
+				exception.getMessage()), exception))
+			.map(CreateServiceKeyResponse::getCredentials);
+	}
+
 	public Mono<String> updateServiceInstance(BackingService backingService) {
 		return appDeployer
 			.updateServiceInstance(
@@ -142,4 +165,28 @@ public class DeployerClient {
 			.map(DeleteServiceInstanceResponse::getName);
 	}
 
+	public Mono<String> deleteServiceKey(BackingServiceKey backingServiceKey) {
+		return appDeployer
+			.deleteServiceKey(
+				DeleteServiceKeyRequest
+					.builder()
+					.serviceInstanceName(backingServiceKey.getServiceInstanceName())
+					.serviceKeyName(backingServiceKey.getServiceKeyName())
+					.properties(backingServiceKey.getProperties())
+					.build())
+			.doOnRequest(l -> log.debug("Deleting backing service key {} for service {}",
+				backingServiceKey.getServiceKeyName(),
+				backingServiceKey.getServiceInstanceName()))
+			.doOnSuccess(response -> log.debug("Finished deleting backing service key {} for service {}",
+				backingServiceKey.getServiceKeyName(),
+				backingServiceKey.getServiceInstanceName()))
+			.doOnError(exception -> log.error(String.format("Error deleting backing service key %s for service %s with error '%s'",
+				backingServiceKey.getServiceKeyName(),
+				backingServiceKey.getServiceInstanceName(),
+				exception.getMessage()), exception))
+			.onErrorReturn(DeleteServiceKeyResponse.builder()
+				.name(backingServiceKey.getServiceKeyName())
+				.build())
+			.map(DeleteServiceKeyResponse::getName);
+	}
 }

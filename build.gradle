@@ -110,11 +110,13 @@ configure(allprojects - [project(":spring-cloud-app-broker-docs")]) {
 		ruleSets = []
 		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdRuleSet.xml")
 		source = "src/main/java"
+		consoleOutput = "true"
 	}
 	pmdTest {
 		ruleSets = []
 		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdTestRuleSet.xml")
 		source = "src/test/java"
+		consoleOutput = "true"
 	}
 
 	test {

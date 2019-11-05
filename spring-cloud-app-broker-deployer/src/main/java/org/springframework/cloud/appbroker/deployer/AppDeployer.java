@@ -44,11 +44,18 @@ public interface AppDeployer {
 		return Mono.empty();
 	}
 
+	default Mono<CreateServiceKeyResponse> createServiceKey(CreateServiceKeyRequest request) {
+		return Mono.empty();
+	}
+
 	default Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
 		return Mono.empty();
 	}
 
 	default Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
+		return Mono.empty();
+	}
+	default Mono<DeleteServiceKeyResponse> deleteServiceKey(DeleteServiceKeyRequest request) {
 		return Mono.empty();
 	}
 

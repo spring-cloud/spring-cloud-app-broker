@@ -22,12 +22,15 @@ import java.util.List;
 import org.springframework.util.CollectionUtils;
 
 public class BackingApplications extends ArrayList<BackingApplication> {
+
 	private static final long serialVersionUID = 159473836238657105L;
 
 	private BackingApplications() {
+		super();
 	}
 
-	BackingApplications(List<BackingApplication> backingApplications) {
+	public BackingApplications(List<BackingApplication> backingApplications) {
+		super();
 		super.addAll(backingApplications);
 	}
 
@@ -35,7 +38,8 @@ public class BackingApplications extends ArrayList<BackingApplication> {
 		return new BackingApplicationsBuilder();
 	}
 
-	public static class BackingApplicationsBuilder {
+	public static final class BackingApplicationsBuilder {
+
 		private final List<BackingApplication> backingApplications = new ArrayList<>();
 
 		public BackingApplicationsBuilder backingApplication(BackingApplication backingApplication) {
@@ -57,5 +61,7 @@ public class BackingApplications extends ArrayList<BackingApplication> {
 		public BackingApplications build() {
 			return new BackingApplications(backingApplications);
 		}
+
 	}
+
 }

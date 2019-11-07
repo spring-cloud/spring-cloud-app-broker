@@ -50,7 +50,8 @@ class CloudFoundryOperationsUtilsTest {
 
 	@Test
 	void getOperationsWithProperties() {
-		StepVerifier.create(operationsUtils.getOperations(Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, "foo-space1")))
+		StepVerifier.create(operationsUtils
+			.getOperations(Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, "foo-space1")))
 			.assertNext(ops -> {
 				String space = (String) ReflectionTestUtils.getField(ops, "space");
 				assertThat(space).isEqualTo("foo-space1");
@@ -67,4 +68,5 @@ class CloudFoundryOperationsUtilsTest {
 			})
 			.verifyComplete();
 	}
+
 }

@@ -22,13 +22,15 @@ import java.util.List;
 import org.springframework.util.CollectionUtils;
 
 public class BrokeredServices extends ArrayList<BrokeredService> {
+
 	private static final long serialVersionUID = 6303127383252611352L;
 
 	private BrokeredServices() {
+		super();
 	}
 
-	BrokeredServices(List<BrokeredService> brokeredServices) {
-		super.addAll(brokeredServices);
+	public BrokeredServices(List<BrokeredService> brokeredServices) {
+		super(brokeredServices);
 	}
 
 	public static BrokeredServicesBuilder builder() {
@@ -36,6 +38,7 @@ public class BrokeredServices extends ArrayList<BrokeredService> {
 	}
 
 	public static class BrokeredServicesBuilder {
+
 		private final List<BrokeredService> brokeredServices = new ArrayList<>();
 
 		public BrokeredServicesBuilder service(BrokeredService brokeredService) {
@@ -55,5 +58,7 @@ public class BrokeredServices extends ArrayList<BrokeredService> {
 		public BrokeredServices build() {
 			return new BrokeredServices(brokeredServices);
 		}
+
 	}
+
 }

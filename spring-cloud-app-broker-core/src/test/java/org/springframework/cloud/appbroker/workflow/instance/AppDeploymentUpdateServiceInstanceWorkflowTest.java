@@ -24,10 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cloud.appbroker.deployer.BackingService;
-import org.springframework.cloud.appbroker.deployer.BackingServices;
-import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
-import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -35,10 +31,14 @@ import reactor.test.StepVerifier;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingService;
+import org.springframework.cloud.appbroker.deployer.BackingServices;
+import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
+import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
@@ -70,7 +70,9 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	private TargetService targetService;
 
 	private BackingApplications backingApps;
+
 	private BackingServices backingServices;
+
 	private TargetSpec targetSpec;
 
 	private AppDeploymentUpdateServiceInstanceWorkflow updateServiceInstanceWorkflow;
@@ -80,13 +82,13 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		backingApps = BackingApplications
 			.builder()
 			.backingApplication(BackingApplication.builder()
-												  .name("app1")
-												  .path("https://myfiles/app1.jar")
-												  .build())
+				.name("app1")
+				.path("https://myfiles/app1.jar")
+				.build())
 			.backingApplication(BackingApplication.builder()
-												  .name("app2")
-												  .path("https://myfiles/app2.jar")
-												  .build())
+				.name("app2")
+				.path("https://myfiles/app2.jar")
+				.build())
 			.build();
 
 		backingServices = BackingServices
@@ -181,14 +183,17 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		given(this.servicesProvisionService.updateServiceInstance(eq(backingServices)))
 			.willReturn(Flux.just("my-service-instance"));
 
-		given(this.appsParametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
+		given(
+			this.appsParametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
-		given(this.servicesParametersTransformationService.transformParameters(eq(backingServices), eq(request.getParameters())))
+		given(this.servicesParametersTransformationService
+			.transformParameters(eq(backingServices), eq(request.getParameters())))
 			.willReturn(Mono.just(backingServices));
 
 		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
-		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq(request.getServiceInstanceId())))
+		given(this.targetService
+			.addToBackingServices(eq(backingServices), eq(targetSpec), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingServices));
 	}
 
@@ -205,7 +210,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	}
 
 	private UpdateServiceInstanceRequest buildRequest(String serviceName, String planName,
-													  Map<String, Object> parameters) {
+		Map<String, Object> parameters) {
 		return UpdateServiceInstanceRequest
 			.builder()
 			.serviceInstanceId("service-instance-id")
@@ -226,4 +231,5 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			.parameters(parameters == null ? new HashMap<>() : parameters)
 			.build();
 	}
+
 }

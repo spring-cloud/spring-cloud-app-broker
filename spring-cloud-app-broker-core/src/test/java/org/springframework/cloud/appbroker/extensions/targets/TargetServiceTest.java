@@ -35,7 +35,8 @@ class TargetServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		targetService = new TargetService(Arrays.asList(new SpacePerServiceInstance(), new ServiceInstanceGuidSuffix()));
+		targetService = new TargetService(
+			Arrays.asList(new SpacePerServiceInstance(), new ServiceInstanceGuidSuffix()));
 	}
 
 	@Test
@@ -67,7 +68,8 @@ class TargetServiceTest {
 		//when add gets called
 		List<BackingApplication> updatedBackingApplications =
 			targetService
-				.addToBackingApplications(Lists.newArrayList(backingApplication1, backingApplication2), targetSpec, "service-id")
+				.addToBackingApplications(Lists.newArrayList(backingApplication1, backingApplication2), targetSpec,
+					"service-id")
 				.block();
 
 		//then a host and space are added

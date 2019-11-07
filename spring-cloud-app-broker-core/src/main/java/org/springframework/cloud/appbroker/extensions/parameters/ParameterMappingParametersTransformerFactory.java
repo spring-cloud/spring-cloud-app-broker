@@ -37,12 +37,12 @@ public class ParameterMappingParametersTransformerFactory extends
 	}
 
 	private Mono<BackingService> transform(BackingService backingService,
-										   Map<String, Object> parameters,
-										   List<String> include) {
+		Map<String, Object> parameters,
+		List<String> include) {
 		if (parameters != null) {
 			parameters.keySet().stream()
-					  .filter(include::contains)
-					  .forEach(key -> backingService.addParameter(key, parameters.get(key)));
+				.filter(include::contains)
+				.forEach(key -> backingService.addParameter(key, parameters.get(key)));
 		}
 
 		return Mono.just(backingService);
@@ -53,9 +53,6 @@ public class ParameterMappingParametersTransformerFactory extends
 
 		private String include;
 
-		public Config() {
-		}
-
 		public List<String> getIncludes() {
 			return Arrays.asList(include.split(","));
 		}
@@ -63,5 +60,7 @@ public class ParameterMappingParametersTransformerFactory extends
 		public void setInclude(String include) {
 			this.include = include;
 		}
+
 	}
+
 }

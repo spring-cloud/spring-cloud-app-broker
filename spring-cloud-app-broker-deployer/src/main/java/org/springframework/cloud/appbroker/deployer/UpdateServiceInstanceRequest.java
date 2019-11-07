@@ -24,14 +24,17 @@ import org.springframework.util.CollectionUtils;
 public class UpdateServiceInstanceRequest {
 
 	private final String serviceInstanceName;
+
 	private final Map<String, Object> parameters;
+
 	private final Map<String, String> properties;
+
 	private final boolean rebindOnUpdate;
 
-	UpdateServiceInstanceRequest(String serviceInstanceName,
-								 Map<String, Object> parameters,
-								 Map<String, String> properties,
-								 boolean rebindOnUpdate) {
+	protected UpdateServiceInstanceRequest(String serviceInstanceName,
+		Map<String, Object> parameters,
+		Map<String, String> properties,
+		boolean rebindOnUpdate) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.parameters = parameters;
 		this.properties = properties;
@@ -58,14 +61,17 @@ public class UpdateServiceInstanceRequest {
 		return rebindOnUpdate;
 	}
 
-	public static class UpdateServiceInstanceRequestBuilder {
+	public static final class UpdateServiceInstanceRequestBuilder {
 
 		private String serviceInstanceName;
+
 		private final Map<String, Object> parameters = new HashMap<>();
+
 		private final Map<String, String> properties = new HashMap<>();
+
 		private boolean rebindOnUpdate;
 
-		UpdateServiceInstanceRequestBuilder() {
+		private UpdateServiceInstanceRequestBuilder() {
 		}
 
 		public UpdateServiceInstanceRequestBuilder serviceInstanceName(String serviceInstanceName) {
@@ -102,6 +108,7 @@ public class UpdateServiceInstanceRequest {
 		public UpdateServiceInstanceRequest build() {
 			return new UpdateServiceInstanceRequest(serviceInstanceName, parameters, properties, rebindOnUpdate);
 		}
+
 	}
 
 }

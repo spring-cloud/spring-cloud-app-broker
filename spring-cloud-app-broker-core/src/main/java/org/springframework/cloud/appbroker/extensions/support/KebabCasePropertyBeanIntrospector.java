@@ -15,49 +15,40 @@
  */
 package org.springframework.cloud.appbroker.extensions.support;
 
-import org.apache.commons.beanutils.BeanIntrospector;
-import org.apache.commons.beanutils.DefaultBeanIntrospector;
-import org.apache.commons.beanutils.IntrospectionContext;
-import reactor.util.Logger;
-import reactor.util.Loggers;
-
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
+import org.apache.commons.beanutils.BeanIntrospector;
+import org.apache.commons.beanutils.DefaultBeanIntrospector;
+import org.apache.commons.beanutils.IntrospectionContext;
+import reactor.util.Logger;
+import reactor.util.Loggers;
+
 /**
+ * An implementation of the {@link BeanIntrospector} interface that provides property descriptors following the
+ * kebab-case convention.
  * <p>
- * An implementation of the {@link BeanIntrospector} interface that provides property descriptors
- * following the kebab-case convention.
- * </p>
- *
- * This implementation is intended to collaborate with a {@link DefaultBeanIntrospector} object.
- * Best results are achieved by adding this instance as custom {@link BeanIntrospector} after the
- * {@link DefaultBeanIntrospector} object.
+ * This implementation is intended to collaborate with a {@link DefaultBeanIntrospector} object. Best results are
+ * achieved by adding this instance as custom {@link BeanIntrospector} after the {@link DefaultBeanIntrospector}
+ * object.
  */
 public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
 
+	private static final Logger LOG = Loggers.getLogger(KebabCasePropertyBeanIntrospector.class);
+
 	private static final String WRITE_METHOD_PREFIX = "set";
 
-	private final Logger log = Loggers.getLogger(getClass());
-
 	/**
-	 * Creates a new instance of <code>KebabCaseBeanIntrospector</code> and
-	 * sets the default prefix for write methods.
-	 */
-	KebabCasePropertyBeanIntrospector() {
-	}
-
-	/**
-	 * Performs introspection. This method scans the current class's methods for
-	 * property write methods add adds a property descriptor using the kebab-case
-	 * naming convention to match each property descriptor that uses the camel-case
-	 * Java Bean convention.
+	 * Performs introspection. This method scans the current class's methods for property write methods add adds a
+	 * property descriptor using the kebab-case naming convention to match each property descriptor that uses the
+	 * camel-case Java Bean convention.
 	 *
 	 * @param context the introspection context
 	 */
+	@Override
 	public void introspect(final IntrospectionContext context) {
 		for (final Method m : context.getTargetClass().getMethods()) {
 			if (m.getName().startsWith(WRITE_METHOD_PREFIX)) {
@@ -67,9 +58,12 @@ public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
 					if (pd != null) {
 						context.addPropertyDescriptor(createPropertyDescriptor(m));
 					}
-				} catch (final IntrospectionException e) {
-					log.error("Error when creating PropertyDescriptor for method '{}'. " +
+				}
+				catch (final IntrospectionException e) {
+					if (LOG.isErrorEnabled()) {
+						LOG.error("Error when creating PropertyDescriptor for method '{}'. " +
 							"This property will be ignored. {}", m, e);
+					}
 				}
 			}
 		}
@@ -96,16 +90,17 @@ public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
 	 */
 	private String kebabCasePropertyName(final Method m) {
 		final String methodName = camelCasePropertyName(m);
-		
+
 		StringBuilder builder = new StringBuilder();
 		for (char c : methodName.toCharArray()) {
 			if (Character.isUpperCase(c)) {
 				builder.append('-').append(Character.toLowerCase(c));
-			} else {
+			}
+			else {
 				builder.append(c);
 			}
 		}
-		
+
 		return builder.toString();
 	}
 
@@ -120,4 +115,5 @@ public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
 		String propertyName = kebabCasePropertyName(m);
 		return new PropertyDescriptor(propertyName, null, m);
 	}
+
 }

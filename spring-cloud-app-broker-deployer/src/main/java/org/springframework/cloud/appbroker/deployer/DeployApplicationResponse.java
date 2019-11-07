@@ -20,7 +20,7 @@ public class DeployApplicationResponse {
 
 	private final String name;
 
-	DeployApplicationResponse(String name) {
+	protected DeployApplicationResponse(String name) {
 		this.name = name;
 	}
 
@@ -32,11 +32,11 @@ public class DeployApplicationResponse {
 		return name;
 	}
 
-	public static class DeployApplicationResponseBuilder {
+	public static final class DeployApplicationResponseBuilder {
 
 		private String name;
 
-		DeployApplicationResponseBuilder() {
+		private DeployApplicationResponseBuilder() {
 		}
 
 		public DeployApplicationResponseBuilder name(String name) {
@@ -49,4 +49,5 @@ public class DeployApplicationResponse {
 		}
 
 	}
+
 }

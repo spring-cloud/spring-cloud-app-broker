@@ -37,7 +37,7 @@ class BackingServicesParametersTransformationServiceTest {
 			new BackingServicesParametersTransformationService(Collections.emptyList());
 
 		BackingServices backingServices = BackingServices.builder()
-														 .build();
+			.build();
 
 		StepVerifier
 			.create(service.transformParameters(backingServices, new HashMap<>()))
@@ -69,12 +69,12 @@ class BackingServicesParametersTransformationServiceTest {
 		BackingServices backingServices = BackingServices
 			.builder()
 			.backingService(BackingService.builder()
-										  .name("misconfigured-service")
-										  .parameterTransformers(ParametersTransformerSpec
-											  .builder()
-											  .name("unknown-transformer")
-											  .build())
-										  .build())
+				.name("misconfigured-service")
+				.parameterTransformers(ParametersTransformerSpec
+					.builder()
+					.name("unknown-transformer")
+					.build())
+				.build())
 			.build();
 
 		StepVerifier
@@ -84,4 +84,5 @@ class BackingServicesParametersTransformationServiceTest {
 				.hasMessageContaining("unknown-transformer"))
 			.verify();
 	}
+
 }

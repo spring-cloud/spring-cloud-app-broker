@@ -24,9 +24,10 @@ import org.springframework.util.CollectionUtils;
 public class ArtifactDetails {
 
 	private final String name;
+
 	private final Map<String, String> properties;
 
-	ArtifactDetails(String name, Map<String, String> properties) {
+	public ArtifactDetails(String name, Map<String, String> properties) {
 		this.name = name;
 		this.properties = properties;
 	}
@@ -46,9 +47,10 @@ public class ArtifactDetails {
 	public static final class ArtifactDetailsBuilder {
 
 		private String name;
+
 		private final Map<String, String> properties = new HashMap<>();
 
-		ArtifactDetailsBuilder() {
+		private ArtifactDetailsBuilder() {
 		}
 
 		public ArtifactDetailsBuilder name(String name) {

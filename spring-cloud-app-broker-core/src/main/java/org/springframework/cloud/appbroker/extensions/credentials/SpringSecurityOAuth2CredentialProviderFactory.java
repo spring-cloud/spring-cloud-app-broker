@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -32,15 +36,27 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 
 	private static final String CREDENTIAL_DESCRIPTOR = "oauth2";
 
-	static final String SPRING_SECURITY_OAUTH2_REGISTRATION_KEY = "spring.security.oauth2.client.registration.";
-	static final String SPRING_SECURITY_OAUTH2_CLIENT_ID_KEY = ".client-id";
-	static final String SPRING_SECURITY_OAUTH2_CLIENT_SECRET_KEY = ".client-secret";
+	/**
+	 * Key for storing the Spring Security OAuth2 Registration in the environment
+	 */
+	public static final String SPRING_SECURITY_OAUTH2_REGISTRATION_KEY = "spring.security.oauth2.client.registration.";
+
+	/**
+	 * Key for storing the Spring Security OAuth2 Client ID in the environment
+	 */
+	public static final String SPRING_SECURITY_OAUTH2_CLIENT_ID_KEY = ".client-id";
+
+	/**
+	 * Key for storing the Spring Security OAuth2 Client Secret in the environment
+	 */
+	public static final String SPRING_SECURITY_OAUTH2_CLIENT_SECRET_KEY = ".client-secret";
 
 	private final CredentialGenerator credentialGenerator;
+
 	private final OAuth2Client oAuth2Client;
 
 	public SpringSecurityOAuth2CredentialProviderFactory(CredentialGenerator credentialGenerator,
-														 OAuth2Client oAuth2Client) {
+		OAuth2Client oAuth2Client) {
 		super(Config.class);
 		this.credentialGenerator = credentialGenerator;
 		this.oAuth2Client = oAuth2Client;
@@ -51,7 +67,7 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 		return new CredentialProvider() {
 			@Override
 			public Mono<BackingApplication> addCredentials(BackingApplication backingApplication,
-														   String serviceInstanceGuid) {
+				String serviceInstanceGuid) {
 				return generateCredentials(config, backingApplication, serviceInstanceGuid)
 					.flatMap(client -> addClientToEnvironment(config, backingApplication, client))
 					.flatMap(client -> createOAuth2Client(config, client))
@@ -60,8 +76,9 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 
 			@Override
 			public Mono<BackingApplication> deleteCredentials(BackingApplication backingApplication,
-															  String serviceInstanceGuid) {
-				return credentialGenerator.deleteString(backingApplication.getName(), serviceInstanceGuid, CREDENTIAL_DESCRIPTOR)
+				String serviceInstanceGuid) {
+				return credentialGenerator
+					.deleteString(backingApplication.getName(), serviceInstanceGuid, CREDENTIAL_DESCRIPTOR)
 					.then(generateClientId(config, backingApplication, serviceInstanceGuid))
 					.flatMap(clientId -> deleteOAuth2Client(config, clientId)
 						.flatMap(response -> Mono.just(backingApplication)));
@@ -70,16 +87,16 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 	}
 
 	private Mono<Tuple2<String, String>> generateCredentials(Config config,
-															 BackingApplication backingApplication,
-															 String serviceInstanceGuid) {
+		BackingApplication backingApplication,
+		String serviceInstanceGuid) {
 		return generateClientId(config, backingApplication, serviceInstanceGuid)
 			.flatMap(id -> generateClientSecret(config, backingApplication, serviceInstanceGuid)
 				.map(secret -> Tuples.of(id, secret)));
 	}
 
 	private Mono<Tuple2<String, String>> addClientToEnvironment(Config config,
-																BackingApplication backingApplication,
-																Tuple2<String, String> client) {
+		BackingApplication backingApplication,
+		Tuple2<String, String> client) {
 		String registrationKey = SPRING_SECURITY_OAUTH2_REGISTRATION_KEY + config.getRegistration();
 
 		backingApplication.addEnvironment(registrationKey + SPRING_SECURITY_OAUTH2_CLIENT_ID_KEY, client.getT1());
@@ -89,7 +106,7 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 	}
 
 	private Mono<String> generateClientId(Config config, BackingApplication backingApplication,
-									String serviceInstanceGuid) {
+		String serviceInstanceGuid) {
 		return Mono.defer(() -> {
 			if (config.clientId == null) {
 				return Mono.just(backingApplication.getName() + "-" + serviceInstanceGuid);
@@ -99,9 +116,10 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 	}
 
 	private Mono<String> generateClientSecret(Config config, BackingApplication backingApplication,
-										String serviceInstanceGuid) {
+		String serviceInstanceGuid) {
 		return credentialGenerator.generateString(backingApplication.getName(), serviceInstanceGuid,
-			CREDENTIAL_DESCRIPTOR, config.getLength(), config.isIncludeUppercaseAlpha(), config.isIncludeLowercaseAlpha(),
+			CREDENTIAL_DESCRIPTOR, config.getLength(), config.isIncludeUppercaseAlpha(),
+			config.isIncludeLowercaseAlpha(),
 			config.isIncludeNumeric(), config.isIncludeSpecial());
 	}
 
@@ -140,13 +158,21 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 
 	@SuppressWarnings("WeakerAccess")
 	public static class Config extends CredentialGenerationConfig {
+
 		private String registration;
+
 		private String clientId;
+
 		private String clientName;
-		private String[] scopes;
-		private String[] authorities;
-		private String[] grantTypes;
+
+		private final List<String> scopes = new ArrayList<>();
+
+		private final List<String> authorities = new ArrayList<>();
+
+		private final List<String> grantTypes = new ArrayList<>();
+
 		private String identityZoneSubdomain;
+
 		private String identityZoneId;
 
 		public String getRegistration() {
@@ -173,28 +199,34 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 			this.clientName = clientName;
 		}
 
-		public String[] getScopes() {
+		public List<String> getScopes() {
 			return scopes;
 		}
 
 		public void setScopes(String... scopes) {
-			this.scopes = scopes;
+			if (scopes != null) {
+				this.scopes.addAll(Arrays.asList(scopes));
+			}
 		}
 
-		public String[] getAuthorities() {
+		public List<String> getAuthorities() {
 			return authorities;
 		}
 
 		public void setAuthorities(String... authorities) {
-			this.authorities = authorities;
+			if (authorities != null) {
+				this.authorities.addAll(Arrays.asList(authorities));
+			}
 		}
 
-		public String[] getGrantTypes() {
+		public List<String> getGrantTypes() {
 			return grantTypes;
 		}
 
 		public void setGrantTypes(String... grantTypes) {
-			this.grantTypes = grantTypes;
+			if (grantTypes != null) {
+				this.grantTypes.addAll(Arrays.asList(grantTypes));
+			}
 		}
 
 		public String getIdentityZoneSubdomain() {
@@ -212,5 +244,7 @@ public class SpringSecurityOAuth2CredentialProviderFactory extends
 		public void setIdentityZoneId(String identityZoneId) {
 			this.identityZoneId = identityZoneId;
 		}
+
 	}
+
 }

@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,9 +26,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.mockito.Mockito.doReturn;
 
@@ -36,6 +36,7 @@ class DefaultBackingAppDeploymentServiceTest {
 	private DeployerClient deployerClient;
 
 	private BackingAppDeploymentService backingAppDeploymentService;
+
 	private BackingApplications backingApps;
 
 	@BeforeEach
@@ -92,4 +93,5 @@ class DefaultBackingAppDeploymentServiceTest {
 			.expectNextMatches(expectedValues::remove)
 			.verifyComplete();
 	}
+
 }

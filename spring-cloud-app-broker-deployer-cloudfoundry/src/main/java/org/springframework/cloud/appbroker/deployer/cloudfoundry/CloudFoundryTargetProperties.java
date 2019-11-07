@@ -23,15 +23,25 @@ import org.cloudfoundry.reactor.ProxyConfiguration;
 public class CloudFoundryTargetProperties {
 
 	private String apiHost;
+
 	private Integer apiPort;
+
 	private String defaultOrg;
+
 	private String defaultSpace;
+
 	private String username;
+
 	private String password;
+
 	private String clientId;
+
 	private String clientSecret;
+
 	private boolean secure = true;
+
 	private boolean skipSslValidation;
+
 	private String identityZoneSubdomain;
 
 	public String getApiHost() {
@@ -130,4 +140,5 @@ public class CloudFoundryTargetProperties {
 		final URI uri = URI.create(api);
 		return uri.getHost() == null ? api : uri.getHost();
 	}
+
 }

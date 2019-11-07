@@ -32,7 +32,7 @@ public class DeployerClient {
 		this.appDeployer = appDeployer;
 	}
 
-	Mono<String> deploy(BackingApplication backingApplication, String serviceInstanceId) {
+	public Mono<String> deploy(BackingApplication backingApplication, String serviceInstanceId) {
 		return appDeployer
 			.deploy(DeployApplicationRequest
 				.builder()
@@ -52,7 +52,7 @@ public class DeployerClient {
 			.map(DeployApplicationResponse::getName);
 	}
 
-	Mono<String> update(BackingApplication backingApplication, String serviceInstanceId) {
+	public Mono<String> update(BackingApplication backingApplication, String serviceInstanceId) {
 		return appDeployer
 			.update(UpdateApplicationRequest
 				.builder()
@@ -72,7 +72,7 @@ public class DeployerClient {
 			.map(UpdateApplicationResponse::getName);
 	}
 
-	Mono<String> undeploy(BackingApplication backingApplication) {
+	public Mono<String> undeploy(BackingApplication backingApplication) {
 		return appDeployer
 			.undeploy(UndeployApplicationRequest
 				.builder()
@@ -89,7 +89,7 @@ public class DeployerClient {
 			.map(UndeployApplicationResponse::getName);
 	}
 
-	Mono<String> createServiceInstance(BackingService backingService) {
+	public Mono<String> createServiceInstance(BackingService backingService) {
 		return appDeployer
 			.createServiceInstance(
 				CreateServiceInstanceRequest
@@ -107,7 +107,7 @@ public class DeployerClient {
 			.map(CreateServiceInstanceResponse::getName);
 	}
 
-	Mono<String> updateServiceInstance(BackingService backingService) {
+	public Mono<String> updateServiceInstance(BackingService backingService) {
 		return appDeployer
 			.updateServiceInstance(
 				UpdateServiceInstanceRequest
@@ -124,7 +124,7 @@ public class DeployerClient {
 			.map(UpdateServiceInstanceResponse::getName);
 	}
 
-	Mono<String> deleteServiceInstance(BackingService backingService) {
+	public Mono<String> deleteServiceInstance(BackingService backingService) {
 		return appDeployer
 			.deleteServiceInstance(
 				DeleteServiceInstanceRequest
@@ -141,4 +141,5 @@ public class DeployerClient {
 				.build())
 			.map(DeleteServiceInstanceResponse::getName);
 	}
+
 }

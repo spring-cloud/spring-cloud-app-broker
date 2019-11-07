@@ -21,10 +21,12 @@ import java.util.Objects;
 public class DeleteOAuth2ClientRequest {
 
 	private final String clientId;
+
 	private final String identityZoneSubdomain;
+
 	private final String identityZoneId;
 
-	DeleteOAuth2ClientRequest(String clientId, String identityZoneSubdomain, String identityZoneId) {
+	protected DeleteOAuth2ClientRequest(String clientId, String identityZoneSubdomain, String identityZoneId) {
 		this.clientId = clientId;
 		this.identityZoneSubdomain = identityZoneSubdomain;
 		this.identityZoneId = identityZoneId;
@@ -74,11 +76,16 @@ public class DeleteOAuth2ClientRequest {
 			'}';
 	}
 
-	public static class DeleteOAuth2ClientRequestBuilder {
+	public static final class DeleteOAuth2ClientRequestBuilder {
 
 		private String clientId;
+
 		private String identityZoneSubdomain;
+
 		private String identityZoneId;
+
+		private DeleteOAuth2ClientRequestBuilder() {
+		}
 
 		public DeleteOAuth2ClientRequestBuilder clientId(String clientId) {
 			this.clientId = clientId;
@@ -98,5 +105,7 @@ public class DeleteOAuth2ClientRequest {
 		public DeleteOAuth2ClientRequest build() {
 			return new DeleteOAuth2ClientRequest(clientId, identityZoneSubdomain, identityZoneId);
 		}
+
 	}
+
 }

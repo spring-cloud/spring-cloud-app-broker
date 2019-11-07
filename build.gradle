@@ -27,12 +27,38 @@ buildscript {
 	}
 }
 
+ext {
+	springBootVersion = project.findProperty("springBootVersion") ?: "2.1.10.RELEASE"
+	springFrameworkVersion = project.findProperty("springFrameworkVersion") ?: "5.1.11.RELEASE"
+	reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR13"
+	openServiceBrokerVersion = "3.0.4.RELEASE"
+	springCredhubVersion = "2.0.1.RELEASE"
+	cfJavaClientVersion = "3.16.0.RELEASE"
+	checkstyleVersion = "8.21"
+	pmdVersion = "6.19.0"
+
+	javadocLinks = [
+		"https://docs.oracle.com/javase/8/docs/api/",
+		"https://docs.spring.io/spring/docs/${springFrameworkVersion}/javadoc-api/",
+	] as String[]
+}
+
+//override managed Spring Boot versions
+if (project.hasProperty("springFrameworkVersion")) {
+	ext['spring-framework.version'] = ext.springFrameworkVersion
+}
+if (project.hasProperty("reactorVersion")) {
+	ext['reactor-bom.version'] = ext.reactorVersion
+}
+
 // NoHttp has to be applied at the root level
 // so that it reads all the root files, including the gradle ones.
 apply plugin: "io.spring.nohttp"
 
+// nohttp requires a valid checkstyle configuration
 checkstyle {
-	toolVersion = 8.16
+	configFile = file("${project.rootDir}/src/checkstyle/checkstyle-nohttp.xml")
+	toolVersion = "${checkstyleVersion}"
 }
 
 configure(allprojects) {
@@ -49,22 +75,7 @@ configure(allprojects) {
 	apply plugin: "propdeps-eclipse"
 	apply plugin: "io.spring.dependency-management"
 
-	ext {
-		springBootVersion = project.findProperty("springBootVersion") ?: "2.1.10.RELEASE"
-		springVersion = project.findProperty("springFrameworkVersion") ?: "5.1.11.RELEASE"
-		reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR13"
-		openServiceBrokerVersion = "3.0.4.RELEASE"
-		springCredhubVersion = "2.0.1.RELEASE"
-		cfJavaClientVersion = "3.16.0.RELEASE"
-	}
-
-	//override managed Spring Boot versions
-	if (project.hasProperty("springFrameworkVersion")) {
-		ext['spring-framework.version'] = ext.springFrameworkVersion
-	}
-	if (project.hasProperty("reactorVersion")) {
-		ext['reactor-bom.version'] = ext.reactorVersion
-	}
+	apply from: "${rootProject.projectDir}/publish-maven.gradle"
 
 	repositories {
 		mavenCentral()
@@ -80,51 +91,36 @@ configure(allprojects) {
 			maven { url "https://repo.spring.io/libs-snapshot" }
 		}
 	}
-
-	ext.javadocLinks = [
-		"https://docs.oracle.com/javase/8/docs/api/",
-		"https://docs.spring.io/spring/docs/${springFrameworkVersion}/javadoc-api/",
-	] as String[]
 }
 
-subprojects {
-	apply from: "${rootProject.projectDir}/publish-maven.gradle"
-}
+configure(allprojects - [project(":spring-cloud-app-broker-docs")]) {
+	apply plugin: "checkstyle"
+	apply plugin: "pmd"
 
-configure(subprojects - [project(":spring-cloud-starter-app-broker"), 
-						 project(":spring-cloud-starter-app-broker-cloudfoundry")]) {
-	compileJava {
-		sourceCompatibility=1.8
-		targetCompatibility=1.8
-		options.encoding = "UTF-8"
+	checkstyle {
+		configFile = file("${project.rootDir}/src/checkstyle/checkstyle.xml")
+		toolVersion = "${checkstyleVersion}"
 	}
-	compileTestJava {
-		sourceCompatibility=1.8
-		targetCompatibility=1.8
-		options.encoding = "UTF-8"
+	checkstyleMain {
+		source = "src/main/java"
+	}
+	checkstyleTest {
+		source = "src/test/java"
 	}
 
-	[compileJava, compileTestJava]*.options*.compilerArgs = [
-		"-Xlint:serial",
-		"-Xlint:varargs",
-		"-Xlint:cast",
-		"-Xlint:classfile",
-		"-Xlint:dep-ann",
-		"-Xlint:divzero",
-		"-Xlint:empty",
-		"-Xlint:finally",
-		"-Xlint:overrides",
-		"-Xlint:path",
-		"-Xlint:-processing",
-		"-Xlint:static",
-		"-Xlint:try",
-		"-Xlint:fallthrough",
-		"-Xlint:rawtypes",
-		"-Xlint:deprecation",
-		"-Xlint:unchecked",
-		"-Xlint:-options",
-		"-Werror"
-	]
+	pmd {
+		toolVersion = "${pmdVersion}"
+	}
+	pmdMain {
+		ruleSets = []
+		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdRuleSet.xml")
+		source = "src/main/java"
+	}
+	pmdTest {
+		ruleSets = []
+		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdTestRuleSet.xml")
+		source = "src/test/java"
+	}
 
 	test {
 		// enable JUnit 5
@@ -160,21 +156,41 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 		afterSuite {
 			failedTests.each { test -> println "FAILED test: ${test.className} > ${test.name}" }
 		}
-
 	}
+}
 
-	pmd {
-		ruleSetFiles = files("${project.rootDir}/ci/config/pmdRuleSet.xml")
-	}
+subprojects {
+	task allDependencyInsight(type: DependencyInsightReportTask)
+	task dependencyReport(type: DependencyReportTask)
+}
 
-	pmdTest {
-		ruleSetFiles = files("${project.rootDir}/ci/config/pmdTestRuleSet.xml")
-	}
+configure(subprojects - [project(":spring-cloud-starter-app-broker"), 
+						 project(":spring-cloud-starter-app-broker-cloudfoundry")]) {
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
+	[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
 
-	checkstyle {
-		configDir = file("${project.rootDir}/ci/config/")
-		toolVersion = 8.16
-	}
+	[compileJava, compileTestJava]*.options*.compilerArgs = [
+		"-Xlint:serial",
+		"-Xlint:varargs",
+		"-Xlint:cast",
+		"-Xlint:classfile",
+		"-Xlint:dep-ann",
+		"-Xlint:divzero",
+		"-Xlint:empty",
+		"-Xlint:finally",
+		"-Xlint:overrides",
+		"-Xlint:path",
+		"-Xlint:-processing",
+		"-Xlint:static",
+		"-Xlint:try",
+		"-Xlint:fallthrough",
+		"-Xlint:rawtypes",
+		"-Xlint:deprecation",
+		"-Xlint:unchecked",
+		"-Xlint:-options",
+		"-Werror"
+	]
 
 	jar {
 		manifest.attributes["Created-By"] =
@@ -196,7 +212,7 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 		options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
 		options.author = true
 		options.header = project.name
-		options.links(project.ext.javadocLinks)
+		options.links(javadocLinks)
 		options.addStringOption('Xdoclint:none', '-quiet')
 	}
 
@@ -220,9 +236,6 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 		// exclude JUnit 4 globally, in favor of JUnit 5
 		testImplementation.exclude group: "junit", module: "junit"
 	}
-
-	task allDependencyInsight(type: DependencyInsightReportTask) {}
-	task allDependencies(type: DependencyReportTask) {}
 }
 
 configure(rootProject) {
@@ -242,7 +255,7 @@ configure(rootProject) {
 		options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
 		options.author = true
 		options.header = rootProject.description
-		options.links(project.ext.javadocLinks)
+		options.links(javadocLinks)
 		options.addStringOption('Xdoclint:none', '-quiet')
 
 		source subprojects.collect { project ->

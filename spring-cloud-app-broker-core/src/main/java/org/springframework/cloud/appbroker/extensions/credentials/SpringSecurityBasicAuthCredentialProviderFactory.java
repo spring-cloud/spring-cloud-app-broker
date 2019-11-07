@@ -21,13 +21,20 @@ import reactor.util.function.Tuple2;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 
-public class SpringSecurityBasicAuthCredentialProviderFactory extends
-	CredentialProviderFactory<CredentialGenerationConfig> {
+public class SpringSecurityBasicAuthCredentialProviderFactory
+	extends CredentialProviderFactory<CredentialGenerationConfig> {
 
 	private static final String CREDENTIAL_DESCRIPTOR = "basic";
 
-	static final String SPRING_SECURITY_USER_NAME_KEY = "spring.security.user.name";
-	static final String SPRING_SECURITY_USER_PASSWORD_KEY = "spring.security.user.password";
+	/**
+	 * Key for storing the Spring Security Username in the environment
+	 */
+	public static final String SPRING_SECURITY_USER_NAME_KEY = "spring.security.user.name";
+
+	/**
+	 * Key for storing the Spring Security Password in the environment
+	 */
+	public static final String SPRING_SECURITY_USER_PASSWORD_KEY = "spring.security.user.password";
 
 	private final CredentialGenerator credentialGenerator;
 
@@ -41,7 +48,7 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 		return new CredentialProvider() {
 			@Override
 			public Mono<BackingApplication> addCredentials(BackingApplication backingApplication,
-														   String serviceInstanceGuid) {
+				String serviceInstanceGuid) {
 				return generateCredentials(config, backingApplication, serviceInstanceGuid)
 					.flatMap(user -> addUserToEnvironment(backingApplication, user))
 					.thenReturn(backingApplication);
@@ -49,19 +56,21 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 
 			@Override
 			public Mono<BackingApplication> deleteCredentials(BackingApplication backingApplication,
-															  String serviceInstanceGuid) {
-				return credentialGenerator.deleteUser(backingApplication.getName(), serviceInstanceGuid, CREDENTIAL_DESCRIPTOR)
-										  .thenReturn(backingApplication);
+				String serviceInstanceGuid) {
+				return credentialGenerator
+					.deleteUser(backingApplication.getName(), serviceInstanceGuid, CREDENTIAL_DESCRIPTOR)
+					.thenReturn(backingApplication);
 			}
 		};
 	}
 
 	private Mono<Tuple2<String, String>> generateCredentials(CredentialGenerationConfig config,
-															 BackingApplication backingApplication,
-															 String serviceInstanceGuid) {
-		return credentialGenerator.generateUser(backingApplication.getName(), serviceInstanceGuid, CREDENTIAL_DESCRIPTOR,
-			config.getLength(), config.isIncludeUppercaseAlpha(), config.isIncludeLowercaseAlpha(),
-			config.isIncludeNumeric(), config.isIncludeSpecial());
+		BackingApplication backingApplication,
+		String serviceInstanceGuid) {
+		return credentialGenerator
+			.generateUser(backingApplication.getName(), serviceInstanceGuid, CREDENTIAL_DESCRIPTOR,
+				config.getLength(), config.isIncludeUppercaseAlpha(), config.isIncludeLowercaseAlpha(),
+				config.isIncludeNumeric(), config.isIncludeSpecial());
 	}
 
 	private Mono<Void> addUserToEnvironment(BackingApplication backingApplication, Tuple2<String, String> user) {
@@ -69,4 +78,5 @@ public class SpringSecurityBasicAuthCredentialProviderFactory extends
 		backingApplication.addEnvironment(SPRING_SECURITY_USER_PASSWORD_KEY, user.getT2());
 		return Mono.empty();
 	}
+
 }

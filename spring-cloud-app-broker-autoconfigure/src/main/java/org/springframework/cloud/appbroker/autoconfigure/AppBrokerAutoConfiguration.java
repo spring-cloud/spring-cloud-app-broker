@@ -24,12 +24,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
-import org.springframework.cloud.appbroker.deployer.DefaultBackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.DefaultBackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.DefaultBackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
@@ -71,6 +71,10 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingSer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * App Broker Auto-configuration
+ */
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 @Configuration
 @AutoConfigureAfter(CloudFoundryAppDeployerAutoConfiguration.class)
 @ConditionalOnBean(AppDeployer.class)
@@ -78,124 +82,251 @@ public class AppBrokerAutoConfiguration {
 
 	private static final String PROPERTY_PREFIX = "spring.cloud.appbroker";
 
+	/**
+	 * Provide a {@link DeployerClient} bean
+	 *
+	 * @param appDeployer the AppDeployer bean
+	 * @return the bean
+	 */
 	@Bean
 	public DeployerClient deployerClient(AppDeployer appDeployer) {
 		return new DeployerClient(appDeployer);
 	}
 
+	/**
+	 * Provide a {@link BackingAppDeploymentService} bean
+	 *
+	 * @param deployerClient the DeployerClient bean
+	 * @return the bean
+	 */
 	@Bean
 	@ConditionalOnMissingBean
 	public BackingAppDeploymentService backingAppDeploymentService(DeployerClient deployerClient) {
 		return new DefaultBackingAppDeploymentService(deployerClient);
 	}
 
+	/**
+	 * Provide a {@link ManagementClient} bean
+	 *
+	 * @param appManager the AppManager bean
+	 * @return the bean
+	 */
 	@Bean
 	public ManagementClient managementClient(AppManager appManager) {
 		return new ManagementClient(appManager);
 	}
 
+	/**
+	 * Provide a {@link BackingAppManagementService} bean
+	 *
+	 * @param managementClient the ManagementClient bean
+	 * @param appDeployer the AppDeployer bean
+	 * @param brokeredServices the BrokeredServices bean
+	 * @param targetService the TargetService bean
+	 * @return the bean
+	 */
 	@Bean
 	public BackingAppManagementService backingAppManagementService(ManagementClient managementClient,
 		AppDeployer appDeployer, BrokeredServices brokeredServices, TargetService targetService) {
 		return new BackingAppManagementService(managementClient, appDeployer, brokeredServices, targetService);
 	}
 
+	/**
+	 * Provide a {@link BrokeredServices} bean
+	 *
+	 * @return the bean
+	 */
 	@Bean
 	@ConfigurationProperties(PROPERTY_PREFIX + ".services")
 	public BrokeredServices brokeredServices() {
 		return BrokeredServices.builder().build();
 	}
 
+	/**
+	 * Provide a {@link ServiceInstanceStateRepository} bean
+	 *
+	 * @return the bean
+	 */
 	@Bean
 	@ConditionalOnMissingBean(ServiceInstanceStateRepository.class)
 	public ServiceInstanceStateRepository serviceInstanceStateRepository() {
 		return new InMemoryServiceInstanceStateRepository();
 	}
 
+	/**
+	 * Provide a {@link ServiceInstanceBindingStateRepository} bean
+	 *
+	 * @return the bean
+	 */
 	@Bean
 	@ConditionalOnMissingBean(ServiceInstanceBindingStateRepository.class)
 	public ServiceInstanceBindingStateRepository serviceInstanceBindingStateRepository() {
 		return new InMemoryServiceInstanceBindingStateRepository();
 	}
 
+	/**
+	 * Provide an {@link EnvironmentMappingParametersTransformerFactory} bean
+	 *
+	 * @return the bean
+	 */
 	@Bean
 	public EnvironmentMappingParametersTransformerFactory environmentMappingParametersTransformerFactory() {
 		return new EnvironmentMappingParametersTransformerFactory();
 	}
 
+	/**
+	 * Provide a {@link ParameterMappingParametersTransformerFactory} bean
+	 *
+	 * @return the bean
+	 */
 	@Bean
 	public PropertyMappingParametersTransformerFactory propertyMappingParametersTransformerFactory() {
 		return new PropertyMappingParametersTransformerFactory();
 	}
 
+	/**
+	 * Provide a {@link ParameterMappingParametersTransformerFactory} bean
+	 *
+	 * @return the bean
+	 */
 	@Bean
 	public ParameterMappingParametersTransformerFactory parameterMappingParametersTransformerFactory() {
 		return new ParameterMappingParametersTransformerFactory();
 	}
 
+	/**
+	 * Provide a {@link BackingApplicationsParametersTransformationService} bean
+	 *
+	 * @param transformers a collection of parameter transformers
+	 * @return the bean
+	 */
 	@Bean
 	public BackingApplicationsParametersTransformationService backingApplicationsParametersTransformationService(
 		List<ParametersTransformerFactory<BackingApplication, ?>> transformers) {
 		return new BackingApplicationsParametersTransformationService(transformers);
 	}
 
+	/**
+	 * Provide a {@link BackingServicesParametersTransformationService} bean
+	 *
+	 * @param transformers a collection of parameter transformers
+	 * @return the bean
+	 */
 	@Bean
 	public BackingServicesParametersTransformationService backingServicesParametersTransformationService(
 		List<ParametersTransformerFactory<BackingService, ?>> transformers) {
 		return new BackingServicesParametersTransformationService(transformers);
 	}
 
+	/**
+	 * Provide a {@link SimpleCredentialGenerator} bean
+	 *
+	 * @return the bean
+	 */
 	@ConditionalOnMissingBean(CredentialGenerator.class)
 	@Bean
 	public SimpleCredentialGenerator simpleCredentialGenerator() {
 		return new SimpleCredentialGenerator();
 	}
 
+	/**
+	 * Provide a {@link SpringSecurityBasicAuthCredentialProviderFactory} bean
+	 *
+	 * @param credentialGenerator the CredentialGenerator bean
+	 * @return the bean
+	 */
 	@Bean
-	public SpringSecurityBasicAuthCredentialProviderFactory springSecurityBasicAuthCredentialProvider(CredentialGenerator credentialGenerator) {
+	public SpringSecurityBasicAuthCredentialProviderFactory springSecurityBasicAuthCredentialProvider(
+		CredentialGenerator credentialGenerator) {
 		return new SpringSecurityBasicAuthCredentialProviderFactory(credentialGenerator);
 	}
 
+	/**
+	 * Provide a {@link SpringSecurityOAuth2CredentialProviderFactory} bean
+	 *
+	 * @param credentialGenerator the CredentialGenerator bean
+	 * @param oAuth2Client the OAuth2Client bean
+	 * @return the bean
+	 */
 	@Bean
-	public SpringSecurityOAuth2CredentialProviderFactory springSecurityOAuth2CredentialProvider(CredentialGenerator credentialGenerator,
-																								OAuth2Client oAuth2Client) {
+	public SpringSecurityOAuth2CredentialProviderFactory springSecurityOAuth2CredentialProvider(
+		CredentialGenerator credentialGenerator,
+		OAuth2Client oAuth2Client) {
 		return new SpringSecurityOAuth2CredentialProviderFactory(credentialGenerator, oAuth2Client);
 	}
 
+	/**
+	 * Provide a {@link CredentialProviderService} bean
+	 *
+	 * @param providers a collection of credential providers
+	 * @return the bean
+	 */
 	@Bean
 	public CredentialProviderService credentialProviderService(List<CredentialProviderFactory<?>> providers) {
 		return new CredentialProviderService(providers);
 	}
 
+	/**
+	 * Provide a {@link SpacePerServiceInstance} bean
+	 *
+	 * @return the bean
+	 */
 	@Bean
 	public SpacePerServiceInstance spacePerServiceInstance() {
 		return new SpacePerServiceInstance();
 	}
 
+	/**
+	 * Provide a {@link ServiceInstanceGuidSuffix} bean
+	 *
+	 * @return the bean
+	 */
 	@Bean
 	public ServiceInstanceGuidSuffix serviceInstanceGuidSuffix() {
 		return new ServiceInstanceGuidSuffix();
 	}
 
+	/**
+	 * Provide a {@link TargetService} bean
+	 *
+	 * @param targets a collection of targets
+	 * @return the bean
+	 */
 	@Bean
 	public TargetService targetService(List<TargetFactory<?>> targets) {
 		return new TargetService(targets);
 	}
 
+	/**
+	 * Provide a {@link BackingServicesProvisionService} bean
+	 *
+	 * @param deployerClient the DeployerClient bean
+	 * @return the bean
+	 */
 	@Bean
 	@ConditionalOnMissingBean
 	public BackingServicesProvisionService backingServicesProvisionService(DeployerClient deployerClient) {
 		return new DefaultBackingServicesProvisionService(deployerClient);
 	}
 
+	/**
+	 * Provide a {@link CreateServiceInstanceWorkflow} bean
+	 *
+	 * @param brokeredServices the BrokeredServices bean
+	 * @param backingAppDeploymentService the BackingAppDeploymentService bean
+	 * @param appsParametersTransformationService the BackingApplicationsParametersTransformationService bean
+	 * @param servicesParametersTransformationService the BackingServicesParametersTransformationService bean
+	 * @param credentialProviderService the CredentialProviderService bean
+	 * @param targetService the TargetService bean
+	 * @param backingServicesProvisionService the BackingServicesProvisionService bean
+	 * @return the bean
+	 */
 	@Bean
 	public CreateServiceInstanceWorkflow appDeploymentCreateServiceInstanceWorkflow(
-		BrokeredServices brokeredServices,
-		BackingAppDeploymentService backingAppDeploymentService,
+		BrokeredServices brokeredServices, BackingAppDeploymentService backingAppDeploymentService,
 		BackingApplicationsParametersTransformationService appsParametersTransformationService,
 		BackingServicesParametersTransformationService servicesParametersTransformationService,
-		CredentialProviderService credentialProviderService,
-		TargetService targetService,
+		CredentialProviderService credentialProviderService, TargetService targetService,
 		BackingServicesProvisionService backingServicesProvisionService) {
 		return new AppDeploymentCreateServiceInstanceWorkflow(
 			brokeredServices,
@@ -207,10 +338,20 @@ public class AppBrokerAutoConfiguration {
 			targetService);
 	}
 
+	/**
+	 * Provide a {@link UpdateServiceInstanceWorkflow} bean
+	 *
+	 * @param brokeredServices the BrokeredServices bean
+	 * @param backingAppDeploymentService the BackingAppDeploymentService bean
+	 * @param backingServicesProvisionService the BackingServicesProvisionService bean
+	 * @param appsParametersTransformationService the BackingApplicationsParametersTransformationService bean
+	 * @param servicesParametersTransformationService the BackingServicesParametersTransformationService bean
+	 * @param targetService the TargetService bean
+	 * @return the bean
+	 */
 	@Bean
 	public UpdateServiceInstanceWorkflow appDeploymentUpdateServiceInstanceWorkflow(
-		BrokeredServices brokeredServices,
-		BackingAppDeploymentService backingAppDeploymentService,
+		BrokeredServices brokeredServices, BackingAppDeploymentService backingAppDeploymentService,
 		BackingServicesProvisionService backingServicesProvisionService,
 		BackingApplicationsParametersTransformationService appsParametersTransformationService,
 		BackingServicesParametersTransformationService servicesParametersTransformationService,
@@ -225,13 +366,21 @@ public class AppBrokerAutoConfiguration {
 			targetService);
 	}
 
+	/**
+	 * Provide a {@link DeleteServiceInstanceWorkflow} bean
+	 *
+	 * @param brokeredServices the BrokeredServices bean
+	 * @param backingAppDeploymentService the BackingAppDeploymentService bean
+	 * @param backingServicesProvisionService the BackingServicesProvisionService bean
+	 * @param credentialProviderService the CredentialProviderService bean
+	 * @param targetService the TargetService bean
+	 * @return the bean
+	 */
 	@Bean
 	public DeleteServiceInstanceWorkflow appDeploymentDeleteServiceInstanceWorkflow(
-		BrokeredServices brokeredServices,
-		BackingAppDeploymentService backingAppDeploymentService,
+		BrokeredServices brokeredServices, BackingAppDeploymentService backingAppDeploymentService,
 		BackingServicesProvisionService backingServicesProvisionService,
-		CredentialProviderService credentialProviderService,
-		TargetService targetService) {
+		CredentialProviderService credentialProviderService, TargetService targetService) {
 
 		return new AppDeploymentDeleteServiceInstanceWorkflow(
 			brokeredServices,
@@ -241,14 +390,31 @@ public class AppBrokerAutoConfiguration {
 		);
 	}
 
+	/**
+	 * Provide a {@link WorkflowServiceInstanceService} bean
+	 *
+	 * @param stateRepository the ServiceInstanceStateRepository bean
+	 * @param createWorkflows a collection of create workflows
+	 * @param deleteWorkflows a collection of delete workflows
+	 * @param updateWorkflows a collection of update workflows
+	 * @return the bean
+	 */
 	@Bean
 	public WorkflowServiceInstanceService serviceInstanceService(ServiceInstanceStateRepository stateRepository,
-																 List<CreateServiceInstanceWorkflow> createWorkflows,
-																 List<DeleteServiceInstanceWorkflow> deleteWorkflows,
-																 List<UpdateServiceInstanceWorkflow> updateWorkflows) {
+		List<CreateServiceInstanceWorkflow> createWorkflows, List<DeleteServiceInstanceWorkflow> deleteWorkflows,
+		List<UpdateServiceInstanceWorkflow> updateWorkflows) {
 		return new WorkflowServiceInstanceService(stateRepository, createWorkflows, deleteWorkflows, updateWorkflows);
 	}
 
+	/**
+	 * Provide a {@link WorkflowServiceInstanceBindingService} bean
+	 *
+	 * @param stateRepository the ServiceInstanceBindingStateRepository bean
+	 * @param createServiceInstanceAppBindingWorkflows a collection of create app binding workflows
+	 * @param createServiceInstanceRouteBindingWorkflows a collection of create route binding workflows
+	 * @param deleteServiceInstanceBindingWorkflows a collection of update workflows
+	 * @return the bean
+	 */
 	@Bean
 	@ConditionalOnMissingBean(ServiceInstanceBindingService.class)
 	public WorkflowServiceInstanceBindingService serviceInstanceBindingService(
@@ -257,8 +423,8 @@ public class AppBrokerAutoConfiguration {
 		@Autowired(required = false) List<CreateServiceInstanceRouteBindingWorkflow> createServiceInstanceRouteBindingWorkflows,
 		@Autowired(required = false) List<DeleteServiceInstanceBindingWorkflow> deleteServiceInstanceBindingWorkflows) {
 		return new WorkflowServiceInstanceBindingService(stateRepository,
-			createServiceInstanceAppBindingWorkflows,
-			createServiceInstanceRouteBindingWorkflows,
+			createServiceInstanceAppBindingWorkflows, createServiceInstanceRouteBindingWorkflows,
 			deleteServiceInstanceBindingWorkflows);
 	}
+
 }

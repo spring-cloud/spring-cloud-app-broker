@@ -32,7 +32,6 @@ import org.springframework.cloud.appbroker.deployer.ParametersTransformerSpec;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
 
 class BackingApplicationsParametersTransformationServiceTest {
 
@@ -42,7 +41,7 @@ class BackingApplicationsParametersTransformationServiceTest {
 			new BackingApplicationsParametersTransformationService(Collections.emptyList());
 
 		BackingApplications backingApplications = BackingApplications.builder()
-																	 .build();
+			.build();
 
 		StepVerifier
 			.create(service.transformParameters(backingApplications, new HashMap<>()))
@@ -77,8 +76,8 @@ class BackingApplicationsParametersTransformationServiceTest {
 				.builder()
 				.name("misconfigured-app")
 				.parameterTransformers(ParametersTransformerSpec.builder()
-																.name("unknown-transformer")
-																.build())
+					.name("unknown-transformer")
+					.build())
 				.build())
 			.build();
 
@@ -97,12 +96,12 @@ class BackingApplicationsParametersTransformationServiceTest {
 		parameters.put("key2", "value2");
 
 		BackingApplication app1 = BackingApplication.builder()
-													.name("app1")
-													.parameterTransformers(ParametersTransformerSpec
-														.builder()
-														.name("transformer1")
-														.build())
-													.build();
+			.name("app1")
+			.parameterTransformers(ParametersTransformerSpec
+				.builder()
+				.name("transformer1")
+				.build())
+			.build();
 		BackingApplication app2 = BackingApplication
 			.builder()
 			.name("app2")
@@ -118,9 +117,9 @@ class BackingApplicationsParametersTransformationServiceTest {
 					.build())
 			.build();
 		BackingApplications backingApplications = BackingApplications.builder()
-																	 .backingApplication(app1)
-																	 .backingApplication(app2)
-																	 .build();
+			.backingApplication(app1)
+			.backingApplication(app2)
+			.build();
 
 		TestFactory factory1 = new TestFactory("transformer1");
 		TestFactory factory2 = new TestFactory("transformer2");
@@ -139,11 +138,11 @@ class BackingApplicationsParametersTransformationServiceTest {
 				app2ExpectedTransformedEnvironment.put("0", "transformer1");
 				app2ExpectedTransformedEnvironment.put("1", "transformer2");
 
-				assertAll("unexpected transformation results",
-					() -> assertThat(transformedBackingApplications.size()).isEqualTo(backingApplications.size()),
-					() -> assertThat(transformedBackingApplications.get(0).getEnvironment()).isEqualTo(app1ExpectedTransformedEnvironment),
-					() -> assertThat(transformedBackingApplications.get(1).getEnvironment()).isEqualTo(app2ExpectedTransformedEnvironment)
-				);
+				assertThat(transformedBackingApplications.size()).isEqualTo(backingApplications.size());
+				assertThat(transformedBackingApplications.get(0).getEnvironment())
+					.isEqualTo(app1ExpectedTransformedEnvironment);
+				assertThat(transformedBackingApplications.get(1).getEnvironment())
+					.isEqualTo(app2ExpectedTransformedEnvironment);
 
 				return true;
 			})
@@ -161,9 +160,10 @@ class BackingApplicationsParametersTransformationServiceTest {
 		private final String name;
 
 		private Map<String, Object> actualParameters;
+
 		private Config actualConfig;
 
-		TestFactory(String name) {
+		public TestFactory(String name) {
 			super(Config.class);
 			this.name = name;
 		}
@@ -180,31 +180,33 @@ class BackingApplicationsParametersTransformationServiceTest {
 		}
 
 		private Mono<BackingApplication> doTransform(BackingApplication backingApplication,
-													 Map<String, Object> parameters) {
+			Map<String, Object> parameters) {
 			this.actualParameters = parameters;
 			backingApplication.addEnvironment(Integer.toString(backingApplication.getEnvironment().size()), getName());
 			return Mono.just(backingApplication);
 		}
 
-		Map<String, Object> getActualParameters() {
+		public Map<String, Object> getActualParameters() {
 			return actualParameters;
 		}
 
-		Config getActualConfig() {
+		public Config getActualConfig() {
 			return actualConfig;
 		}
+
 	}
 
 	@SuppressWarnings("unused")
 	public static class Config {
 
 		private String arg1;
+
 		private Integer arg2;
 
 		private Config() {
 		}
 
-		Config(String arg1, Integer arg2) {
+		public Config(String arg1, Integer arg2) {
 			this.arg1 = arg1;
 			this.arg2 = arg2;
 		}
@@ -250,5 +252,7 @@ class BackingApplicationsParametersTransformationServiceTest {
 				", arg2=" + arg2 +
 				'}';
 		}
+
 	}
+
 }

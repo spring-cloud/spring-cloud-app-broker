@@ -27,7 +27,7 @@ public class StartApplicationRequest {
 
 	private final Map<String, String> properties;
 
-	StartApplicationRequest(String name, Map<String, String> properties) {
+	protected StartApplicationRequest(String name, Map<String, String> properties) {
 		this.name = name;
 		this.properties = properties;
 	}
@@ -44,13 +44,13 @@ public class StartApplicationRequest {
 		return new StartApplicationRequestBuilder();
 	}
 
-	public static class StartApplicationRequestBuilder {
+	public static final class StartApplicationRequestBuilder {
 
 		private String name;
 
 		private final Map<String, String> properties = new HashMap<>();
 
-		StartApplicationRequestBuilder() {
+		private StartApplicationRequestBuilder() {
 		}
 
 		public StartApplicationRequestBuilder name(String name) {
@@ -70,4 +70,5 @@ public class StartApplicationRequest {
 		}
 
 	}
+
 }

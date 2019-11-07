@@ -31,7 +31,9 @@ public abstract class CredentialProviderFactory<C> extends AbstractExtensionFact
 	@Override
 	public abstract CredentialProvider create(C config);
 
+	@Override
 	public String getName() {
 		return getShortName(CredentialProviderFactory.class);
 	}
+
 }

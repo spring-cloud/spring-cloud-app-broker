@@ -16,17 +16,19 @@
 
 package org.springframework.cloud.appbroker.extensions.parameters;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import reactor.test.StepVerifier;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import reactor.test.StepVerifier;
+
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PropertyMappingParametersTransformerFactoryTest {
+
 	private ParametersTransformer<BackingApplication> transformer;
 
 	@BeforeEach

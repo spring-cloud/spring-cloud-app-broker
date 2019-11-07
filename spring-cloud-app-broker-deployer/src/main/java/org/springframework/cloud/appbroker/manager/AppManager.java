@@ -35,4 +35,5 @@ public interface AppManager {
 	default Mono<Void> restage(RestageApplicationRequest request) {
 		return Mono.empty();
 	}
+
 }

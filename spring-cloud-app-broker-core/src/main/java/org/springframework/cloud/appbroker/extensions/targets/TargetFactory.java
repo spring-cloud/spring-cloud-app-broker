@@ -20,18 +20,20 @@ import org.springframework.cloud.appbroker.extensions.AbstractExtensionFactory;
 
 public abstract class TargetFactory<C> extends AbstractExtensionFactory<Target, C> {
 
-	TargetFactory() {
+	protected TargetFactory() {
 		super();
 	}
 
-	TargetFactory(Class<C> configClass) {
+	public TargetFactory(Class<C> configClass) {
 		super(configClass);
 	}
 
 	@Override
 	public abstract Target create(C config);
 
+	@Override
 	public String getName() {
 		return getShortName(TargetFactory.class);
 	}
+
 }

@@ -16,11 +16,15 @@
 
 package org.springframework.cloud.appbroker.workflow.binding;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.test.StepVerifier;
+
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder;
@@ -29,9 +33,6 @@ import org.springframework.credhub.core.credential.CredHubCredentialOperations;
 import org.springframework.credhub.support.CredentialName;
 import org.springframework.credhub.support.CredentialSummary;
 import org.springframework.credhub.support.ServiceInstanceCredentialName;
-import reactor.test.StepVerifier;
-
-import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -114,4 +115,5 @@ class CredHubPersistingDeleteServiceInstanceBindingWorkflowTest {
 
 		verifyNoMoreInteractions(this.credHubCredentialOperations);
 	}
+
 }

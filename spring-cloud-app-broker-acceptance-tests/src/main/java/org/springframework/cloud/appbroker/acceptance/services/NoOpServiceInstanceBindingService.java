@@ -16,24 +16,30 @@
 
 package org.springframework.cloud.appbroker.acceptance.services;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
-@Service
+/**
+ * A no-op implementation of {@link ServiceInstanceBindingService}
+ */
 public class NoOpServiceInstanceBindingService implements ServiceInstanceBindingService {
+
 	@Override
-	public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(CreateServiceInstanceBindingRequest request) {
+	public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(
+		CreateServiceInstanceBindingRequest request) {
 		return Mono.just(CreateServiceInstanceAppBindingResponse.builder().build());
 	}
 
 	@Override
-	public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(DeleteServiceInstanceBindingRequest request) {
+	public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(
+		DeleteServiceInstanceBindingRequest request) {
 		return Mono.just(DeleteServiceInstanceBindingResponse.builder().build());
 	}
+
 }

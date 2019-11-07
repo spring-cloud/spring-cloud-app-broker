@@ -16,18 +16,21 @@
 
 package org.springframework.cloud.appbroker.workflow.binding;
 
-import org.springframework.credhub.support.ServiceInstanceCredentialName;
 import reactor.core.publisher.Mono;
 
-class CredHubPersistingWorkflow {
+import org.springframework.credhub.support.ServiceInstanceCredentialName;
+
+public class CredHubPersistingWorkflow {
+
 	private static final String CREDENTIALS_NAME = "credentials-json";
+
 	private final String appName;
 
-	CredHubPersistingWorkflow(String appName) {
+	protected CredHubPersistingWorkflow(String appName) {
 		this.appName = appName;
 	}
 
-	Mono<ServiceInstanceCredentialName> buildCredentialName(String serviceDefinitionId, String bindingId) {
+	protected Mono<ServiceInstanceCredentialName> buildCredentialName(String serviceDefinitionId, String bindingId) {
 		return Mono.just(ServiceInstanceCredentialName.builder()
 			.serviceBrokerName(this.appName)
 			.serviceOfferingName(serviceDefinitionId)
@@ -35,4 +38,5 @@ class CredHubPersistingWorkflow {
 			.credentialName(CREDENTIALS_NAME)
 			.build());
 	}
+
 }

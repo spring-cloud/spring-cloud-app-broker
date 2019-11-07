@@ -23,7 +23,7 @@ public class ServicesSpec {
 	private ServicesSpec() {
 	}
 
-	ServicesSpec(String serviceInstanceName) {
+	public ServicesSpec(String serviceInstanceName) {
 		this.serviceInstanceName = serviceInstanceName;
 	}
 
@@ -39,11 +39,11 @@ public class ServicesSpec {
 		return new ServicesSpecBuilder();
 	}
 
-	public static class ServicesSpecBuilder {
+	public static final class ServicesSpecBuilder {
 
 		private String serviceInstanceName;
 
-		ServicesSpecBuilder() {
+		private ServicesSpecBuilder() {
 		}
 
 		public ServicesSpecBuilder spec(ServicesSpec spec) {
@@ -58,5 +58,7 @@ public class ServicesSpec {
 		public ServicesSpec build() {
 			return new ServicesSpec(serviceInstanceName);
 		}
+
 	}
+
 }

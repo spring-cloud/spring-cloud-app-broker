@@ -66,4 +66,5 @@ class RestageApplicationRequestTest {
 		assertThat(request.getName()).isEqualTo("foo");
 		assertThat(request.getProperties()).isEmpty();
 	}
+
 }

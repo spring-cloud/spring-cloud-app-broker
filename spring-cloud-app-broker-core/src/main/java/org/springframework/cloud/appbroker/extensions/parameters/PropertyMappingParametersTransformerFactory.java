@@ -37,12 +37,12 @@ public class PropertyMappingParametersTransformerFactory extends
 	}
 
 	private Mono<BackingApplication> transform(BackingApplication backingApplication,
-											   Map<String, Object> parameters,
-											   List<String> include) {
+		Map<String, Object> parameters,
+		List<String> include) {
 		if (parameters != null) {
 			parameters.keySet().stream()
-					  .filter(include::contains)
-					  .forEach(key -> backingApplication.addProperty(key, parameters.get(key).toString()));
+				.filter(include::contains)
+				.forEach(key -> backingApplication.addProperty(key, parameters.get(key).toString()));
 		}
 		return Mono.just(backingApplication);
 	}
@@ -52,9 +52,6 @@ public class PropertyMappingParametersTransformerFactory extends
 
 		private String include;
 
-		public Config() {
-		}
-
 		public List<String> getIncludes() {
 			return Arrays.asList(include.split(","));
 		}
@@ -62,5 +59,7 @@ public class PropertyMappingParametersTransformerFactory extends
 		public void setInclude(String include) {
 			this.include = include;
 		}
+
 	}
+
 }

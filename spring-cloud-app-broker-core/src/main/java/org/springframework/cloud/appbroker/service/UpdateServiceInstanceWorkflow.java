@@ -23,6 +23,7 @@ import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 
 public interface UpdateServiceInstanceWorkflow {
+
 	default Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
 		return Mono.empty();
 	}
@@ -32,7 +33,8 @@ public interface UpdateServiceInstanceWorkflow {
 	}
 
 	default Mono<UpdateServiceInstanceResponseBuilder> buildResponse(UpdateServiceInstanceRequest request,
-																	 UpdateServiceInstanceResponseBuilder responseBuilder) {
+		UpdateServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder);
 	}
+
 }

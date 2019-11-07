@@ -20,11 +20,36 @@ import java.util.List;
 
 import reactor.core.publisher.Flux;
 
+/**
+ * This interface is implemented by service brokers to process requests to deploy, update, and undeploy backing
+ * applications associated with a service instance.
+ */
 public interface BackingAppDeploymentService {
 
+	/**
+	 * Deploy the backing applications and associate with the service instance
+	 *
+	 * @param backingApps a collection of backing applications
+	 * @param serviceInstanceId the service instance ID
+	 * @return a set of strings, where each corresponds to an application e.g. the application name
+	 */
 	Flux<String> deploy(List<BackingApplication> backingApps, String serviceInstanceId);
 
+	/**
+	 * Update the backing applications and associate with the service instance
+	 *
+	 * @param backingApps a collection of backing applications
+	 * @param serviceInstanceId the service instance ID
+	 * @return a set of strings, where each corresponds to an application. e.g. the application name
+	 */
 	Flux<String> update(List<BackingApplication> backingApps, String serviceInstanceId);
 
+	/**
+	 * Undeploy the backing applications
+	 *
+	 * @param backingApps a collection of backing applications
+	 * @return a set of strings, where each corresponds to an application. e.g. the application name
+	 */
 	Flux<String> undeploy(List<BackingApplication> backingApps);
+
 }

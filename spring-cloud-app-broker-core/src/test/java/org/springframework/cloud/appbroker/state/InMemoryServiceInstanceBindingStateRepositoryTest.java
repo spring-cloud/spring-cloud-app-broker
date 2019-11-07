@@ -40,12 +40,13 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 	@Test
 	void saveAndGet() {
 		StepVerifier
-				.create(stateRepository.saveState("foo-service", "foo-binding",
-						OperationState.IN_PROGRESS, "bar"))
+			.create(stateRepository.saveState("foo-service", "foo-binding",
+				OperationState.IN_PROGRESS, "bar"))
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -53,7 +54,8 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 	}
@@ -61,12 +63,13 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 	@Test
 	void saveAndRemove() {
 		StepVerifier
-				.create(stateRepository.saveState("foo-service", "foo-binding",
-						OperationState.IN_PROGRESS, "bar"))
+			.create(stateRepository.saveState("foo-service", "foo-binding",
+				OperationState.IN_PROGRESS, "bar"))
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -74,7 +77,8 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -91,7 +95,8 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -99,7 +104,8 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -109,7 +115,8 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -117,7 +124,8 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 	}
@@ -160,4 +168,5 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 			.expectNextCount(100_000)
 			.verifyComplete();
 	}
+
 }

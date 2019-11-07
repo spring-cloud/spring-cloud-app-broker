@@ -138,4 +138,5 @@ class ManagementClientTest {
 
 		verifyZeroInteractions(appManager);
 	}
+
 }

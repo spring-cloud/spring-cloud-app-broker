@@ -18,17 +18,20 @@ package org.springframework.cloud.appbroker.acceptance.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse.CreateServiceInstanceResponseBuilder;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
-@Service
+/**
+ * A no-op implementation of {@link CreateServiceInstanceWorkflow}
+ */
 public class NoOpCreateServiceInstanceWorkflow implements CreateServiceInstanceWorkflow {
-	private static final Logger LOGGER = LoggerFactory.getLogger(NoOpCreateServiceInstanceWorkflow.class);
+
+	private static final Logger LOG = LoggerFactory.getLogger(NoOpCreateServiceInstanceWorkflow.class);
 
 	@Value("${spring.cloud.openservicebroker.catalog.services[1].id}")
 	private String backingServiceId;
@@ -40,14 +43,19 @@ public class NoOpCreateServiceInstanceWorkflow implements CreateServiceInstanceW
 
 	@Override
 	public Mono<Boolean> accept(CreateServiceInstanceRequest request) {
-		LOGGER.info("Got request to create service instance: " + request);
+		if (LOG.isInfoEnabled()) {
+			LOG.info("Got request to create service instance: " + request);
+		}
 		return Mono.just(request.getServiceDefinitionId().equals(backingServiceId));
 	}
 
 	@Override
 	public Mono<CreateServiceInstanceResponseBuilder> buildResponse(CreateServiceInstanceRequest request,
-																	CreateServiceInstanceResponseBuilder responseBuilder) {
-		LOGGER.info("Got request to create service instance: " + request);
+		CreateServiceInstanceResponseBuilder responseBuilder) {
+		if (LOG.isInfoEnabled()) {
+			LOG.info("Got request to create service instance: " + request);
+		}
 		return Mono.just(responseBuilder);
 	}
+
 }

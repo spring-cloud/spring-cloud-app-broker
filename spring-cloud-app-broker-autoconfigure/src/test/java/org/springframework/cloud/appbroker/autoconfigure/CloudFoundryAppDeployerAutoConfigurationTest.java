@@ -69,7 +69,8 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				assertThat(targetProperties.getPassword()).isEqualTo("secret");
 
 				assertThat(context).hasSingleBean(CloudFoundryDeploymentProperties.class);
-				CloudFoundryDeploymentProperties deploymentProperties = context.getBean(CloudFoundryDeploymentProperties.class);
+				CloudFoundryDeploymentProperties deploymentProperties = context
+					.getBean(CloudFoundryDeploymentProperties.class);
 				assertThat(deploymentProperties.getMemory()).isEqualTo("2G");
 				assertThat(deploymentProperties.getCount()).isEqualTo(3);
 				assertThat(deploymentProperties.getBuildpack()).isEqualTo("example-buildpack");

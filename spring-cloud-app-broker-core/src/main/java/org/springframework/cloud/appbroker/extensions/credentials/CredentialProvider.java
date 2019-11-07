@@ -16,14 +16,17 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
 
 public interface CredentialProvider {
 
 	Mono<BackingApplication> addCredentials(BackingApplication backingApplication, String serviceInstanceGuid);
 
-	default Mono<BackingApplication> deleteCredentials(BackingApplication backingApplication, String serviceInstanceGuid) {
+	default Mono<BackingApplication> deleteCredentials(BackingApplication backingApplication,
+		String serviceInstanceGuid) {
 		return Mono.just(backingApplication);
 	}
+
 }

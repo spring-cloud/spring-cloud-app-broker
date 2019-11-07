@@ -16,15 +16,16 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import org.springframework.cloud.appbroker.deployer.BackingApplications;
-import org.springframework.cloud.appbroker.deployer.CredentialProviderSpec;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Arrays;
-import java.util.Collections;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.CredentialProviderSpec;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -116,9 +117,11 @@ class CredentialProviderServiceTest {
 	}
 
 	public class TestFactory extends CredentialProviderFactory<Object> {
+
 		private final String name;
 
-		TestFactory(String name) {
+		public TestFactory(String name) {
+			super();
 			this.name = name;
 		}
 
@@ -131,17 +134,21 @@ class CredentialProviderServiceTest {
 		public CredentialProvider create(Object config) {
 			return new CredentialProvider() {
 				@Override
-				public Mono<BackingApplication> addCredentials(BackingApplication backingApplication, String serviceInstanceGuid) {
+				public Mono<BackingApplication> addCredentials(BackingApplication backingApplication,
+					String serviceInstanceGuid) {
 					backingApplication.addEnvironment(getName() + "-added", "done");
 					return Mono.just(backingApplication);
 				}
 
 				@Override
-				public Mono<BackingApplication> deleteCredentials(BackingApplication backingApplication, String serviceInstanceGuid) {
+				public Mono<BackingApplication> deleteCredentials(BackingApplication backingApplication,
+					String serviceInstanceGuid) {
 					backingApplication.addEnvironment(getName() + "-deleted", "done");
 					return Mono.just(backingApplication);
 				}
 			};
 		}
+
 	}
+
 }

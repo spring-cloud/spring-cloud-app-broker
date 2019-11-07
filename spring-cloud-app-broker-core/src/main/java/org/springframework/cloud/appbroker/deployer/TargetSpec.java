@@ -23,7 +23,7 @@ public class TargetSpec {
 	private TargetSpec() {
 	}
 
-	TargetSpec(String name) {
+	public TargetSpec(String name) {
 		this.name = name;
 	}
 
@@ -40,11 +40,11 @@ public class TargetSpec {
 		return new TargetSpecBuilder();
 	}
 
-	public static class TargetSpecBuilder {
+	public static final class TargetSpecBuilder {
 
 		private String name;
 
-		TargetSpecBuilder() {
+		private TargetSpecBuilder() {
 		}
 
 		public TargetSpecBuilder name(String name) {
@@ -55,5 +55,7 @@ public class TargetSpec {
 		public TargetSpec build() {
 			return new TargetSpec(name);
 		}
+
 	}
+
 }

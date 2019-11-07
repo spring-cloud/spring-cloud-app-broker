@@ -31,6 +31,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.credhub.autoconfig.CredHubTemplateAutoConfiguration;
 import org.springframework.credhub.core.CredHubOperations;
 
+/**
+ * CredHub auto-configuration
+ */
 @Configuration
 @AutoConfigureBefore(AppBrokerAutoConfiguration.class)
 @AutoConfigureAfter(CredHubTemplateAutoConfiguration.class)
@@ -41,16 +44,36 @@ public class CredHubAutoConfiguration {
 	@Value("${spring.application.name}")
 	private String appName;
 
+	/**
+	 * Provide a {@link CreateServiceInstanceAppBindingWorkflow} bean
+	 *
+	 * @param credHubOperations the CredHubOperations bean
+	 * @return the bean
+	 */
 	@Bean
-	public CreateServiceInstanceAppBindingWorkflow credhubPersistingCreateServiceInstanceAppBindingWorkflow(CredHubOperations credHubOperations) {
+	public CreateServiceInstanceAppBindingWorkflow credhubPersistingCreateServiceInstanceAppBindingWorkflow(
+		CredHubOperations credHubOperations) {
 		return new CredHubPersistingCreateServiceInstanceAppBindingWorkflow(credHubOperations, appName);
 	}
 
+	/**
+	 * Provide a {@link DeleteServiceInstanceBindingWorkflow} bean
+	 *
+	 * @param credHubOperations the CredHubOperations bean
+	 * @return the bean
+	 */
 	@Bean
-	public DeleteServiceInstanceBindingWorkflow credhubPersistingDeleteServiceInstanceAppBindingWorkflow(CredHubOperations credHubOperations) {
+	public DeleteServiceInstanceBindingWorkflow credhubPersistingDeleteServiceInstanceAppBindingWorkflow(
+		CredHubOperations credHubOperations) {
 		return new CredHubPersistingDeleteServiceInstanceBindingWorkflow(credHubOperations, appName);
 	}
 
+	/**
+	 * Provide a {@link CredHubCredentialsGenerator} bean
+	 *
+	 * @param credHubOperations the CredHubOperations bean
+	 * @return the bean
+	 */
 	@Bean
 	public CredHubCredentialsGenerator credHubCredentialsGenerator(CredHubOperations credHubOperations) {
 		return new CredHubCredentialsGenerator(credHubOperations);

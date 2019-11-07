@@ -27,7 +27,7 @@ public class RestageApplicationRequest {
 
 	private final Map<String, String> properties;
 
-	RestageApplicationRequest(String name, Map<String, String> properties) {
+	protected RestageApplicationRequest(String name, Map<String, String> properties) {
 		this.name = name;
 		this.properties = properties;
 	}
@@ -44,13 +44,13 @@ public class RestageApplicationRequest {
 		return new RestageApplicationRequestBuilder();
 	}
 
-	public static class RestageApplicationRequestBuilder {
+	public static final class RestageApplicationRequestBuilder {
 
 		private String name;
 
 		private final Map<String, String> properties = new HashMap<>();
 
-		RestageApplicationRequestBuilder() {
+		private RestageApplicationRequestBuilder() {
 		}
 
 		public RestageApplicationRequestBuilder name(String name) {
@@ -70,4 +70,5 @@ public class RestageApplicationRequest {
 		}
 
 	}
+
 }

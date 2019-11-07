@@ -20,7 +20,7 @@ public class UpdateServiceInstanceResponse {
 
 	private final String name;
 
-	UpdateServiceInstanceResponse(String name) {
+	protected UpdateServiceInstanceResponse(String name) {
 		this.name = name;
 	}
 
@@ -32,11 +32,11 @@ public class UpdateServiceInstanceResponse {
 		return name;
 	}
 
-	public static class UpdateServiceInstanceResponseBuilder {
+	public static final class UpdateServiceInstanceResponseBuilder {
 
 		private String name;
 
-		UpdateServiceInstanceResponseBuilder() {
+		private UpdateServiceInstanceResponseBuilder() {
 		}
 
 		public UpdateServiceInstanceResponseBuilder name(String name) {
@@ -49,4 +49,5 @@ public class UpdateServiceInstanceResponse {
 		}
 
 	}
+
 }

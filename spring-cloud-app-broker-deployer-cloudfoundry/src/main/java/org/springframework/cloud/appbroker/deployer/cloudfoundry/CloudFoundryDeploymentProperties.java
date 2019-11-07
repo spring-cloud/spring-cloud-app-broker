@@ -16,12 +16,13 @@
 
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
-import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
-import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
-
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
+
+import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 
 /**
  * Holds configuration properties for specifying what resources and services an app deployed to a Cloud Foundry runtime
@@ -33,27 +34,61 @@ import java.util.Set;
  */
 @SuppressWarnings({"unused", "PMD.TooManyFields"})
 public class CloudFoundryDeploymentProperties extends DeploymentProperties {
-	static final String HEALTHCHECK_PROPERTY_KEY = "health-check";
 
-	static final String HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY = "health-check-http-endpoint";
+	/**
+	 * Key for storing the health check deployment property
+	 */
+	protected static final String HEALTHCHECK_PROPERTY_KEY = "health-check";
 
-	static final String HEALTHCHECK_TIMEOUT_PROPERTY_KEY = "health-check-timeout";
+	/**
+	 * Key for storing the health check endpoint deployment property
+	 */
+	protected static final String HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY = "health-check-http-endpoint";
 
-	static final String ROUTE_PATH_PROPERTY = "route-path";
+	/**
+	 * Key for storing the health check timeout deployment property
+	 */
+	protected static final String HEALTHCHECK_TIMEOUT_PROPERTY_KEY = "health-check-timeout";
 
-	static final String ROUTE_PROPERTY = "route";
+	/**
+	 * Key for storing the route path deployment property
+	 */
+	protected static final String ROUTE_PATH_PROPERTY = "route-path";
 
-	static final String ROUTES_PROPERTY = "routes";
+	/**
+	 * Key for storing the route deployment property
+	 */
+	protected static final String ROUTE_PROPERTY = "route";
 
-	static final String NO_ROUTE_PROPERTY = "no-route";
+	/**
+	 * Key for storing the routes deployment property
+	 */
+	protected static final String ROUTES_PROPERTY = "routes";
 
-	static final String DOMAIN_PROPERTY = "domain";
+	/**
+	 * Key for storing a property describing whether routes are defined
+	 */
+	protected static final String NO_ROUTE_PROPERTY = "no-route";
 
-	static final String DOMAINS_PROPERTY = "domains";
+	/**
+	 * Key for storing the domain deployment property
+	 */
+	protected static final String DOMAIN_PROPERTY = "domain";
 
-	static final String BUILDPACK_PROPERTY_KEY = "buildpack";
+	/**
+	 * Key for storing the domains deployment property
+	 */
+	protected static final String DOMAINS_PROPERTY = "domains";
 
-	static final String JAVA_OPTS_PROPERTY_KEY = "javaOpts";
+	/**
+	 * Key for storing the buildpack deployment property
+	 */
+	protected static final String BUILDPACK_PROPERTY_KEY = "buildpack";
+
+	/**
+	 * Key for storing JAVA_OPTS deployment property
+	 */
+	protected static final String JAVA_OPTS_PROPERTY_KEY = "javaOpts";
 
 	/**
 	 * The domain to use when mapping routes for applications.
@@ -66,8 +101,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	private Set<String> domains = new HashSet<>();
 
 	/**
-	 * The routes that the application should be bound to.
-	 * Mutually exclusive with host and domain.
+	 * The routes that the application should be bound to. Mutually exclusive with host and domain.
 	 */
 	private Set<String> routes = new HashSet<>();
 
@@ -234,4 +268,5 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	public void setJavaOpts(String javaOpts) {
 		this.javaOpts = javaOpts;
 	}
+
 }

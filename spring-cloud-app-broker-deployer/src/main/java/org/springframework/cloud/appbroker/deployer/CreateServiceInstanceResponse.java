@@ -20,7 +20,7 @@ public class CreateServiceInstanceResponse {
 
 	private final String name;
 
-	CreateServiceInstanceResponse(String name) {
+	protected CreateServiceInstanceResponse(String name) {
 		this.name = name;
 	}
 
@@ -32,11 +32,11 @@ public class CreateServiceInstanceResponse {
 		return name;
 	}
 
-	public static class CreateServiceInstanceResponseBuilder {
+	public static final class CreateServiceInstanceResponseBuilder {
 
 		private String name;
 
-		CreateServiceInstanceResponseBuilder() {
+		private CreateServiceInstanceResponseBuilder() {
 		}
 
 		public CreateServiceInstanceResponseBuilder name(String name) {
@@ -49,4 +49,5 @@ public class CreateServiceInstanceResponse {
 		}
 
 	}
+
 }

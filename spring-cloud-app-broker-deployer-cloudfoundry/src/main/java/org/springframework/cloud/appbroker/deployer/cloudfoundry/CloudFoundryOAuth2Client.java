@@ -16,24 +16,26 @@
 
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.cloudfoundry.uaa.UaaClient;
 import org.cloudfoundry.uaa.clients.CreateClientRequest;
 import org.cloudfoundry.uaa.clients.CreateClientResponse;
 import org.cloudfoundry.uaa.clients.DeleteClientRequest;
 import org.cloudfoundry.uaa.clients.DeleteClientResponse;
 import org.cloudfoundry.uaa.tokens.GrantType;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientRequest;
 import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientResponse;
 import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientRequest;
 import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientResponse;
 import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 import org.springframework.util.CollectionUtils;
-import reactor.core.publisher.Mono;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class CloudFoundryOAuth2Client implements OAuth2Client {
+
 	private final UaaClient uaaClient;
 
 	public CloudFoundryOAuth2Client(UaaClient uaaClient) {
@@ -109,9 +111,10 @@ public class CloudFoundryOAuth2Client implements OAuth2Client {
 		if (CollectionUtils.isEmpty(grantTypes)) {
 			return null;
 		}
-		
+
 		return grantTypes.stream()
 			.map(GrantType::getValue)
 			.collect(Collectors.toList());
 	}
+
 }

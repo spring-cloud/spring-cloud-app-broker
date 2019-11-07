@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.autoconfigure;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -80,10 +81,12 @@ class CredHubAutoConfigurationTest {
 
 	@TestConfiguration
 	public static class CredHubConfiguration {
+
 		@Bean
 		public CredHubOperations credHubOperations() {
 			return mock(CredHubOperations.class);
 		}
+
 	}
 
 }

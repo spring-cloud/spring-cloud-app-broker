@@ -16,16 +16,19 @@
 
 package org.springframework.cloud.appbroker.acceptance.services;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
-@Service
+/**
+ * A no-op implementation of {@link DeleteServiceInstanceWorkflow}
+ */
 public class NoOpDeleteServiceInstanceWorkflow implements DeleteServiceInstanceWorkflow {
+
 	@Value("${spring.cloud.openservicebroker.catalog.services[1].id}")
 	private String backingServiceId;
 
@@ -41,7 +44,8 @@ public class NoOpDeleteServiceInstanceWorkflow implements DeleteServiceInstanceW
 
 	@Override
 	public Mono<DeleteServiceInstanceResponseBuilder> buildResponse(DeleteServiceInstanceRequest request,
-																	DeleteServiceInstanceResponseBuilder responseBuilder) {
+		DeleteServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder);
 	}
+
 }

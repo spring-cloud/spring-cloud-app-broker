@@ -21,4 +21,5 @@ import java.util.Map;
 public interface Target {
 
 	ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId);
+
 }

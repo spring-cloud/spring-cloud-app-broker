@@ -27,7 +27,7 @@ public class StopApplicationRequest {
 
 	private final Map<String, String> properties;
 
-	StopApplicationRequest(String name, Map<String, String> properties) {
+	protected StopApplicationRequest(String name, Map<String, String> properties) {
 		this.name = name;
 		this.properties = properties;
 	}
@@ -44,13 +44,13 @@ public class StopApplicationRequest {
 		return new StopApplicationRequestBuilder();
 	}
 
-	public static class StopApplicationRequestBuilder {
+	public static final class StopApplicationRequestBuilder {
 
 		private String name;
 
 		private final Map<String, String> properties = new HashMap<>();
 
-		StopApplicationRequestBuilder() {
+		private StopApplicationRequestBuilder() {
 		}
 
 		public StopApplicationRequestBuilder name(String name) {
@@ -70,4 +70,5 @@ public class StopApplicationRequest {
 		}
 
 	}
+
 }

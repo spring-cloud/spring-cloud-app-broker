@@ -40,15 +40,18 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	private final Logger log = Loggers.getLogger(AppDeploymentDeleteServiceInstanceWorkflow.class);
 
 	private final BackingAppDeploymentService deploymentService;
+
 	private final CredentialProviderService credentialProviderService;
+
 	private final TargetService targetService;
+
 	private final BackingServicesProvisionService backingServicesProvisionService;
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
-													  BackingAppDeploymentService deploymentService,
-													  BackingServicesProvisionService backingServicesProvisionService,
-													  CredentialProviderService credentialProviderService,
-													  TargetService targetService) {
+		BackingAppDeploymentService deploymentService,
+		BackingServicesProvisionService backingServicesProvisionService,
+		CredentialProviderService credentialProviderService,
+		TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.credentialProviderService = credentialProviderService;
@@ -67,7 +70,7 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
 			.flatMapMany(backingServices ->
 				targetService.addToBackingServices(backingServices,
-					getTargetForService(request.getServiceDefinition(), request.getPlan()) ,
+					getTargetForService(request.getServiceDefinition(), request.getPlan()),
 					request.getServiceInstanceId()))
 			.flatMap(backingServicesProvisionService::deleteServiceInstance)
 			.doOnRequest(l -> log.debug("Deleting backing services for{}/{}",
@@ -75,7 +78,8 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 			.doOnComplete(() -> log.debug("Finished deleting backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnError(exception -> log.error(String.format("Error deleting backing services for %s/%s with error '%s'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
+				exception));
 	}
 
 	private Flux<String> undeployBackingApplications(DeleteServiceInstanceRequest request) {
@@ -92,8 +96,10 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished undeploying backing applications for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error(String.format("Error undeploying backing applications for %s/%s with error '%s'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
+			.doOnError(
+				exception -> log.error(String.format("Error undeploying backing applications for %s/%s with error '%s'",
+					request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
+					exception));
 	}
 
 	@Override
@@ -103,7 +109,8 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	@Override
 	public Mono<DeleteServiceInstanceResponseBuilder> buildResponse(DeleteServiceInstanceRequest request,
-																	DeleteServiceInstanceResponseBuilder responseBuilder) {
+		DeleteServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder.async(true));
 	}
+
 }

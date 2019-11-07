@@ -17,17 +17,17 @@
 package org.springframework.cloud.appbroker.deployer;
 
 public class DeploymentProperties {
+
 	/**
-	 * The deployment property for the count (number of app instances).
-	 * If not provided, a deployer should assume 1 instance.
+	 * The deployment property for the count (number of app instances). If not provided, a deployer should assume 1
+	 * instance.
 	 */
 	public static final String COUNT_PROPERTY_KEY = "count";
 
 	/**
-	 * The deployment property for the memory setting for the container that will run the app.
-	 * The memory is specified in <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>,
-	 * by default, with optional case-insensitive trailing unit 'm' and 'g' being supported,
-	 * for mebi- and giga- respectively.
+	 * The deployment property for the memory setting for the container that will run the app. The memory is specified
+	 * in <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>, by default, with optional case-insensitive
+	 * trailing unit 'm' and 'g' being supported, for mebi- and giga- respectively.
 	 * <p>
 	 * 1 MiB = 2^20 bytes = 1024*1024 bytes vs. the decimal based 1MB = 10^6 bytes = 1000*1000 bytes,
 	 * <p>
@@ -36,10 +36,9 @@ public class DeploymentProperties {
 	public static final String MEMORY_PROPERTY_KEY = "memory";
 
 	/**
-	 * The deployment property for the disk setting for the container that will run the app.
-	 * The memory is specified in <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>,
-	 * by default, with optional case-insensitive trailing unit 'm' and 'g' being supported,
-	 * for mebi- and giga- respectively.
+	 * The deployment property for the disk setting for the container that will run the app. The memory is specified in
+	 * <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>, by default, with optional case-insensitive
+	 * trailing unit 'm' and 'g' being supported, for mebi- and giga- respectively.
 	 * <p>
 	 * 1 MiB = 2^20 bytes = 1024*1024 bytes vs. the decimal based 1MB = 10^6 bytes = 1000*1000 bytes,
 	 * <p>
@@ -53,8 +52,8 @@ public class DeploymentProperties {
 	public static final String HOST_PROPERTY_KEY = "host";
 
 	/**
-	 * The deployment property for the location where the app will be deployed.
-	 * The location will vary between implementations.
+	 * The deployment property for the location where the app will be deployed. The location will vary between
+	 * implementations.
 	 */
 	public static final String TARGET_PROPERTY_KEY = "target";
 
@@ -64,6 +63,10 @@ public class DeploymentProperties {
 	 */
 	public static final String START_PROPERTY_KEY = "start";
 
+	/**
+	 * The deployment property indicating whether the application should use the {@literal SPRING_APPLICATION_JSON}
+	 * environment variable
+	 */
 	public static final String USE_SPRING_APPLICATION_JSON_KEY = "use-spring-application-json";
 
 	private String host;
@@ -115,4 +118,5 @@ public class DeploymentProperties {
 	public void setUseSpringApplicationJson(boolean useSpringApplicationJson) {
 		this.useSpringApplicationJson = useSpringApplicationJson;
 	}
+
 }

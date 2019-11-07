@@ -43,7 +43,8 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -51,7 +52,8 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 	}
@@ -62,7 +64,8 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -70,7 +73,8 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
@@ -86,34 +90,38 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
 		StepVerifier.create(stateRepository.getState("foo-service"))
-					.assertNext(serviceInstanceState -> {
-						assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
-						assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-						assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
-					})
-					.verifyComplete();
+			.assertNext(serviceInstanceState -> {
+				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
+				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+			})
+			.verifyComplete();
 
 		StepVerifier
 			.create(stateRepository.saveState("foo-service", OperationState.SUCCEEDED, "bar"))
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
 			})
 			.verifyComplete();
 
 		StepVerifier.create(stateRepository.getState("foo-service"))
-					.assertNext(serviceInstanceState -> {
-						assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
-						assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-						assertThat(serviceInstanceState.getLastUpdated()).isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
-					})
-					.verifyComplete();
+			.assertNext(serviceInstanceState -> {
+				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
+				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
+				assertThat(serviceInstanceState.getLastUpdated())
+					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+			})
+			.verifyComplete();
 	}
 
 	@Test
@@ -143,4 +151,5 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.expectNextCount(100_000)
 			.verifyComplete();
 	}
+
 }

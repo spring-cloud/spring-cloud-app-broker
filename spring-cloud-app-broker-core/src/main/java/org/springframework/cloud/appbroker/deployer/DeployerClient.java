@@ -113,6 +113,7 @@ public class DeployerClient {
 				UpdateServiceInstanceRequest
 					.builder()
 					.serviceInstanceName(backingService.getServiceInstanceName())
+					.plan(backingService.getUpdatedPlanIfAny())
 					.parameters(backingService.getParameters())
 					.properties(backingService.getProperties())
 					.rebindOnUpdate(backingService.isRebindOnUpdate())

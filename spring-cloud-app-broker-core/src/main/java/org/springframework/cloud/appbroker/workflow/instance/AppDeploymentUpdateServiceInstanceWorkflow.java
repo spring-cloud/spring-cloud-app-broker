@@ -16,22 +16,28 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import java.util.List;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.model.catalog.Plan;
+import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 import org.springframework.core.annotation.Order;
+
 
 @Order(0)
 public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentInstanceWorkflow
@@ -49,18 +55,22 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 
 	private final TargetService targetService;
 
+	private final BackingServicesUpdateValidatorService servicesUpdateValidatorService;
+
 	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 		BackingAppDeploymentService deploymentService,
 		BackingServicesProvisionService backingServicesProvisionService,
 		BackingApplicationsParametersTransformationService appsParametersTransformationService,
 		BackingServicesParametersTransformationService servicesParametersTransformationService,
-		TargetService targetService) {
+		TargetService targetService,
+		BackingServicesUpdateValidatorService backingServicesUpdateValidatorService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.backingServicesProvisionService = backingServicesProvisionService;
 		this.appsParametersTransformationService = appsParametersTransformationService;
 		this.servicesParametersTransformationService = servicesParametersTransformationService;
 		this.targetService = targetService;
+		servicesUpdateValidatorService = backingServicesUpdateValidatorService;
 	}
 
 	@Override
@@ -70,15 +80,50 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 			.then();
 	}
 
+	//Inspired from  spring-cloud-open-service-broker private method
+	private Mono<Plan> getServiceDefinitionPlan(ServiceDefinition serviceDefinition, String planId) {
+		return Mono.justOrEmpty(serviceDefinition)
+			.flatMap(serviceDef -> Mono.justOrEmpty(serviceDef.getPlans())
+				.flatMap(plans -> Flux.fromIterable(plans)
+					.filter(plan -> plan.getId().equals(planId))
+					.singleOrEmpty()));
+	}
+
+
 	private Flux<String> updateBackingServices(UpdateServiceInstanceRequest request) {
-		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingServices ->
-				targetService.addToBackingServices(backingServices,
-					getTargetForService(request.getServiceDefinition(), request.getPlan()),
-					request.getServiceInstanceId()))
-			.flatMap(backingServices ->
-				servicesParametersTransformationService.transformParameters(backingServices,
-					request.getParameters()))
+		Mono<List<BackingService>> candidateBackingServicesForUpdate =
+			getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap(backingServices ->
+					targetService.addToBackingServices(backingServices,
+						getTargetForService(request.getServiceDefinition(), request.getPlan()),
+						request.getServiceInstanceId()))
+				.flatMap(backingServices ->
+					servicesParametersTransformationService.transformParameters(backingServices,
+						request.getParameters()));
+
+		Mono<List<BackingService>> resultingBackingService;
+		if (request.getPreviousValues() == null || request.getPreviousValues().getPlanId() == null) {
+			//Assuming no plan update was requested
+			resultingBackingService = candidateBackingServicesForUpdate;
+		}
+		else {
+			Plan previousPlan = getServiceDefinitionPlan(request.getServiceDefinition(),
+				request.getPreviousValues().getPlanId()).block();
+
+			Mono<List<BackingService>> previousBackingServices =
+				getBackingServicesForService(request.getServiceDefinition(), previousPlan)
+					.flatMap(backingServices ->
+						targetService.addToBackingServices(backingServices,
+							getTargetForService(request.getServiceDefinition(), previousPlan),
+							request.getServiceInstanceId()))
+					.flatMap(backingServices ->
+						servicesParametersTransformationService.transformParameters(backingServices,
+							request.getParameters()));
+			resultingBackingService = servicesUpdateValidatorService
+				.validatePlanUpdate(previousBackingServices, candidateBackingServicesForUpdate);
+		}
+
+		return resultingBackingService
 			.flatMapMany(backingServicesProvisionService::updateServiceInstance)
 			.doOnRequest(l -> log.debug("Updating backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))

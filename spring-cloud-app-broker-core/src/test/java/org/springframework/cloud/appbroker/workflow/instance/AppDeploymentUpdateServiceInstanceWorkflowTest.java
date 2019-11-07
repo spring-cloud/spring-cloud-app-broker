@@ -25,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -46,13 +47,16 @@ import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
 
 import static java.util.Collections.singletonMap;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class AppDeploymentUpdateServiceInstanceWorkflowTest {
+
+	private static final String SERVICE_INSTANCE_ID = "service-instance-id";
 
 	@Mock
 	private BackingAppDeploymentService appDeploymentService;
@@ -73,12 +77,15 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 
 	private BackingServices backingServices;
 
+	private BackingServices backingServicesPlan2;
+
 	private TargetSpec targetSpec;
 
 	private AppDeploymentUpdateServiceInstanceWorkflow updateServiceInstanceWorkflow;
 
 	@BeforeEach
 	void setUp() {
+		Hooks.onOperatorDebug();
 		backingApps = BackingApplications
 			.builder()
 			.backingApplication(BackingApplication.builder()
@@ -100,6 +107,15 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 				.serviceInstanceName("my-service-instance")
 				.build())
 			.build();
+		backingServicesPlan2 = BackingServices
+			.builder()
+			.backingService(BackingService
+				.builder()
+				.name("my-service")
+				.plan("b-plan")
+				.serviceInstanceName("my-service-instance")
+				.build())
+			.build();
 
 		targetSpec = TargetSpec.builder()
 			.name("TargetSpace")
@@ -113,6 +129,13 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 				.services(backingServices)
 				.target(targetSpec)
 				.build())
+			.service(BrokeredService.builder()
+				.serviceName("service1")
+				.planName("plan2")
+				.apps(backingApps)
+				.services(backingServicesPlan2)
+				.target(targetSpec)
+				.build())
 			.build();
 
 		updateServiceInstanceWorkflow = new AppDeploymentUpdateServiceInstanceWorkflow(
@@ -121,16 +144,16 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			servicesProvisionService,
 			appsParametersTransformationService,
 			servicesParametersTransformationService,
-			targetService);
+			targetService, new BackingServicesUpdateValidatorService());
 	}
 
 	@Test
 	@SuppressWarnings({"unchecked", "UnassignedFluxMonoInstance"})
 	void updateServiceInstanceSucceeds() {
-		UpdateServiceInstanceRequest request = buildRequest("service1", "plan1");
+		UpdateServiceInstanceRequest request = buildRequest("service1", "plan1", null);
 		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
 
-		setupMocks(request);
+		setupMocks(request, backingServices, backingServices);
 
 		StepVerifier
 			.create(updateServiceInstanceWorkflow.update(request, response))
@@ -138,12 +161,12 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		verify(appDeploymentService).update(backingApps, request.getServiceInstanceId());
-		verify(servicesProvisionService).updateServiceInstance(backingServices);
+		then(appDeploymentService).should().update(backingApps, request.getServiceInstanceId());
+		then(servicesProvisionService).should().updateServiceInstance(backingServices);
 
-		final String expectedServiceId = "service-instance-id";
-		verify(targetService).addToBackingServices(backingServices, targetSpec, expectedServiceId);
-		verify(targetService).addToBackingApplications(backingApps, targetSpec, expectedServiceId);
+		final String expectedServiceId = SERVICE_INSTANCE_ID;
+		then(targetService).should().addToBackingServices(backingServices, targetSpec, expectedServiceId);
+		then(targetService).should().addToBackingApplications(backingApps, targetSpec, expectedServiceId);
 
 		verifyNoMoreInteractionsWithServices();
 	}
@@ -151,23 +174,59 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	@Test
 	void updateServiceInstanceWithParametersSucceeds() {
 		UpdateServiceInstanceRequest request = buildRequest("service1", "plan1",
-			singletonMap("ENV_VAR_1", "value from parameters"));
+			singletonMap("ENV_VAR_1", "value from parameters"), null);
 		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
 
-		setupMocks(request);
+		setupMocks(request, backingServices, backingServices);
 
 		StepVerifier
 			.create(updateServiceInstanceWorkflow.update(request, response))
 			.expectNext()
 			.expectNext()
 			.verifyComplete();
+
+		verifyNoMoreInteractionsWithServices();
+	}
+
+	@SuppressWarnings("UnassignedFluxMonoInstance")
+	@Test
+	void updateServiceInstanceWithCompatiblePlanSavesPreviousPlan() {
+		UpdateServiceInstanceRequest request = buildRequest("service1", "plan2", "plan1");
+		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
+
+		BackingServices expectedUpdatedBackingServices = BackingServices
+			.builder()
+			.backingService(BackingService
+				.builder()
+				.name("my-service")
+				.plan("b-plan")
+				.previousPlan("a-plan")
+				.serviceInstanceName("my-service-instance")
+				.build())
+			.build();
+
+
+		setupMocks(request, backingServicesPlan2, expectedUpdatedBackingServices);
+
+		StepVerifier
+			.create(updateServiceInstanceWorkflow.update(request, response))
+			.expectNext()
+			.expectNext()
+			.verifyComplete();
+
+		then(appDeploymentService).should().update(backingApps, request.getServiceInstanceId());
+		then(servicesProvisionService).should().updateServiceInstance(expectedUpdatedBackingServices);
+
+		final String expectedServiceId = SERVICE_INSTANCE_ID;
+		then(targetService).should().addToBackingServices(backingServicesPlan2, targetSpec, expectedServiceId);
+		then(targetService).should().addToBackingApplications(backingApps, targetSpec, expectedServiceId);
 
 		verifyNoMoreInteractionsWithServices();
 	}
 
 	@Test
 	void updateServiceInstanceWithNoAppsDoesNothing() {
-		UpdateServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
+		UpdateServiceInstanceRequest request = buildRequest("unsupported-service", "plan1", null);
 		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
 
 		StepVerifier
@@ -177,24 +236,37 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		verifyNoMoreInteractionsWithServices();
 	}
 
-	private void setupMocks(UpdateServiceInstanceRequest request) {
+	private void setupMocks(UpdateServiceInstanceRequest request, BackingServices backingServices,
+		BackingServices updatedBackingServices) {
 		given(this.appDeploymentService.update(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Flux.just("app1", "app2"));
-		given(this.servicesProvisionService.updateServiceInstance(eq(backingServices)))
+		given(this.servicesProvisionService.updateServiceInstance(eq(updatedBackingServices)))
 			.willReturn(Flux.just("my-service-instance"));
 
 		given(
 			this.appsParametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
-		given(this.servicesParametersTransformationService
-			.transformParameters(eq(backingServices), eq(request.getParameters())))
-			.willReturn(Mono.just(backingServices));
-
-		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
-			.willReturn(Mono.just(backingApps));
+		boolean testingPlanUpdateMakingMultipleCallsWithDifferentArguments = !backingServices
+			.equals(updatedBackingServices);
+		if (testingPlanUpdateMakingMultipleCallsWithDifferentArguments) {
+			given(this.servicesParametersTransformationService
+				.transformParameters(any(BackingServices.class), eq(request.getParameters())))
+				.willAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+			given(this.targetService
+				.addToBackingServices(any(BackingServices.class), eq(targetSpec), eq(request.getServiceInstanceId())))
+				.willAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+		}
+		else {
+			given(this.servicesParametersTransformationService
+				.transformParameters(eq(backingServices), eq(request.getParameters())))
+				.willReturn(Mono.just(backingServices));
+			given(this.targetService
+				.addToBackingServices(eq(backingServices), eq(targetSpec), eq(request.getServiceInstanceId())))
+				.willReturn(Mono.just(backingServices));
+		}
 		given(this.targetService
-			.addToBackingServices(eq(backingServices), eq(targetSpec), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingServices));
+			.addToBackingApplications(eq(backingApps), eq(targetSpec), eq(SERVICE_INSTANCE_ID)))
+			.willReturn(Mono.just(backingApps));
 	}
 
 	private void verifyNoMoreInteractionsWithServices() {
@@ -205,31 +277,39 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		verifyNoMoreInteractions(this.targetService);
 	}
 
-	private UpdateServiceInstanceRequest buildRequest(String serviceName, String planName) {
-		return buildRequest(serviceName, planName, null);
+	private UpdateServiceInstanceRequest buildRequest(String serviceName, String planName, String previousPlan) {
+		return buildRequest(serviceName, planName, null, previousPlan);
 	}
 
 	private UpdateServiceInstanceRequest buildRequest(String serviceName, String planName,
-		Map<String, Object> parameters) {
-		return UpdateServiceInstanceRequest
+		Map<String, Object> parameters, String previousPlan) {
+
+		UpdateServiceInstanceRequest.UpdateServiceInstanceRequestBuilder builder = UpdateServiceInstanceRequest
 			.builder()
-			.serviceInstanceId("service-instance-id")
+			.serviceInstanceId(SERVICE_INSTANCE_ID)
 			.serviceDefinitionId(serviceName + "-id")
 			.planId(planName + "-id")
 			.serviceDefinition(ServiceDefinition.builder()
 				.id(serviceName + "-id")
 				.name(serviceName)
 				.plans(Plan.builder()
-					.id(planName + "-id")
-					.name(planName)
-					.build())
+						.id("plan1-id")
+						.name("plan1")
+						.build(),
+					Plan.builder()
+						.id("plan2-id")
+						.name("plan2")
+						.build())
 				.build())
 			.plan(Plan.builder()
 				.id(planName + "-id")
 				.name(planName)
 				.build())
-			.parameters(parameters == null ? new HashMap<>() : parameters)
-			.build();
+			.parameters(parameters == null ? new HashMap<>() : parameters);
+		if (previousPlan != null) {
+			builder.previousValues(new UpdateServiceInstanceRequest.PreviousValues(previousPlan + "-id"));
+		}
+		return builder.build();
 	}
 
 }

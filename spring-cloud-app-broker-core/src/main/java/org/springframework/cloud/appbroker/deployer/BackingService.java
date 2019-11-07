@@ -29,9 +29,11 @@ public class BackingService {
 
 	private String serviceInstanceName;
 
-	private String name;
+	private String name; // a service definition
 
 	private String plan;
+
+	private String previousPlan; // Necessary to trigger update on plan mutation.
 
 	private Map<String, Object> parameters;
 
@@ -47,6 +49,7 @@ public class BackingService {
 	public BackingService(String serviceInstanceName,
 		String name,
 		String plan,
+		String previousPlan,
 		Map<String, Object> parameters,
 		Map<String, String> properties,
 		List<ParametersTransformerSpec> parametersTransformers,
@@ -54,6 +57,7 @@ public class BackingService {
 		this.serviceInstanceName = serviceInstanceName;
 		this.name = name;
 		this.plan = plan;
+		this.previousPlan = previousPlan;
 		this.parameters = parameters;
 		this.properties = properties;
 		this.parametersTransformers = parametersTransformers;
@@ -82,6 +86,14 @@ public class BackingService {
 
 	public void setPlan(String plan) {
 		this.plan = plan;
+	}
+
+	public String getPreviousPlan() {
+		return previousPlan;
+	}
+
+	public void setPreviousPlan(String previousPlan) {
+		this.previousPlan = previousPlan;
 	}
 
 	public Map<String, Object> getParameters() {
@@ -120,6 +132,22 @@ public class BackingService {
 		this.rebindOnUpdate = rebindOnUpdate;
 	}
 
+	/**
+	 * Returns the requested updated plan if any. This enables to not trigger backing service when no plan update was
+	 * requested.
+	 */
+	public String getUpdatedPlanIfAny() {
+		if (getPlan() == null) {
+			return null; //should only happen in incomplete unit tests
+		}
+
+		boolean planWasUpdated = getPreviousPlan() != null && !getPlan().equals(getPreviousPlan());
+		if (planWasUpdated) {
+			return getPlan();
+		}
+		return null;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -132,6 +160,7 @@ public class BackingService {
 		return Objects.equals(serviceInstanceName, that.serviceInstanceName) &&
 			Objects.equals(name, that.name) &&
 			Objects.equals(plan, that.plan) &&
+			Objects.equals(previousPlan, that.previousPlan) &&
 			Objects.equals(parameters, that.parameters) &&
 			Objects.equals(properties, that.properties) &&
 			Objects.equals(parametersTransformers, that.parametersTransformers) &&
@@ -141,7 +170,8 @@ public class BackingService {
 	@Override
 	public int hashCode() {
 		return Objects
-			.hash(serviceInstanceName, name, plan, parameters, properties, parametersTransformers, rebindOnUpdate);
+			.hash(serviceInstanceName, name, plan, previousPlan, parameters, properties, parametersTransformers,
+				rebindOnUpdate);
 	}
 
 	@Override
@@ -150,6 +180,7 @@ public class BackingService {
 			"serviceInstanceName='" + serviceInstanceName + '\'' +
 			", name='" + name + '\'' +
 			", plan='" + plan + '\'' +
+			", previousPlan='" + previousPlan + '\'' +
 			", parameters=" + parameters +
 			", properties=" + properties +
 			", parametersTransformers=" + parametersTransformers +
@@ -169,6 +200,8 @@ public class BackingService {
 
 		private String plan;
 
+		private String previousPlan;
+
 		private final Map<String, Object> parameters = new HashMap<>();
 
 		private final Map<String, String> properties = new HashMap<>();
@@ -184,6 +217,7 @@ public class BackingService {
 			return this.serviceInstanceName(backingService.getServiceInstanceName())
 				.name(backingService.getName())
 				.plan(backingService.getPlan())
+				.previousPlan(backingService.getPreviousPlan())
 				.parameters(backingService.getParameters())
 				.properties(backingService.getProperties())
 				.parameterTransformers(backingService.getParametersTransformers())
@@ -202,6 +236,11 @@ public class BackingService {
 
 		public BackingServiceBuilder plan(String plan) {
 			this.plan = plan;
+			return this;
+		}
+
+		public BackingServiceBuilder previousPlan(String previousPlan) {
+			this.previousPlan = previousPlan;
 			return this;
 		}
 
@@ -239,7 +278,8 @@ public class BackingService {
 		}
 
 		public BackingService build() {
-			return new BackingService(serviceInstanceName, name, plan, parameters, properties, parameterTransformers,
+			return new BackingService(serviceInstanceName, name, plan, previousPlan, parameters, properties,
+				parameterTransformers,
 				rebindOnUpdate);
 		}
 

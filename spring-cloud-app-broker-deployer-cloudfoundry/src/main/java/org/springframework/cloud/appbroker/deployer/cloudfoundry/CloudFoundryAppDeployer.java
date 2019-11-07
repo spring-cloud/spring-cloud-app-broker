@@ -799,8 +799,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private Duration apiPollingTimeout(Map<String, String> properties) {
 		return Duration.ofSeconds(
 			Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.API_POLLING_TIMEOUT_PROPERTY_KEY))
-			.map(Long::parseLong)
-			.orElse(this.defaultDeploymentProperties.getApiPollingTimeout()));
+				.map(Long::parseLong)
+				.orElse(this.defaultDeploymentProperties.getApiPollingTimeout()));
 	}
 
 	private Integer instances(Map<String, String> properties) {
@@ -1107,20 +1107,26 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private Mono<UpdateServiceInstanceResponse> updateServiceInstanceIfNecessary(UpdateServiceInstanceRequest request,
 		CloudFoundryOperations cloudFoundryOperations) {
 		// service instances can be updated with a change to the plan, name, or parameters;
-		// of these only parameter changes are supported, so don't update if the
-		// backing service instance has no parameters
-		if (request.getParameters() == null || request.getParameters().isEmpty()) {
+		// don't update if the backing service instance update request has no parameters nor plans
+		if ((request.getParameters() == null || request.getParameters().isEmpty())
+			&& request.getPlan() == null) {
 			return Mono.empty();
 		}
 
 		final String serviceInstanceName = request.getServiceInstanceName();
 
-		return cloudFoundryOperations.services().updateInstance(
+		org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.Builder builder =
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
-				.serviceInstanceName(serviceInstanceName)
-				.completionTimeout(apiPollingTimeout(request.getProperties()))
-				.parameters(request.getParameters())
-				.build())
+				.serviceInstanceName(serviceInstanceName);
+
+		if (request.getParameters() != null && !request.getParameters().isEmpty()) {
+			builder.completionTimeout(apiPollingTimeout(request.getProperties()))
+				.parameters(request.getParameters());
+		}
+		if (request.getPlan() != null) {
+			builder.planName(request.getPlan());
+		}
+		return cloudFoundryOperations.services().updateInstance(builder.build())
 			.then(Mono.just(UpdateServiceInstanceResponse.builder()
 				.name(serviceInstanceName)
 				.build()));

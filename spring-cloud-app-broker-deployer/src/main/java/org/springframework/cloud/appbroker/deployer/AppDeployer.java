@@ -40,6 +40,10 @@ public interface AppDeployer {
 		return Mono.empty();
 	}
 
+	/**
+	 * Updates a service instance request
+	 * @return A non-empty UpdateServiceInstanceResponse only if an update was performed
+	 */
 	default Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
 		return Mono.empty();
 	}

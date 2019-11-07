@@ -31,14 +31,18 @@ public class UpdateServiceInstanceRequest {
 
 	private final boolean rebindOnUpdate;
 
+	private final String plan;
+
 	protected UpdateServiceInstanceRequest(String serviceInstanceName,
 		Map<String, Object> parameters,
 		Map<String, String> properties,
-		boolean rebindOnUpdate) {
+		boolean rebindOnUpdate,
+		String plan) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.parameters = parameters;
 		this.properties = properties;
 		this.rebindOnUpdate = rebindOnUpdate;
+		this.plan = plan;
 	}
 
 	public static UpdateServiceInstanceRequestBuilder builder() {
@@ -61,6 +65,10 @@ public class UpdateServiceInstanceRequest {
 		return rebindOnUpdate;
 	}
 
+	public String getPlan() {
+		return plan;
+	}
+
 	public static final class UpdateServiceInstanceRequestBuilder {
 
 		private String serviceInstanceName;
@@ -70,6 +78,8 @@ public class UpdateServiceInstanceRequest {
 		private final Map<String, String> properties = new HashMap<>();
 
 		private boolean rebindOnUpdate;
+
+		private String plan;
 
 		private UpdateServiceInstanceRequestBuilder() {
 		}
@@ -93,6 +103,11 @@ public class UpdateServiceInstanceRequest {
 			return this;
 		}
 
+		public UpdateServiceInstanceRequestBuilder plan(String plan) {
+			this.plan = plan;
+			return this;
+		}
+
 		public UpdateServiceInstanceRequestBuilder properties(Map<String, String> properties) {
 			if (!CollectionUtils.isEmpty(properties)) {
 				this.properties.putAll(properties);
@@ -106,7 +121,7 @@ public class UpdateServiceInstanceRequest {
 		}
 
 		public UpdateServiceInstanceRequest build() {
-			return new UpdateServiceInstanceRequest(serviceInstanceName, parameters, properties, rebindOnUpdate);
+			return new UpdateServiceInstanceRequest(serviceInstanceName, parameters, properties, rebindOnUpdate, plan);
 		}
 
 	}

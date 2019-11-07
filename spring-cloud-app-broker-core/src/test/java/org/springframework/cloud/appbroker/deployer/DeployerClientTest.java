@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +47,8 @@ class DeployerClientTest {
 	private static final String APP_PATH = "classpath:/jars/" + APP_ARCHIVE;
 
 	private static final String SERVICE_INSTANCE_NAME = "helloservice";
+
+	private static final String SERVICE_INSTANCE_PLAN_NAME = "helloplan";
 
 	private DeployerClient deployerClient;
 
@@ -214,7 +217,7 @@ class DeployerClientTest {
 	}
 
 	@Test
-	void shouldUpdateServiceInstance() {
+	void shouldUpdateServiceInstanceOnParamsUpdate() {
 		given(appDeployer.updateServiceInstance(any()))
 			.willReturn(Mono.just(UpdateServiceInstanceResponse.builder()
 				.name(SERVICE_INSTANCE_NAME)
@@ -222,6 +225,8 @@ class DeployerClientTest {
 
 		BackingService service = BackingService.builder()
 			.serviceInstanceName(SERVICE_INSTANCE_NAME)
+			.plan(SERVICE_INSTANCE_PLAN_NAME)
+			.parameters(Maps.newHashMap("some-updated-params-triggering-the-update", "true"))
 			.build();
 
 		// when
@@ -230,8 +235,35 @@ class DeployerClientTest {
 			.expectNext(SERVICE_INSTANCE_NAME)
 			.verifyComplete();
 
-		then(appDeployer).should().updateServiceInstance(argThat(request ->
-			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
+		then(appDeployer).should()
+			.updateServiceInstance(argThat(request -> SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName()) &&
+				request.getPlan() == null));
+	}
+
+	@Test
+	void shouldUpdateServiceInstanceOnPlanUpdate() {
+		// given
+		given(appDeployer.updateServiceInstance(any()))
+			.willReturn(Mono.just(UpdateServiceInstanceResponse.builder()
+				.name(SERVICE_INSTANCE_NAME)
+				.build()));
+
+		BackingService service = BackingService.builder()
+			.serviceInstanceName(SERVICE_INSTANCE_NAME)
+			.plan(SERVICE_INSTANCE_PLAN_NAME)
+			.previousPlan("a-previous-plan")
+			.build();
+
+		// when
+		StepVerifier.create(deployerClient.updateServiceInstance(service))
+			// then
+			.expectNext(SERVICE_INSTANCE_NAME)
+			.verifyComplete();
+
+		then(appDeployer).should().updateServiceInstance(
+			argThat(request -> SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName()) &&
+				SERVICE_INSTANCE_PLAN_NAME.equals(request.getPlan()))
+		);
 	}
 
 	@Test

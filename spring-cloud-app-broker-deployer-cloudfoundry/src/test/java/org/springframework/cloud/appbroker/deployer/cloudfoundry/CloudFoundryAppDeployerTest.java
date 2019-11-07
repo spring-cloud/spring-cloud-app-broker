@@ -681,7 +681,7 @@ class CloudFoundryAppDeployerTest {
 	}
 
 	@Test
-	void updateServiceInstanceUpdatesWithParameters() {
+	void updateServiceInstanceUpdatesWithParametersUpdatesBackingServices() {
 		Map<String, Object> parameters = singletonMap("param1", "value");
 
 		given(operationsServices.updateInstance(
@@ -705,7 +705,7 @@ class CloudFoundryAppDeployerTest {
 	}
 
 	@Test
-	void updateServiceInstanceRebindsWhenRequired() {
+	void updateServiceInstanceRebindsBackingAppWhenRequired() {
 		given(operationsServices.updateInstance(
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
 				.serviceInstanceName("service-instance-name")
@@ -761,7 +761,7 @@ class CloudFoundryAppDeployerTest {
 	}
 
 	@Test
-	void updateServiceInstanceDoesNothingWithoutParameters() {
+	void updateServiceInstanceDoesNothingWithoutParametersNorPlan() {
 		given(operationsServices.updateInstance(
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
 				.serviceInstanceName("service-instance-name")
@@ -777,6 +777,29 @@ class CloudFoundryAppDeployerTest {
 
 		StepVerifier.create(
 			appDeployer.updateServiceInstance(request))
+			.verifyComplete();
+	}
+
+
+	@Test
+	void updateServiceInstanceWithPlanUpdatesBackingService() {
+		given(operationsServices.updateInstance(
+			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.planName("premium")
+				.build()))
+			.willReturn(Mono.empty());
+
+		UpdateServiceInstanceRequest request =
+			UpdateServiceInstanceRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.parameters(emptyMap())
+				.plan("premium")
+				.build();
+
+		StepVerifier.create(
+			appDeployer.updateServiceInstance(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
 			.verifyComplete();
 	}
 

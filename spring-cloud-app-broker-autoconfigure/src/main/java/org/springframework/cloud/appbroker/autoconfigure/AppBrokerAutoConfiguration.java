@@ -67,6 +67,7 @@ import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentUpdateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.workflow.instance.BackingServicesUpdateValidatorService;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.context.annotation.Bean;
@@ -341,23 +342,22 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link UpdateServiceInstanceWorkflow} bean
-	 *
-	 * @param brokeredServices the BrokeredServices bean
-	 * @param backingAppDeploymentService the BackingAppDeploymentService bean
-	 * @param backingServicesProvisionService the BackingServicesProvisionService bean
-	 * @param appsParametersTransformationService the BackingApplicationsParametersTransformationService bean
-	 * @param servicesParametersTransformationService the BackingServicesParametersTransformationService bean
-	 * @param targetService the TargetService bean
+	 * Provide a {@link BackingServicesUpdateValidatorService} bean
 	 * @return the bean
 	 */
+	@Bean
+	public BackingServicesUpdateValidatorService backingServicesUpdateValidatorService() {
+		return new BackingServicesUpdateValidatorService();
+	}
+
 	@Bean
 	public UpdateServiceInstanceWorkflow appDeploymentUpdateServiceInstanceWorkflow(
 		BrokeredServices brokeredServices, BackingAppDeploymentService backingAppDeploymentService,
 		BackingServicesProvisionService backingServicesProvisionService,
 		BackingApplicationsParametersTransformationService appsParametersTransformationService,
 		BackingServicesParametersTransformationService servicesParametersTransformationService,
-		TargetService targetService) {
+		TargetService targetService,
+		BackingServicesUpdateValidatorService backingServicesUpdateValidatorService) {
 
 		return new AppDeploymentUpdateServiceInstanceWorkflow(
 			brokeredServices,
@@ -365,7 +365,7 @@ public class AppBrokerAutoConfiguration {
 			backingServicesProvisionService,
 			appsParametersTransformationService,
 			servicesParametersTransformationService,
-			targetService);
+			targetService, backingServicesUpdateValidatorService);
 	}
 
 	/**

@@ -16,14 +16,15 @@
 
 package org.springframework.cloud.appbroker.extensions.credentials;
 
-import org.springframework.cloud.appbroker.deployer.BackingApplication;
-import org.springframework.cloud.appbroker.deployer.CredentialProviderSpec;
-import org.springframework.cloud.appbroker.extensions.ExtensionLocator;
+import java.util.Collections;
+import java.util.List;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
-import java.util.List;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.CredentialProviderSpec;
+import org.springframework.cloud.appbroker.extensions.ExtensionLocator;
 
 public class CredentialProviderService {
 
@@ -34,7 +35,7 @@ public class CredentialProviderService {
 	}
 
 	public Mono<List<BackingApplication>> addCredentials(List<BackingApplication> backingApplications,
-														 String serviceInstanceGuid) {
+		String serviceInstanceGuid) {
 		return Flux.fromIterable(backingApplications)
 			.flatMap(backingApplication -> {
 				List<CredentialProviderSpec> specs = getSpecsForApplication(backingApplication);
@@ -50,7 +51,7 @@ public class CredentialProviderService {
 	}
 
 	public Mono<List<BackingApplication>> deleteCredentials(List<BackingApplication> backingApplications,
-															String serviceInstanceGuid) {
+		String serviceInstanceGuid) {
 		return Flux.fromIterable(backingApplications)
 			.flatMap(backingApplication -> {
 				List<CredentialProviderSpec> specs = getSpecsForApplication(backingApplication);
@@ -70,4 +71,5 @@ public class CredentialProviderService {
 			? Collections.emptyList()
 			: backingApplication.getCredentialProviders();
 	}
+
 }

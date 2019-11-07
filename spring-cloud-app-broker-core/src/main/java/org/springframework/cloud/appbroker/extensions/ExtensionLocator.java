@@ -16,14 +16,15 @@
 
 package org.springframework.cloud.appbroker.extensions;
 
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+
 public class ExtensionLocator<T> {
+
 	private final Map<String, ExtensionFactory<T, ?>> factoriesByName = new HashMap<>();
 
 	public ExtensionLocator(List<? extends ExtensionFactory<T, ?>> factories) {
@@ -42,14 +43,16 @@ public class ExtensionLocator<T> {
 	private ExtensionFactory<T, ?> getFactoryByName(String name) {
 		if (factoriesByName.containsKey(name)) {
 			return factoriesByName.get(name);
-		} else {
+		}
+		else {
 			throw new ServiceBrokerException("Unknown extension " + name + ". " +
 				"Registered extensions are " + factoriesByName.keySet());
 		}
 	}
 
 	private T getExtensionFromFactory(ExtensionFactory<T, ?> factory,
-									  Map<String, Object> args) {
+		Map<String, Object> args) {
 		return factory.createWithConfig(args);
 	}
+
 }

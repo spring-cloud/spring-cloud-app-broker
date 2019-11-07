@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
+import java.util.List;
+
 import org.cloudfoundry.uaa.UaaClient;
 import org.cloudfoundry.uaa.clients.Clients;
 import org.cloudfoundry.uaa.clients.CreateClientRequest;
@@ -28,15 +30,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientRequest;
-import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientRequest;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.List;
+import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientRequest;
+import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class CloudFoundryOAuth2ClientTest {
@@ -51,7 +52,7 @@ class CloudFoundryOAuth2ClientTest {
 
 	@BeforeEach
 	void setUp() {
-		when(uaaClient.clients()).thenReturn(clients);
+		given(uaaClient.clients()).willReturn(clients);
 
 		oAuth2Client = new CloudFoundryOAuth2Client(uaaClient);
 	}
@@ -79,8 +80,8 @@ class CloudFoundryOAuth2ClientTest {
 				GrantType.PASSWORD, GrantType.IMPLICIT, GrantType.REFRESH_TOKEN)
 			.build();
 
-		when(clients.create(clientsRequest))
-			.thenReturn(Mono.just(clientsResponse));
+		given(clients.create(clientsRequest))
+			.willReturn(Mono.just(clientsResponse));
 
 		CreateOAuth2ClientRequest request = CreateOAuth2ClientRequest.builder()
 			.clientId("test-client")
@@ -117,8 +118,8 @@ class CloudFoundryOAuth2ClientTest {
 				GrantType.PASSWORD, GrantType.IMPLICIT, GrantType.REFRESH_TOKEN)
 			.build();
 
-		when(clients.delete(clientsRequest))
-			.thenReturn(Mono.just(clientsResponse));
+		given(clients.delete(clientsRequest))
+			.willReturn(Mono.just(clientsResponse));
 
 		DeleteOAuth2ClientRequest request = DeleteOAuth2ClientRequest.builder()
 			.clientId("test-client")
@@ -134,8 +135,8 @@ class CloudFoundryOAuth2ClientTest {
 	}
 
 	private void assertResponse(String clientId, String name,
-								List<String> scopes, List<String> authorities,
-								List<String> authorizedGrantTypes) {
+		List<String> scopes, List<String> authorities,
+		List<String> authorizedGrantTypes) {
 		assertThat(clientId).isEqualTo("test-client");
 		assertThat(name).isEqualTo("test-name");
 		assertThat(scopes).contains("auth1", "auth2");
@@ -143,4 +144,5 @@ class CloudFoundryOAuth2ClientTest {
 		assertThat(authorizedGrantTypes).contains(
 			"client_credentials", "authorization_code", "password", "implicit", "refresh_token");
 	}
+
 }

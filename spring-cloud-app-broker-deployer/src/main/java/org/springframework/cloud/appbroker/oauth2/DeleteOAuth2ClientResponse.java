@@ -23,15 +23,20 @@ import java.util.Objects;
 import org.springframework.util.CollectionUtils;
 
 public class DeleteOAuth2ClientResponse {
+
 	private final String clientId;
+
 	private final String clientName;
+
 	private final List<String> scopes;
+
 	private final List<String> authorities;
+
 	private final List<String> grantTypes;
 
-	DeleteOAuth2ClientResponse(String clientId, String clientName,
-							   List<String> scopes, List<String> authorities,
-							   List<String> grantTypes) {
+	protected DeleteOAuth2ClientResponse(String clientId, String clientName,
+		List<String> scopes, List<String> authorities,
+		List<String> grantTypes) {
 		this.clientId = clientId;
 		this.clientName = clientName;
 		this.scopes = scopes;
@@ -95,14 +100,19 @@ public class DeleteOAuth2ClientResponse {
 			'}';
 	}
 
-	public static class DeleteOAuth2ClientResponseBuilder {
+	public static final class DeleteOAuth2ClientResponseBuilder {
+
 		private String clientId;
+
 		private String clientName;
+
 		private final List<String> scopes = new ArrayList<>();
+
 		private final List<String> authorities = new ArrayList<>();
+
 		private final List<String> grantTypes = new ArrayList<>();
 
-		DeleteOAuth2ClientResponseBuilder() {
+		private DeleteOAuth2ClientResponseBuilder() {
 		}
 
 		public DeleteOAuth2ClientResponseBuilder clientId(String clientId) {
@@ -139,5 +149,7 @@ public class DeleteOAuth2ClientResponse {
 		public DeleteOAuth2ClientResponse build() {
 			return new DeleteOAuth2ClientResponse(clientId, clientName, scopes, authorities, grantTypes);
 		}
+
 	}
+
 }

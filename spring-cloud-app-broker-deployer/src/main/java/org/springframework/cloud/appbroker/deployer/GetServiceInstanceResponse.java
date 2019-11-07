@@ -24,7 +24,7 @@ public class GetServiceInstanceResponse {
 
 	private final String plan;
 
-	GetServiceInstanceResponse(String name, String service, String plan) {
+	protected GetServiceInstanceResponse(String name, String service, String plan) {
 		this.name = name;
 		this.service = service;
 		this.plan = plan;
@@ -46,7 +46,7 @@ public class GetServiceInstanceResponse {
 		return plan;
 	}
 
-	public static class CreateServiceInstanceRequestBuilder {
+	public static final class CreateServiceInstanceRequestBuilder {
 
 		private String name;
 
@@ -54,7 +54,7 @@ public class GetServiceInstanceResponse {
 
 		private String plan;
 
-		CreateServiceInstanceRequestBuilder() {
+		private CreateServiceInstanceRequestBuilder() {
 		}
 
 		public CreateServiceInstanceRequestBuilder name(String name) {
@@ -75,6 +75,7 @@ public class GetServiceInstanceResponse {
 		public GetServiceInstanceResponse build() {
 			return new GetServiceInstanceResponse(name, service, plan);
 		}
+
 	}
 
 }

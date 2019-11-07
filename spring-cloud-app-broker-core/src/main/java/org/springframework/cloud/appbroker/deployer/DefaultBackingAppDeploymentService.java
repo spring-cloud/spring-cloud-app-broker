@@ -24,6 +24,7 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 
 public class DefaultBackingAppDeploymentService implements BackingAppDeploymentService {
+
 	private final Logger log = Loggers.getLogger(DefaultBackingAppDeploymentService.class);
 
 	private final DeployerClient deployerClient;
@@ -56,7 +57,8 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 			.doOnRequest(l -> log.debug("Updating applications {}", backingApps))
 			.doOnEach(response -> log.debug("Finished updating application {}", response))
 			.doOnComplete(() -> log.debug("Finished updating application {}", backingApps))
-			.doOnError(exception -> log.error(String.format("Error updating applications %s with error '%s'", backingApps, exception)));
+			.doOnError(exception -> log
+				.error(String.format("Error updating applications %s with error '%s'", backingApps, exception)));
 	}
 
 	@Override
@@ -72,4 +74,5 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 			.doOnError(exception -> log.error(String.format("Error undeploying applications %s with error '%s'",
 				backingApps, exception.getMessage()), exception));
 	}
+
 }

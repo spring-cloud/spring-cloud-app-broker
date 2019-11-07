@@ -30,4 +30,5 @@ public interface ExtensionFactory<T, C> {
 	default String getName() {
 		throw new UnsupportedOperationException("getName() not implemented");
 	}
+
 }

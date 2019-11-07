@@ -62,7 +62,9 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	private BackingServicesProvisionService backingServicesProvisionService;
 
 	private BackingApplications backingApps;
+
 	private BackingServices backingServices;
+
 	private TargetSpec targetSpec;
 
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
@@ -180,4 +182,5 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.build())
 			.build();
 	}
+
 }

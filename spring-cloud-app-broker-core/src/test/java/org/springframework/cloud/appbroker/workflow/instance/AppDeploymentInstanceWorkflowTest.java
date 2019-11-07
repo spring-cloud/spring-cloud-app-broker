@@ -18,19 +18,21 @@ package org.springframework.cloud.appbroker.workflow.instance;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.test.StepVerifier;
+
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
-import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AppDeploymentInstanceWorkflowTest {
 
 	private BackingApplications backingApps;
+
 	private AppDeploymentInstanceWorkflow workflow;
 
 	@BeforeEach
@@ -97,8 +99,8 @@ class AppDeploymentInstanceWorkflowTest {
 		ServiceDefinition serviceDefinition = buildServiceDefinition("unknown-service", "plan1");
 		StepVerifier
 			.create(workflow
-				.getBackingApplicationsForService(serviceDefinition,serviceDefinition.getPlans().get(0)))
-		.verifyComplete();
+				.getBackingApplicationsForService(serviceDefinition, serviceDefinition.getPlans().get(0)))
+			.verifyComplete();
 	}
 
 	@Test
@@ -107,7 +109,7 @@ class AppDeploymentInstanceWorkflowTest {
 		StepVerifier
 			.create(workflow
 				.getBackingApplicationsForService(serviceDefinition, serviceDefinition.getPlans().get(0)))
-		.verifyComplete();
+			.verifyComplete();
 	}
 
 	private ServiceDefinition buildServiceDefinition(String serviceName, String planName) {
@@ -120,4 +122,5 @@ class AppDeploymentInstanceWorkflowTest {
 				.build())
 			.build();
 	}
+
 }

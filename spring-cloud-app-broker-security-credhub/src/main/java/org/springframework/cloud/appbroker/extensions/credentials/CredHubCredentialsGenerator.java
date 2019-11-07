@@ -39,34 +39,37 @@ public class CredHubCredentialsGenerator implements CredentialGenerator {
 
 	@Override
 	public Mono<Tuple2<String, String>> generateUser(String applicationId, String serviceInstanceId, String descriptor,
-													 int length, boolean includeUppercaseAlpha, boolean includeLowercaseAlpha,
-													 boolean includeNumeric, boolean includeSpecial) {
+		int length, boolean includeUppercaseAlpha, boolean includeLowercaseAlpha,
+		boolean includeNumeric, boolean includeSpecial) {
 		return Mono.fromCallable(() -> this.credHubOperations.credentials().generate(UserParametersRequest.builder()
 			.name(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor))
-			.parameters(passwordParameters(length, includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial))
+			.parameters(passwordParameters(length, includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric,
+				includeSpecial))
 			.build()))
-				   .map(CredentialDetails::getValue)
-				   .cast(UserCredential.class)
-				   .map(userCredential -> Tuples.of(userCredential.getUsername(), userCredential.getPassword()));
+			.map(CredentialDetails::getValue)
+			.cast(UserCredential.class)
+			.map(userCredential -> Tuples.of(userCredential.getUsername(), userCredential.getPassword()));
 	}
 
 	@Override
 	public Mono<String> generateString(String applicationId, String serviceInstanceId, String descriptor, int length,
-									   boolean includeUppercaseAlpha, boolean includeLowercaseAlpha, boolean includeNumeric,
-									   boolean includeSpecial) {
+		boolean includeUppercaseAlpha, boolean includeLowercaseAlpha, boolean includeNumeric,
+		boolean includeSpecial) {
 		return Mono.fromCallable(() -> credHubOperations.credentials().generate(PasswordParametersRequest.builder()
 			.name(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor))
-			.parameters(passwordParameters(length, includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric, includeSpecial))
+			.parameters(passwordParameters(length, includeUppercaseAlpha, includeLowercaseAlpha, includeNumeric,
+				includeSpecial))
 			.build()))
-				   .map(CredentialDetails::getValue)
-				   .cast(PasswordCredential.class)
-				   .map(PasswordCredential::getPassword);
+			.map(CredentialDetails::getValue)
+			.cast(PasswordCredential.class)
+			.map(PasswordCredential::getPassword);
 	}
 
 	@Override
 	public Mono<Void> deleteUser(String applicationId, String serviceInstanceId, String descriptor) {
 		return Mono.fromCallable(() -> {
-			this.credHubOperations.credentials().deleteByName(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor));
+			this.credHubOperations.credentials()
+				.deleteByName(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor));
 			return null;
 		});
 	}
@@ -74,14 +77,15 @@ public class CredHubCredentialsGenerator implements CredentialGenerator {
 	@Override
 	public Mono<Void> deleteString(String applicationId, String serviceInstanceId, String descriptor) {
 		return Mono.fromCallable(() -> {
-			this.credHubOperations.credentials().deleteByName(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor));
+			this.credHubOperations.credentials()
+				.deleteByName(new SimpleCredentialName(applicationId, serviceInstanceId, descriptor));
 			return null;
 		});
 	}
 
 	private PasswordParameters passwordParameters(int length, boolean includeUppercaseAlpha,
-												  boolean includeLowercaseAlpha,
-												  boolean includeNumeric, boolean includeSpecial) {
+		boolean includeLowercaseAlpha,
+		boolean includeNumeric, boolean includeSpecial) {
 		return PasswordParameters
 			.builder()
 			.length(length)
@@ -91,4 +95,5 @@ public class CredHubCredentialsGenerator implements CredentialGenerator {
 			.includeSpecial(includeSpecial)
 			.build();
 	}
+
 }

@@ -25,14 +25,18 @@ import org.springframework.util.CollectionUtils;
 public class CreateOAuth2ClientResponse {
 
 	private final String clientId;
+
 	private final String clientName;
+
 	private final List<String> scopes;
+
 	private final List<String> authorities;
+
 	private final List<String> grantTypes;
 
-	CreateOAuth2ClientResponse(String clientId, String clientName,
-							   List<String> scopes, List<String> authorities,
-							   List<String> grantTypes) {
+	protected CreateOAuth2ClientResponse(String clientId, String clientName,
+		List<String> scopes, List<String> authorities,
+		List<String> grantTypes) {
 
 		this.clientId = clientId;
 		this.clientName = clientName;
@@ -97,14 +101,19 @@ public class CreateOAuth2ClientResponse {
 			'}';
 	}
 
-	public static class CreateOAuth2ClientResponseBuilder {
+	public static final class CreateOAuth2ClientResponseBuilder {
+
 		private String clientId;
+
 		private String clientName;
+
 		private final List<String> scopes = new ArrayList<>();
+
 		private final List<String> authorities = new ArrayList<>();
+
 		private final List<String> grantTypes = new ArrayList<>();
 
-		CreateOAuth2ClientResponseBuilder() {
+		private CreateOAuth2ClientResponseBuilder() {
 		}
 
 		public CreateOAuth2ClientResponseBuilder clientId(String clientId) {
@@ -141,5 +150,7 @@ public class CreateOAuth2ClientResponse {
 		public CreateOAuth2ClientResponse build() {
 			return new CreateOAuth2ClientResponse(clientId, clientName, scopes, authorities, grantTypes);
 		}
+
 	}
+
 }

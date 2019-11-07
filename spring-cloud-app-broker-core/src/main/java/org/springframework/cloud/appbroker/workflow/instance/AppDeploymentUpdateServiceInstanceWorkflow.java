@@ -34,24 +34,27 @@ import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInsta
 import org.springframework.core.annotation.Order;
 
 @Order(0)
-public class AppDeploymentUpdateServiceInstanceWorkflow
-	extends AppDeploymentInstanceWorkflow
+public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentInstanceWorkflow
 	implements UpdateServiceInstanceWorkflow {
 
 	private final Logger log = Loggers.getLogger(AppDeploymentUpdateServiceInstanceWorkflow.class);
 
 	private final BackingAppDeploymentService deploymentService;
+
 	private final BackingServicesProvisionService backingServicesProvisionService;
+
 	private final BackingApplicationsParametersTransformationService appsParametersTransformationService;
+
 	private final BackingServicesParametersTransformationService servicesParametersTransformationService;
+
 	private final TargetService targetService;
 
 	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
-													  BackingAppDeploymentService deploymentService,
-													  BackingServicesProvisionService backingServicesProvisionService,
-													  BackingApplicationsParametersTransformationService appsParametersTransformationService,
-													  BackingServicesParametersTransformationService servicesParametersTransformationService,
-													  TargetService targetService) {
+		BackingAppDeploymentService deploymentService,
+		BackingServicesProvisionService backingServicesProvisionService,
+		BackingApplicationsParametersTransformationService appsParametersTransformationService,
+		BackingServicesParametersTransformationService servicesParametersTransformationService,
+		TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.backingServicesProvisionService = backingServicesProvisionService;
@@ -60,6 +63,7 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 		this.targetService = targetService;
 	}
 
+	@Override
 	public Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
 		return updateBackingServices(request)
 			.thenMany(updateBackingApplications(request))
@@ -81,7 +85,8 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 			.doOnComplete(() -> log.debug("Finished updating backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnError(exception -> log.error(String.format("Error updating backing services for %s/%s with error '%s'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
+				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
+				exception));
 	}
 
 	private Flux<String> updateBackingApplications(UpdateServiceInstanceRequest request) {
@@ -97,8 +102,10 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished updating backing applications for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error(String.format("Error updating backing applications for %s/%s with error '%s'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()), exception));
+			.doOnError(
+				exception -> log.error(String.format("Error updating backing applications for %s/%s with error '%s'",
+					request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
+					exception));
 	}
 
 	@Override
@@ -108,7 +115,8 @@ public class AppDeploymentUpdateServiceInstanceWorkflow
 
 	@Override
 	public Mono<UpdateServiceInstanceResponseBuilder> buildResponse(UpdateServiceInstanceRequest request,
-																	UpdateServiceInstanceResponseBuilder responseBuilder) {
+		UpdateServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder.async(true));
 	}
+
 }

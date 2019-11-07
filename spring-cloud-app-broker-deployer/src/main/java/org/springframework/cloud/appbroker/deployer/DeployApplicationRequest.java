@@ -37,9 +37,9 @@ public class DeployApplicationRequest {
 
 	private final String serviceInstanceId;
 
-	DeployApplicationRequest(String name, String path, Map<String, String> properties,
-							 Map<String, Object> environment, List<String> services,
-							 String serviceInstanceId) {
+	protected DeployApplicationRequest(String name, String path, Map<String, String> properties,
+		Map<String, Object> environment, List<String> services,
+		String serviceInstanceId) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
@@ -76,16 +76,21 @@ public class DeployApplicationRequest {
 		return new DeployApplicationRequestBuilder();
 	}
 
-	public static class DeployApplicationRequestBuilder {
+	public static final class DeployApplicationRequestBuilder {
 
 		private String name;
+
 		private String path;
+
 		private final Map<String, String> properties = new HashMap<>();
+
 		private final Map<String, Object> environment = new HashMap<>();
+
 		private final List<String> services = new ArrayList<>();
+
 		private String serviceInstanceId;
 
-		DeployApplicationRequestBuilder() {
+		private DeployApplicationRequestBuilder() {
 		}
 
 		public DeployApplicationRequestBuilder name(String name) {
@@ -148,6 +153,7 @@ public class DeployApplicationRequest {
 		public DeployApplicationRequest build() {
 			return new DeployApplicationRequest(name, path, properties, environment, services, serviceInstanceId);
 		}
+
 	}
 
 }

@@ -38,24 +38,25 @@ class DefaultBackingServicesProvisionServiceTest {
 	private DeployerClient deployerClient;
 
 	private BackingServicesProvisionService backingServicesProvisionService;
+
 	private BackingServices backingServices;
 
 	@BeforeEach
 	void setUp() {
 		backingServicesProvisionService = new DefaultBackingServicesProvisionService(deployerClient);
 		backingServices = BackingServices.builder()
-										 .backingService(BackingService.builder()
-																	   .serviceInstanceName("si1")
-																	   .name("service1")
-																	   .plan("standard")
-																	   .parameters(Collections.singletonMap("key1", "value1"))
-																	   .build())
-										 .backingService(BackingService.builder()
-																	   .serviceInstanceName("si2")
-																	   .name("service2")
-																	   .plan("free")
-																	   .build())
-										 .build();
+			.backingService(BackingService.builder()
+				.serviceInstanceName("si1")
+				.name("service1")
+				.plan("standard")
+				.parameters(Collections.singletonMap("key1", "value1"))
+				.build())
+			.backingService(BackingService.builder()
+				.serviceInstanceName("si2")
+				.name("service2")
+				.plan("free")
+				.build())
+			.build();
 	}
 
 	@Test

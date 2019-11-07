@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.oauth2;
 import reactor.core.publisher.Mono;
 
 public interface OAuth2Client {
+
 	default Mono<CreateOAuth2ClientResponse> createClient(CreateOAuth2ClientRequest request) {
 		return Mono.empty();
 	}
@@ -26,4 +27,5 @@ public interface OAuth2Client {
 	default Mono<DeleteOAuth2ClientResponse> deleteClient(DeleteOAuth2ClientRequest request) {
 		return Mono.empty();
 	}
+
 }

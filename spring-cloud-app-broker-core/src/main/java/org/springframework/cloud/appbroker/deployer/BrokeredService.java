@@ -23,15 +23,22 @@ import org.springframework.util.CollectionUtils;
 public class BrokeredService {
 
 	private String serviceName;
+
 	private String planName;
+
 	private BackingApplications apps;
+
 	private BackingServices services;
+
 	private TargetSpec target;
 
 	private BrokeredService() {
+		super();
 	}
 
-	BrokeredService(String serviceName, String planName, BackingApplications apps, BackingServices services, TargetSpec target) {
+	public BrokeredService(String serviceName, String planName, BackingApplications apps, BackingServices services,
+		TargetSpec target) {
+		super();
 		this.serviceName = serviceName;
 		this.planName = planName;
 		this.apps = apps;
@@ -118,9 +125,13 @@ public class BrokeredService {
 	public static class BrokeredServiceBuilder {
 
 		private String id;
+
 		private String planId;
+
 		private BackingApplications backingApplications;
+
 		private BackingServices backingServices;
+
 		private TargetSpec target;
 
 		public BrokeredServiceBuilder serviceName(String id) {
@@ -159,5 +170,7 @@ public class BrokeredService {
 		public BrokeredService build() {
 			return new BrokeredService(id, planId, backingApplications, backingServices, target);
 		}
+
 	}
+
 }

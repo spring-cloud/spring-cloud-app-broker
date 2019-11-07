@@ -24,12 +24,13 @@ import org.springframework.util.CollectionUtils;
 public class CredentialProviderSpec {
 
 	private String name;
+
 	private Map<String, Object> args;
 
 	private CredentialProviderSpec() {
 	}
 
-	CredentialProviderSpec(String name, Map<String, Object> args) {
+	public CredentialProviderSpec(String name, Map<String, Object> args) {
 		this.name = name;
 		this.args = args;
 	}
@@ -54,13 +55,13 @@ public class CredentialProviderSpec {
 		return new CredentialProviderSpecBuilder();
 	}
 
-	public static class CredentialProviderSpecBuilder {
+	public static final class CredentialProviderSpecBuilder {
 
 		private String name;
 
 		private final Map<String, Object> args = new LinkedHashMap<>();
 
-		CredentialProviderSpecBuilder() {
+		private CredentialProviderSpecBuilder() {
 		}
 
 		public CredentialProviderSpecBuilder spec(CredentialProviderSpec spec) {
@@ -90,5 +91,7 @@ public class CredentialProviderSpec {
 		public CredentialProviderSpec build() {
 			return new CredentialProviderSpec(name, args);
 		}
+
 	}
+
 }

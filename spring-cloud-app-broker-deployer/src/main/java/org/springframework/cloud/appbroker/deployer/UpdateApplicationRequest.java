@@ -37,9 +37,9 @@ public class UpdateApplicationRequest {
 
 	private final String serviceInstanceId;
 
-	UpdateApplicationRequest(String name, String path, Map<String, String> properties,
-	                         Map<String, Object> environment, List<String> services,
-							 String serviceInstanceId) {
+	protected UpdateApplicationRequest(String name, String path, Map<String, String> properties,
+		Map<String, Object> environment, List<String> services,
+		String serviceInstanceId) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
@@ -76,16 +76,21 @@ public class UpdateApplicationRequest {
 		return new UpdateApplicationRequestBuilder();
 	}
 
-	public static class UpdateApplicationRequestBuilder {
+	public static final class UpdateApplicationRequestBuilder {
 
 		private String name;
+
 		private String path;
+
 		private final Map<String, String> properties = new HashMap<>();
+
 		private final Map<String, Object> environment = new HashMap<>();
+
 		private final List<String> services = new ArrayList<>();
+
 		private String serviceInstanceId;
 
-		UpdateApplicationRequestBuilder() {
+		private UpdateApplicationRequestBuilder() {
 		}
 
 		public UpdateApplicationRequestBuilder name(String name) {
@@ -148,6 +153,7 @@ public class UpdateApplicationRequest {
 		public UpdateApplicationRequest build() {
 			return new UpdateApplicationRequest(name, path, properties, environment, services, serviceInstanceId);
 		}
+
 	}
 
 }

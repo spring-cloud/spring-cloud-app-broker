@@ -28,23 +28,29 @@ import org.springframework.util.CollectionUtils;
 public class BackingService {
 
 	private String serviceInstanceName;
+
 	private String name;
+
 	private String plan;
+
 	private Map<String, Object> parameters;
+
 	private Map<String, String> properties;
+
 	private List<ParametersTransformerSpec> parametersTransformers;
+
 	private boolean rebindOnUpdate;
 
 	private BackingService() {
 	}
 
-	BackingService(String serviceInstanceName,
-				   String name,
-				   String plan,
-				   Map<String, Object> parameters,
-				   Map<String, String> properties,
-				   List<ParametersTransformerSpec> parametersTransformers,
-				   boolean rebindOnUpdate) {
+	public BackingService(String serviceInstanceName,
+		String name,
+		String plan,
+		Map<String, Object> parameters,
+		Map<String, String> properties,
+		List<ParametersTransformerSpec> parametersTransformers,
+		boolean rebindOnUpdate) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.name = name;
 		this.plan = plan;
@@ -134,7 +140,8 @@ public class BackingService {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(serviceInstanceName, name, plan, parameters, properties, parametersTransformers, rebindOnUpdate);
+		return Objects
+			.hash(serviceInstanceName, name, plan, parameters, properties, parametersTransformers, rebindOnUpdate);
 	}
 
 	@Override
@@ -157,14 +164,20 @@ public class BackingService {
 	public static final class BackingServiceBuilder {
 
 		private String serviceInstanceName;
+
 		private String name;
+
 		private String plan;
+
 		private final Map<String, Object> parameters = new HashMap<>();
+
 		private final Map<String, String> properties = new HashMap<>();
+
 		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
+
 		private boolean rebindOnUpdate;
 
-		BackingServiceBuilder() {
+		private BackingServiceBuilder() {
 		}
 
 		public BackingServiceBuilder backingService(BackingService backingService) {
@@ -226,8 +239,10 @@ public class BackingService {
 		}
 
 		public BackingService build() {
-			return new BackingService(serviceInstanceName, name, plan, parameters, properties, parameterTransformers, rebindOnUpdate);
+			return new BackingService(serviceInstanceName, name, plan, parameters, properties, parameterTransformers,
+				rebindOnUpdate);
 		}
+
 	}
 
 }

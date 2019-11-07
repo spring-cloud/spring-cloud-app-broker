@@ -75,7 +75,9 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	private TargetService targetService;
 
 	private BackingApplications backingApps;
+
 	private BackingServices backingServices;
+
 	private TargetSpec targetSpec;
 
 	private CreateServiceInstanceWorkflow createServiceInstanceWorkflow;
@@ -160,7 +162,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	@SuppressWarnings("UnassignedFluxMonoInstance")
 	void createServiceInstanceWithParametersSucceeds() {
 		Map<String, Object> parameters = singletonMap("ENV_VAR_1", "value from parameters");
-		
+
 		CreateServiceInstanceRequest request = buildRequest("service1", "plan1", parameters);
 		CreateServiceInstanceResponse response = CreateServiceInstanceResponse.builder().build();
 
@@ -202,17 +204,21 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		given(this.servicesProvisionService.createServiceInstance(eq(backingServices)))
 			.willReturn(Flux.just("my-service-instance"));
 
-		given(this.appsParametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
+		given(
+			this.appsParametersTransformationService.transformParameters(eq(backingApps), eq(request.getParameters())))
 			.willReturn(Mono.just(backingApps));
-		given(this.servicesParametersTransformationService.transformParameters(eq(backingServices), eq(request.getParameters())))
+		given(this.servicesParametersTransformationService
+			.transformParameters(eq(backingServices), eq(request.getParameters())))
 			.willReturn(Mono.just(backingServices));
 
 		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
 
-		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq(request.getServiceInstanceId())))
+		given(this.targetService
+			.addToBackingApplications(eq(backingApps), eq(targetSpec), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
-		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq(request.getServiceInstanceId())))
+		given(this.targetService
+			.addToBackingServices(eq(backingServices), eq(targetSpec), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingServices));
 	}
 
@@ -230,7 +236,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	}
 
 	private CreateServiceInstanceRequest buildRequest(String serviceName, String planName,
-													  Map<String, Object> parameters) {
+		Map<String, Object> parameters) {
 		return CreateServiceInstanceRequest
 			.builder()
 			.serviceInstanceId("service-instance-id")
@@ -252,4 +258,5 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.parameters(parameters == null ? new HashMap<>() : parameters)
 			.build();
 	}
+
 }

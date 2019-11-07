@@ -21,20 +21,29 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.util.CollectionUtils;
+
 public class CreateOAuth2ClientRequest {
 
 	private final String clientId;
+
 	private final String clientSecret;
+
 	private final String clientName;
+
 	private final List<String> scopes;
+
 	private final List<String> authorities;
+
 	private final List<String> grantTypes;
+
 	private final String identityZoneSubdomain;
+
 	private final String identityZoneId;
 
-	CreateOAuth2ClientRequest(String clientId, String clientSecret, String clientName,
-							  List<String> scopes, List<String> authorities, List<String> grantTypes,
-							  String identityZoneSubdomain, String identityZoneId) {
+	protected CreateOAuth2ClientRequest(String clientId, String clientSecret, String clientName,
+		List<String> scopes, List<String> authorities, List<String> grantTypes,
+		String identityZoneSubdomain, String identityZoneId) {
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
 		this.clientName = clientName;
@@ -120,18 +129,25 @@ public class CreateOAuth2ClientRequest {
 			'}';
 	}
 
-	public static class CreateOAuth2ClientRequestBuilder {
+	public static final class CreateOAuth2ClientRequestBuilder {
 
 		private String clientId;
+
 		private String clientSecret;
+
 		private String clientName;
+
 		private final List<String> scopes = new ArrayList<>();
+
 		private final List<String> authorities = new ArrayList<>();
+
 		private final List<String> grantTypes = new ArrayList<>();
+
 		private String identityZoneSubdomain;
+
 		private String identityZoneId;
 
-		CreateOAuth2ClientRequestBuilder() {
+		private CreateOAuth2ClientRequestBuilder() {
 		}
 
 		public CreateOAuth2ClientRequestBuilder clientId(String clientId) {
@@ -149,24 +165,39 @@ public class CreateOAuth2ClientRequest {
 			return this;
 		}
 
+		public CreateOAuth2ClientRequestBuilder scopes(List<String> scopes) {
+			if (!CollectionUtils.isEmpty(scopes)) {
+				this.scopes.addAll(scopes);
+			}
+			return this;
+		}
+
 		public CreateOAuth2ClientRequestBuilder scopes(String... scopes) {
-			if (scopes != null) {
-				this.scopes.addAll(Arrays.asList(scopes));
+			this.scopes(Arrays.asList(scopes));
+			return this;
+		}
+
+		public CreateOAuth2ClientRequestBuilder authorities(List<String> authorities) {
+			if (!CollectionUtils.isEmpty(authorities)) {
+				this.authorities.addAll(authorities);
 			}
 			return this;
 		}
 
 		public CreateOAuth2ClientRequestBuilder authorities(String... authorities) {
-			if (authorities != null) {
-				this.authorities.addAll(Arrays.asList(authorities));
+			this.authorities(Arrays.asList(authorities));
+			return this;
+		}
+
+		public CreateOAuth2ClientRequestBuilder grantTypes(List<String> grantTypes) {
+			if (!CollectionUtils.isEmpty(grantTypes)) {
+				this.grantTypes.addAll(grantTypes);
 			}
 			return this;
 		}
 
 		public CreateOAuth2ClientRequestBuilder grantTypes(String... grantTypes) {
-			if (grantTypes != null) {
-				this.grantTypes.addAll(Arrays.asList(grantTypes));
-			}
+			this.grantTypes(Arrays.asList(grantTypes));
 			return this;
 		}
 
@@ -185,5 +216,7 @@ public class CreateOAuth2ClientRequest {
 				scopes, authorities, grantTypes,
 				identityZoneSubdomain, identityZoneId);
 		}
+
 	}
+
 }

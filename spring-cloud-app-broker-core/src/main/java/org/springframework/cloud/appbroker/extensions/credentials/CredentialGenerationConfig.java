@@ -18,10 +18,15 @@ package org.springframework.cloud.appbroker.extensions.credentials;
 
 @SuppressWarnings("WeakerAccess")
 public class CredentialGenerationConfig {
+
 	private int length;
+
 	private boolean includeUppercaseAlpha = true;
+
 	private boolean includeLowercaseAlpha = true;
+
 	private boolean includeNumeric = true;
+
 	private boolean includeSpecial = true;
 
 	public int getLength() {
@@ -63,4 +68,5 @@ public class CredentialGenerationConfig {
 	public void setIncludeSpecial(boolean includeSpecial) {
 		this.includeSpecial = includeSpecial;
 	}
+
 }

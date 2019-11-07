@@ -41,7 +41,7 @@ public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstan
 			.build();
 	}
 
-	static class Config {
+	public static class Config {
 	}
 
 }

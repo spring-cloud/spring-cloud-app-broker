@@ -16,15 +16,16 @@
 
 package org.springframework.cloud.appbroker.workflow.binding;
 
+import reactor.core.publisher.Mono;
+import reactor.util.Logger;
+import reactor.util.Loggers;
+
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceBindingWorkflow;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder;
 import org.springframework.core.annotation.Order;
 import org.springframework.credhub.core.CredHubOperations;
 import org.springframework.credhub.support.CredentialName;
-import reactor.core.publisher.Mono;
-import reactor.util.Logger;
-import reactor.util.Loggers;
 
 @Order(50)
 public class CredHubPersistingDeleteServiceInstanceBindingWorkflow
@@ -42,13 +43,16 @@ public class CredHubPersistingDeleteServiceInstanceBindingWorkflow
 
 	@Override
 	public Mono<DeleteServiceInstanceBindingResponseBuilder> buildResponse(DeleteServiceInstanceBindingRequest request,
-																		   DeleteServiceInstanceBindingResponseBuilder responseBuilder) {
+		DeleteServiceInstanceBindingResponseBuilder responseBuilder) {
 		return buildCredentialName(request.getServiceDefinitionId(), request.getBindingId())
 			.filter(this::credentialExists)
 			.flatMap(credentialName -> deleteBindingCredentials(credentialName)
-					.doOnRequest(l -> LOG.debug("Deleting binding credentials with name '{}' in CredHub", credentialName.getName()))
-					.doOnSuccess(r -> LOG.debug("Finished deleting binding credentials with name '{}' in CredHub", credentialName.getName()))
-					.doOnError(exception -> LOG.error(String.format("Error deleting binding credentials with name '%s' in CredHub with error: '%s'",
+				.doOnRequest(
+					l -> LOG.debug("Deleting binding credentials with name '{}' in CredHub", credentialName.getName()))
+				.doOnSuccess(r -> LOG
+					.debug("Finished deleting binding credentials with name '{}' in CredHub", credentialName.getName()))
+				.doOnError(exception -> LOG.error(
+					String.format("Error deleting binding credentials with name '%s' in CredHub with error: '%s'",
 						credentialName.getName(), exception.getMessage()), exception)))
 			.thenReturn(responseBuilder);
 	}

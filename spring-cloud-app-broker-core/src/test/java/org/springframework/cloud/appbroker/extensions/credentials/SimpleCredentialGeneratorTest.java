@@ -28,28 +28,28 @@ class SimpleCredentialGeneratorTest {
 		SimpleCredentialGenerator generator = new SimpleCredentialGenerator();
 
 		StepVerifier.create(generator.generateString(null, null, null, 12, true, false, false, false))
-					.assertNext(s -> assertThat(s).matches("^[A-Z]{12}$"))
-					.verifyComplete();
+			.assertNext(s -> assertThat(s).matches("^[A-Z]{12}$"))
+			.verifyComplete();
 
 		StepVerifier.create(generator.generateString(null, null, null, 12, false, true, false, false))
-					.assertNext(s -> assertThat(s).matches("^[a-z]{12}$"))
-					.verifyComplete();
+			.assertNext(s -> assertThat(s).matches("^[a-z]{12}$"))
+			.verifyComplete();
 
 		StepVerifier.create(generator.generateString(null, null, null, 12, false, false, true, false))
-					.assertNext(s -> assertThat(s).matches("^[0-9]{12}$"))
-					.verifyComplete();
+			.assertNext(s -> assertThat(s).matches("^[0-9]{12}$"))
+			.verifyComplete();
 
 		StepVerifier.create(generator.generateString(null, null, null, 12, false, false, false, true))
-					.assertNext(s -> assertThat(s).matches("^[\\p{Punct}]{12}$"))
-					.verifyComplete();
+			.assertNext(s -> assertThat(s).matches("^[\\p{Punct}]{12}$"))
+			.verifyComplete();
 
 		StepVerifier.create(generator.generateString(null, null, null, 12, true, true, true, true))
-					.assertNext(s -> assertThat(s).matches("^[a-zA-Z0-9\\p{Punct}]{12}$"))
-					.verifyComplete();
+			.assertNext(s -> assertThat(s).matches("^[a-zA-Z0-9\\p{Punct}]{12}$"))
+			.verifyComplete();
 
 		StepVerifier.create(generator.generateString(null, null, null, 12, false, false, false, false))
-					.assertNext(s -> assertThat(s).matches("^[a-zA-Z0-9\\p{Punct}]{12}$"))
-					.verifyComplete();
+			.assertNext(s -> assertThat(s).matches("^[a-zA-Z0-9\\p{Punct}]{12}$"))
+			.verifyComplete();
 	}
 
 	@Test
@@ -57,10 +57,11 @@ class SimpleCredentialGeneratorTest {
 		SimpleCredentialGenerator generator = new SimpleCredentialGenerator();
 
 		StepVerifier.create(generator.generateUser(null, null, null, 10, true, true, true, true))
-					.assertNext(user -> {
-						assertThat(user.getT1().length()).isEqualTo(10);
-						assertThat(user.getT2().length()).isEqualTo(10);
-					})
-					.verifyComplete();
+			.assertNext(user -> {
+				assertThat(user.getT1().length()).isEqualTo(10);
+				assertThat(user.getT2().length()).isEqualTo(10);
+			})
+			.verifyComplete();
 	}
+
 }

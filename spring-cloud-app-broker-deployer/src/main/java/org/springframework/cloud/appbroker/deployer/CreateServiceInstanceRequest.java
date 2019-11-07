@@ -24,16 +24,20 @@ import org.springframework.util.CollectionUtils;
 public class CreateServiceInstanceRequest {
 
 	private final String serviceInstanceName;
+
 	private final String name;
+
 	private final String plan;
+
 	private final Map<String, Object> parameters;
+
 	private final Map<String, String> properties;
 
-	CreateServiceInstanceRequest(String serviceInstanceName,
-								 String name,
-								 String plan,
-								 Map<String, Object> parameters,
-								 Map<String, String> properties) {
+	protected CreateServiceInstanceRequest(String serviceInstanceName,
+		String name,
+		String plan,
+		Map<String, Object> parameters,
+		Map<String, String> properties) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.name = name;
 		this.plan = plan;
@@ -65,15 +69,19 @@ public class CreateServiceInstanceRequest {
 		return properties;
 	}
 
-	public static class CreateServiceInstanceRequestBuilder {
+	public static final class CreateServiceInstanceRequestBuilder {
 
 		private String serviceInstanceName;
+
 		private String name;
+
 		private String plan;
+
 		private final Map<String, Object> parameters = new HashMap<>();
+
 		private final Map<String, String> properties = new HashMap<>();
 
-		CreateServiceInstanceRequestBuilder() {
+		private CreateServiceInstanceRequestBuilder() {
 		}
 
 		public CreateServiceInstanceRequestBuilder serviceInstanceName(String serviceInstanceName) {
@@ -115,6 +123,7 @@ public class CreateServiceInstanceRequest {
 		public CreateServiceInstanceRequest build() {
 			return new CreateServiceInstanceRequest(serviceInstanceName, name, plan, parameters, properties);
 		}
+
 	}
 
 }

@@ -29,7 +29,7 @@ public class GetServiceInstanceRequest {
 
 	private final Map<String, String> properties;
 
-	GetServiceInstanceRequest(String name, String serviceInstanceId, Map<String, String> properties) {
+	protected GetServiceInstanceRequest(String name, String serviceInstanceId, Map<String, String> properties) {
 		this.name = name;
 		this.serviceInstanceId = serviceInstanceId;
 		this.properties = properties;
@@ -51,7 +51,7 @@ public class GetServiceInstanceRequest {
 		return properties;
 	}
 
-	public static class GetServiceInstanceRequestBuilder {
+	public static final class GetServiceInstanceRequestBuilder {
 
 		private String name;
 
@@ -59,7 +59,7 @@ public class GetServiceInstanceRequest {
 
 		private final Map<String, String> properties = new HashMap<>();
 
-		GetServiceInstanceRequestBuilder() {
+		private GetServiceInstanceRequestBuilder() {
 		}
 
 		public GetServiceInstanceRequestBuilder name(String name) {
@@ -84,4 +84,5 @@ public class GetServiceInstanceRequest {
 		}
 
 	}
+
 }

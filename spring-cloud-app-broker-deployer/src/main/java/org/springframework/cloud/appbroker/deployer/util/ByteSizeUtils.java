@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.appbroker.deployer.util;
 
-import org.springframework.util.StringUtils;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.springframework.util.StringUtils;
 
 /**
  * Utility class for dealing with parseable byte sizes, such as memory and disk limits.
@@ -28,7 +28,8 @@ import java.util.regex.Pattern;
  */
 public final class ByteSizeUtils {
 
-	private static final Pattern SIZE_PATTERN = Pattern.compile("(?<amount>\\d+)(?<unit>([mg])?)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern SIZE_PATTERN = Pattern
+		.compile("(?<amount>\\d+)(?<unit>([mg])?)", Pattern.CASE_INSENSITIVE);
 
 	private ByteSizeUtils() {
 	}
@@ -41,7 +42,7 @@ public final class ByteSizeUtils {
 		if (!StringUtils.hasText(text)) {
 			return null;
 		}
-		
+
 		Matcher matcher = SIZE_PATTERN.matcher(text);
 		if (!matcher.matches()) {
 			throw new IllegalArgumentException(String.format("Could not parse '%s' as a byte size." +
@@ -53,4 +54,5 @@ public final class ByteSizeUtils {
 		}
 		return size;
 	}
+
 }

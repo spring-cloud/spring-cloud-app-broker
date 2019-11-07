@@ -24,9 +24,10 @@ import org.springframework.util.CollectionUtils;
 public class DeleteServiceInstanceRequest {
 
 	private final String serviceInstanceName;
+
 	private final Map<String, String> properties;
 
-	DeleteServiceInstanceRequest(String serviceInstanceName, Map<String, String> properties) {
+	protected DeleteServiceInstanceRequest(String serviceInstanceName, Map<String, String> properties) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.properties = properties;
 	}
@@ -43,12 +44,13 @@ public class DeleteServiceInstanceRequest {
 		return properties;
 	}
 
-	public static class DeleteServiceInstanceRequestBuilder {
+	public static final class DeleteServiceInstanceRequestBuilder {
 
 		private String serviceInstanceName;
+
 		private final Map<String, String> properties = new HashMap<>();
 
-		DeleteServiceInstanceRequestBuilder() {
+		private DeleteServiceInstanceRequestBuilder() {
 		}
 
 		public DeleteServiceInstanceRequestBuilder serviceInstanceName(String name) {
@@ -68,4 +70,5 @@ public class DeleteServiceInstanceRequest {
 		}
 
 	}
+
 }

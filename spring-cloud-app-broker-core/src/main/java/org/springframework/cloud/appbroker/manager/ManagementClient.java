@@ -24,7 +24,7 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 
 public class ManagementClient {
 
-	private final Logger log = Loggers.getLogger(ManagementClient.class);
+	private static final Logger LOG = Loggers.getLogger(ManagementClient.class);
 
 	private final AppManager appManager;
 
@@ -32,51 +32,52 @@ public class ManagementClient {
 		this.appManager = appManager;
 	}
 
-	Mono<Void> start(BackingApplication backingApplication) {
+	public Mono<Void> start(BackingApplication backingApplication) {
 		return Mono.justOrEmpty(backingApplication)
 			.flatMap(backingApp -> appManager.start(StartApplicationRequest.builder()
 				.name(backingApp.getName())
 				.properties(backingApp.getProperties())
 				.build())
-				.doOnRequest(l -> log.debug("Starting application {}", backingApp))
-				.doOnSuccess(response -> log.debug("Finished starting application {}", backingApp))
-				.doOnError(exception -> log.error(String.format("Error starting application %s with error '%s'",
+				.doOnRequest(l -> LOG.debug("Starting application {}", backingApp))
+				.doOnSuccess(response -> LOG.debug("Finished starting application {}", backingApp))
+				.doOnError(exception -> LOG.error(String.format("Error starting application %s with error '%s'",
 					backingApp, exception.getMessage()), exception)));
 	}
 
-	Mono<Void> stop(BackingApplication backingApplication) {
+	public Mono<Void> stop(BackingApplication backingApplication) {
 		return Mono.justOrEmpty(backingApplication)
 			.flatMap(backingApp -> appManager.stop(StopApplicationRequest.builder()
 				.name(backingApp.getName())
 				.properties(backingApp.getProperties())
 				.build())
-				.doOnRequest(l -> log.debug("Stopping application {}", backingApp))
-				.doOnSuccess(response -> log.debug("Finished stopping application {}", backingApp))
-				.doOnError(exception -> log.error(String.format("Error stopping application %s with error '%s'",
+				.doOnRequest(l -> LOG.debug("Stopping application {}", backingApp))
+				.doOnSuccess(response -> LOG.debug("Finished stopping application {}", backingApp))
+				.doOnError(exception -> LOG.error(String.format("Error stopping application %s with error '%s'",
 					backingApp, exception.getMessage()), exception)));
 	}
 
-	Mono<Void> restart(BackingApplication backingApplication) {
+	public Mono<Void> restart(BackingApplication backingApplication) {
 		return Mono.justOrEmpty(backingApplication)
 			.flatMap(backingApp -> appManager.restart(RestartApplicationRequest.builder()
 				.name(backingApp.getName())
 				.properties(backingApp.getProperties())
 				.build())
-				.doOnRequest(l -> log.debug("Restarting application {}", backingApp))
-				.doOnSuccess(response -> log.debug("Finished restarting application {}", backingApp))
-				.doOnError(exception -> log.error(String.format("Error restarting application %s with error '%s'",
+				.doOnRequest(l -> LOG.debug("Restarting application {}", backingApp))
+				.doOnSuccess(response -> LOG.debug("Finished restarting application {}", backingApp))
+				.doOnError(exception -> LOG.error(String.format("Error restarting application %s with error '%s'",
 					backingApp, exception.getMessage()), exception)));
 	}
 
-	Mono<Void> restage(BackingApplication backingApplication) {
+	public Mono<Void> restage(BackingApplication backingApplication) {
 		return Mono.justOrEmpty(backingApplication)
 			.flatMap(backingApp -> appManager.restage(RestageApplicationRequest.builder()
 				.name(backingApp.getName())
 				.properties(backingApp.getProperties())
 				.build())
-				.doOnRequest(l -> log.debug("Restaging application {}", backingApp))
-				.doOnSuccess(response -> log.debug("Finished restaging application {}", backingApp))
-				.doOnError(exception -> log.error(String.format("Error restaging application %s with error '%s'",
+				.doOnRequest(l -> LOG.debug("Restaging application {}", backingApp))
+				.doOnSuccess(response -> LOG.debug("Finished restaging application {}", backingApp))
+				.doOnError(exception -> LOG.error(String.format("Error restaging application %s with error '%s'",
 					backingApp, exception.getMessage()), exception)));
 	}
+
 }

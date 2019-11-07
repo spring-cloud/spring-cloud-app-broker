@@ -32,8 +32,8 @@ import reactor.test.StepVerifier;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("UnassignedFluxMonoInstance")
@@ -73,14 +73,13 @@ class DeployerClientTest {
 			.expectNext(APP_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
+		then(appDeployer).should().deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
 			Collections.emptyMap(), Collections.emptyList())));
 	}
 
 	@Test
 	@SuppressWarnings("serial")
 	void shouldDeployAppWithProperties() {
-		// given
 		setupAppDeployer();
 
 		Map<String, String> properties = new HashMap<String, String>() {{
@@ -99,14 +98,13 @@ class DeployerClientTest {
 			.expectNext(APP_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_PATH, properties,
+		then(appDeployer).should().deploy(argThat(matchesRequest(APP_NAME, APP_PATH, properties,
 			Collections.emptyMap(), Collections.emptyList())));
 	}
 
 	@Test
 	@SuppressWarnings("serial")
 	void shouldDeployAppWithService() {
-		// given
 		setupAppDeployer();
 
 		BackingApplication application =
@@ -115,8 +113,8 @@ class DeployerClientTest {
 				.name(APP_NAME)
 				.path(APP_PATH)
 				.services(ServicesSpec.builder()
-									  .serviceInstanceName("my-db-service")
-									  .build())
+					.serviceInstanceName("my-db-service")
+					.build())
 				.build();
 
 		// when
@@ -125,14 +123,13 @@ class DeployerClientTest {
 			.expectNext(APP_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
+		then(appDeployer).should().deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
 			Collections.emptyMap(), Collections.singletonList("my-db-service"))));
 	}
 
 	@Test
 	@SuppressWarnings("serial")
 	void shouldDeployAppWithEnvironmentVariables() {
-		// given
 		setupAppDeployer();
 
 		Map<String, Object> environment = new HashMap<String, Object>() {{
@@ -151,15 +148,14 @@ class DeployerClientTest {
 			.expectNext(APP_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
+		then(appDeployer).should().deploy(argThat(matchesRequest(APP_NAME, APP_PATH, Collections.emptyMap(),
 			environment, Collections.emptyList())));
 	}
 
 	@Test
 	void shouldUndeployApp() {
-		// given
-		when(appDeployer.undeploy(any()))
-			.thenReturn(Mono.just(UndeployApplicationResponse.builder()
+		given(appDeployer.undeploy(any()))
+			.willReturn(Mono.just(UndeployApplicationResponse.builder()
 				.name(APP_NAME)
 				.build()));
 
@@ -174,14 +170,13 @@ class DeployerClientTest {
 			.expectNext(APP_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).undeploy(argThat(request -> APP_NAME.equals(request.getName())));
+		then(appDeployer).should().undeploy(argThat(request -> APP_NAME.equals(request.getName())));
 	}
 
 	@Test
 	void shouldNotReturnErrorWhenUndeployingAppThatDoesNotExist() {
-		// given
-		when(appDeployer.undeploy(any()))
-			.thenReturn(Mono.error(new IllegalStateException("app does not exist")));
+		given(appDeployer.undeploy(any()))
+			.willReturn(Mono.error(new IllegalStateException("app does not exist")));
 
 		BackingApplication application = BackingApplication.builder()
 			.name(APP_NAME)
@@ -194,14 +189,13 @@ class DeployerClientTest {
 			.expectNext(APP_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).undeploy(argThat(request -> APP_NAME.equals(request.getName())));
+		then(appDeployer).should().undeploy(argThat(request -> APP_NAME.equals(request.getName())));
 	}
 
 	@Test
 	void shouldCreateServiceInstance() {
-		// given
-		when(appDeployer.createServiceInstance(any()))
-			.thenReturn(Mono.just(CreateServiceInstanceResponse.builder()
+		given(appDeployer.createServiceInstance(any()))
+			.willReturn(Mono.just(CreateServiceInstanceResponse.builder()
 				.name(SERVICE_INSTANCE_NAME)
 				.build()));
 
@@ -215,15 +209,14 @@ class DeployerClientTest {
 			.expectNext(SERVICE_INSTANCE_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).createServiceInstance(argThat(request ->
+		then(appDeployer).should().createServiceInstance(argThat(request ->
 			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
 	}
 
 	@Test
 	void shouldUpdateServiceInstance() {
-		// given
-		when(appDeployer.updateServiceInstance(any()))
-			.thenReturn(Mono.just(UpdateServiceInstanceResponse.builder()
+		given(appDeployer.updateServiceInstance(any()))
+			.willReturn(Mono.just(UpdateServiceInstanceResponse.builder()
 				.name(SERVICE_INSTANCE_NAME)
 				.build()));
 
@@ -237,15 +230,14 @@ class DeployerClientTest {
 			.expectNext(SERVICE_INSTANCE_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).updateServiceInstance(argThat(request ->
+		then(appDeployer).should().updateServiceInstance(argThat(request ->
 			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
 	}
 
 	@Test
 	void shouldReturnErrorWhenUpdatingServiceInstanceThatDoesNotExist() {
-		// given
-		when(appDeployer.updateServiceInstance(any()))
-			.thenReturn(Mono.error(new IllegalStateException("service instance does not exist")));
+		given(appDeployer.updateServiceInstance(any()))
+			.willReturn(Mono.error(new IllegalStateException("service instance does not exist")));
 
 		BackingService service = BackingService.builder()
 			.serviceInstanceName(SERVICE_INSTANCE_NAME)
@@ -257,15 +249,14 @@ class DeployerClientTest {
 			.expectErrorMessage("service instance does not exist")
 			.verify();
 
-		verify(appDeployer).updateServiceInstance(argThat(request ->
+		then(appDeployer).should().updateServiceInstance(argThat(request ->
 			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
 	}
 
 	@Test
 	void shouldDeleteServiceInstance() {
-		// given
-		when(appDeployer.deleteServiceInstance(any()))
-			.thenReturn(Mono.just(DeleteServiceInstanceResponse.builder()
+		given(appDeployer.deleteServiceInstance(any()))
+			.willReturn(Mono.just(DeleteServiceInstanceResponse.builder()
 				.name(SERVICE_INSTANCE_NAME)
 				.build()));
 
@@ -279,15 +270,14 @@ class DeployerClientTest {
 			.expectNext(SERVICE_INSTANCE_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).deleteServiceInstance(argThat(request ->
+		then(appDeployer).should().deleteServiceInstance(argThat(request ->
 			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
 	}
 
 	@Test
 	void shouldNotReturnErrorWhenDeletingServiceInstanceThatDoesNotExist() {
-		// given
-		when(appDeployer.deleteServiceInstance(any()))
-			.thenReturn(Mono.error(new IllegalStateException("service instance does not exist")));
+		given(appDeployer.deleteServiceInstance(any()))
+			.willReturn(Mono.error(new IllegalStateException("service instance does not exist")));
 
 		BackingService service = BackingService.builder()
 			.serviceInstanceName(SERVICE_INSTANCE_NAME)
@@ -299,14 +289,14 @@ class DeployerClientTest {
 			.expectNext(SERVICE_INSTANCE_NAME)
 			.verifyComplete();
 
-		verify(appDeployer).deleteServiceInstance(argThat(request ->
+		then(appDeployer).should().deleteServiceInstance(argThat(request ->
 			SERVICE_INSTANCE_NAME.equals(request.getServiceInstanceName())));
 	}
 
 	private ArgumentMatcher<DeployApplicationRequest> matchesRequest(String appName, String appArchive,
-																	 Map<String, String> properties,
-																	 Map<String, Object> environment,
-																	 List<String> services) {
+		Map<String, String> properties,
+		Map<String, Object> environment,
+		List<String> services) {
 		return request ->
 			request.getName().equals(appName) &&
 				request.getPath().equals(appArchive) &&
@@ -316,9 +306,10 @@ class DeployerClientTest {
 	}
 
 	private void setupAppDeployer() {
-		when(appDeployer.deploy(any()))
-			.thenReturn(Mono.just(DeployApplicationResponse.builder()
+		given(appDeployer.deploy(any()))
+			.willReturn(Mono.just(DeployApplicationResponse.builder()
 				.name(APP_NAME)
 				.build()));
 	}
+
 }

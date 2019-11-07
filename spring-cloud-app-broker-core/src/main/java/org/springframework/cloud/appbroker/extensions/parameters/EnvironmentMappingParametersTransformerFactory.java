@@ -32,6 +32,7 @@ public class EnvironmentMappingParametersTransformerFactory extends
 	ParametersTransformerFactory<BackingApplication, EnvironmentMappingParametersTransformerFactory.Config> {
 
 	private final Logger logger = Loggers.getLogger(EnvironmentMappingParametersTransformerFactory.class);
+
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	public EnvironmentMappingParametersTransformerFactory() {
@@ -44,8 +45,8 @@ public class EnvironmentMappingParametersTransformerFactory extends
 	}
 
 	private Mono<BackingApplication> transform(BackingApplication backingApplication,
-											   Map<String, Object> parameters,
-											   List<String> include) {
+		Map<String, Object> parameters,
+		List<String> include) {
 		if (parameters != null) {
 			parameters
 				.keySet().stream()
@@ -77,9 +78,6 @@ public class EnvironmentMappingParametersTransformerFactory extends
 
 		private String include;
 
-		public Config() {
-		}
-
 		public List<String> getIncludes() {
 			return Arrays.asList(include.split(","));
 		}
@@ -87,5 +85,7 @@ public class EnvironmentMappingParametersTransformerFactory extends
 		public void setInclude(String include) {
 			this.include = include;
 		}
+
 	}
+
 }

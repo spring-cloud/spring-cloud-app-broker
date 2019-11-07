@@ -52,8 +52,8 @@ class ParameterMappingParametersTransformerFactoryTest {
 
 		BackingService backingService =
 			BackingService.builder()
-						  .parameters(expectedParameters)
-						  .build();
+				.parameters(expectedParameters)
+				.build();
 
 		StepVerifier
 			.create(transformer.transform(backingService, inputParameters))

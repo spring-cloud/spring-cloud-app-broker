@@ -21,10 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.credhub.core.CredHubOperations;
-import org.springframework.credhub.core.credential.CredHubCredentialOperations;
 import reactor.test.StepVerifier;
 
+import org.springframework.credhub.core.CredHubOperations;
+import org.springframework.credhub.core.credential.CredHubCredentialOperations;
 import org.springframework.credhub.support.CredentialDetails;
 import org.springframework.credhub.support.CredentialType;
 import org.springframework.credhub.support.SimpleCredentialName;
@@ -54,10 +54,11 @@ class CredHubCredentialsGeneratorTest {
 	void setUp() {
 		this.generator = new CredHubCredentialsGenerator(credHubOperations);
 	}
-	
+
 	@Test
 	void passwordParameters() {
-		PasswordParameters params = ReflectionTestUtils.invokeMethod(generator, "passwordParameters", 42, false, false, false, false);
+		PasswordParameters params = ReflectionTestUtils
+			.invokeMethod(generator, "passwordParameters", 42, false, false, false, false);
 		assertThat(params.getLength()).isEqualTo(42);
 		assertThat(params.getExcludeUpper()).isTrue();
 		assertThat(params.getExcludeLower()).isTrue();
@@ -77,11 +78,11 @@ class CredHubCredentialsGeneratorTest {
 				new UserCredential("username", "password")));
 
 		StepVerifier.create(generator.generateUser("foo", "bar", "hello", 12, false, false, false, false))
-					.assertNext(tuple2 -> {
-						assertThat(tuple2.getT1()).isEqualTo("username");
-						assertThat(tuple2.getT2()).isEqualTo("password");
-					})
-					.verifyComplete();
+			.assertNext(tuple2 -> {
+				assertThat(tuple2.getT1()).isEqualTo("username");
+				assertThat(tuple2.getT2()).isEqualTo("password");
+			})
+			.verifyComplete();
 	}
 
 	@Test
@@ -96,8 +97,8 @@ class CredHubCredentialsGeneratorTest {
 				new PasswordCredential("password")));
 
 		StepVerifier.create(generator.generateString("foo", "bar", "hello", 12, false, false, false, false))
-					.assertNext(password -> assertThat(password).isEqualTo("password"))
-					.verifyComplete();
+			.assertNext(password -> assertThat(password).isEqualTo("password"))
+			.verifyComplete();
 	}
 
 	@Test
@@ -106,7 +107,7 @@ class CredHubCredentialsGeneratorTest {
 			.willReturn(credHubCredentialOperations);
 
 		StepVerifier.create(generator.deleteUser("foo", "bar", "hello"))
-					.verifyComplete();
+			.verifyComplete();
 
 		verify(credHubCredentialOperations).deleteByName(new SimpleCredentialName("foo", "bar", "hello"));
 		verifyNoMoreInteractions(credHubOperations);
@@ -119,7 +120,7 @@ class CredHubCredentialsGeneratorTest {
 			.willReturn(credHubCredentialOperations);
 
 		StepVerifier.create(generator.deleteString("foo", "bar", "hello"))
-					.verifyComplete();
+			.verifyComplete();
 
 		verify(credHubCredentialOperations).deleteByName(new SimpleCredentialName("foo", "bar", "hello"));
 		verifyNoMoreInteractions(credHubOperations);

@@ -16,14 +16,15 @@
 
 package org.springframework.cloud.appbroker.extensions.support;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.DefaultBeanIntrospector;
 import org.apache.commons.beanutils.SuppressPropertiesBeanIntrospector;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 public final class ConfigurationBeanUtils {
 
@@ -38,7 +39,7 @@ public final class ConfigurationBeanUtils {
 		if (properties == null) {
 			return;
 		}
-		
+
 		T target = getTargetObject(targetObject);
 
 		try {
@@ -47,13 +48,14 @@ public final class ConfigurationBeanUtils {
 			beanUtils.getPropertyUtils().addBeanIntrospector(new KebabCasePropertyBeanIntrospector());
 			beanUtils.getPropertyUtils().addBeanIntrospector(SuppressPropertiesBeanIntrospector.SUPPRESS_CLASS);
 			beanUtils.copyProperties(target, properties);
-		} catch (IllegalAccessException | InvocationTargetException e) {
+		}
+		catch (IllegalAccessException | InvocationTargetException e) {
 			throw new IllegalArgumentException("Failed to populate target of type " + targetObject.getClass()
 				+ " with properties " + properties, e);
 		}
 	}
 
-	@SuppressWarnings({"unchecked","PMD.AvoidCatchingGenericException"})
+	@SuppressWarnings({"unchecked", "PMD.AvoidCatchingGenericException"})
 	private static <T> T getTargetObject(Object candidate) {
 		try {
 			if (AopUtils.isAopProxy(candidate) && candidate instanceof Advised) {
@@ -65,4 +67,5 @@ public final class ConfigurationBeanUtils {
 		}
 		return (T) candidate;
 	}
+
 }

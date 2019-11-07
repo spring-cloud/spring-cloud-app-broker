@@ -35,15 +35,14 @@ import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.then;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_OAUTH2_CLIENT_ID_KEY;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_OAUTH2_CLIENT_SECRET_KEY;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory.SPRING_SECURITY_OAUTH2_REGISTRATION_KEY;
 
 @ExtendWith(MockitoExtension.class)
 class SpringSecurityOAuth2CredentialProviderFactoryTest {
+
 	private static final String CLIENT_REGISTRATION = "app-client";
 
 	@Mock
@@ -53,6 +52,7 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 	private OAuth2Client oAuth2Client;
 
 	private CredentialProvider provider;
+
 	private SpringSecurityOAuth2CredentialProviderFactory factory;
 
 	@BeforeEach
@@ -67,12 +67,12 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 		BackingApplication backingApplication = BackingApplication.builder()
 			.build();
 
-		when(credentialGenerator.generateString(backingApplication.getName(), "service-instance-id", "oauth2",
+		given(credentialGenerator.generateString(backingApplication.getName(), "service-instance-id", "oauth2",
 			8, true, false, true, false))
-			.thenReturn(Mono.just("test-secret"));
+			.willReturn(Mono.just("test-secret"));
 
-		when(oAuth2Client.createClient(buildCreateOAuth2Request("test-id")))
-			.thenReturn(Mono.just(CreateOAuth2ClientResponse.builder().build()));
+		given(oAuth2Client.createClient(buildCreateOAuth2Request("test-id")))
+			.willReturn(Mono.just(CreateOAuth2ClientResponse.builder().build()));
 
 		StepVerifier
 			.create(provider.addCredentials(backingApplication, "service-instance-id"))
@@ -91,12 +91,12 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 			.build();
 		String clientId = backingApplication.getName() + "-" + "service-instance-id";
 
-		when(credentialGenerator.generateString(backingApplication.getName(), "service-instance-id", "oauth2",
+		given(credentialGenerator.generateString(backingApplication.getName(), "service-instance-id", "oauth2",
 			8, true, false, true, false))
-			.thenReturn(Mono.just("test-secret"));
+			.willReturn(Mono.just("test-secret"));
 
-		when(oAuth2Client.createClient(buildCreateOAuth2Request(clientId)))
-			.thenReturn(Mono.just(CreateOAuth2ClientResponse.builder().build()));
+		given(oAuth2Client.createClient(buildCreateOAuth2Request(clientId)))
+			.willReturn(Mono.just(CreateOAuth2ClientResponse.builder().build()));
 
 		StepVerifier
 			.create(provider.addCredentials(backingApplication, "service-instance-id"))
@@ -123,8 +123,8 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 		BackingApplication backingApplication = BackingApplication.builder()
 			.build();
 
-		when(oAuth2Client.deleteClient(buildDeleteOAuth2Request("test-id")))
-			.thenReturn(Mono.just(DeleteOAuth2ClientResponse.builder().build()));
+		given(oAuth2Client.deleteClient(buildDeleteOAuth2Request("test-id")))
+			.willReturn(Mono.just(DeleteOAuth2ClientResponse.builder().build()));
 
 		given(credentialGenerator.deleteString(backingApplication.getName(), "service-instance-id", "oauth2"))
 			.willReturn(Mono.empty());
@@ -134,8 +134,8 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 			.expectNext(backingApplication)
 			.verifyComplete();
 
-		verify(credentialGenerator).deleteString(backingApplication.getName(), "service-instance-id", "oauth2");
-		verifyNoMoreInteractions(credentialGenerator);
+		then(credentialGenerator).should().deleteString(backingApplication.getName(), "service-instance-id", "oauth2");
+		then(credentialGenerator).shouldHaveNoMoreInteractions();
 	}
 
 	@Test
@@ -147,8 +147,8 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 			.build();
 		String clientId = backingApplication.getName() + "-" + "service-instance-id";
 
-		when(oAuth2Client.deleteClient(buildDeleteOAuth2Request(clientId)))
-			.thenReturn(Mono.just(DeleteOAuth2ClientResponse.builder().build()));
+		given(oAuth2Client.deleteClient(buildDeleteOAuth2Request(clientId)))
+			.willReturn(Mono.just(DeleteOAuth2ClientResponse.builder().build()));
 
 		given(credentialGenerator.deleteString(backingApplication.getName(), "service-instance-id", "oauth2"))
 			.willReturn(Mono.empty());
@@ -158,27 +158,27 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 			.expectNext(backingApplication)
 			.verifyComplete();
 
-		verify(credentialGenerator).deleteString(backingApplication.getName(), "service-instance-id", "oauth2");
-		verifyNoMoreInteractions(credentialGenerator);
+		then(credentialGenerator).should().deleteString(backingApplication.getName(), "service-instance-id", "oauth2");
+		then(credentialGenerator).shouldHaveNoMoreInteractions();
 	}
 
 	private void createProvider(String clientId) {
 		provider = factory.createWithConfig(config -> {
-				config.setRegistration(CLIENT_REGISTRATION);
-				config.setClientId(clientId);
-				config.setClientName("test-name");
-				config.setScopes("scope1");
-				config.setAuthorities("auth1");
-				config.setGrantTypes("client_credentials");
-				config.setIdentityZoneSubdomain("subdomain");
-				config.setIdentityZoneId("zoneId");
+			config.setRegistration(CLIENT_REGISTRATION);
+			config.setClientId(clientId);
+			config.setClientName("test-name");
+			config.setScopes("scope1");
+			config.setAuthorities("auth1");
+			config.setGrantTypes("client_credentials");
+			config.setIdentityZoneSubdomain("subdomain");
+			config.setIdentityZoneId("zoneId");
 
-				config.setLength(8);
-				config.setIncludeUppercaseAlpha(true);
-				config.setIncludeLowercaseAlpha(false);
-				config.setIncludeNumeric(true);
-				config.setIncludeSpecial(false);
-			});
+			config.setLength(8);
+			config.setIncludeUppercaseAlpha(true);
+			config.setIncludeLowercaseAlpha(false);
+			config.setIncludeNumeric(true);
+			config.setIncludeSpecial(false);
+		});
 	}
 
 	private CreateOAuth2ClientRequest buildCreateOAuth2Request(String clientId) {
@@ -201,4 +201,5 @@ class SpringSecurityOAuth2CredentialProviderFactoryTest {
 			.identityZoneId("zoneId")
 			.build();
 	}
+
 }

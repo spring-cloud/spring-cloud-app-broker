@@ -20,7 +20,7 @@ public class UndeployApplicationResponse {
 
 	private final String name;
 
-	UndeployApplicationResponse(String name) {
+	protected UndeployApplicationResponse(String name) {
 		this.name = name;
 	}
 
@@ -32,11 +32,11 @@ public class UndeployApplicationResponse {
 		return this.name;
 	}
 
-	public static class UndeployApplicationResponseBuilder {
+	public static final class UndeployApplicationResponseBuilder {
 
 		private String name;
 
-		UndeployApplicationResponseBuilder() {
+		private UndeployApplicationResponseBuilder() {
 		}
 
 		public UndeployApplicationResponseBuilder name(String name) {
@@ -47,5 +47,7 @@ public class UndeployApplicationResponse {
 		public UndeployApplicationResponse build() {
 			return new UndeployApplicationResponse(name);
 		}
+
 	}
+
 }

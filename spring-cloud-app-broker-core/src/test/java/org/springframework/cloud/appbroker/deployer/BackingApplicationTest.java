@@ -45,4 +45,5 @@ class BackingApplicationTest {
 		backingApp.setEnvironment(null);
 		assertThat(backingApp.toString()).isNotEmpty();
 	}
+
 }

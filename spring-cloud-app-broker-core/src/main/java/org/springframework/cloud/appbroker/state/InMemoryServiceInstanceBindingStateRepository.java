@@ -34,11 +34,14 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 	private final Map<BindingKey, ServiceInstanceState> states = new ConcurrentHashMap<>();
 
 	@Override
-	public Mono<ServiceInstanceState> saveState(String serviceInstanceId, String bindingId, OperationState state, String description) {
+	public Mono<ServiceInstanceState> saveState(String serviceInstanceId, String bindingId, OperationState state,
+		String description) {
 		return Mono.just(new BindingKey(serviceInstanceId, bindingId))
-			.flatMap(bindingKey -> Mono.just(new ServiceInstanceState(state, description, new Timestamp(Instant.now().toEpochMilli())))
-				.flatMap(serviceInstanceState -> Mono.fromCallable(() -> this.states.put(bindingKey, serviceInstanceState))
-					.thenReturn(serviceInstanceState)));
+			.flatMap(bindingKey -> Mono
+				.just(new ServiceInstanceState(state, description, new Timestamp(Instant.now().toEpochMilli())))
+				.flatMap(
+					serviceInstanceState -> Mono.fromCallable(() -> this.states.put(bindingKey, serviceInstanceState))
+						.thenReturn(serviceInstanceState)));
 	}
 
 	@Override
@@ -87,7 +90,7 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 			return this.bindingId;
 		}
 
-		BindingKey(String serviceInstanceId, String bindingId) {
+		public BindingKey(String serviceInstanceId, String bindingId) {
 			this.serviceInstanceId = serviceInstanceId;
 			this.bindingId = bindingId;
 		}
@@ -100,7 +103,7 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 			if (!(obj instanceof BindingKey)) {
 				return false;
 			}
-			BindingKey that = (BindingKey)obj;
+			BindingKey that = (BindingKey) obj;
 			return Objects.equals(this.bindingId, that.bindingId) &&
 				Objects.equals(this.serviceInstanceId, that.serviceInstanceId);
 		}
@@ -117,5 +120,7 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 				", bindingId='" + bindingId + '\'' +
 				'}';
 		}
+
 	}
+
 }

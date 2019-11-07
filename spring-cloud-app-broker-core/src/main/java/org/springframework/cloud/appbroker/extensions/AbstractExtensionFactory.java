@@ -16,12 +16,13 @@
 
 package org.springframework.cloud.appbroker.extensions;
 
-import org.springframework.cloud.appbroker.extensions.support.ConfigurationBeanUtils;
-
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.springframework.cloud.appbroker.extensions.support.ConfigurationBeanUtils;
+
 public abstract class AbstractExtensionFactory<T, C> implements ExtensionFactory<T, C> {
+
 	private Class<C> configClass;
 
 	@SuppressWarnings("unchecked")
@@ -42,6 +43,7 @@ public abstract class AbstractExtensionFactory<T, C> implements ExtensionFactory
 		return create(config);
 	}
 
+	@Override
 	public T createWithConfig(Map<String, Object> args) {
 		C config = ConfigurationBeanUtils.instantiate(this.configClass);
 		ConfigurationBeanUtils.populate(config, args);
@@ -51,4 +53,5 @@ public abstract class AbstractExtensionFactory<T, C> implements ExtensionFactory
 	protected String getShortName(Class<?> cls) {
 		return getClass().getSimpleName().replace(cls.getSimpleName(), "");
 	}
+
 }

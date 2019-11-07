@@ -91,4 +91,5 @@ public class CloudFoundryAppManager implements AppManager {
 						.doOnSuccess(item -> logger.info("Successfully restaged application {}", appName))
 						.doOnError(error -> logger.error("Failed to restage application {}", appName)))));
 	}
+
 }

@@ -266,10 +266,12 @@ class AppBrokerAutoConfigurationTest {
 		public ServiceInstanceBindingService serviceInstanceBindingService() {
 			return new TestServiceInstanceBindingService();
 		}
+
 	}
 
 	@Configuration
 	public static class CustomStateRepositoriesConfiguration {
+
 		@Bean
 		public ServiceInstanceStateRepository serviceInstanceStateRepository() {
 			return new TestServiceInstanceStateRepository();
@@ -279,6 +281,7 @@ class AppBrokerAutoConfigurationTest {
 		public ServiceInstanceBindingStateRepository serviceInstanceBindingStateRepository() {
 			return new TestServiceInstanceBindingStateRepository();
 		}
+
 	}
 
 	private static class TestServiceInstanceBindingService implements ServiceInstanceBindingService {
@@ -287,4 +290,5 @@ class AppBrokerAutoConfigurationTest {
 	private static class TestServiceInstanceStateRepository implements ServiceInstanceStateRepository {}
 
 	private static class TestServiceInstanceBindingStateRepository implements ServiceInstanceBindingStateRepository {}
+
 }

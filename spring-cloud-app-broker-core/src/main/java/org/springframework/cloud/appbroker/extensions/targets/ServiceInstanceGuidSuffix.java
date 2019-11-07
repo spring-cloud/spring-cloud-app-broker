@@ -36,7 +36,7 @@ public class ServiceInstanceGuidSuffix extends TargetFactory<ServiceInstanceGuid
 			.build();
 	}
 
-	static class Config {
+	public static class Config {
 	}
 
 }

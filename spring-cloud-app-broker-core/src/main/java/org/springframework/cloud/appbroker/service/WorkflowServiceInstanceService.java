@@ -61,9 +61,9 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private final ServiceInstanceStateRepository stateRepository;
 
 	public WorkflowServiceInstanceService(ServiceInstanceStateRepository serviceInstanceStateRepository,
-										  List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows,
-										  List<DeleteServiceInstanceWorkflow> deleteServiceInstanceWorkflows,
-										  List<UpdateServiceInstanceWorkflow> updateServiceInstanceWorkflows) {
+		List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows,
+		List<DeleteServiceInstanceWorkflow> deleteServiceInstanceWorkflows,
+		List<UpdateServiceInstanceWorkflow> updateServiceInstanceWorkflows) {
 		this.stateRepository = serviceInstanceStateRepository;
 		this.createServiceInstanceWorkflows = createServiceInstanceWorkflows;
 		this.deleteServiceInstanceWorkflows = deleteServiceInstanceWorkflows;
@@ -102,7 +102,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 				.doOnRequest(l -> log.debug("Creating service instance"))
 				.doOnComplete(() -> log.debug("Finished creating service instance"))
 				.doOnError(exception -> log.error(String.format("Error creating service instance with error '%s'",
-						exception.getMessage()), exception)))
+					exception.getMessage()), exception)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
 				OperationState.SUCCEEDED, "create service instance completed")
 				.then())
@@ -112,7 +112,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	}
 
 	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceRequest request,
-											 CreateServiceInstanceResponse response) {
+		CreateServiceInstanceResponse response) {
 		return Flux.fromIterable(createServiceInstanceWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
 			.concatMap(workflow -> workflow.create(request, response));
@@ -155,7 +155,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	}
 
 	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceRequest request,
-											 DeleteServiceInstanceResponse response) {
+		DeleteServiceInstanceResponse response) {
 		return Flux.fromIterable(deleteServiceInstanceWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
 			.concatMap(workflow -> workflow.delete(request, response));
@@ -198,7 +198,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	}
 
 	private Flux<Void> invokeUpdateWorkflows(UpdateServiceInstanceRequest request,
-											 UpdateServiceInstanceResponse response) {
+		UpdateServiceInstanceResponse response) {
 		return Flux.fromIterable(updateServiceInstanceWorkflows)
 			.filterWhen(workflow -> workflow.accept(request))
 			.concatMap(workflow -> workflow.update(request, response));
@@ -219,4 +219,5 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 		//TODO add functionality
 		return Mono.empty();
 	}
+
 }

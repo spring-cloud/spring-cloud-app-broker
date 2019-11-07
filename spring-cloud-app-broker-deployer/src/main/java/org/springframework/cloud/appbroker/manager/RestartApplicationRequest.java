@@ -27,7 +27,7 @@ public class RestartApplicationRequest {
 
 	private final Map<String, String> properties;
 
-	RestartApplicationRequest(String name, Map<String, String> properties) {
+	protected RestartApplicationRequest(String name, Map<String, String> properties) {
 		this.name = name;
 		this.properties = properties;
 	}
@@ -44,13 +44,13 @@ public class RestartApplicationRequest {
 		return new RestartApplicationRequestBuilder();
 	}
 
-	public static class RestartApplicationRequestBuilder {
+	public static final class RestartApplicationRequestBuilder {
 
 		private String name;
 
 		private final Map<String, String> properties = new HashMap<>();
 
-		RestartApplicationRequestBuilder() {
+		private RestartApplicationRequestBuilder() {
 		}
 
 		public RestartApplicationRequestBuilder name(String name) {
@@ -70,4 +70,5 @@ public class RestartApplicationRequest {
 		}
 
 	}
+
 }

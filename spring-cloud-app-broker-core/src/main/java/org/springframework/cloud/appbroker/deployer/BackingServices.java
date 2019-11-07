@@ -26,10 +26,11 @@ public class BackingServices extends ArrayList<BackingService> {
 	private static final long serialVersionUID = 1L;
 
 	private BackingServices() {
+		super();
 	}
 
-	BackingServices(List<BackingService> backingServices) {
-		super.addAll(backingServices);
+	public BackingServices(List<BackingService> backingServices) {
+		super(backingServices);
 	}
 
 	public static BackingServicesBuilder builder() {
@@ -59,5 +60,7 @@ public class BackingServices extends ArrayList<BackingService> {
 		public BackingServices build() {
 			return new BackingServices(backingServices);
 		}
+
 	}
+
 }

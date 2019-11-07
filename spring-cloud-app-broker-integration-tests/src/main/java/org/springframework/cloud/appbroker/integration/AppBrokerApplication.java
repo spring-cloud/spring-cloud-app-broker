@@ -19,10 +19,20 @@ package org.springframework.cloud.appbroker.integration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * A Spring Boot application for running integration tests
+ */
+@SuppressWarnings("PMD.UseUtilityClass")
 @SpringBootApplication
 public class AppBrokerApplication {
 
+	/**
+	 * main application entry point
+	 *
+	 * @param args the args
+	 */
 	public static void main(String[] args) {
 		SpringApplication.run(AppBrokerApplication.class, args);
 	}
+
 }

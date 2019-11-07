@@ -29,9 +29,8 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.verifyNoMoreInteractions;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_NAME_KEY;
 import static org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory.SPRING_SECURITY_USER_PASSWORD_KEY;
 
@@ -61,9 +60,9 @@ class SpringSecurityBasicAuthCredentialProviderFactoryTest {
 		BackingApplication backingApplication = BackingApplication.builder()
 			.build();
 
-		when(credentialGenerator.generateUser(backingApplication.getName(), "service-instance-id", "basic",
+		given(credentialGenerator.generateUser(backingApplication.getName(), "service-instance-id", "basic",
 			8, true, false, true, false))
-			.thenReturn(Mono.just(Tuples.of("username", "password")));
+			.willReturn(Mono.just(Tuples.of("username", "password")));
 
 		StepVerifier
 			.create(provider.addCredentials(backingApplication, "service-instance-id"))
@@ -89,7 +88,8 @@ class SpringSecurityBasicAuthCredentialProviderFactoryTest {
 			.expectNext(backingApplication)
 			.verifyComplete();
 
-		verify(credentialGenerator).deleteUser(backingApplication.getName(), "service-instance-id", "basic");
+		then(credentialGenerator).should().deleteUser(backingApplication.getName(), "service-instance-id", "basic");
 		verifyNoMoreInteractions(credentialGenerator);
 	}
+
 }

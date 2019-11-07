@@ -19,12 +19,13 @@ package org.springframework.cloud.appbroker.service;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
-import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceRouteBindingResponse.CreateServiceInstanceRouteBindingResponseBuilder;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceRouteBindingResponse;
+import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceRouteBindingResponse.CreateServiceInstanceRouteBindingResponseBuilder;
 
 public interface CreateServiceInstanceRouteBindingWorkflow {
+
 	default Mono<Void> create(CreateServiceInstanceBindingRequest request,
-							  CreateServiceInstanceRouteBindingResponse response) {
+		CreateServiceInstanceRouteBindingResponse response) {
 		return Mono.empty();
 	}
 
@@ -32,8 +33,10 @@ public interface CreateServiceInstanceRouteBindingWorkflow {
 		return Mono.just(true);
 	}
 
-	default Mono<CreateServiceInstanceRouteBindingResponseBuilder> buildResponse(CreateServiceInstanceBindingRequest request,
-																				 CreateServiceInstanceRouteBindingResponseBuilder responseBuilder) {
+	default Mono<CreateServiceInstanceRouteBindingResponseBuilder> buildResponse(
+		CreateServiceInstanceBindingRequest request,
+		CreateServiceInstanceRouteBindingResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder);
 	}
+
 }

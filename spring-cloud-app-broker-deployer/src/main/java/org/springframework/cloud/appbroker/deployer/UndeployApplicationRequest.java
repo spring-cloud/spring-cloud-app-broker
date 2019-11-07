@@ -24,9 +24,10 @@ import org.springframework.util.CollectionUtils;
 public class UndeployApplicationRequest {
 
 	private final String name;
+
 	private final Map<String, String> properties;
 
-	UndeployApplicationRequest(String name, Map<String, String> properties) {
+	protected UndeployApplicationRequest(String name, Map<String, String> properties) {
 		this.name = name;
 		this.properties = properties;
 	}
@@ -43,12 +44,13 @@ public class UndeployApplicationRequest {
 		return properties;
 	}
 
-	public static class UndeployApplicationRequestBuilder {
+	public static final class UndeployApplicationRequestBuilder {
 
 		private String name;
+
 		private final Map<String, String> properties = new HashMap<>();
 
-		UndeployApplicationRequestBuilder() {
+		private UndeployApplicationRequestBuilder() {
 		}
 
 		public UndeployApplicationRequestBuilder name(String name) {
@@ -66,6 +68,7 @@ public class UndeployApplicationRequest {
 		public UndeployApplicationRequest build() {
 			return new UndeployApplicationRequest(name, properties);
 		}
+
 	}
 
 }

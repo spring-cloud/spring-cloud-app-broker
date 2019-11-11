@@ -126,15 +126,6 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 		"-Werror"
 	]
 
-	sourceSets.test.resources.srcDirs = [
-		"src/test/resources",
-		"src/test/java"
-	]
-
-	tasks.withType(Test).all {
-		systemProperty("java.awt.headless", "true")
-	}
-
 	test {
 		// enable JUnit 5
 		useJUnitPlatform()

@@ -31,6 +31,7 @@ public class SpacePerServiceDefinition extends TargetFactory<SpacePerServiceDefi
 		return this::apply;
 	}
 
+	@SuppressWarnings("PMD.UnusedFormalParameter")
 	private ArtifactDetails apply(Map<String, String> properties, String name, String brokeredServiceInstanceId, String backingServiceName, String backingServicePlanName) {
 		properties.put(DeploymentProperties.TARGET_PROPERTY_KEY, backingServiceName);
 		properties.put(DeploymentProperties.KEEP_TARGET_ON_DELETE_PROPERTY_KEY, "true");

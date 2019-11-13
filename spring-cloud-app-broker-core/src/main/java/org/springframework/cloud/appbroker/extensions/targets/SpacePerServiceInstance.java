@@ -31,6 +31,7 @@ public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstan
 		return this::apply;
 	}
 
+	@SuppressWarnings("PMD.UnusedFormalParameter")
 	private ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId, String backingServiceName, String backingServicePlanName) {
 		properties.put(DeploymentProperties.HOST_PROPERTY_KEY, name + "-" + serviceInstanceId);
 		properties.put(DeploymentProperties.TARGET_PROPERTY_KEY, serviceInstanceId);

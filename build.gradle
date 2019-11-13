@@ -50,9 +50,9 @@ configure(allprojects) {
 	apply plugin: "io.spring.dependency-management"
 
 	ext {
-		springBootVersion = project.findProperty("springBootVersion") ?: "2.1.8.RELEASE"
-		springVersion = project.findProperty("springVersion") ?: "5.1.9.RELEASE"
-		reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR11"
+		springBootVersion = project.findProperty("springBootVersion") ?: "2.1.10.RELEASE"
+		springVersion = project.findProperty("springVersion") ?: "5.1.11.RELEASE"
+		reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR13"
 		openServiceBrokerVersion = "3.0.4.RELEASE"
 		springCredhubVersion = "2.0.1.RELEASE"
 		cfJavaClientVersion = "3.16.0.RELEASE"

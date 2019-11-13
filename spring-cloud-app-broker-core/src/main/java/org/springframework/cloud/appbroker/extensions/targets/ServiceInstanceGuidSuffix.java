@@ -33,7 +33,7 @@ public class ServiceInstanceGuidSuffix extends TargetFactory<ServiceInstanceGuid
 		return this::apply;
 	}
 
-	private ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId) {
+	private ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId, String backingServiceName, String backingServicePlanName) {
 		final int availableLength = calculateAvailableLength(serviceInstanceId);
 		String modifiedName = name;
 		if (name.length() > calculateAvailableLength(serviceInstanceId)) {

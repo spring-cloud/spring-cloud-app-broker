@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.appbroker.extensions.targets;
 
-import java.util.Map;
-
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 
-public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstance.Config> {
+import java.util.Map;
 
-	public SpacePerServiceInstance() {
+public class SpacePerServicePlan extends TargetFactory<SpacePerServicePlan.Config> {
+
+	public SpacePerServicePlan() {
 		super(Config.class);
 	}
 
@@ -31,17 +31,17 @@ public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstan
 		return this::apply;
 	}
 
-	private ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId, String backingServiceName, String backingServicePlanName) {
-		properties.put(DeploymentProperties.HOST_PROPERTY_KEY, name + "-" + serviceInstanceId);
-		properties.put(DeploymentProperties.TARGET_PROPERTY_KEY, serviceInstanceId);
+	private ArtifactDetails apply(Map<String, String> properties, String name, String brokeredServiceInstanceId, String backingServiceName, String backingServicePlanName) {
+		properties.put(DeploymentProperties.TARGET_PROPERTY_KEY, backingServiceName + "-" + backingServicePlanName);
+		properties.put(DeploymentProperties.KEEP_TARGET_ON_DELETE_PROPERTY_KEY, "true");
 
 		return ArtifactDetails.builder()
-			.name(name)
+			.name(name + "-" + brokeredServiceInstanceId)
 			.properties(properties)
 			.build();
 	}
 
-	public static class Config {
+	static class Config {
 	}
 
 }

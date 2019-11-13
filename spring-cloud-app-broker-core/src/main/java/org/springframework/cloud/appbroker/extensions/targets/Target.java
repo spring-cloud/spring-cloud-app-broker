@@ -20,6 +20,9 @@ import java.util.Map;
 
 public interface Target {
 
-	ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId);
-
+	/**
+	 * Fetch the {@link ArtifactDetails} for a backing application or backing service.
+	 * @param name backing application name or backing service instance name
+	 */
+	ArtifactDetails apply(Map<String, String> properties, String name, String brokeredServiceInstanceId, String backingServiceName, String backingServicePlanName);
 }

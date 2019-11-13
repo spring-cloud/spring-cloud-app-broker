@@ -42,13 +42,13 @@ public class TargetService {
 			.flatMap(backingApplication -> {
 				if (targetSpec != null) {
 					ArtifactDetails appDetails = getArtifactDetails(targetSpec, serviceInstanceId,
-						backingApplication.getName(), backingApplication.getProperties());
+						backingApplication.getName(), null, null, backingApplication.getProperties());
 					backingApplication.setName(appDetails.getName());
 					backingApplication.setProperties(appDetails.getProperties());
 
 					backingApplication.getServices().forEach(servicesSpec -> {
-						ArtifactDetails serviceDetails = getArtifactDetails(targetSpec, serviceInstanceId,
-							servicesSpec.getServiceInstanceName(), new HashMap<>());
+						ArtifactDetails serviceDetails = getArtifactDetails(targetSpec, serviceInstanceId, servicesSpec.getServiceInstanceName(), null,null,
+							new HashMap<>());
 						servicesSpec.setServiceInstanceName(serviceDetails.getName());
 					});
 				}
@@ -64,7 +64,9 @@ public class TargetService {
 			.flatMap(backingService -> {
 				if (targetSpec != null) {
 					ArtifactDetails serviceDetails = getArtifactDetails(targetSpec, serviceInstanceId,
-						backingService.getServiceInstanceName(), backingService.getProperties());
+						backingService.getServiceInstanceName(), backingService.getName(),
+						backingService.getPlan(),
+						backingService.getProperties());
 					backingService.setServiceInstanceName(serviceDetails.getName());
 					backingService.setProperties(serviceDetails.getProperties());
 				}
@@ -73,10 +75,9 @@ public class TargetService {
 			.collectList();
 	}
 
-	private ArtifactDetails getArtifactDetails(TargetSpec targetSpec, String serviceInstanceId,
-		String name, Map<String, String> properties) {
+	private ArtifactDetails getArtifactDetails(TargetSpec targetSpec, String serviceInstanceId, String serviceInstanceName, String backingServiceName, String backingServicePlanName, Map<String, String> properties) {
 		Target target = locator.getByName(targetSpec.getName());
-		return target.apply(properties, name, serviceInstanceId);
+		return target.apply(properties, serviceInstanceName, serviceInstanceId, backingServiceName, backingServicePlanName);
 	}
 
 }

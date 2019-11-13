@@ -1075,17 +1075,17 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		String serviceInstanceName = request.getServiceInstanceName();
 		Map<String, String> deploymentProperties = request.getProperties();
 
-		Mono<Void> requestDeleteServiceInstance;
-		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
-			requestDeleteServiceInstance = operationsUtils.getOperations(deploymentProperties)
-				.flatMap(cfOperations -> unbindServiceInstance(serviceInstanceName, cfOperations)
-					.then(deleteServiceInstance(serviceInstanceName, cfOperations, deploymentProperties)))
-				.then(deleteSpace(space));
-		}
-		else {
-			requestDeleteServiceInstance = unbindServiceInstance(serviceInstanceName, operations)
-				.then(deleteServiceInstance(serviceInstanceName, operations, deploymentProperties));
+		boolean deleteTargetSpace =
+			! Boolean.parseBoolean(deploymentProperties.getOrDefault(DeploymentProperties.KEEP_TARGET_ON_DELETE_PROPERTY_KEY, "false"));
+		String targetSpace = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
+
+		Mono<Void> requestDeleteServiceInstance = operationsUtils.getOperations(deploymentProperties)
+			.flatMap(cfOperations -> unbindServiceInstance(serviceInstanceName, cfOperations)
+				.then(deleteServiceInstance(serviceInstanceName, cfOperations)));
+
+		if (targetSpace != null && deleteTargetSpace) {
+			requestDeleteServiceInstance = requestDeleteServiceInstance
+				.then(deleteSpace(targetSpace));
 		}
 
 		return requestDeleteServiceInstance

@@ -48,7 +48,9 @@ import org.springframework.cloud.appbroker.extensions.parameters.ParameterMappin
 import org.springframework.cloud.appbroker.extensions.parameters.ParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.PropertyMappingParametersTransformerFactory;
 import org.springframework.cloud.appbroker.extensions.targets.ServiceInstanceGuidSuffix;
+import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceDefinition;
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
+import org.springframework.cloud.appbroker.extensions.targets.SpacePerServicePlan;
 import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.manager.AppManager;
@@ -307,6 +309,12 @@ public class AppBrokerAutoConfiguration {
 	 * @param targets a collection of targets
 	 * @return the bean
 	 */
+	@Bean
+	public SpacePerServicePlan spacePerServicePlan() { return new SpacePerServicePlan();}
+
+	@Bean
+	public SpacePerServiceDefinition spacePerServiceDefinition() { return new SpacePerServiceDefinition();}
+
 	@Bean
 	public TargetService targetService(List<TargetFactory<?>> targets) {
 		return new TargetService(targets);

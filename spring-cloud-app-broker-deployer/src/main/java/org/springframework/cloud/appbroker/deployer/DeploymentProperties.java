@@ -58,6 +58,12 @@ public class DeploymentProperties {
 	public static final String TARGET_PROPERTY_KEY = "target";
 
 	/**
+	 * Set to "true" to keep the space (where the app and backing services will be deployed) after brokered service
+	 * is deleted. Defaults to "false" if unspecified.
+	 */
+	public static final String KEEP_TARGET_ON_DELETE_PROPERTY_KEY = "keepTargetSpaceOnDelete";
+
+	/**
 	 * The deployment property indicating whether the application should be automatically started after deployment.
 	 * Defaults to true.
 	 */

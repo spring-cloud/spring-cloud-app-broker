@@ -17,7 +17,6 @@
 package org.springframework.cloud.appbroker.service;
 
 import java.sql.Timestamp;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 
@@ -55,6 +54,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -160,7 +160,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 	}
 
 	@Test
-	void createServiceInstanceAppBinding() throws InterruptedException {
+	void createServiceInstanceAppBinding() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
 				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
@@ -197,20 +197,11 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceAppBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceAppBindingWorkflow2.create(eq(request), eq(builtResponse)))
-			.willReturn(Mono.just(true)
-				.flatMap(value -> {
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-					}
-					return higherOrderFlow.mono();
-				}));
+			.willReturn(higherOrderFlow.mono());
 		given(createServiceInstanceAppBindingWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceAppBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.credentials("foo", "bar")
 				.operation("working2")));
-
-		InOrder createOrder = inOrder(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2);
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
@@ -221,10 +212,20 @@ class WorkflowServiceInstanceBindingServiceTest {
 					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
 				repoOrder.verifyNoMoreInteractions();
 
+				lowerOrderFlow.complete();
+				lowerOrderFlow.assertWasNotRequested();
+
+				higherOrderFlow.complete();
+				lowerOrderFlow.assertWasRequested();
+
+				InOrder createOrder = inOrder(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2);
 				createOrder.verify(createServiceInstanceAppBindingWorkflow2).buildResponse(eq(request),
 					any(CreateServiceInstanceAppBindingResponseBuilder.class));
 				createOrder.verify(createServiceInstanceAppBindingWorkflow1).buildResponse(eq(request),
 					any(CreateServiceInstanceAppBindingResponseBuilder.class));
+				createOrder.verify(createServiceInstanceAppBindingWorkflow2).create(request, responseBuilder.build());
+				createOrder.verify(createServiceInstanceAppBindingWorkflow1).create(request, responseBuilder.build());
+				createOrder.verifyNoMoreInteractions();
 
 				CreateServiceInstanceAppBindingResponse r = (CreateServiceInstanceAppBindingResponse)response;
 
@@ -233,20 +234,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 				assertThat(r.isAsync()).isTrue();
 				assertThat(r.getOperation()).isEqualTo("working2");
 			})
-			.expectComplete()
-			.verifyThenAssertThat()
-			.tookLessThan(Duration.ofMillis(250));
-
-		lowerOrderFlow.complete();
-		lowerOrderFlow.assertWasNotRequested();
-
-		higherOrderFlow.complete();
-		Thread.sleep(600);
-		lowerOrderFlow.assertWasRequested();
-
-		createOrder.verify(createServiceInstanceAppBindingWorkflow2).create(request, responseBuilder.build());
-		createOrder.verify(createServiceInstanceAppBindingWorkflow1).create(request, responseBuilder.build());
-		createOrder.verifyNoMoreInteractions();
+			.verifyComplete();
 	}
 
 	@Test
@@ -336,7 +324,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 	}
 
 	@Test
-	void createServiceInstanceRouteBinding() throws InterruptedException {
+	void createServiceInstanceRouteBinding() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
 				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
@@ -373,20 +361,11 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceRouteBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(createServiceInstanceRouteBindingWorkflow2.create(eq(request), eq(builtResponse)))
-			.willReturn(Mono.just(true)
-				.flatMap(value -> {
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-					}
-					return higherOrderFlow.mono();
-				}));
+			.willReturn(higherOrderFlow.mono());
 		given(createServiceInstanceRouteBindingWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceRouteBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.routeServiceUrl("foo-url")
 				.operation("working2")));
-
-		InOrder createOrder = inOrder(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2);
 
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
@@ -396,11 +375,21 @@ class WorkflowServiceInstanceBindingServiceTest {
 				repoOrder.verify(stateRepository)
 					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
 				repoOrder.verifyNoMoreInteractions();
+				
+				lowerOrderFlow.complete();
+				lowerOrderFlow.assertWasNotRequested();
 
+				higherOrderFlow.complete();
+				lowerOrderFlow.assertWasRequested();
+
+				InOrder createOrder = inOrder(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2);
 				createOrder.verify(createServiceInstanceRouteBindingWorkflow2).buildResponse(eq(request),
 					any(CreateServiceInstanceRouteBindingResponseBuilder.class));
 				createOrder.verify(createServiceInstanceRouteBindingWorkflow1).buildResponse(eq(request),
 					any(CreateServiceInstanceRouteBindingResponseBuilder.class));
+				createOrder.verify(createServiceInstanceRouteBindingWorkflow2).create(request, responseBuilder.build());
+				createOrder.verify(createServiceInstanceRouteBindingWorkflow1).create(request, responseBuilder.build());
+				createOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(CreateServiceInstanceRouteBindingResponse.class);
@@ -408,24 +397,11 @@ class WorkflowServiceInstanceBindingServiceTest {
 				assertThat(response.isAsync()).isTrue();
 				assertThat(response.getOperation()).isEqualTo("working2");
 			})
-			.expectComplete()
-			.verifyThenAssertThat()
-			.tookLessThan(Duration.ofMillis(250));
-
-		lowerOrderFlow.complete();
-		lowerOrderFlow.assertWasNotRequested();
-
-		higherOrderFlow.complete();
-		Thread.sleep(600);
-		lowerOrderFlow.assertWasRequested();
-
-		createOrder.verify(createServiceInstanceRouteBindingWorkflow2).create(request, responseBuilder.build());
-		createOrder.verify(createServiceInstanceRouteBindingWorkflow1).create(request, responseBuilder.build());
-		createOrder.verifyNoMoreInteractions();
+			.verifyComplete();
 	}
 
 	@Test
-	void createServiceInstanceAppBindingWithAsyncError() throws InterruptedException {
+	void createServiceInstanceAppBindingWithAsyncError() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
 				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
@@ -456,36 +432,32 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceAppBindingWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceAppBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
-		InOrder repoOrder = inOrder(stateRepository);
-		InOrder createOrder = inOrder(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2);
-
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
 				repoOrder.verify(stateRepository)
 					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.FAILED), eq("create foo error"));
+				repoOrder.verifyNoMoreInteractions();
 
+				InOrder createOrder = inOrder(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2);
 				createOrder.verify(createServiceInstanceAppBindingWorkflow2).buildResponse(eq(request),
 					any(CreateServiceInstanceAppBindingResponseBuilder.class));
 				createOrder.verify(createServiceInstanceAppBindingWorkflow1).buildResponse(eq(request),
 					any(CreateServiceInstanceAppBindingResponseBuilder.class));
+				createOrder.verify(createServiceInstanceAppBindingWorkflow2).create(request, responseBuilder.build());
+				createOrder.verify(createServiceInstanceAppBindingWorkflow1).create(request, responseBuilder.build());
+				createOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(CreateServiceInstanceAppBindingResponse.class);
 			})
 			.verifyComplete();
-
-		Thread.sleep(50);
-
-		repoOrder.verify(stateRepository).saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.FAILED), eq("create foo error"));
-		repoOrder.verifyNoMoreInteractions();
-
-		createOrder.verify(createServiceInstanceAppBindingWorkflow2).create(request, responseBuilder.build());
-		createOrder.verify(createServiceInstanceAppBindingWorkflow1).create(request, responseBuilder.build());
-		createOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
-	void createServiceInstanceRouteBindingWithAsyncError() throws InterruptedException {
+	void createServiceInstanceRouteBindingWithAsyncError() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance binding started",
 				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
@@ -516,32 +488,28 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceRouteBindingWorkflow2.buildResponse(eq(request), any(CreateServiceInstanceRouteBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
-		InOrder repoOrder = inOrder(stateRepository);
-		InOrder createOrder = inOrder(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2);
-
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
 				repoOrder.verify(stateRepository)
 					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("create service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.FAILED), eq("create foo error"));
+				repoOrder.verifyNoMoreInteractions();
 
+				InOrder createOrder = inOrder(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2);
 				createOrder.verify(createServiceInstanceRouteBindingWorkflow2).buildResponse(eq(request),
 					any(CreateServiceInstanceRouteBindingResponseBuilder.class));
 				createOrder.verify(createServiceInstanceRouteBindingWorkflow1).buildResponse(eq(request),
 					any(CreateServiceInstanceRouteBindingResponseBuilder.class));
+				createOrder.verify(createServiceInstanceRouteBindingWorkflow2).create(request, responseBuilder.build());
+				createOrder.verify(createServiceInstanceRouteBindingWorkflow1).create(request, responseBuilder.build());
+				createOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(CreateServiceInstanceRouteBindingResponse.class);
 			})
 			.verifyComplete();
-
-		Thread.sleep(50);
-
-		repoOrder.verify(stateRepository).saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.FAILED), eq("create foo error"));
-		repoOrder.verifyNoMoreInteractions();
-
-		createOrder.verify(createServiceInstanceRouteBindingWorkflow2).create(request, responseBuilder.build());
-		createOrder.verify(createServiceInstanceRouteBindingWorkflow1).create(request, responseBuilder.build());
-		createOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -601,7 +569,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 	}
 
 	@Test
-	void createServiceInstanceAppBindingWithNoAcceptsDoesNothing() throws InterruptedException {
+	void createServiceInstanceAppBindingWithNoAcceptsDoesNothing() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started",
 				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
@@ -622,8 +590,6 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceAppBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(false));
 
-		InOrder createOrder = inOrder(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2);
-
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
 				InOrder repoOrder = inOrder(stateRepository);
@@ -633,23 +599,16 @@ class WorkflowServiceInstanceBindingServiceTest {
 					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
 				repoOrder.verifyNoMoreInteractions();
 
-				createOrder.verify(createServiceInstanceAppBindingWorkflow2).accept(eq(request));
-				createOrder.verify(createServiceInstanceAppBindingWorkflow1).accept(eq(request));
+				verifyNoMoreInteractions(createServiceInstanceAppBindingWorkflow1, createServiceInstanceAppBindingWorkflow2);
 
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(CreateServiceInstanceAppBindingResponse.class);
 			})
 			.verifyComplete();
-
-		Thread.sleep(50);
-
-		createOrder.verify(createServiceInstanceAppBindingWorkflow2).accept(eq(request));
-		createOrder.verify(createServiceInstanceAppBindingWorkflow1).accept(eq(request));
-		createOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
-	void createServiceInstanceRouteBindingWithNoAcceptsDoesNothing() throws InterruptedException {
+	void createServiceInstanceRouteBindingWithNoAcceptsDoesNothing() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "create service instance started",
 				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
@@ -670,8 +629,6 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(createServiceInstanceRouteBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(false));
 
-		InOrder createOrder = inOrder(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2);
-
 		StepVerifier.create(workflowServiceInstanceBindingService.createServiceInstanceBinding(request))
 			.assertNext(response -> {
 				InOrder repoOrder = inOrder(stateRepository);
@@ -681,19 +638,12 @@ class WorkflowServiceInstanceBindingServiceTest {
 					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("create service instance binding completed"));
 				repoOrder.verifyNoMoreInteractions();
 
-				createOrder.verify(createServiceInstanceRouteBindingWorkflow2).accept(eq(request));
-				createOrder.verify(createServiceInstanceRouteBindingWorkflow1).accept(eq(request));
+				verifyNoMoreInteractions(createServiceInstanceRouteBindingWorkflow1, createServiceInstanceRouteBindingWorkflow2);
 
 				assertThat(response).isNotNull();
 				assertThat(response).isInstanceOf(CreateServiceInstanceRouteBindingResponse.class);
 			})
 			.verifyComplete();
-
-		Thread.sleep(50);
-
-		createOrder.verify(createServiceInstanceRouteBindingWorkflow2).accept(eq(request));
-		createOrder.verify(createServiceInstanceRouteBindingWorkflow1).accept(eq(request));
-		createOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -728,7 +678,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 	}
 
 	@Test
-	void deleteServiceInstanceBinding() throws InterruptedException {
+	void deleteServiceInstanceBinding() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance binding started",
 				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
@@ -752,7 +702,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(deleteServiceInstanceBindingWorkflow1.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceBindingWorkflow1.delete(eq(request), eq(builtResponse)))
-			.willReturn(lowerOrderFlow.mono().then());
+			.willReturn(lowerOrderFlow.mono());
 		given(deleteServiceInstanceBindingWorkflow1.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.async(true)
@@ -761,19 +711,10 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(deleteServiceInstanceBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(true));
 		given(deleteServiceInstanceBindingWorkflow2.delete(eq(request), eq(builtResponse)))
-			.willReturn(Mono.just(true)
-				.flatMap(value -> {
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-					}
-				    return higherOrderFlow.mono();
-				}));
+			.willReturn(higherOrderFlow.mono());
 		given(deleteServiceInstanceBindingWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder
 				.operation("working2")));
-
-		InOrder deleteOrder = inOrder(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
 
 		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
 			.assertNext(response -> {
@@ -784,33 +725,30 @@ class WorkflowServiceInstanceBindingServiceTest {
 					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("delete service instance binding completed"));
 				repoOrder.verifyNoMoreInteractions();
 
+				lowerOrderFlow.complete();
+				lowerOrderFlow.assertWasNotRequested();
+
+				higherOrderFlow.complete();
+				lowerOrderFlow.assertWasRequested();
+
+				InOrder deleteOrder = inOrder(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
 				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).buildResponse(eq(request),
 					any(DeleteServiceInstanceBindingResponseBuilder.class));
 				deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).buildResponse(eq(request),
 					any(DeleteServiceInstanceBindingResponseBuilder.class));
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).delete(request, responseBuilder.build());
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).delete(request, responseBuilder.build());
+				deleteOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
 				assertThat(response.isAsync()).isTrue();
 				assertThat(response.getOperation()).isEqualTo("working2");
 			})
-			.expectComplete()
-			.verifyThenAssertThat()
-			.tookLessThan(Duration.ofMillis(250));
-
-		lowerOrderFlow.complete();
-		lowerOrderFlow.assertWasNotRequested();
-
-		higherOrderFlow.complete();
-		Thread.sleep(600);
-		lowerOrderFlow.assertWasRequested();
-
-		deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).delete(request, responseBuilder.build());
-		deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).delete(request, responseBuilder.build());
-		deleteOrder.verifyNoMoreInteractions();
+			.verifyComplete();
 	}
 
 	@Test
-	void deleteServiceInstanceBindingWithAsyncError() throws InterruptedException {
+	void deleteServiceInstanceBindingWithAsyncError() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started",
 				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
@@ -838,31 +776,27 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(deleteServiceInstanceBindingWorkflow2.buildResponse(eq(request), any(DeleteServiceInstanceBindingResponseBuilder.class)))
 			.willReturn(Mono.just(responseBuilder));
 
-		InOrder repoOrder = inOrder(stateRepository);
-		InOrder deleteOrder = inOrder(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
-
 		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
 			.assertNext(response -> {
+				InOrder repoOrder = inOrder(stateRepository);
 				repoOrder.verify(stateRepository)
 					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.IN_PROGRESS), eq("delete service instance binding started"));
+				repoOrder.verify(stateRepository)
+					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.FAILED), eq("delete foo binding error"));
+				repoOrder.verifyNoMoreInteractions();
 
+				InOrder deleteOrder = inOrder(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
 				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).buildResponse(eq(request),
 					any(DeleteServiceInstanceBindingResponseBuilder.class));
 				deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).buildResponse(eq(request),
 					any(DeleteServiceInstanceBindingResponseBuilder.class));
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).delete(request, responseBuilder.build());
+				deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).delete(request, responseBuilder.build());
+				deleteOrder.verifyNoMoreInteractions();
 
 				assertThat(response).isNotNull();
 			})
 			.verifyComplete();
-
-		Thread.sleep(50);
-
-		repoOrder.verify(stateRepository).saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.FAILED), eq("delete foo binding error"));
-		repoOrder.verifyNoMoreInteractions();
-
-		deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).delete(request, responseBuilder.build());
-		deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).delete(request, responseBuilder.build());
-		deleteOrder.verifyNoMoreInteractions();
 	}
 
 	@Test
@@ -892,7 +826,7 @@ class WorkflowServiceInstanceBindingServiceTest {
 	}
 
 	@Test
-	void deleteServiceInstanceBindingWithNoAcceptsDoesNothing() throws InterruptedException {
+	void deleteServiceInstanceBindingWithNoAcceptsDoesNothing() {
 		when(stateRepository.saveState(anyString(), anyString(), any(OperationState.class), anyString()))
 			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance binding started",
 				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))))
@@ -910,8 +844,6 @@ class WorkflowServiceInstanceBindingServiceTest {
 		given(deleteServiceInstanceBindingWorkflow2.accept(request))
 			.willReturn(Mono.just(false));
 
-		InOrder deleteOrder = inOrder(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
-
 		StepVerifier.create(workflowServiceInstanceBindingService.deleteServiceInstanceBinding(request))
 			.assertNext(response -> {
 				InOrder repoOrder = inOrder(stateRepository);
@@ -921,18 +853,11 @@ class WorkflowServiceInstanceBindingServiceTest {
 					.saveState(eq("foo-service"), eq("foo-binding"), eq(OperationState.SUCCEEDED), eq("delete service instance binding completed"));
 				repoOrder.verifyNoMoreInteractions();
 
-				deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).accept(eq(request));
-				deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).accept(eq(request));
+				verifyNoMoreInteractions(deleteServiceInstanceBindingWorkflow1, deleteServiceInstanceBindingWorkflow2);
 
 				assertThat(response).isNotNull();
 			})
 			.verifyComplete();
-
-		Thread.sleep(50);
-
-		deleteOrder.verify(deleteServiceInstanceBindingWorkflow2).accept(eq(request));
-		deleteOrder.verify(deleteServiceInstanceBindingWorkflow1).accept(eq(request));
-		deleteOrder.verifyNoMoreInteractions();
 	}
 
 	@Order(Ordered.HIGHEST_PRECEDENCE)

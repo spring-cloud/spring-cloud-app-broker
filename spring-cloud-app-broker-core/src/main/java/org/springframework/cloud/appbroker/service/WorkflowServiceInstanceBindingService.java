@@ -80,6 +80,7 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	@Override
 	public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(CreateServiceInstanceBindingRequest request) {
 		return invokeCreateResponseBuilders(request)
+			.publishOn(Schedulers.parallel())
 			.doOnNext(response -> create(request, response)
 				.subscribe());
 	}
@@ -132,7 +133,6 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 							  CreateServiceInstanceBindingResponse response) {
 		return stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 			OperationState.IN_PROGRESS, "create service instance binding started")
-			.publishOn(Schedulers.parallel())
 			.thenMany(invokeCreateWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Creating service instance binding"))
 				.doOnComplete(() -> log.debug("Finished creating service instance binding"))
@@ -168,6 +168,7 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	@Override
 	public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(DeleteServiceInstanceBindingRequest request) {
 		return invokeDeleteResponseBuilders(request)
+			.publishOn(Schedulers.parallel())
 			.doOnNext(response -> delete(request, response)
 				.subscribe());
 	}
@@ -188,7 +189,6 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 							  DeleteServiceInstanceBindingResponse response) {
 		return stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 			OperationState.IN_PROGRESS, "delete service instance binding started")
-			.publishOn(Schedulers.parallel())
 			.thenMany(invokeDeleteWorkflows(request, response)
 				.doOnRequest(l -> log.debug("Deleting service instance binding"))
 				.doOnComplete(() -> log.debug("Finished deleting service instance binding"))

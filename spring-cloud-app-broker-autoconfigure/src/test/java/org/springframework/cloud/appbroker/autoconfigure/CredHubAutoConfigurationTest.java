@@ -29,9 +29,10 @@ import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCre
 import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingDeleteServiceInstanceBindingWorkflow;
 import org.springframework.context.annotation.Bean;
 import org.springframework.credhub.core.CredHubOperations;
+import org.springframework.credhub.core.CredHubTemplate;
+import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 class CredHubAutoConfigurationTest {
 
@@ -84,7 +85,7 @@ class CredHubAutoConfigurationTest {
 
 		@Bean
 		public CredHubOperations credHubOperations() {
-			return mock(CredHubOperations.class);
+			return new CredHubTemplate(new RestTemplate());
 		}
 
 	}

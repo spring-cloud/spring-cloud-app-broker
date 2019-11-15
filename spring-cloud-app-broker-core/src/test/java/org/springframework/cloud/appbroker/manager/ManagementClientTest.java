@@ -32,8 +32,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementClientTest {
@@ -73,7 +73,7 @@ class ManagementClientTest {
 		StepVerifier.create(managementClient.start(null))
 			.verifyComplete();
 
-		verifyZeroInteractions(appManager);
+		verifyNoInteractions(appManager);
 	}
 
 	@Test
@@ -94,7 +94,7 @@ class ManagementClientTest {
 		StepVerifier.create(managementClient.stop(null))
 			.verifyComplete();
 
-		verifyZeroInteractions(appManager);
+		verifyNoInteractions(appManager);
 	}
 
 	@Test
@@ -115,7 +115,7 @@ class ManagementClientTest {
 		StepVerifier.create(managementClient.restart(null))
 			.verifyComplete();
 
-		verifyZeroInteractions(appManager);
+		verifyNoInteractions(appManager);
 	}
 
 	@Test
@@ -136,7 +136,7 @@ class ManagementClientTest {
 		StepVerifier.create(managementClient.restage(null))
 			.verifyComplete();
 
-		verifyZeroInteractions(appManager);
+		verifyNoInteractions(appManager);
 	}
 
 }

@@ -35,12 +35,9 @@ dependencies {
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.springframework.boot:spring-boot-autoconfigure-processor")
 
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webflux")
-	testImplementation("org.junit.jupiter:junit-jupiter-api")
-	testImplementation("org.mockito:mockito-junit-jupiter")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
 
 	testCompileOnly("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
 	testCompileOnly("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")

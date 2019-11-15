@@ -19,7 +19,7 @@ description = "Spring Cloud App Broker Core"
 ext {
 	junitJupiterVersion = "5.5.2"
 	assertjVersion = "3.13.2"
-	mockitoVersion = "3.0.0"
+	mockitoVersion = "3.1.0"
 }
 
 dependencyManagement {

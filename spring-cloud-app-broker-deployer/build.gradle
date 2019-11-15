@@ -25,7 +25,9 @@ dependencyManagement {
 dependencies {
 	compile("org.springframework:spring-core")
 	compile("io.projectreactor:reactor-core")
+
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
 	testCompile("org.junit.jupiter:junit-jupiter-api")
 	testCompile("org.assertj:assertj-core")
 }

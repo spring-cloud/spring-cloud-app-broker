@@ -40,13 +40,11 @@ dependencies {
 	compile project(":spring-cloud-starter-app-broker-cloudfoundry")
 	compile("org.springframework.boot:spring-boot-starter-webflux")
 
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.junit.jupiter:junit-jupiter-api")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
 	testImplementation("io.rest-assured:rest-assured")
 	testImplementation("com.github.tomakehurst:wiremock:${wiremockVersion}")
-	testImplementation("org.mockito:mockito-junit-jupiter")
 }
 
 test {

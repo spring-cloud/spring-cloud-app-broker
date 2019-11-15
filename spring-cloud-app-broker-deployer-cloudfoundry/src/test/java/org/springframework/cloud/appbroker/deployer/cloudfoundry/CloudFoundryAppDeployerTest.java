@@ -864,7 +864,7 @@ class CloudFoundryAppDeployerTest {
 		then(operationsUtils).should().getOperations(argThat(CollectionUtils::isEmpty));
 		then(cloudFoundryOperations).should().services();
 		then(operationsServices).should().getInstance(argThat(req -> "my-foo-service".equals(req.getName())));
-		then(cloudFoundryClient).shouldHaveZeroInteractions();
+		then(cloudFoundryClient).shouldHaveNoInteractions();
 		then(cloudFoundryOperations).shouldHaveNoMoreInteractions();
 		then(operationsUtils).shouldHaveNoMoreInteractions();
 	}
@@ -898,7 +898,7 @@ class CloudFoundryAppDeployerTest {
 			argThat(argument -> "foo-space".equals(argument.get(TARGET_PROPERTY_KEY))));
 		then(cloudFoundryOperations).should().services();
 		then(operationsServices).should().getInstance(argThat(req -> "my-foo-service".equals(req.getName())));
-		then(cloudFoundryClient).shouldHaveZeroInteractions();
+		then(cloudFoundryClient).shouldHaveNoInteractions();
 		then(cloudFoundryOperations).shouldHaveNoMoreInteractions();
 		then(operationsUtils).shouldHaveNoMoreInteractions();
 	}

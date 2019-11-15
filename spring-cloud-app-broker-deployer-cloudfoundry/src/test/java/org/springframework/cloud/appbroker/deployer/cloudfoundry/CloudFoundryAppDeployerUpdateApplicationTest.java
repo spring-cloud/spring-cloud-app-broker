@@ -295,7 +295,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		then(applicationsV2).shouldHaveZeroInteractions();
+		then(applicationsV2).shouldHaveNoInteractions();
 	}
 
 	@Test
@@ -545,7 +545,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.expectError(RuntimeException.class)
 			.verify();
 
-		then(routes).shouldHaveZeroInteractions();
+		then(routes).shouldHaveNoInteractions();
 	}
 
 	private Flux<Domain> getDomains() {

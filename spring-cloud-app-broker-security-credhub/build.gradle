@@ -26,10 +26,8 @@ dependencies {
 	compile project(":spring-cloud-app-broker-core")
 	compile("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
 
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
 	testImplementation("io.projectreactor:reactor-test")
-	testImplementation("org.junit.jupiter:junit-jupiter-api")
-	testImplementation("org.mockito:mockito-junit-jupiter")
 }

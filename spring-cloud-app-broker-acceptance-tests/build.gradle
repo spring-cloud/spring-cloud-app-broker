@@ -35,9 +35,14 @@ apply plugin: 'org.springframework.boot'
 dependencies {
 	compile project(":spring-cloud-starter-app-broker-cloudfoundry")
 	compile("org.springframework.boot:spring-boot-starter-webflux")
+
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
 	testCompile("org.junit.jupiter:junit-jupiter-api")
-	testCompile("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+
 	testCompile("io.projectreactor:reactor-test")
 	testCompile("org.assertj:assertj-core")
 }

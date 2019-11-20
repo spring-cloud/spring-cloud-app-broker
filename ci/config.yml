@@ -11,8 +11,9 @@ jobs:
     working_directory: ~/repo
 
     environment:
-      JAVA_TOOL_OPTIONS: "-Xms512m -Xmx2048m"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx512m -Xmx2048m" -Dorg.gradle.daemon=false'
+      # Configure the JVM and Gradle to avoid OOM errors
+      _JAVA_OPTIONS: "-Xmx3g"
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
       TERM: dumb
 
     steps:

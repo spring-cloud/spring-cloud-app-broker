@@ -218,12 +218,12 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 
 	task sourcesJar(type: Jar, dependsOn:classes) {
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-		classifier = "sources"
+		archiveClassifier = "sources"
 		from sourceSets.main.allJava
 	}
 
 	task javadocJar(type: Jar) {
-		classifier = "javadoc"
+		archiveClassifier = "javadoc"
 		from javadoc
 	}
 
@@ -274,8 +274,8 @@ configure(rootProject) {
 
 	task docsZip(type: Zip, dependsOn: [':spring-cloud-app-broker-docs:asciidoctor']) {
 		group = "Distribution"
-		classifier = "docs"
-		description = "Builds -${classifier} archive containing api and reference " +
+		archiveClassifier = "docs"
+		description = "Builds -${archiveClassifier} archive containing api and reference " +
 				"for deployment."
 
 		from (api) { into "api" }
@@ -286,8 +286,8 @@ configure(rootProject) {
 
 	task distZip(type: Zip, dependsOn: docsZip) {
 		group = "Distribution"
-		classifier = "dist"
-		description = "Builds -${classifier} archive, containing all jars and docs, " +
+		archiveClassifier = "dist"
+		description = "Builds -${archiveClassifier} archive, containing all jars and docs, " +
 				"suitable for community download page."
 
 		def baseDir = "${project.name}-${project.version}"

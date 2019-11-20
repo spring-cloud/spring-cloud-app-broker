@@ -21,9 +21,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestComponent;
 
@@ -36,10 +39,17 @@ public class WiremockServerFixture {
 	@Value("${spring.cloud.appbroker.deployer.cloudfoundry.api-port}")
 	private int cfApiPort;
 
+	@Autowired
+	private CloudControllerStubFixture cloudFoundryFixture;
+
+	@Autowired
+	private UaaStubFixture uaaFixture;
+
 	private WireMockServer ccUaaWiremockServer;
 
 	private WireMockServer credHubWiremockServer;
 
+	@PostConstruct
 	public void startWiremock() {
 		ccUaaWiremockServer = new WireMockServer(wireMockConfig()
 			.port(cfApiPort)
@@ -50,6 +60,9 @@ public class WiremockServerFixture {
 			.port(8888)
 			.usingFilesUnderClasspath("recordings"));
 		credHubWiremockServer.start();
+
+		uaaFixture.stubCommonUaaRequests();
+		cloudFoundryFixture.stubCommonCloudControllerRequests();
 	}
 
 	public void stopWiremock() {

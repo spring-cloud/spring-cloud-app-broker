@@ -32,10 +32,6 @@ jobs:
           key: sc-app-broker-{{ .Branch }}
 
       - run:
-          name: "Disable Gradle daemon"
-          command: touch ~/.gradle/gradle.properties && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
-
-      - run:
           name: "Run unit tests"
           command: ./gradlew clean check codeCoverageReport --stacktrace
 

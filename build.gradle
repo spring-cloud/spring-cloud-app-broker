@@ -321,8 +321,8 @@ task codeCoverageReport(type: JacocoReport) {
 			// Work-around for issue with jacoco and multiple-release jar files
 			// (like Log4J 2.10 and above)
 			// see https://github.com/jacoco/jacoco/issues/407
-			sourceDirectories = subproject.sourceSets.main.java
-			classDirectories = subproject.sourceSets.main.output.classesDirs
+			getSourceDirectories().from(subproject.sourceSets.main.java)
+			getClassDirectories().from(subproject.sourceSets.main.output.classesDirs)
 		} else {
 			 sourceSets subproject.sourceSets.main
 		}

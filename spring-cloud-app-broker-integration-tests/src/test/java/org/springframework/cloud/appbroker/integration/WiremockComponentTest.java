@@ -18,7 +18,6 @@ package org.springframework.cloud.appbroker.integration;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,11 +65,6 @@ class WiremockComponentTest {
 
 	@Autowired
 	private UaaStubFixture uaaFixture;
-
-	@BeforeAll
-	void setUp() {
-		wiremockFixture.startWiremock();
-	}
 
 	@AfterAll
 	void tearDown() {

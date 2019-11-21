@@ -26,8 +26,11 @@ dependencies {
 	compile project(":spring-cloud-app-broker-core")
 	compile("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
 
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
 	testImplementation("io.projectreactor:reactor-test")
+	testImplementation("io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}")
 }

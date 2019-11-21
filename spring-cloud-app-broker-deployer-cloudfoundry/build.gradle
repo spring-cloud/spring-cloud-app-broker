@@ -34,9 +34,11 @@ dependencies {
 	compile("org.immutables:value:${immutablesVersion}")
 
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	testImplementation("org.springframework:spring-test")
 	testImplementation("io.projectreactor:reactor-test")
+	testImplementation("io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}")
 	testImplementation("org.junit.jupiter:junit-jupiter-api")
 	testImplementation("org.assertj:assertj-core")
 	testImplementation("org.mockito:mockito-core")

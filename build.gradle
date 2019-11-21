@@ -34,6 +34,8 @@ ext {
 	openServiceBrokerVersion = "3.0.4.RELEASE"
 	springCredhubVersion = "2.0.1.RELEASE"
 	cfJavaClientVersion = "3.17.1.RELEASE"
+	blockHoundVersion = "1.0.1.RELEASE"
+	junitPlatformLauncherVersion = "1.5.2"
 	checkstyleVersion = "8.21"
 	pmdVersion = "6.19.0"
 

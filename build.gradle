@@ -31,7 +31,7 @@ ext {
 	springBootVersion = project.findProperty("springBootVersion") ?: "2.2.1.RELEASE"
 	springFrameworkVersion = project.findProperty("springFrameworkVersion") ?: "5.2.1.RELEASE"
 	reactorVersion = project.findProperty("reactorVersion") ?: "Dysprosium-SR1"
-	openServiceBrokerVersion = "3.0.4.RELEASE"
+	openServiceBrokerVersion = "3.1.0.RELEASE"
 	springCredhubVersion = "2.0.1.RELEASE"
 	cfJavaClientVersion = "3.17.1.RELEASE"
 	blockHoundVersion = "1.0.1.RELEASE"

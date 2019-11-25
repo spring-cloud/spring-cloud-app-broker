@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.autoconfigure;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
@@ -47,13 +48,17 @@ import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindi
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceRouteBindingWorkflow;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceBindingWorkflow;
 import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceBindingService;
-import org.springframework.cloud.appbroker.service.WorkflowServiceInstanceService;
 import org.springframework.cloud.appbroker.state.ServiceInstanceBindingStateRepository;
 import org.springframework.cloud.appbroker.state.ServiceInstanceStateRepository;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentCreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentDeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.workflow.instance.AppDeploymentUpdateServiceInstanceWorkflow;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
+import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -103,6 +108,20 @@ class AppBrokerAutoConfigurationTest {
 					.hasSingleBean(ServiceInstanceBindingService.class)
 					.getBean(ServiceInstanceBindingService.class)
 					.isExactlyInstanceOf(TestServiceInstanceBindingService.class);
+			});
+	}
+
+	@Test
+	void serviceInstanceIsNotCreatedIfProvided() {
+		configuredContext()
+			.withUserConfiguration(CustomServiceConfiguration.class)
+			.run(context -> {
+				assertBeansCreated(context);
+
+				assertThat(context)
+					.hasSingleBean(ServiceInstanceService.class)
+					.getBean(ServiceInstanceService.class)
+					.isExactlyInstanceOf(TestServiceInstanceService.class);
 			});
 	}
 
@@ -220,7 +239,6 @@ class AppBrokerAutoConfigurationTest {
 		assertThat(context).hasSingleBean(SpacePerServiceInstance.class);
 		assertThat(context).hasSingleBean(ServiceInstanceGuidSuffix.class);
 
-		assertThat(context).hasSingleBean(WorkflowServiceInstanceService.class);
 		assertThat(context).hasSingleBean(AppDeploymentCreateServiceInstanceWorkflow.class);
 		assertThat(context).hasSingleBean(AppDeploymentDeleteServiceInstanceWorkflow.class);
 		assertThat(context).hasSingleBean(AppDeploymentUpdateServiceInstanceWorkflow.class);
@@ -270,6 +288,16 @@ class AppBrokerAutoConfigurationTest {
 	}
 
 	@Configuration
+	public static class CustomServiceConfiguration {
+
+		@Bean
+		public ServiceInstanceService serviceInstanceService() {
+			return new TestServiceInstanceService();
+		}
+
+	}
+
+	@Configuration
 	public static class CustomStateRepositoriesConfiguration {
 
 		@Bean
@@ -285,6 +313,20 @@ class AppBrokerAutoConfigurationTest {
 	}
 
 	private static class TestServiceInstanceBindingService implements ServiceInstanceBindingService {
+	}
+
+	private static class TestServiceInstanceService implements ServiceInstanceService {
+
+		@Override
+		public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
+			return Mono.empty();
+		}
+
+		@Override
+		public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
+			return Mono.empty();
+		}
+
 	}
 
 	private static class TestServiceInstanceStateRepository implements ServiceInstanceStateRepository {}

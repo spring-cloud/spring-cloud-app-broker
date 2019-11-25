@@ -14,7 +14,9 @@ fetch_secrets() {
 
 set_app_broker_pipeline() {
   echo "Setting app-broker-1.0.x pipeline..."
-  fly -t scs set-pipeline -p app-broker-1.0.x -c pipeline.yml -l config-concourse.yml -l "${secrets_file}"
+  fly -t scs set-pipeline -p app-broker-1.0.x -c pipeline.yml -l config-concourse-1-0-x.yml -l "${secrets_file}"
+  echo "Setting app-broker-1.1.x pipeline..."
+  fly -t scs set-pipeline -p app-broker-1.1.x -c pipeline.yml -l config-concourse-master.yml -l "${secrets_file}"
 }
 
 cleanup() {

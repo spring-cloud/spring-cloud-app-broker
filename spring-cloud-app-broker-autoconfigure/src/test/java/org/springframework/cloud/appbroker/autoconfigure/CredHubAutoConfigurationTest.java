@@ -28,9 +28,9 @@ import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredenti
 import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingCreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingDeleteServiceInstanceBindingWorkflow;
 import org.springframework.context.annotation.Bean;
-import org.springframework.credhub.core.CredHubOperations;
-import org.springframework.credhub.core.CredHubTemplate;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.credhub.core.ReactiveCredHubOperations;
+import org.springframework.credhub.core.ReactiveCredHubTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,7 +52,7 @@ class CredHubAutoConfigurationTest {
 	@Test
 	void servicesAreNotCreatedWithoutCredHubOnClasspath() {
 		contextRunner
-			.withClassLoader(new FilteredClassLoader(CredHubOperations.class))
+			.withClassLoader(new FilteredClassLoader(ReactiveCredHubOperations.class))
 			.run((context) -> {
 				assertThat(context)
 					.hasSingleBean(CredentialGenerator.class)
@@ -84,8 +84,8 @@ class CredHubAutoConfigurationTest {
 	public static class CredHubConfiguration {
 
 		@Bean
-		public CredHubOperations credHubOperations() {
-			return new CredHubTemplate(new RestTemplate());
+		public ReactiveCredHubOperations credHubOperations() {
+			return new ReactiveCredHubTemplate(WebClient.create());
 		}
 
 	}

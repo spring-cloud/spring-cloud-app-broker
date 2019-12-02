@@ -32,7 +32,7 @@ ext {
 	springFrameworkVersion = project.findProperty("springFrameworkVersion") ?: "5.2.2.RELEASE"
 	reactorVersion = project.findProperty("reactorVersion") ?: "Dysprosium-SR2"
 	openServiceBrokerVersion = "3.1.0.RELEASE"
-	springCredhubVersion = "2.0.1.RELEASE"
+	springCredhubVersion = "2.1.0.BUILD-SNAPSHOT"
 	cfJavaClientVersion = "4.2.0.RELEASE"
 	blockHoundVersion = "1.0.1.RELEASE"
 	junitPlatformLauncherVersion = "1.5.2"
@@ -82,6 +82,7 @@ configure(allprojects) {
 	repositories {
 		mavenCentral()
 		maven { url "https://repo.spring.io/libs-release" }
+		maven { url "https://repo.spring.io/libs-snapshot" }
 	}
 
 	dependencies {

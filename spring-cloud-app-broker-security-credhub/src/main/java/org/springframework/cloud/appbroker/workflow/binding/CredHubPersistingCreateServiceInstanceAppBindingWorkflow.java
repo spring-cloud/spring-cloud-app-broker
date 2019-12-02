@@ -26,7 +26,7 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.core.annotation.Order;
-import org.springframework.credhub.core.CredHubOperations;
+import org.springframework.credhub.core.ReactiveCredHubOperations;
 import org.springframework.credhub.support.CredentialName;
 import org.springframework.credhub.support.json.JsonCredentialRequest;
 import org.springframework.credhub.support.permissions.Operation;
@@ -43,9 +43,9 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow extends Cr
 
 	private static final String CREDENTIAL_CLIENT_ID = "credential_client_id";
 
-	private final CredHubOperations credHubOperations;
+	private final ReactiveCredHubOperations credHubOperations;
 
-	public CredHubPersistingCreateServiceInstanceAppBindingWorkflow(CredHubOperations credHubOperations,
+	public CredHubPersistingCreateServiceInstanceAppBindingWorkflow(ReactiveCredHubOperations credHubOperations,
 		String appName) {
 		super(appName);
 		this.credHubOperations = credHubOperations;
@@ -73,8 +73,7 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow extends Cr
 	}
 
 	private Mono<CreateServiceInstanceAppBindingResponseBuilder> persistBindingCredentials(
-		CreateServiceInstanceBindingRequest request,
-		CreateServiceInstanceAppBindingResponse response,
+		CreateServiceInstanceBindingRequest request, CreateServiceInstanceAppBindingResponse response,
 		CredentialName credentialName) {
 		return writeCredential(response, credentialName)
 			.then(writePermissions(request, credentialName))
@@ -83,44 +82,40 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow extends Cr
 
 	private Mono<Void> writeCredential(CreateServiceInstanceAppBindingResponse response,
 		CredentialName credentialName) {
-		return Mono.fromCallable(() -> {
-			credHubOperations.credentials()
+		return credHubOperations.credentials()
 				.write(JsonCredentialRequest.builder()
 					.name(credentialName)
 					.value(response.getCredentials())
-					.build());
-			return null;
-		});
+					.build())
+			.then();
 	}
 
 	private Mono<Void> writePermissions(CreateServiceInstanceBindingRequest request,
 		CredentialName credentialName) {
-		return Mono.fromCallable(() -> {
-			BindResource bindResource = request.getBindResource();
-
+		BindResource bindResource = request.getBindResource();
+		return Mono.defer(() -> {
 			if (bindResource.getAppGuid() != null) {
-				Permission permission = Permission.builder()
-					.app(bindResource.getAppGuid())
-					.operation(Operation.READ)
-					.build();
-				credHubOperations.permissionsV2().addPermissions(credentialName, permission);
+				return credHubOperations.permissionsV2()
+					.addPermissions(credentialName, Permission.builder()
+						.app(bindResource.getAppGuid())
+						.operation(Operation.READ)
+						.build())
+					.then();
 			}
-
 			if (bindResource.getProperty(CREDENTIAL_CLIENT_ID) != null) {
-				Permission permission = Permission.builder()
-					.client(bindResource.getProperty(CREDENTIAL_CLIENT_ID).toString())
-					.operation(Operation.READ)
-					.build();
-				credHubOperations.permissionsV2().addPermissions(credentialName, permission);
+				return credHubOperations.permissionsV2()
+					.addPermissions(credentialName, Permission.builder()
+						.client(bindResource.getProperty(CREDENTIAL_CLIENT_ID).toString())
+						.operation(Operation.READ)
+						.build())
+					.then();
 			}
-
-			return null;
+			return Mono.empty();
 		});
 	}
 
 	private CreateServiceInstanceAppBindingResponseBuilder buildReplacementBindingResponse(
-		CreateServiceInstanceAppBindingResponse response,
-		CredentialName credentialName) {
+		CreateServiceInstanceAppBindingResponse response, CredentialName credentialName) {
 		return CreateServiceInstanceAppBindingResponse.builder()
 			.async(response.isAsync())
 			.bindingExisted(response.isBindingExisted())

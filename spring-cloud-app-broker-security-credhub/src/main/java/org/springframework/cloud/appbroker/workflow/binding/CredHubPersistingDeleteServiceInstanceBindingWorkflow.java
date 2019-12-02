@@ -24,7 +24,7 @@ import org.springframework.cloud.appbroker.service.DeleteServiceInstanceBindingW
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder;
 import org.springframework.core.annotation.Order;
-import org.springframework.credhub.core.CredHubOperations;
+import org.springframework.credhub.core.ReactiveCredHubOperations;
 import org.springframework.credhub.support.CredentialName;
 
 @Order(50)
@@ -34,9 +34,9 @@ public class CredHubPersistingDeleteServiceInstanceBindingWorkflow
 
 	private static final Logger LOG = Loggers.getLogger(CredHubPersistingDeleteServiceInstanceBindingWorkflow.class);
 
-	private final CredHubOperations credHubOperations;
+	private final ReactiveCredHubOperations credHubOperations;
 
-	public CredHubPersistingDeleteServiceInstanceBindingWorkflow(CredHubOperations credHubOperations, String appName) {
+	public CredHubPersistingDeleteServiceInstanceBindingWorkflow(ReactiveCredHubOperations credHubOperations, String appName) {
 		super(appName);
 		this.credHubOperations = credHubOperations;
 	}
@@ -45,8 +45,9 @@ public class CredHubPersistingDeleteServiceInstanceBindingWorkflow
 	public Mono<DeleteServiceInstanceBindingResponseBuilder> buildResponse(DeleteServiceInstanceBindingRequest request,
 		DeleteServiceInstanceBindingResponseBuilder responseBuilder) {
 		return buildCredentialName(request.getServiceDefinitionId(), request.getBindingId())
-			.filter(this::credentialExists)
-			.flatMap(credentialName -> deleteBindingCredentials(credentialName)
+			.filterWhen(this::credentialExists)
+			.flatMap(credentialName -> credHubOperations.credentials()
+				.deleteByName(credentialName)
 				.doOnRequest(
 					l -> LOG.debug("Deleting binding credentials with name '{}' in CredHub", credentialName.getName()))
 				.doOnSuccess(r -> LOG
@@ -57,15 +58,11 @@ public class CredHubPersistingDeleteServiceInstanceBindingWorkflow
 			.thenReturn(responseBuilder);
 	}
 
-	private boolean credentialExists(CredentialName credentialName) {
-		return !credHubOperations.credentials().findByName(credentialName).isEmpty();
-	}
-
-	private Mono<Void> deleteBindingCredentials(CredentialName credentialName) {
-		return Mono.fromCallable(() -> {
-			credHubOperations.credentials().deleteByName(credentialName);
-			return null;
-		});
+	private Mono<Boolean> credentialExists(CredentialName credentialName) {
+		return credHubOperations.credentials()
+			.findByName(credentialName)
+			.collectList()
+			.map(credentialSummaries -> !credentialSummaries.isEmpty());
 	}
 
 }

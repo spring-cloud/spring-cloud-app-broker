@@ -29,7 +29,7 @@ import org.springframework.cloud.appbroker.workflow.binding.CredHubPersistingDel
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.credhub.autoconfig.CredHubTemplateAutoConfiguration;
-import org.springframework.credhub.core.CredHubOperations;
+import org.springframework.credhub.core.ReactiveCredHubOperations;
 
 /**
  * CredHub auto-configuration
@@ -37,8 +37,8 @@ import org.springframework.credhub.core.CredHubOperations;
 @Configuration
 @AutoConfigureBefore(AppBrokerAutoConfiguration.class)
 @AutoConfigureAfter(CredHubTemplateAutoConfiguration.class)
-@ConditionalOnClass(CredHubOperations.class)
-@ConditionalOnBean(CredHubOperations.class)
+@ConditionalOnClass(ReactiveCredHubOperations.class)
+@ConditionalOnBean(ReactiveCredHubOperations.class)
 public class CredHubAutoConfiguration {
 
 	@Value("${spring.application.name}")
@@ -47,35 +47,35 @@ public class CredHubAutoConfiguration {
 	/**
 	 * Provide a {@link CreateServiceInstanceAppBindingWorkflow} bean
 	 *
-	 * @param credHubOperations the CredHubOperations bean
+	 * @param credHubOperations the ReactiveCredHubOperations bean
 	 * @return the bean
 	 */
 	@Bean
 	public CreateServiceInstanceAppBindingWorkflow credhubPersistingCreateServiceInstanceAppBindingWorkflow(
-		CredHubOperations credHubOperations) {
+		ReactiveCredHubOperations credHubOperations) {
 		return new CredHubPersistingCreateServiceInstanceAppBindingWorkflow(credHubOperations, appName);
 	}
 
 	/**
 	 * Provide a {@link DeleteServiceInstanceBindingWorkflow} bean
 	 *
-	 * @param credHubOperations the CredHubOperations bean
+	 * @param credHubOperations the ReactiveCredHubOperations bean
 	 * @return the bean
 	 */
 	@Bean
 	public DeleteServiceInstanceBindingWorkflow credhubPersistingDeleteServiceInstanceAppBindingWorkflow(
-		CredHubOperations credHubOperations) {
+		ReactiveCredHubOperations credHubOperations) {
 		return new CredHubPersistingDeleteServiceInstanceBindingWorkflow(credHubOperations, appName);
 	}
 
 	/**
 	 * Provide a {@link CredHubCredentialsGenerator} bean
 	 *
-	 * @param credHubOperations the CredHubOperations bean
+	 * @param credHubOperations the ReactiveCredHubOperations bean
 	 * @return the bean
 	 */
 	@Bean
-	public CredHubCredentialsGenerator credHubCredentialsGenerator(CredHubOperations credHubOperations) {
+	public CredHubCredentialsGenerator credHubCredentialsGenerator(ReactiveCredHubOperations credHubOperations) {
 		return new CredHubCredentialsGenerator(credHubOperations);
 	}
 

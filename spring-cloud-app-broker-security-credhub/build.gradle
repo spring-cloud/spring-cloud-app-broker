@@ -25,12 +25,14 @@ dependencyManagement {
 dependencies {
 	compile project(":spring-cloud-app-broker-core")
 	compile("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
+	compile("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
+	testImplementation("org.springframework.boot:spring-boot-starter-webflux")
 	testImplementation("io.projectreactor:reactor-test")
 	testImplementation("io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}")
 }

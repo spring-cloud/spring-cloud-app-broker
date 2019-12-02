@@ -21,10 +21,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import org.springframework.credhub.core.CredHubOperations;
-import org.springframework.credhub.core.credential.CredHubCredentialOperations;
+import org.springframework.credhub.core.ReactiveCredHubOperations;
+import org.springframework.credhub.core.credential.ReactiveCredHubCredentialOperations;
 import org.springframework.credhub.support.CredentialDetails;
 import org.springframework.credhub.support.CredentialType;
 import org.springframework.credhub.support.SimpleCredentialName;
@@ -35,6 +36,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -43,10 +45,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 class CredHubCredentialsGeneratorTest {
 
 	@Mock
-	private CredHubOperations credHubOperations;
+	private ReactiveCredHubOperations credHubOperations;
 
 	@Mock
-	private CredHubCredentialOperations credHubCredentialOperations;
+	private ReactiveCredHubCredentialOperations credHubCredentialOperations;
 
 	private CredHubCredentialsGenerator generator;
 
@@ -68,14 +70,15 @@ class CredHubCredentialsGeneratorTest {
 
 	@Test
 	void generateUser() {
-
 		given(this.credHubOperations.credentials())
 			.willReturn(credHubCredentialOperations);
 
-		given(this.credHubCredentialOperations.generate(any()))
-			.willReturn(new CredentialDetails<>("id",
-				new SimpleCredentialName("app-service"), CredentialType.PASSWORD,
-				new UserCredential("username", "password")));
+		CredentialDetails<UserCredential> creds = new CredentialDetails<>("id",
+			new SimpleCredentialName("app-service"), CredentialType.PASSWORD,
+			new UserCredential("username", "password"));
+
+		given(this.credHubCredentialOperations.generate(any(), eq(UserCredential.class)))
+			.willReturn(Mono.just(creds));
 
 		StepVerifier.create(generator.generateUser("foo", "bar", "hello", 12, false, false, false, false))
 			.assertNext(tuple2 -> {
@@ -87,14 +90,15 @@ class CredHubCredentialsGeneratorTest {
 
 	@Test
 	void generateString() {
-
 		given(this.credHubOperations.credentials())
 			.willReturn(credHubCredentialOperations);
 
-		given(this.credHubCredentialOperations.generate(any()))
-			.willReturn(new CredentialDetails<>("id",
-				new SimpleCredentialName("app-service"), CredentialType.PASSWORD,
-				new PasswordCredential("password")));
+		CredentialDetails<PasswordCredential> creds = new CredentialDetails<>("id",
+			new SimpleCredentialName("app-service"), CredentialType.PASSWORD,
+			new PasswordCredential("password"));
+
+		given(this.credHubCredentialOperations.generate(any(), eq(PasswordCredential.class)))
+			.willReturn(Mono.just(creds));
 
 		StepVerifier.create(generator.generateString("foo", "bar", "hello", 12, false, false, false, false))
 			.assertNext(password -> assertThat(password).isEqualTo("password"))
@@ -105,6 +109,9 @@ class CredHubCredentialsGeneratorTest {
 	void deleteUser() {
 		given(this.credHubOperations.credentials())
 			.willReturn(credHubCredentialOperations);
+
+		given(this.credHubCredentialOperations.deleteByName(any()))
+			.willReturn(Mono.empty());
 
 		StepVerifier.create(generator.deleteUser("foo", "bar", "hello"))
 			.verifyComplete();
@@ -118,6 +125,9 @@ class CredHubCredentialsGeneratorTest {
 	void deleteString() {
 		given(this.credHubOperations.credentials())
 			.willReturn(credHubCredentialOperations);
+
+		given(this.credHubCredentialOperations.deleteByName(any()))
+			.willReturn(Mono.empty());
 
 		StepVerifier.create(generator.deleteString("foo", "bar", "hello"))
 			.verifyComplete();

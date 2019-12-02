@@ -22,13 +22,11 @@ import reactor.util.function.Tuple2;
 public interface CredentialGenerator {
 
 	Mono<Tuple2<String, String>> generateUser(String applicationId, String serviceInstanceId, String descriptor,
-		int length, boolean includeUppercaseAlpha,
-		boolean includeLowercaseAlpha, boolean includeNumeric,
+		int length, boolean includeUppercaseAlpha, boolean includeLowercaseAlpha, boolean includeNumeric,
 		boolean includeSpecial);
 
 	Mono<String> generateString(String applicationId, String serviceInstanceId, String descriptor,
-		int length, boolean includeUppercaseAlpha,
-		boolean includeLowercaseAlpha, boolean includeNumeric,
+		int length, boolean includeUppercaseAlpha, boolean includeLowercaseAlpha, boolean includeNumeric,
 		boolean includeSpecial);
 
 	default Mono<Void> deleteUser(String applicationId, String serviceInstanceId, String descriptor) {

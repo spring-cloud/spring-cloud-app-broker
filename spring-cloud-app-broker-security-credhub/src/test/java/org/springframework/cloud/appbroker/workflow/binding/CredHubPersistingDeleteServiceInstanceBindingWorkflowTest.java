@@ -23,13 +23,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder;
-import org.springframework.credhub.core.CredHubOperations;
-import org.springframework.credhub.core.credential.CredHubCredentialOperations;
+import org.springframework.credhub.core.ReactiveCredHubOperations;
+import org.springframework.credhub.core.credential.ReactiveCredHubCredentialOperations;
 import org.springframework.credhub.support.CredentialName;
 import org.springframework.credhub.support.CredentialSummary;
 import org.springframework.credhub.support.ServiceInstanceCredentialName;
@@ -37,6 +39,7 @@ import org.springframework.credhub.support.ServiceInstanceCredentialName;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -44,10 +47,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 class CredHubPersistingDeleteServiceInstanceBindingWorkflowTest {
 
 	@Mock
-	private CredHubOperations credHubOperations;
+	private ReactiveCredHubOperations credHubOperations;
 
 	@Mock
-	private CredHubCredentialOperations credHubCredentialOperations;
+	private ReactiveCredHubCredentialOperations credHubCredentialOperations;
 
 	private CredHubPersistingDeleteServiceInstanceBindingWorkflow workflow;
 
@@ -79,14 +82,18 @@ class CredHubPersistingDeleteServiceInstanceBindingWorkflowTest {
 			.willReturn(credHubCredentialOperations);
 
 		given(this.credHubCredentialOperations.findByName(credentialName))
-			.willReturn(Collections.singletonList(new CredentialSummary(credentialName)));
+			.willReturn(Flux.fromIterable(Collections.singletonList(new CredentialSummary(credentialName))));
+
+		given(this.credHubCredentialOperations.deleteByName(any()))
+			.willReturn(Mono.empty());
 
 		StepVerifier
 			.create(this.workflow.buildResponse(request, responseBuilder))
 			.expectNext(responseBuilder)
 			.verifyComplete();
 
-		verify(this.credHubCredentialOperations).deleteByName(eq(credentialName));
+		verify(this.credHubCredentialOperations, times(1))
+			.deleteByName(eq(credentialName));
 		verifyNoMoreInteractions(this.credHubCredentialOperations);
 	}
 
@@ -106,7 +113,7 @@ class CredHubPersistingDeleteServiceInstanceBindingWorkflowTest {
 			.willReturn(credHubCredentialOperations);
 
 		given(this.credHubCredentialOperations.findByName(any()))
-			.willReturn(Collections.emptyList());
+			.willReturn(Flux.fromIterable(Collections.emptyList()));
 
 		StepVerifier
 			.create(this.workflow.buildResponse(request, responseBuilder))

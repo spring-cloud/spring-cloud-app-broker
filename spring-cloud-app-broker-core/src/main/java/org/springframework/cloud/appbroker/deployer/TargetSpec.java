@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.Objects;
+
 public class TargetSpec {
 
 	private String name;
@@ -40,6 +42,23 @@ public class TargetSpec {
 		return new TargetSpecBuilder();
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		TargetSpec that = (TargetSpec) o;
+		return Objects.equals(name, that.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name);
+	}
+
 	public static final class TargetSpecBuilder {
 
 		private String name;
@@ -51,11 +70,9 @@ public class TargetSpec {
 			this.name = name;
 			return this;
 		}
-
 		public TargetSpec build() {
 			return new TargetSpec(name);
 		}
 
 	}
-
 }

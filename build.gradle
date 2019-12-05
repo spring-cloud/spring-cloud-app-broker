@@ -33,7 +33,7 @@ ext {
 	reactorVersion = project.findProperty("reactorVersion") ?: "Californium-SR13"
 	openServiceBrokerVersion = "3.0.4.RELEASE"
 	springCredhubVersion = "2.0.1.RELEASE"
-	cfJavaClientVersion = "3.16.0.RELEASE"
+	cfJavaClientVersion = "3.18.0.RELEASE"
 	checkstyleVersion = "8.21"
 	pmdVersion = "6.19.0"
 

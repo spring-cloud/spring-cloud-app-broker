@@ -309,6 +309,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.getId();
 	}
 
+	@SuppressWarnings("deprecation")
 	private Mono<GetDeploymentResponse> waitForDeploymentDeployed(String deploymentId) {
 		return this.client
 			.deploymentsV3()

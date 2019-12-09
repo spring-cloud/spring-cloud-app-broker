@@ -50,4 +50,5 @@ dependencies {
 test {
 	// force a new fork for every test to eliminate issues with wiremock state
 	forkEvery = 1
+	maxHeapSize = '1G'
 }

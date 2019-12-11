@@ -51,6 +51,11 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	protected static final String HEALTHCHECK_TIMEOUT_PROPERTY_KEY = "health-check-timeout";
 
 	/**
+	 * Key for storing the api completion timeout property in seconds.
+	 */
+	protected static final String API_POLLING_TIMEOUT_PROPERTY_KEY = "api-polling-timeout";
+
+	/**
 	 * Key for storing the route path deployment property
 	 */
 	protected static final String ROUTE_PATH_PROPERTY = "route-path";
@@ -90,7 +95,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	 */
 	protected static final String JAVA_OPTS_PROPERTY_KEY = "javaOpts";
 
-	public static final long DEFAULT_API_POLLING_TIMEOUT_SECONDS = Duration.ofMinutes(5).getSeconds(); // Default in cf-java-client when no completionTimeout is specified in CSI/USI/DSI
+	public static final long DEFAULT_API_POLLING_TIMEOUT_SECONDS = Duration.ofMinutes(5).getSeconds();
 
 	/**
 	 * The domain to use when mapping routes for applications.

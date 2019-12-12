@@ -20,7 +20,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 
-import org.springframework.cloud.appbroker.deployer.*;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingService;
+import org.springframework.cloud.appbroker.deployer.BackingServices;
+import org.springframework.cloud.appbroker.deployer.BrokeredService;
+import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 
@@ -67,11 +72,6 @@ class AppDeploymentInstanceWorkflowTest {
 			.build();
 
 		workflow = new AppDeploymentInstanceWorkflow(brokeredServices);
-	}
-
-	@Test
-	void acceptWithNoBrokeredAppAndMatchingService() {
-
 	}
 
 	@Test

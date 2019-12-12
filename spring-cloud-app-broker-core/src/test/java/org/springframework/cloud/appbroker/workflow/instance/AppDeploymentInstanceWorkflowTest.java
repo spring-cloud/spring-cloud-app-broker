@@ -94,10 +94,11 @@ class AppDeploymentInstanceWorkflowTest {
 
 	@Test
 	void doNotAcceptWithMatchingServiceWithoutBackingServiceNorBackingApplication() {
-		ServiceDefinition serviceDefinition = buildServiceDefinition("service3_without_backing_app_nor_service", "plan1");
+		ServiceDefinition serviceDefinition = buildServiceDefinition("service3_without_backing_app_nor_service",
+			"plan1");
 		StepVerifier
 			.create(workflow.accept(serviceDefinition, serviceDefinition.getPlans().get(0)))
-			.expectNextMatches(value -> ! value)
+			.expectNextMatches(value -> !value)
 			.verifyComplete();
 	}
 

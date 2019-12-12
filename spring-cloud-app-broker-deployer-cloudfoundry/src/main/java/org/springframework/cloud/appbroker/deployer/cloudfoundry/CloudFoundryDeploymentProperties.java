@@ -95,6 +95,10 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	 */
 	protected static final String JAVA_OPTS_PROPERTY_KEY = "javaOpts";
 
+	/**
+	 * The default value for the  {@link #apiPollingTimeout} property.
+	 * Useful in unit tests to assert default value when not assigned specifically.
+	 */
 	public static final long DEFAULT_API_POLLING_TIMEOUT_SECONDS = Duration.ofMinutes(5).getSeconds();
 
 	/**

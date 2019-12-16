@@ -796,6 +796,13 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.orElse(this.defaultDeploymentProperties.getHealthCheckTimeout());
 	}
 
+	private Duration apiPollingTimeout(Map<String, String> properties) {
+		return Duration.ofSeconds(
+			Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.API_POLLING_TIMEOUT_PROPERTY_KEY))
+			.map(Long::parseLong)
+			.orElse(this.defaultDeploymentProperties.getApiPollingTimeout()));
+	}
+
 	private Integer instances(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(DeploymentProperties.COUNT_PROPERTY_KEY))
 			.map(Integer::parseInt)
@@ -975,6 +982,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.serviceName(request.getName())
 				.planName(request.getPlan())
 				.parameters(request.getParameters())
+				.completionTimeout(apiPollingTimeout(request.getProperties()))
 				.build();
 
 		Mono<CreateServiceInstanceResponse> createServiceInstanceResponseMono =
@@ -1015,12 +1023,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
 			requestDeleteServiceInstance = operationsUtils.getOperations(deploymentProperties)
 				.flatMap(cfOperations -> unbindServiceInstance(serviceInstanceName, cfOperations)
-					.then(deleteServiceInstance(serviceInstanceName, cfOperations)))
+					.then(deleteServiceInstance(serviceInstanceName, cfOperations, deploymentProperties)))
 				.then(deleteSpace(space));
 		}
 		else {
 			requestDeleteServiceInstance = unbindServiceInstance(serviceInstanceName, operations)
-				.then(deleteServiceInstance(serviceInstanceName, operations));
+				.then(deleteServiceInstance(serviceInstanceName, operations, deploymentProperties));
 		}
 
 		return requestDeleteServiceInstance
@@ -1032,11 +1040,13 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<Void> deleteServiceInstance(String serviceInstanceName,
-		CloudFoundryOperations cloudFoundryOperations) {
+		CloudFoundryOperations cloudFoundryOperations,
+		Map<String, String> deploymentProperties) {
 		return cloudFoundryOperations.services().deleteInstance(
 			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest
 				.builder()
 				.name(serviceInstanceName)
+				.completionTimeout(apiPollingTimeout(deploymentProperties))
 				.build())
 			.doOnError(exception -> LOG.debug(String.format("Error deleting service instance %s with error '%s'",
 				serviceInstanceName, exception.getMessage()), exception))
@@ -1108,6 +1118,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return cloudFoundryOperations.services().updateInstance(
 			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
 				.serviceInstanceName(serviceInstanceName)
+				.completionTimeout(apiPollingTimeout(request.getProperties()))
 				.parameters(request.getParameters())
 				.build())
 			.then(Mono.just(UpdateServiceInstanceResponse.builder()

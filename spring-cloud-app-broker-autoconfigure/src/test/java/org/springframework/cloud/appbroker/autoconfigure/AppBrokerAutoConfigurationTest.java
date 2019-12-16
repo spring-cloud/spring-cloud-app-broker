@@ -27,6 +27,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
+import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
@@ -171,6 +172,20 @@ class AppBrokerAutoConfigurationTest {
 	}
 
 	@Test
+	void brokeredServicesIsNotCreatedIfProvided() {
+		configuredContext()
+			.withUserConfiguration(CustomBrokeredServicesConfiguration.class)
+			.run(context -> {
+				assertBeansCreated(context);
+
+				assertThat(context)
+					.hasSingleBean(BrokeredServices.class)
+					.getBean(BrokeredServices.class)
+					.isEqualTo(new CustomBrokeredServicesConfiguration().brokeredServices());
+			});
+	}
+
+	@Test
 	void serviceInstanceBindingStateRepositoryIsNotCreatedIfProvided() {
 		configuredContext()
 			.withUserConfiguration(CustomStateRepositoriesConfiguration.class)
@@ -295,6 +310,20 @@ class AppBrokerAutoConfigurationTest {
 			return new TestServiceInstanceService();
 		}
 
+	}
+
+	@Configuration
+	public static class CustomBrokeredServicesConfiguration {
+
+		@Bean
+		public BrokeredServices brokeredServices() {
+			return BrokeredServices.builder().service(
+				BrokeredService.builder()
+					.serviceName("single-service")
+					.planName("service1-plan1")
+					.build())
+				.build();
+		}
 	}
 
 	@Configuration

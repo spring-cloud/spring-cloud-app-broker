@@ -1081,7 +1081,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 		Mono<Void> requestDeleteServiceInstance = operationsUtils.getOperations(deploymentProperties)
 			.flatMap(cfOperations -> unbindServiceInstance(serviceInstanceName, cfOperations)
-				.then(deleteServiceInstance(serviceInstanceName, cfOperations)));
+				.then(deleteServiceInstance(serviceInstanceName, cfOperations, deploymentProperties)));
 
 		if (targetSpace != null && deleteTargetSpace) {
 			requestDeleteServiceInstance = requestDeleteServiceInstance

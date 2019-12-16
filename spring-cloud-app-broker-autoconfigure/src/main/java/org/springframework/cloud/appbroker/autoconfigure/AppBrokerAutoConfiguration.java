@@ -304,16 +304,17 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link TargetService} bean
-	 *
-	 * @param targets a collection of targets
-	 * @return the bean
+	 * Provide a {@link SpacePerServicePlan} bean
 	 */
 	@Bean
-	public SpacePerServicePlan spacePerServicePlan() { return new SpacePerServicePlan();}
+	public SpacePerServicePlan spacePerServicePlan() {
+		return new SpacePerServicePlan();
+	}
 
 	@Bean
-	public SpacePerServiceDefinition spacePerServiceDefinition() { return new SpacePerServiceDefinition();}
+	public SpacePerServiceDefinition spacePerServiceDefinition() {
+		return new SpacePerServiceDefinition();
+	}
 
 	@Bean
 	public TargetService targetService(List<TargetFactory<?>> targets) {

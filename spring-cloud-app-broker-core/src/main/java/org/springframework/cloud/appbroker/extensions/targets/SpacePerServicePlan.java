@@ -41,7 +41,7 @@ public class SpacePerServicePlan extends TargetFactory<SpacePerServicePlan.Confi
 			.build();
 	}
 
-	static class Config {
+	public static class Config {
 	}
 
 }

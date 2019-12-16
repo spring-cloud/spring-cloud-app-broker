@@ -42,7 +42,7 @@ public class SpacePerServiceDefinition extends TargetFactory<SpacePerServiceDefi
 			.build();
 	}
 
-	static class Config {
+	public static class Config {
 	}
 
 }

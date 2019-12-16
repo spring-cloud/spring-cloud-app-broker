@@ -33,7 +33,7 @@ jobs:
 
       - run:
           name: "Run unit tests"
-          command: ./gradlew clean check codeCoverageReport --stacktrace
+          command: ./gradlew clean check codeCoverageReport --stacktrace --continue
 
       - run:
           name: "Aggregate test results"

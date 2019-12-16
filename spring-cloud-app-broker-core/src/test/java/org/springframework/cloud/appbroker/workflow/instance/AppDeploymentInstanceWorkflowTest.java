@@ -22,6 +22,8 @@ import reactor.test.StepVerifier;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BackingService;
+import org.springframework.cloud.appbroker.deployer.BackingServices;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
@@ -44,11 +46,28 @@ class AppDeploymentInstanceWorkflowTest {
 				.build())
 			.build();
 
+		BackingServices backingServices = BackingServices.builder()
+			.backingService(BackingService.builder()
+				.name("service1")
+				.plan("plan1")
+				.build()
+			)
+			.build();
+
 		BrokeredServices brokeredServices = BrokeredServices.builder()
 			.service(BrokeredService.builder()
 				.serviceName("service1")
 				.planName("plan1")
 				.apps(backingApps)
+				.build())
+			.service(BrokeredService.builder()
+				.serviceName("service2_without_backing_app")
+				.planName("plan1")
+				.services(backingServices)
+				.build())
+			.service(BrokeredService.builder()
+				.serviceName("service3_without_backing_app_nor_service")
+				.planName("plan1")
 				.build())
 			.build();
 
@@ -61,6 +80,25 @@ class AppDeploymentInstanceWorkflowTest {
 		StepVerifier
 			.create(workflow.accept(serviceDefinition, serviceDefinition.getPlans().get(0)))
 			.expectNextMatches(value -> value)
+			.verifyComplete();
+	}
+
+	@Test
+	void acceptWithMatchingServiceAndNoBackingApplication() {
+		ServiceDefinition serviceDefinition = buildServiceDefinition("service2_without_backing_app", "plan1");
+		StepVerifier
+			.create(workflow.accept(serviceDefinition, serviceDefinition.getPlans().get(0)))
+			.expectNextMatches(value -> value)
+			.verifyComplete();
+	}
+
+	@Test
+	void doNotAcceptWithMatchingServiceWithoutBackingServiceNorBackingApplication() {
+		ServiceDefinition serviceDefinition = buildServiceDefinition("service3_without_backing_app_nor_service",
+			"plan1");
+		StepVerifier
+			.create(workflow.accept(serviceDefinition, serviceDefinition.getPlans().get(0)))
+			.expectNextMatches(value -> !value)
 			.verifyComplete();
 	}
 

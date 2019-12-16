@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.state;
 import java.util.Calendar;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
@@ -28,6 +29,8 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled
+// See https://github.com/spring-cloud/spring-cloud-app-broker/issues/313
 class InMemoryServiceInstanceBindingStateRepositoryTest {
 
 	private InMemoryServiceInstanceBindingStateRepository stateRepository;

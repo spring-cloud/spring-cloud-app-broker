@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.integration;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +59,8 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 
 	"spring.credhub.url=http://localhost:8888"
 })
+@Disabled
+// See https://github.com/spring-cloud/spring-cloud-app-broker/issues/315
 class CreateInstanceWithCredHubCredentialsComponentTest extends WiremockComponentTest {
 
 	protected static final String APP_NAME = "app-with-credentials";

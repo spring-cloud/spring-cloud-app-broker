@@ -39,8 +39,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 @TestComponent
 public class CloudControllerStubFixture extends WiremockStubFixture {
 
-	private static final String TEST_SPACE_GUID = "TEST-SPACE-GUID";
-
+	protected static final String TEST_SPACE_GUID = "TEST-SPACE-GUID";
 	private static final String TEST_ORG_GUID = "TEST-ORG-GUID";
 
 	private static final String TEST_QUOTA_DEFINITION_GUID = "TEST-QUOTA-DEFINITION-GUID";
@@ -568,7 +567,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@name", spaceName)))));
 	}
 
-	private String cc(String fileRoot, StringReplacementPair... replacements) {
+	protected String cc(String fileRoot, StringReplacementPair... replacements) {
 		String response = readResponseFromFile(fileRoot, "cloudcontroller");
 		for (StringReplacementPair pair : replacements) {
 			response = response.replaceAll(pair.getRegex(), pair.getReplacement());

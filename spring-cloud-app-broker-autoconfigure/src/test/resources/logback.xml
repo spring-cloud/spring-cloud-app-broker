@@ -1,4 +1,4 @@
-<configuration>
+<configuration debug="true">
 
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
@@ -8,7 +8,11 @@
 		</encoder>
 	</appender>
 
-	<root level="info">
+	<root level="DEBUG">
 		<appender-ref ref="STDOUT"/>
 	</root>
+<!--	<logger name="org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener" level="DEBUG" />-->
+	<logger name="org.springframework" level="TRACE" />
+<!--	<logger name="org.springframework.boot" level="TRACE" />-->
+<!--	<logger name="org.springframework.boot.autoconfigure" level="DEBUG" />-->
 </configuration>

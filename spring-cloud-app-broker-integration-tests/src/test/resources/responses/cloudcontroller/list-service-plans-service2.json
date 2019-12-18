@@ -1,0 +1,43 @@
+{
+	"total_results": 1,
+	"total_pages": 1,
+	"prev_url": null,
+	"next_url": null,
+	"resources": [
+		{
+			"metadata": {
+				"guid": "SERVICE-PLAN-ID-2",
+				"url": "/v2/service_plans/SERVICE-PLAN-ID-2",
+				"created_at": "2018-01-26T20:48:20Z",
+				"updated_at": "2018-06-11T18:08:05Z"
+			},
+			"entity": {
+				"name": "standard-2",
+				"free": true,
+				"description": "basic-2",
+				"service_guid": "SERVICE-ID2",
+				"extra": "{}",
+				"public": true,
+				"bindable": true,
+				"active": true,
+				"service_url": "/v2/services/SERVICE-ID2",
+				"service_instances_url": "/v2/service_plans/SERVICE-PLAN-ID-2/service_instances",
+				"schemas": {
+					"service_instance": {
+						"create": {
+							"parameters": {}
+						},
+						"update": {
+							"parameters": {}
+						}
+					},
+					"service_binding": {
+						"create": {
+							"parameters": {}
+						}
+					}
+				}
+			}
+		}
+	]
+}

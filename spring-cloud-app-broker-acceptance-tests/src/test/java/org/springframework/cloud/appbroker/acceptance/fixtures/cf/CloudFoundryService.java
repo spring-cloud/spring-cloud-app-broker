@@ -218,7 +218,8 @@ public class CloudFoundryService {
 				.name(serviceInstanceName)
 				.build())
 			.doOnSuccess(item -> LOGGER.info("Got service instance " + serviceInstanceName))
-			.doOnError(error -> LOGGER.error("Error getting service instance " + serviceInstanceName + ": " + error));
+			.doOnError(error -> LOGGER.error("Error getting service instance " + serviceInstanceName + ": " + error,
+				error));
 	}
 
 	public Mono<List<ApplicationSummary>> getApplications() {

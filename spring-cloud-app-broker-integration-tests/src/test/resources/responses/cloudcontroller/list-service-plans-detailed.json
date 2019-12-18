@@ -1,0 +1,127 @@
+{
+	"total_results": 1,
+	"total_pages": 1,
+	"prev_url": null,
+	"next_url": null,
+	"resources": [
+		{
+			"metadata": {
+				"guid": "SERVICE-PLAN-ID",
+				"url": "/v2/service_plans/SERVICE-PLAN-ID",
+				"created_at": "2018-01-26T20:48:20Z",
+				"updated_at": "2018-06-11T18:08:05Z"
+			},
+			"entity": {
+				"name": "standard",
+				"free": true,
+				"description": "basic",
+				"service_guid": "SERVICE-ID",
+				"extra": "{\n\t\t\t\t\t\t\"bullets\":[\n\t\t\t\t\t\t\t\"20 GB of messages\",\n\t\t\t\t\t\t\t\"20 connections\"\n\t\t\t\t\t\t],\n\t\t\t\t\t\t\"costs\":[\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\"amount\":{\n\t\t\t\t\t\t\t\t\t\"usd\":99.0\n\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t\"unit\":\"MONTHLY\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\"amount\":{\n\t\t\t\t\t\t\t\t\t\"usd\":0.99\n\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t\"unit\":\"1GB of messages over 20GB\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t],\n\t\t\t\t\t\t\"displayName\":\"Big Bunny\"\n\t\t\t\t\t}\n",
+				"public": true,
+				"bindable": true,
+				"active": true,
+				"service_url": "/v2/services/SERVICE-ID",
+				"service_instances_url": "/v2/service_plans/SERVICE-PLAN-ID/service_instances",
+				"schemas": {
+					"service_binding": {
+						"create": {
+							"parameters": {
+								"$schema": "http://json-schema.org/draft-04/schema#",
+								"type": "object",
+								"properties": {
+									"baz": {
+										"type": "object",
+										"properties": {
+											"foo": {
+												"type": "string"
+											},
+											"bar": {
+												"type": "string"
+											}
+										},
+										"allOf": [
+											{
+												"required": [
+													"foo"
+												]
+											},
+											{
+												"required": [
+													"bar"
+												]
+											}
+										]
+									}
+								}
+							}
+						}
+					},
+					"service_instance": {
+						"create": {
+							"parameters": {
+								"$schema": "http://json-schema.org/draft-04/schema#",
+								"type": "object",
+								"properties": {
+									"baz": {
+										"type": "object",
+										"properties": {
+											"foo": {
+												"type": "string"
+											},
+											"bar": {
+												"type": "string"
+											}
+										},
+										"allOf": [
+											{
+												"required": [
+													"foo"
+												]
+											},
+											{
+												"required": [
+													"bar"
+												]
+											}
+										]
+									}
+								}
+							}
+						},
+						"update": {
+							"parameters": {
+								"$schema": "http://json-schema.org/draft-04/schema#",
+								"type": "object",
+								"properties": {
+									"baz": {
+										"type": "object",
+										"properties": {
+											"foo": {
+												"type": "string"
+											},
+											"bar": {
+												"type": "string"
+											}
+										},
+										"allOf": [
+											{
+												"required": [
+													"foo"
+												]
+											},
+											{
+												"required": [
+													"bar"
+												]
+											}
+										]
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	]
+}

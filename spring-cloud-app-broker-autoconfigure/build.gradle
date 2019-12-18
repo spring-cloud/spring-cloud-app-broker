@@ -31,6 +31,7 @@ dependencies {
 	compile("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
 	compile("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
 	compile("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
+	compile("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.9")
 
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.springframework.boot:spring-boot-autoconfigure-processor")

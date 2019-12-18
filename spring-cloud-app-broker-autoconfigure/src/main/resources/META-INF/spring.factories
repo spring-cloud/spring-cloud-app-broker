@@ -1,4 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 org.springframework.cloud.appbroker.autoconfigure.CloudFoundryAppDeployerAutoConfiguration,\
 org.springframework.cloud.appbroker.autoconfigure.CredHubAutoConfiguration,\
-org.springframework.cloud.appbroker.autoconfigure.AppBrokerAutoConfiguration
+org.springframework.cloud.appbroker.autoconfigure.AppBrokerAutoConfiguration,\
+org.springframework.cloud.appbroker.autoconfigure.DynamicCatalogServiceAutoConfiguration

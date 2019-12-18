@@ -19,27 +19,14 @@ package org.springframework.cloud.appbroker.workflow.instance;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.appbroker.deployer.BackingService;
 
 /**
- * Validates updates to backing services, and returns an updated copy of the list with the previousPlan set. This help
- * only triggering plan update when previousPlan is set.
+ * Validates updates to backing services. Throws a exception if invalid.
+ * When valid, returns an updated copy of the list with the previousPlan set.
+ * This helps only triggering plan update when previousPlan is set.
  */
 public class BackingServicesUpdateValidatorService {
-
-	// Accept and return Mono to make it easier for AppDeploymentUpdateServiceInstanceWorkflow to provide us with previous and candidate backing services
-	public Mono<List<BackingService>> validatePlanUpdate(Mono<List<BackingService>> previousBackingServices,
-		Mono<List<BackingService>> candidateBackingServicesForUpdate) {
-		try {
-			return Mono.just(validateAndMutatePlanUpdate(previousBackingServices.block(),
-				candidateBackingServicesForUpdate.block()));
-		}
-		catch (IllegalArgumentException e) {
-			return Mono.error(e);
-		}
-	}
 
 	public List<BackingService> validateAndMutatePlanUpdate(List<BackingService> previousBackingServicesList,
 		List<BackingService> candidateBackingServicesList) {
@@ -51,7 +38,8 @@ public class BackingServicesUpdateValidatorService {
 					return candidateBackingService;
 				}
 				else {
-					//Don't mutate the caller's BackingService, return a copy instead.
+					//Don't mutate the caller's BackingService bean (which has not a "request" scope),
+					//return a copy instead.
 					return BackingService.builder()
 						.backingService(candidateBackingService)
 						.previousPlan(matchingPreviousBackingService.getPlan())
@@ -71,7 +59,8 @@ public class BackingServicesUpdateValidatorService {
 			.collect(Collectors.toList());
 		if (matchingPreviousBackingServices.size() != 1) { // NOPMD
 			throw new IllegalArgumentException(
-				"Unsupported update that would result into backing services changes other than plan ugrade. Candidate after update= " + candidate + " Before update=" + previousBackingServicesList);
+				"Unsupported update that would result into backing services changes other than plan upgrade. " +
+					"Candidate after update= " + candidate + " Before update=" + previousBackingServicesList);
 		}
 		return matchingPreviousBackingServices.get(0);
 	}

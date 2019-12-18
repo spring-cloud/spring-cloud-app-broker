@@ -80,7 +80,6 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 			.then();
 	}
 
-	//Inspired from  spring-cloud-open-service-broker private method
 	private Mono<Plan> getServiceDefinitionPlan(ServiceDefinition serviceDefinition, String planId) {
 		return Mono.justOrEmpty(serviceDefinition)
 			.flatMap(serviceDef -> Mono.justOrEmpty(serviceDef.getPlans())
@@ -119,8 +118,7 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 					.flatMap(backingServices ->
 						servicesParametersTransformationService.transformParameters(backingServices,
 							request.getParameters()));
-			resultingBackingService = servicesUpdateValidatorService
-				.validatePlanUpdate(previousBackingServices, candidateBackingServicesForUpdate);
+			resultingBackingService = validatePlanUpdate(candidateBackingServicesForUpdate, previousBackingServices);
 		}
 
 		return resultingBackingService
@@ -132,6 +130,16 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 			.doOnError(exception -> log.error(String.format("Error updating backing services for %s/%s with error '%s'",
 				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
 				exception));
+	}
+
+	private Mono<List<BackingService>> validatePlanUpdate(Mono<List<BackingService>> candidateBackingServicesForUpdate,
+		Mono<List<BackingService>> previousBackingServices) {
+		return Mono.zip(previousBackingServices, candidateBackingServicesForUpdate)
+				.map(backingServices -> {
+					List<BackingService> previous = backingServices.getT1();
+					List<BackingService> candidatesForUpdate = backingServices.getT2();
+					return servicesUpdateValidatorService.validateAndMutatePlanUpdate(previous, candidatesForUpdate);
+				});
 	}
 
 	private Flux<String> updateBackingApplications(UpdateServiceInstanceRequest request) {

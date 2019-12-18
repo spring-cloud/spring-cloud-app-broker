@@ -18,7 +18,6 @@ package org.springframework.cloud.appbroker.workflow.instance;
 
 import java.util.List;
 
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -27,6 +26,7 @@ import reactor.test.StepVerifier;
 import org.springframework.cloud.appbroker.deployer.BackingService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.util.Lists.newArrayList;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BackingServicesUpdateValidatorServiceTest {
@@ -56,10 +56,14 @@ class BackingServicesUpdateValidatorServiceTest {
 	@Test
 	void emitsAnErrorWhenRejected() {
 		//Given a rejected case (tested in "rejectsWhenNewBackingServicesCreated")
-		Mono<List<BackingService>> requestedBackingServices = backingServicesUpdateValidatorService.validatePlanUpdate(
-			Mono.just(Lists.newArrayList(mysql)),
-			Mono.just(Lists.newArrayList(mysql, postgresql))
-		);
+		Mono<List<BackingService>> requestedBackingServices = Mono
+			.zip(Mono.<List<BackingService>>just(newArrayList(mysql)),
+				Mono.<List<BackingService>>just(newArrayList(mysql, postgresql)))
+			.map(backingServices -> {
+				List<BackingService> previous = backingServices.getT1();
+				List<BackingService> candidatesForUpdate = backingServices.getT2();
+				return backingServicesUpdateValidatorService.validateAndMutatePlanUpdate(previous, candidatesForUpdate);
+			});
 
 		StepVerifier.create(requestedBackingServices)
 			//then
@@ -70,9 +74,9 @@ class BackingServicesUpdateValidatorServiceTest {
 	@Test
 	void validatesWhenNoChanges() {
 		List<BackingService> validatedServices = backingServicesUpdateValidatorService.validateAndMutatePlanUpdate(
-			Lists.newArrayList(mysql),
-			Lists.newArrayList(mysql));
-		assertThat(validatedServices).isEqualTo(Lists.newArrayList(mysql));
+			newArrayList(mysql),
+			newArrayList(mysql));
+		assertThat(validatedServices).isEqualTo(newArrayList(mysql));
 	}
 
 	@Test
@@ -93,8 +97,8 @@ class BackingServicesUpdateValidatorServiceTest {
 
 		//when
 		List<BackingService> validatedServices = backingServicesUpdateValidatorService.validateAndMutatePlanUpdate(
-			Lists.newArrayList(mysql10Mb),
-			Lists.newArrayList(mysql100Mb));
+			newArrayList(mysql10Mb),
+			newArrayList(mysql100Mb));
 
 		//Then
 		BackingService mysql100MbWithPreviousPlan = BackingService
@@ -104,15 +108,15 @@ class BackingServicesUpdateValidatorServiceTest {
 			.previousPlan("10mb")
 			.serviceInstanceName("my-service-instance")
 			.build();
-		assertThat(validatedServices).isEqualTo(Lists.newArrayList(mysql100MbWithPreviousPlan));
+		assertThat(validatedServices).isEqualTo(newArrayList(mysql100MbWithPreviousPlan));
 
 	}
 
 	@Test
 	void rejectsWhenNewBackingServicesCreated() {
 		assertThrows(Exception.class, () -> backingServicesUpdateValidatorService.validateAndMutatePlanUpdate(
-			Lists.newArrayList(mysql),
-			Lists.newArrayList(mysql, postgresql)));
+			newArrayList(mysql),
+			newArrayList(mysql, postgresql)));
 	}
 
 	@Test
@@ -130,12 +134,12 @@ class BackingServicesUpdateValidatorServiceTest {
 			.serviceInstanceName("my-service-instance")
 			.build();
 		assertThrows(Exception.class, () -> backingServicesUpdateValidatorService.validateAndMutatePlanUpdate(
-			Lists.newArrayList(mysql),
-			Lists.newArrayList(pg)));
+			newArrayList(mysql),
+			newArrayList(pg)));
 	}
 
 	@Test
-	void rejectsWhenChangeServiceInstanceName() {
+	void rejectsWhenChangesServiceInstanceName() {
 		BackingService mysql = BackingService
 			.builder()
 			.name("mysql")
@@ -149,8 +153,8 @@ class BackingServicesUpdateValidatorServiceTest {
 			.serviceInstanceName("my-unrelated-service-instance")
 			.build();
 		assertThrows(Exception.class, () -> backingServicesUpdateValidatorService.validateAndMutatePlanUpdate(
-			Lists.newArrayList(mysql),
-			Lists.newArrayList(pg)));
+			newArrayList(mysql),
+			newArrayList(pg)));
 	}
 
 }

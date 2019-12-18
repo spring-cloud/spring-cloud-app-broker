@@ -29,11 +29,11 @@ public class BackingService {
 
 	private String serviceInstanceName;
 
-	private String name; // a service definition
+	private String name;
 
 	private String plan;
 
-	private String previousPlan; // Necessary to trigger update on plan mutation.
+	private String previousPlan;
 
 	private Map<String, Object> parameters;
 
@@ -132,10 +132,6 @@ public class BackingService {
 		this.rebindOnUpdate = rebindOnUpdate;
 	}
 
-	/**
-	 * Returns the requested updated plan if any. This enables to not trigger backing service when no plan update was
-	 * requested.
-	 */
 	public String getUpdatedPlanIfAny() {
 		if (getPlan() == null) {
 			return null; //should only happen in incomplete unit tests
@@ -145,7 +141,7 @@ public class BackingService {
 		if (planWasUpdated) {
 			return getPlan();
 		}
-		return null;
+		return null; //Don't trigger backing service update when no plan update was requested.
 	}
 
 	@Override

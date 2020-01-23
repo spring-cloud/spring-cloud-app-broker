@@ -43,6 +43,13 @@ This project requires Java 8 at a minimum.
 The project is built with Gradle.
 The https://docs.gradle.org/current/userguide/gradle_wrapper.html[Gradle wrapper] allows you to build the project on multiple platforms and even if you do not have Gradle installed; run it in place of the `gradle` command (as `./gradlew`) from the root of the main project directory.
 
+=== Getting Started
+
+See the https://spring.io/projects/spring-cloud-app-broker/[project site] and https://docs.spring.io/spring-cloud-app-broker/docs/current/reference/html5/[reference documentation] to get started building a service broker using this framework.
+
+Take a look at this https://spring.io/blog/2019/05/30/introducing-spring-cloud-app-broker[introduction blog post] and to our https://github.com/spring-cloud-samples/spring-cloud-app-broker-samples[sample apps].
+
+
 ==== Compile the project and run tests
 
     ./gradlew build

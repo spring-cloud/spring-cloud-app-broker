@@ -51,6 +51,8 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	protected static final String BACKING_SERVICE_NAME = "db-service";
 
+	protected static final String BACKING_PLAN_NAME = "standard";
+
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
 
@@ -63,7 +65,7 @@ class CreateInstanceWithServicesComponentTest extends WiremockComponentTest {
 		cloudControllerFixture.stubPushApp(APP_NAME);
 
 		// given services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
+		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 
 		// will create and bind the service instance
 		cloudControllerFixture.stubCreateServiceInstance(BACKING_SI_NAME);

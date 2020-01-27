@@ -31,10 +31,12 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.integration.DeleteInstanceComponentTest.APP_NAME_1;
 import static org.springframework.cloud.appbroker.integration.DeleteInstanceComponentTest.APP_NAME_2;
+import static org.springframework.cloud.appbroker.integration.DeleteInstanceComponentTest.PLAN_NAME;
+import static org.springframework.cloud.appbroker.integration.DeleteInstanceComponentTest.SERVICE_NAME;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.services[0].service-name=example",
-	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].service-name=" + SERVICE_NAME,
+	"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
 	"spring.cloud.appbroker.services[0].apps[1].path=classpath:demo.jar",
@@ -46,6 +48,10 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 
 	protected static final String APP_NAME_2 = "second-app";
 
+	protected static final String SERVICE_NAME = "example";
+
+	protected static final String PLAN_NAME = "standard";
+
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
 
@@ -54,6 +60,9 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsWhenTheyExist() {
+		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
+					SERVICE_NAME, PLAN_NAME);
+
 		cloudControllerFixture.stubAppExists(APP_NAME_1);
 		cloudControllerFixture.stubAppExists(APP_NAME_2);
 
@@ -84,6 +93,9 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsWhenTheyDoNotExist() {
+		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
+					SERVICE_NAME, PLAN_NAME);
+
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
 

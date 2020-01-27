@@ -52,10 +52,12 @@ import org.cloudfoundry.operations.organizations.Organizations;
 import org.cloudfoundry.operations.serviceadmin.CreateServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.DeleteServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.EnableServiceAccessRequest;
+import org.cloudfoundry.operations.serviceadmin.UpdateServiceBrokerRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
@@ -112,6 +114,19 @@ public class CloudFoundryService {
 					.build())
 				.doOnSuccess(item -> LOGGER.info("Created service broker " + brokerName))
 				.doOnError(error -> LOGGER.error("Error creating service broker " + brokerName + ": " + error)));
+	}
+
+	public Mono<Void> updateServiceBroker(String brokerName, String testBrokerAppName) {
+		return getApplicationRoute(testBrokerAppName)
+			.flatMap(url -> cloudFoundryOperations.serviceAdmin()
+				.update(UpdateServiceBrokerRequest.builder()
+					.name(brokerName)
+					.username("user")
+					.password("password")
+					.url(url)
+					.build())
+				.doOnSuccess(item -> LOGGER.info("Updating service broker " + brokerName))
+				.doOnError(error -> LOGGER.error("Error updating service broker " + brokerName + ": " + error)));
 	}
 
 	public Mono<String> getApplicationRoute(String appName) {
@@ -201,6 +216,10 @@ public class CloudFoundryService {
 				.build())
 			.doOnSuccess(item -> LOGGER.info("Updated service instance " + serviceInstanceName))
 			.doOnError(error -> LOGGER.error("Error updating service instance " + serviceInstanceName + ": " + error));
+	}
+
+	public Flux<ServiceInstanceSummary> listServiceInstances() {
+		return cloudFoundryOperations.services().listInstances();
 	}
 
 	public Mono<ServiceInstance> getServiceInstance(String serviceInstanceName) {

@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +40,7 @@ import org.cloudfoundry.AbstractCloudFoundryException;
 import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.applications.AssociateApplicationRouteRequest;
+import org.cloudfoundry.client.v2.applications.SummaryApplicationRequest;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationRequest;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationResponse;
 import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
@@ -80,7 +82,6 @@ import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.domains.Domain;
@@ -111,6 +112,8 @@ import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRespons
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationResponse;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.GetApplicationResponse;
 import org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.GetServiceInstanceResponse;
 import org.springframework.cloud.appbroker.deployer.UndeployApplicationRequest;
@@ -166,6 +169,34 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	@Override
+	public Mono<GetApplicationResponse> get(GetApplicationRequest request) {
+		final String name = request.getName();
+
+		return operationsUtils.getOperations(request.getProperties())
+			.flatMap(cfOperations -> cfOperations.applications()
+				.get(org.cloudfoundry.operations.applications.GetApplicationRequest.builder().name(name).build())
+				.doOnRequest(l -> LOG.debug("Getting application {}", name))
+				.doOnSuccess(response -> LOG.info("Success getting application {} id: {}", name, response.getId()))
+				.doOnError(e -> LOG.warn(String.format("Error getting application %s: %s", name, e.getMessage())))
+				.map(ApplicationDetail::getId)
+				.flatMap(id ->
+					client.applicationsV2()
+						.summary(SummaryApplicationRequest.builder().applicationId(id).build())))
+			.flatMap(summary -> Flux.fromIterable(summary.getServices())
+				.map(org.cloudfoundry.client.v2.serviceinstances.ServiceInstance::getName)
+				.collectList()
+				.map(services -> GetApplicationResponse.builder()
+					.id(summary.getId())
+					.name(summary.getName())
+					.services(services)
+					.environment(summary.getEnvironmentJsons())
+					.build()))
+			.doOnRequest(l -> LOG.debug("Getting application summary for {}", name))
+			.doOnSuccess(item -> LOG.info("Success getting application summary for {}", name))
+			.doOnError(error -> LOG.error("Failed to get application summary for {}", name));
+	}
+
+	@Override
 	public Mono<DeployApplicationResponse> deploy(DeployApplicationRequest request) {
 		String appName = request.getName();
 		Resource appResource = getAppResource(request.getPath());
@@ -200,37 +231,58 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	public Mono<UpdateApplicationResponse> update(UpdateApplicationRequest request) {
 		final String name = request.getName();
 
-		return operationsUtils.getOperations(request.getProperties())
-			.flatMap(cfOperations -> cfOperations.applications()
-				.get(GetApplicationRequest.builder().name(name).build())
-				.doOnRequest(l -> LOG.debug("Getting application {}", name))
-				.doOnSuccess(response -> LOG.info("Success getting application {}", name))
-				.doOnError(e -> LOG.warn(String.format("Error getting application %s: %s", name, e.getMessage())))
-				.map(ApplicationDetail::getId)
-				.flatMap(applicationId -> associateHostName(applicationId, request.getProperties()))
-				.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
-					upgradeApplication(request, applicationId)))
-				.flatMap(tuple2 -> {
-					String packageId = tuple2.getT2();
-					return Mono.zip(Mono.just(tuple2.getT1()), createBuildForPackage(packageId));
-				})
-				.flatMap(tuple2 -> {
-						String buildId = tuple2.getT2();
-						return Mono.zip(Mono.just(tuple2.getT1()), waitForBuildStaged(buildId));
-					}
-				)
-				.map(tuple2 -> tuple2.mapT2((t2) -> t2.getDroplet().getId()))
-				.flatMap(tuple2 -> {
-					String dropletId = tuple2.getT2();
-					String applicationId = tuple2.getT1();
-					return createDeployment(dropletId, applicationId);
-				})
-				.map(CreateDeploymentResponse::getId)
-				.flatMap(this::waitForDeploymentDeployed)
-				.doOnRequest(l -> LOG.debug("Updating application {}", name))
-				.doOnSuccess(item -> LOG.info("Successfully updated application {}", name))
-				.doOnError(error -> LOG.error("Failed to update application {}", name))
-				.thenReturn(UpdateApplicationResponse.builder().name(name).build()));
+		return get(GetApplicationRequest.builder().name(name).properties(request.getProperties()).build())
+			.flatMap(response -> bindNewServices(response, request.getServices(), request.getProperties()))
+			.flatMap(applicationId -> associateHostName(applicationId, request.getProperties()))
+			.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
+				upgradeApplication(request, applicationId)))
+			.flatMap(tuple2 -> {
+				String packageId = tuple2.getT2();
+				return Mono.zip(Mono.just(tuple2.getT1()), createBuildForPackage(packageId));
+			})
+			.flatMap(tuple2 -> {
+					String buildId = tuple2.getT2();
+					return Mono.zip(Mono.just(tuple2.getT1()), waitForBuildStaged(buildId));
+				}
+			)
+			.map(tuple2 -> tuple2.mapT2((t2) -> t2.getDroplet().getId()))
+			.flatMap(tuple2 -> {
+				String dropletId = tuple2.getT2();
+				String applicationId = tuple2.getT1();
+				return createDeployment(dropletId, applicationId);
+			})
+			.map(CreateDeploymentResponse::getId)
+			.flatMap(this::waitForDeploymentDeployed)
+			.doOnRequest(l -> LOG.debug("Updating application {}", name))
+			.doOnSuccess(item -> LOG.info("Successfully updated application {}", name))
+			.doOnError(error -> LOG.error("Failed to update application {}", name))
+			.thenReturn(UpdateApplicationResponse.builder().name(name).build());
+	}
+
+	private Mono<String> bindNewServices(GetApplicationResponse deployedApp, List<String> services,
+		Map<String, String> properties) {
+		String id = deployedApp.getId();
+		List<String> boundServices = deployedApp.getServices();
+		List<String> servicesToBind = new ArrayList<>(services);
+		servicesToBind.removeAll(boundServices);
+
+		if (servicesToBind.isEmpty()) {
+			return Mono.just(id);
+		}
+
+		String name = deployedApp.getName();
+		return operationsUtils.getOperations(properties)
+			.flatMapMany(cfOperations -> Flux.fromIterable(servicesToBind)
+				.flatMap(service -> cfOperations.services()
+					.bind(BindServiceInstanceRequest.builder()
+						.applicationName(name)
+						.serviceInstanceName(service)
+						.build())
+					.doOnRequest(l -> LOG.debug("Binding application {} to service {}", name, service))
+					.doOnNext(item -> LOG.info("Successfully bind application {} to service {}", name, service))
+					.doOnError(error -> LOG.error("Failed to bind application {} to service {}", name, service))))
+			.then()
+			.thenReturn(id);
 	}
 
 	private Mono<String> associateHostName(String applicationId, Map<String, String> properties) {
@@ -799,8 +851,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private Duration apiPollingTimeout(Map<String, String> properties) {
 		return Duration.ofSeconds(
 			Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.API_POLLING_TIMEOUT_PROPERTY_KEY))
-			.map(Long::parseLong)
-			.orElse(this.defaultDeploymentProperties.getApiPollingTimeout()));
+				.map(Long::parseLong)
+				.orElse(this.defaultDeploymentProperties.getApiPollingTimeout()));
 	}
 
 	private Integer instances(Map<String, String> properties) {

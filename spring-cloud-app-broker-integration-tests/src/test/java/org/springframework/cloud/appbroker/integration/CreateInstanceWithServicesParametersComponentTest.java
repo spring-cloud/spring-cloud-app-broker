@@ -56,6 +56,8 @@ class CreateInstanceWithServicesParametersComponentTest extends WiremockComponen
 
 	protected static final String BACKING_SERVICE_NAME = "db-service";
 
+	protected static final String BACKING_PLAN_NAME = "standard";
+
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
 
@@ -68,7 +70,7 @@ class CreateInstanceWithServicesParametersComponentTest extends WiremockComponen
 		cloudControllerFixture.stubPushApp(APP_NAME);
 
 		// given services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
+		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 
 		// will create with filtered parameters and bind the service instance
 		HashMap<String, Object> expectedCreationParameters = new HashMap<>();

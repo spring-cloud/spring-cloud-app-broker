@@ -29,7 +29,9 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.ServicesSpec;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 
 public class BackingAppManagementService {
@@ -108,12 +110,42 @@ public class BackingAppManagementService {
 			.then();
 	}
 
-	private Mono<List<BackingApplication>> getBackingApplicationsForService(String serviceInstanceId) {
+	public Mono<BackingApplications> getDeployedBackingApplications(String serviceInstanceId) {
+		return getBackingApplicationsForService(serviceInstanceId)
+			.flatMapMany(Flux::fromIterable)
+			.flatMap(app ->
+				appDeployer
+					.get(GetApplicationRequest.builder()
+						.name(app.getName())
+						.properties(app.getProperties())
+						.build())
+					.flatMap(response -> Flux.fromIterable(response.getServices())
+						.map(serviceName ->
+							ServicesSpec.builder()
+								.serviceInstanceName(serviceName)
+								.build())
+						.collectList()
+						.map(services -> BackingApplication
+							.builder()
+							.name(response.getName())
+							.services(services)
+							.environment(response.getEnvironment())
+							.build()))
+					.doOnRequest(l -> log.debug("Getting deployed backing applications {}", app))
+					.doOnError(exception -> log.error(String.format("Error getting deployed backing application %s " +
+						"with error '%s'", app.getName(), exception.getMessage()), exception))
+					.onErrorResume(exception -> Mono.empty()))
+			.collectList()
+			.map(BackingApplications::new);
+	}
+
+	private Mono<BackingApplications> getBackingApplicationsForService(String serviceInstanceId) {
 		return appDeployer.getServiceInstance(GetServiceInstanceRequest.builder()
 			.serviceInstanceId(serviceInstanceId)
 			.build())
 			.flatMap(response -> findBrokeredService(response.getService(), response.getPlan()))
-			.flatMap(brokeredService -> updateBackingApps(brokeredService, serviceInstanceId));
+			.flatMap(brokeredService -> updateBackingApps(brokeredService, serviceInstanceId))
+			.map(backingApplications -> BackingApplications.builder().backingApplications(backingApplications).build());
 	}
 
 	private Mono<BrokeredService> findBrokeredService(String serviceName, String planName) {

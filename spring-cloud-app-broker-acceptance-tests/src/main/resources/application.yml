@@ -11,3 +11,4 @@
 logging:
   level:
     cloudfoundry-client: DEBUG
+    org.springframework.cloud.appbroker: DEBUG

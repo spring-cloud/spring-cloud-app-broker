@@ -15,12 +15,16 @@
 				"name": "@name",
 				"credentials": {},
 				"space_guid": "@space-guid",
+				"service_guid": "@service-guid",
+				"service_plan_guid": "@plan-guid",
 				"type": "managed_service_instance",
 				"syslog_drain_url": "",
 				"route_service_url": "",
 				"space_url": "/v2/spaces/@space-guid",
 				"service_bindings_url": "/v2/service_instances/@guid/service_bindings",
 				"service_keys_url": "/v2/service_instances/@guid/service_keys",
+				"service_url": "/v2/services/@service-guid",
+				"service_plan_url": "/v2/service_plans/@plan-guid",
 				"routes_url": "/v2/service_instances/@guid/routes"
 			}
 		}

@@ -31,26 +31,35 @@ import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithServicesComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithServicesComponentTest.BACKING_PLAN_NAME;
 import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
 import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithServicesComponentTest.BACKING_SI_NAME;
+import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithServicesComponentTest.PLAN_NAME;
+import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithServicesComponentTest.SERVICE_NAME;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.services[0].service-name=example",
-	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].service-name=" + SERVICE_NAME,
+	"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
-	"spring.cloud.appbroker.services[0].services[0].plan=standard"
+	"spring.cloud.appbroker.services[0].services[0].plan=" + BACKING_PLAN_NAME
 })
 class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	protected static final String APP_NAME = "app-delete-with-services";
 
+	protected static final String SERVICE_NAME = "example";
+
+	protected static final String PLAN_NAME = "standard";
+
 	protected static final String BACKING_SI_NAME = "my-db-service";
 
 	protected static final String BACKING_SERVICE_NAME = "db-service";
+
+	protected static final String BACKING_PLAN_NAME = "backing-standard";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -60,13 +69,15 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsAndServicesWhenTheyExist() {
-		cloudControllerFixture.stubAppExists(APP_NAME);
+		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
+							SERVICE_NAME, PLAN_NAME);
+		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SI_NAME,
+			BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubDeleteApp(APP_NAME);
 
-		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
+		cloudControllerFixture.stubGetBackingServiceInstance(BACKING_SI_NAME, BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 
-		cloudControllerFixture.stubListServiceBindings(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubServiceBindingExists(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubDeleteServiceBinding(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubDeleteServiceInstance(BACKING_SI_NAME);
@@ -92,11 +103,11 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsWhenTheyExistAndServicesWhenTheyDoNotExist() {
+		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
+							SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubAppExists(APP_NAME);
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubDeleteApp(APP_NAME);
-
-		cloudControllerFixture.stubServiceInstanceDoesNotExist(BACKING_SI_NAME);
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())
@@ -119,9 +130,9 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsAndServicesWhenTheyDoNotExist() {
+		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
+							SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
-
-		cloudControllerFixture.stubServiceInstanceDoesNotExist(BACKING_SI_NAME);
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())

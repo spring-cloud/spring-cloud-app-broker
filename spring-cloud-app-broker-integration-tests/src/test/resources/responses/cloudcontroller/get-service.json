@@ -1,0 +1,26 @@
+{
+	"metadata": {
+		"guid": "@service-guid",
+		"url": "/v2/services/@service-guid",
+		"created_at": "2018-01-26T20:48:20Z",
+		"updated_at": "2018-06-11T18:08:05Z"
+	},
+	"entity": {
+		"label": "@service-name",
+		"provider": null,
+		"url": null,
+		"description": "My DB Service",
+		"long_description": null,
+		"version": null,
+		"info_url": null,
+		"active": 1,
+		"bindable": 1,
+		"extra": "{}",
+		"tags": [
+		],
+		"requires": [],
+		"documentation_url": null,
+		"plan_updateable": 0,
+		"service_plans_url": "/v2/services/@service-guid/service_plans"
+	}
+}

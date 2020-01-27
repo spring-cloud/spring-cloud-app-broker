@@ -345,6 +345,7 @@ public class AppBrokerAutoConfiguration {
 	 *
 	 * @param brokeredServices the BrokeredServices bean
 	 * @param backingAppDeploymentService the BackingAppDeploymentService bean
+	 * @param backingAppManagementService the BackingAppManagementService bean
 	 * @param backingServicesProvisionService the BackingServicesProvisionService bean
 	 * @param appsParametersTransformationService the BackingApplicationsParametersTransformationService bean
 	 * @param servicesParametersTransformationService the BackingServicesParametersTransformationService bean
@@ -353,7 +354,9 @@ public class AppBrokerAutoConfiguration {
 	 */
 	@Bean
 	public UpdateServiceInstanceWorkflow appDeploymentUpdateServiceInstanceWorkflow(
-		BrokeredServices brokeredServices, BackingAppDeploymentService backingAppDeploymentService,
+		BrokeredServices brokeredServices,
+		BackingAppDeploymentService backingAppDeploymentService,
+		BackingAppManagementService backingAppManagementService,
 		BackingServicesProvisionService backingServicesProvisionService,
 		BackingApplicationsParametersTransformationService appsParametersTransformationService,
 		BackingServicesParametersTransformationService servicesParametersTransformationService,
@@ -362,6 +365,7 @@ public class AppBrokerAutoConfiguration {
 		return new AppDeploymentUpdateServiceInstanceWorkflow(
 			brokeredServices,
 			backingAppDeploymentService,
+			backingAppManagementService,
 			backingServicesProvisionService,
 			appsParametersTransformationService,
 			servicesParametersTransformationService,
@@ -373,6 +377,7 @@ public class AppBrokerAutoConfiguration {
 	 *
 	 * @param brokeredServices the BrokeredServices bean
 	 * @param backingAppDeploymentService the BackingAppDeploymentService bean
+	 * @param backingAppManagementService the BackingAppManagementService bean
 	 * @param backingServicesProvisionService the BackingServicesProvisionService bean
 	 * @param credentialProviderService the CredentialProviderService bean
 	 * @param targetService the TargetService bean
@@ -381,13 +386,16 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	public DeleteServiceInstanceWorkflow appDeploymentDeleteServiceInstanceWorkflow(
 		BrokeredServices brokeredServices, BackingAppDeploymentService backingAppDeploymentService,
+		BackingAppManagementService backingAppManagementService,
 		BackingServicesProvisionService backingServicesProvisionService,
 		CredentialProviderService credentialProviderService, TargetService targetService) {
 
 		return new AppDeploymentDeleteServiceInstanceWorkflow(
 			brokeredServices,
 			backingAppDeploymentService,
-			backingServicesProvisionService, credentialProviderService,
+			backingAppManagementService,
+			backingServicesProvisionService,
+			credentialProviderService,
 			targetService
 		);
 	}

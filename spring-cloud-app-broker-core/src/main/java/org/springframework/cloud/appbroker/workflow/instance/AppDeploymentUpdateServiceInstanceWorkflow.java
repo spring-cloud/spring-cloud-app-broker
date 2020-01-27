@@ -16,17 +16,28 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse;
@@ -41,6 +52,8 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 
 	private final BackingAppDeploymentService deploymentService;
 
+	private final BackingAppManagementService backingAppManagementService;
+
 	private final BackingServicesProvisionService backingServicesProvisionService;
 
 	private final BackingApplicationsParametersTransformationService appsParametersTransformationService;
@@ -51,12 +64,14 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 
 	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
 		BackingAppDeploymentService deploymentService,
+		BackingAppManagementService backingAppManagementService,
 		BackingServicesProvisionService backingServicesProvisionService,
 		BackingApplicationsParametersTransformationService appsParametersTransformationService,
 		BackingServicesParametersTransformationService servicesParametersTransformationService,
 		TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
+		this.backingAppManagementService = backingAppManagementService;
 		this.backingServicesProvisionService = backingServicesProvisionService;
 		this.appsParametersTransformationService = appsParametersTransformationService;
 		this.servicesParametersTransformationService = servicesParametersTransformationService;
@@ -79,14 +94,71 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 			.flatMap(backingServices ->
 				servicesParametersTransformationService.transformParameters(backingServices,
 					request.getParameters()))
-			.flatMapMany(backingServicesProvisionService::updateServiceInstance)
+			.flatMap(backingServices -> Flux.fromIterable(backingServices)
+				.collectMap(BackingService::getServiceInstanceName, Function.identity()))
+			.zipWith(getExistingBackingServiceNameMap(request))
+			.flatMapMany(newAndExisting -> {
+				Map<String, BackingService> newServices = newAndExisting.getT1();
+				Map<String, BackingService> existingServices = newAndExisting.getT2();
+
+				Set<String> serviceNamesToUpdate = intersection(newServices.keySet(), existingServices.keySet());
+				Set<String> serviceNamesToCreate = subtract(newServices.keySet(), existingServices.keySet());
+				Set<String> serviceNamesToDelete = subtract(existingServices.keySet(), newServices.keySet());
+
+				List<BackingService> servicesToUpdate = servicesInNameList(newServices, serviceNamesToUpdate);
+				List<BackingService> servicesToCreate = servicesInNameList(newServices, serviceNamesToCreate);
+				List<BackingService> servicesToDelete = servicesInNameList(existingServices,
+					serviceNamesToDelete);
+
+				log.debug("Backing services to update: {}", serviceNamesToUpdate);
+				log.debug("Backing services to create: {}", serviceNamesToCreate);
+				log.debug("Backing services to delete: {}", serviceNamesToDelete);
+
+				return Flux.concat(
+					backingServicesProvisionService.updateServiceInstance(servicesToUpdate),
+					backingServicesProvisionService.createServiceInstance(servicesToCreate),
+					backingServicesProvisionService.deleteServiceInstance(servicesToDelete))
+					.parallel()
+					.runOn(Schedulers.parallel());
+			})
 			.doOnRequest(l -> log.debug("Updating backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished updating backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error(String.format("Error updating backing services for %s/%s with error '%s'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
-				exception));
+			.doOnError(
+				exception -> log.error(String.format("Error updating backing services for %s/%s with error '%s'",
+					request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
+					exception));
+	}
+
+	private Mono<Map<String, BackingService>> getExistingBackingServiceNameMap(UpdateServiceInstanceRequest request) {
+		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId())
+			.flatMapMany(Flux::fromIterable)
+			.map(BackingApplication::getServices)
+			.flatMap(Flux::fromIterable)
+			.distinct()
+			.map(servicesSpec -> BackingService.builder()
+				.serviceInstanceName(servicesSpec.getServiceInstanceName())
+				.build())
+			.collectMap(BackingService::getServiceInstanceName, Function.identity());
+	}
+
+	private List<BackingService> servicesInNameList(Map<String, BackingService> services, Set<String> nameList) {
+		List<BackingService> servicesToKeep = new ArrayList<>(services.values());
+		servicesToKeep.removeIf(service -> !nameList.contains(service.getServiceInstanceName()));
+		return servicesToKeep;
+	}
+
+	private Set<String> subtract(Set<String> set1, Set<String> set2) {
+		Set<String> set = new HashSet<>(set1);
+		set.removeAll(set2);
+		return set;
+	}
+
+	private Set<String> intersection(Set<String> set1, Set<String> set2) {
+		Set<String> set = new HashSet<>(set1);
+		set.retainAll(set2);
+		return set;
 	}
 
 	private Flux<String> updateBackingApplications(UpdateServiceInstanceRequest request) {

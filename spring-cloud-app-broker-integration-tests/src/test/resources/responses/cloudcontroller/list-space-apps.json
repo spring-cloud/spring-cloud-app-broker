@@ -53,10 +53,10 @@
 				],
 				"space_url": "/v2/spaces/@space-guid",
 				"stack_url": "/v2/stacks/@stack-guid",
-				"routes_url": "/v2/apps/cae5e4ca-d856-4473-80fd-6f58f9099401/routes",
-				"events_url": "/v2/apps/cae5e4ca-d856-4473-80fd-6f58f9099401/events",
-				"service_bindings_url": "/v2/apps/cae5e4ca-d856-4473-80fd-6f58f9099401/service_bindings",
-				"route_mappings_url": "/v2/apps/cae5e4ca-d856-4473-80fd-6f58f9099401/route_mappings"
+				"routes_url": "/v2/apps/@guid/routes",
+				"events_url": "/v2/apps/@guid/events",
+				"service_bindings_url": "/v2/apps/@guid/service_bindings",
+				"route_mappings_url": "/v2/apps/@guid/route_mappings"
 			}
 		}
 	]

@@ -29,6 +29,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture.planGuid;
+import static org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture.serviceGuid;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
@@ -54,12 +56,13 @@ class CatalogComponentTest {
 			.then()
 			.statusCode(HttpStatus.OK.value())
 			.body("services[0].name", equalTo("example"))
+			.body("services[0].id", equalTo(serviceGuid("example")))
 			.body("services[0].description", equalTo("A simple example"))
 			.body("services[0].bindable", equalTo(true))
 			.body("services[0].metadata.size()", is(0))
 			.body("services[0].plan_updateable", equalTo(null))
 			.body("services[0].instances_retrievable", equalTo(null))
-			.body("services[0].plans[0].id", equalTo("standard-plan-id"))
+			.body("services[0].plans[0].id", equalTo(planGuid("standard")))
 			.body("services[0].plans[0].name", equalTo("standard"))
 			.body("services[0].plans[0].metadata", equalTo(null))
 			.body("services[0].plans[0].bindable", equalTo(true))

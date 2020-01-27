@@ -32,6 +32,10 @@ public interface AppDeployer {
 		return Mono.empty();
 	}
 
+	default Mono<GetApplicationResponse> get(GetApplicationRequest request) {
+		return Mono.empty();
+	}
+
 	default Mono<GetServiceInstanceResponse> getServiceInstance(GetServiceInstanceRequest request) {
 		return Mono.empty();
 	}

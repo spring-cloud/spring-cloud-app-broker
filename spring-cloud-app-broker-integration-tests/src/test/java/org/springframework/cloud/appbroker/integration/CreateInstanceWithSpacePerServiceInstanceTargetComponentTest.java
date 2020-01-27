@@ -54,6 +54,8 @@ class CreateInstanceWithSpacePerServiceInstanceTargetComponentTest extends Wirem
 
 	protected static final String BACKING_SERVICE_NAME = "db-service";
 
+	protected static final String BACKING_PLAN_NAME = "standard";
+
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
 
@@ -69,7 +71,7 @@ class CreateInstanceWithSpacePerServiceInstanceTargetComponentTest extends Wirem
 		cloudControllerFixture.stubPushAppWithHost(APP_NAME, APP_NAME + "-" + serviceInstanceId);
 
 		// given services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
+		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 
 		// will create and bind the service instance
 		cloudControllerFixture.stubCreateServiceInstance(BACKING_SI_NAME);

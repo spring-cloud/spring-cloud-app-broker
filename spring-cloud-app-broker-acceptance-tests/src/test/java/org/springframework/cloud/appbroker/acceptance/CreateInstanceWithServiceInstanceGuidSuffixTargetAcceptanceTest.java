@@ -87,6 +87,9 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetAcceptanceTest extends Cl
 
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);
+
+		// and the backing service is deleted
+		assertThat(listServiceInstances()).doesNotContain(expectedServiceInstanceName);
 	}
 
 }

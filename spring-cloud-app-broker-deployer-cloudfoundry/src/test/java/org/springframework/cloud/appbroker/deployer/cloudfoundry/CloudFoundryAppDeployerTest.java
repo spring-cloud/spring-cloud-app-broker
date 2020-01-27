@@ -23,6 +23,8 @@ import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.Metadata;
+import org.cloudfoundry.client.v2.applications.SummaryApplicationRequest;
+import org.cloudfoundry.client.v2.applications.SummaryApplicationResponse;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationRequest;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationResponse;
 import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
@@ -38,6 +40,7 @@ import org.cloudfoundry.client.v2.spaces.GetSpaceResponse;
 import org.cloudfoundry.client.v2.spaces.SpaceEntity;
 import org.cloudfoundry.client.v2.spaces.SpaceResource;
 import org.cloudfoundry.operations.CloudFoundryOperations;
+import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Applications;
@@ -69,6 +72,7 @@ import org.springframework.cloud.appbroker.deployer.CreateServiceInstanceRequest
 import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.UpdateServiceInstanceRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
@@ -97,7 +101,9 @@ class CloudFoundryAppDeployerTest {
 	private static final String APP_PATH = "test.jar";
 
 	private static final String SERVICE_INSTANCE_ID = "service-instance-id";
-	private static final long DEFAULT_COMPLETION_DURATION = Duration.ofSeconds(DEFAULT_API_POLLING_TIMEOUT_SECONDS).getSeconds();
+
+	private static final long DEFAULT_COMPLETION_DURATION = Duration.ofSeconds(DEFAULT_API_POLLING_TIMEOUT_SECONDS)
+		.getSeconds();
 
 	private static final int EXPECTED_MANIFESTS = 1;
 
@@ -120,6 +126,9 @@ class CloudFoundryAppDeployerTest {
 
 	@Mock
 	private org.cloudfoundry.client.v2.spaces.Spaces clientSpaces;
+
+	@Mock
+	private org.cloudfoundry.client.v2.applications.ApplicationsV2 clientApplications;
 
 	@Mock
 	private org.cloudfoundry.client.v2.organizations.Organizations clientOrganizations;
@@ -155,6 +164,7 @@ class CloudFoundryAppDeployerTest {
 		given(cloudFoundryClient.serviceInstances()).willReturn(clientServiceInstances);
 		given(cloudFoundryClient.spaces()).willReturn(clientSpaces);
 		given(cloudFoundryClient.organizations()).willReturn(clientOrganizations);
+		given(cloudFoundryClient.applicationsV2()).willReturn(clientApplications);
 		given(operationsUtils.getOperations(anyMap())).willReturn(Mono.just(cloudFoundryOperations));
 		given(operationsUtils.getOperationsForSpace(anyString())).willReturn(Mono.just(cloudFoundryOperations));
 		given(operationsUtils.getOperationsForOrgAndSpace(anyString(), anyString()))
@@ -912,6 +922,95 @@ class CloudFoundryAppDeployerTest {
 		then(cloudFoundryOperations).should().services();
 		then(operationsServices).should().getInstance(argThat(req -> "my-foo-service".equals(req.getName())));
 		then(cloudFoundryClient).shouldHaveNoInteractions();
+		then(cloudFoundryOperations).shouldHaveNoMoreInteractions();
+		then(operationsUtils).shouldHaveNoMoreInteractions();
+	}
+
+	@Test
+	void getDeployedAppByName() {
+		given(operationsApplications.get(any(org.cloudfoundry.operations.applications.GetApplicationRequest.class)))
+			.willReturn(Mono.just(ApplicationDetail.builder()
+				.id("foo-id")
+				.name("foo-name")
+				// fields below are required by builder but we don't care
+				.stack("").diskQuota(1).instances(1).memoryLimit(1).requestedState("").runningInstances(1) //
+				.build()));
+		given(clientApplications.summary(any(SummaryApplicationRequest.class)))
+			.willReturn(Mono.just(SummaryApplicationResponse.builder()
+				.id("foo-id")
+				.name("foo-name")
+				.service(org.cloudfoundry.client.v2.serviceinstances.ServiceInstance.builder()
+					.name("foo-service-1")
+					.build())
+				.service(org.cloudfoundry.client.v2.serviceinstances.ServiceInstance.builder()
+					.name("foo-service-2")
+					.build())
+				.environmentJson("foo-key", "foo-value")
+				.build()));
+
+		StepVerifier.create(appDeployer.get(GetApplicationRequest.builder().name("foo-name").build()))
+			.assertNext(response -> {
+				assertThat(response.getName()).isEqualTo("foo-name");
+				assertThat(response.getServices()).hasSize(2);
+				assertThat(response.getServices().get(0)).isEqualTo("foo-service-1");
+				assertThat(response.getServices().get(1)).isEqualTo("foo-service-2");
+				assertThat(response.getEnvironment()).isEqualTo(singletonMap("foo-key", "foo-value"));
+			})
+			.verifyComplete();
+
+		then(operationsUtils).should().getOperations(argThat(CollectionUtils::isEmpty));
+		then(cloudFoundryOperations).should().applications();
+		then(operationsApplications).should().get(argThat(request -> "foo-name".equals(request.getName())));
+		then(clientApplications).should().summary(argThat(request -> "foo-id".equals(request.getApplicationId())));
+		then(operationsApplications).shouldHaveNoMoreInteractions();
+		then(clientApplications).shouldHaveNoMoreInteractions();
+		then(cloudFoundryOperations).shouldHaveNoMoreInteractions();
+		then(operationsUtils).shouldHaveNoMoreInteractions();
+	}
+
+	@Test
+	void getDeployedAppByNameAndSpace() {
+		given(operationsApplications.get(any(org.cloudfoundry.operations.applications.GetApplicationRequest.class)))
+			.willReturn(Mono.just(ApplicationDetail.builder()
+				.id("foo-id")
+				.name("foo-name")
+				// fields below are required by builder but we don't care
+				.stack("").diskQuota(1).instances(1).memoryLimit(1).requestedState("").runningInstances(1) //
+				.build()));
+		given(clientApplications.summary(any(SummaryApplicationRequest.class)))
+			.willReturn(Mono.just(SummaryApplicationResponse.builder()
+				.id("foo-id")
+				.name("foo-name")
+				.service(org.cloudfoundry.client.v2.serviceinstances.ServiceInstance.builder()
+					.name("foo-service-1")
+					.build())
+				.service(org.cloudfoundry.client.v2.serviceinstances.ServiceInstance.builder()
+					.name("foo-service-2")
+					.build())
+				.environmentJson("foo-key", "foo-value")
+				.build()));
+
+		GetApplicationRequest request = GetApplicationRequest.builder()
+			.name("foo-name")
+			.properties(singletonMap(TARGET_PROPERTY_KEY, "foo-space"))
+			.build();
+		StepVerifier.create(appDeployer.get(request))
+			.assertNext(response -> {
+				assertThat(response.getName()).isEqualTo("foo-name");
+				assertThat(response.getServices()).hasSize(2);
+				assertThat(response.getServices().get(0)).isEqualTo("foo-service-1");
+				assertThat(response.getServices().get(1)).isEqualTo("foo-service-2");
+				assertThat(response.getEnvironment()).isEqualTo(singletonMap("foo-key", "foo-value"));
+			})
+			.verifyComplete();
+
+		then(operationsUtils).should().getOperations(
+			argThat(argument -> "foo-space".equals(argument.get(TARGET_PROPERTY_KEY))));
+		then(cloudFoundryOperations).should().applications();
+		then(operationsApplications).should().get(argThat(req -> "foo-name".equals(req.getName())));
+		then(clientApplications).should().summary(argThat(req -> "foo-id".equals(req.getApplicationId())));
+		then(operationsApplications).shouldHaveNoMoreInteractions();
+		then(clientApplications).shouldHaveNoMoreInteractions();
 		then(cloudFoundryOperations).shouldHaveNoMoreInteractions();
 		then(operationsUtils).shouldHaveNoMoreInteractions();
 	}

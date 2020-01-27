@@ -208,6 +208,23 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@guid", stackGuid(appName))))));
 	}
 
+	public void stubAppExistsWithBackingService(final String appName, final String serviceInstanceName,
+		final String serviceName, final String planName) {
+		stubAppExists(appName);
+
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/summary"))
+			.withMetadata(optionalStubMapping())
+			.willReturn(ok()
+				.withBody(cc("get-app-summary-with-backing-service",
+					replace("@name", appName),
+					replace("@service-instance-name", serviceInstanceName),
+					replace("@service-guid", serviceGuid(serviceName)),
+					replace("@plan-guid", planGuid(planName)),
+					replace("@guid", appGuid(appName)),
+					replace("@stack-guid", stackGuid(appName)),
+					replace("@route-guid", routeGuid(appName))))));
+	}
+
 	public void stubPushApp(final String appName, ContentPattern<?>... appMetadataPatterns) {
 		stubCreateAppMetadata(appName, appMetadataPatterns);
 		stubAppAfterCreation(appName, appName);
@@ -406,7 +423,9 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/services"))
 			.withQueryParam("page", equalTo("1"))
 			.willReturn(ok()
-				.withBody(cc("list-space-services"))));
+				.withBody(cc("list-space-services")
+					.replace("@service-guid", "SERVICE-ID")
+					.replace("@service-name", "db-service"))));
 
 		stubFor(post(urlPathEqualTo("/v2/routes"))
 			.willReturn(ok()
@@ -429,6 +448,15 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubServiceInstanceExists(String serviceInstanceName) {
+		stubServiceInstanceExists(serviceInstanceName, "doNotCare", "doNotCare");
+	}
+
+	public void stubServiceInstanceExists(String serviceInstanceName, String serviceName, String planName) {
+		stubServiceInstanceExists(serviceInstanceGuid(serviceInstanceName), serviceInstanceName, serviceName, planName);
+	}
+
+	private void stubServiceInstanceExists(String serviceInstanceId, String serviceInstanceName, String serviceName,
+		String planName) {
 		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/service_instances"))
 			.withQueryParam("q", equalTo("name:" + serviceInstanceName))
 			.withQueryParam("page", equalTo("1"))
@@ -436,31 +464,57 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(ok()
 				.withBody(cc("list-space-service_instances",
 					replace("@space-guid", TEST_SPACE_GUID),
+					replace("@service-guid", serviceGuid(serviceName)),
+					replace("@plan-guid", planGuid(planName)),
 					replace("@name", serviceInstanceName),
-					replace("@guid", serviceInstanceName + "-GUID")))));
+					replace("@guid", serviceInstanceId)))));
 	}
 
-	public void stubServiceInstanceDoesNotExist(String serviceInstanceName) {
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/service_instances"))
-			.withQueryParam("q", equalTo("name:" + serviceInstanceName))
-			.withQueryParam("page", equalTo("1"))
-			.withQueryParam("return_user_provided_service_instances", equalTo("true"))
+	public void stubGetServiceInstanceWithNoBinding(String serviceInstanceId, String serviceInstanceName, String serviceName,
+		String planName) {
+		stubFor(get(urlPathEqualTo("/v2/service_instances/" + serviceInstanceId))
 			.willReturn(ok()
-				.withBody(cc("list-space-service_instances-empty"))));
+				.withBody(cc("get-service_instance",
+					replace("@space-guid", TEST_SPACE_GUID),
+					replace("@service-guid", serviceGuid(serviceName)),
+					replace("@plan-guid", planGuid(planName)),
+					replace("@name", serviceInstanceName),
+					replace("@guid", serviceInstanceId)))));
+
+		stubServiceInstanceExists(serviceInstanceId, serviceInstanceName, serviceName, planName);
+		stubFor(get(urlPathEqualTo("/v2/service_bindings"))
+			.withQueryParam("q", equalTo("service_instance_guid:" + serviceInstanceId))
+			.withQueryParam("page", equalTo("1"))
+			.willReturn(ok()
+				.withBody(cc("empty-query-results"))));
+
+		stubGetServiceAndGetPlan(serviceName, planName);
 	}
 
-	public void stubServiceExists(String serviceName) {
+	public void stubGetBackingServiceInstance(String serviceInstanceName, String serviceName, String planName) {
+		String serviceInstanceId = serviceInstanceGuid(serviceInstanceName);
+		stubServiceInstanceExists(serviceInstanceId, serviceInstanceName, serviceName, planName);
+		stubGetServiceAndGetPlan(serviceName, planName);
+	}
+
+	public void stubServiceExists(String serviceName, String planName) {
 		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/services"))
 			.withQueryParam("q", equalTo("label:" + serviceName))
 			.withQueryParam("page", equalTo("1"))
 			.willReturn(ok()
-				.withBody(cc("list-space-services"))));
+				.withBody(cc("list-space-services")
+					.replace("@service-guid", serviceGuid(serviceName))
+					.replace("@plan-guid", planGuid(planName))
+					.replace("@service-name", serviceName))));
 
 		stubFor(get(urlPathEqualTo("/v2/service_plans"))
-			.withQueryParam("q", equalTo("service_guid:SERVICE-ID"))
+			.withQueryParam("q", equalTo("service_guid:" + serviceGuid(serviceName)))
 			.withQueryParam("page", equalTo("1"))
 			.willReturn(ok()
-				.withBody(cc("list-service-plans"))));
+				.withBody(cc("list-service-plans")
+					.replace("@service-guid", serviceGuid(serviceName))
+					.replace("@plan-name", planName)
+					.replace("@plan-guid", planGuid(planName)))));
 	}
 
 	public void stubCreateServiceInstance(String serviceInstanceName) {
@@ -514,7 +568,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(noContent()));
 	}
 
-	public void stubListServiceBindings(String appName, String serviceInstanceName) {
+	public void stubServiceBindingExists(String appName, String serviceInstanceName) {
 		String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
 		String serviceBindingGuid = serviceBindingGuid(appName, serviceInstanceName);
 
@@ -526,11 +580,6 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@guid", serviceBindingGuid),
 					replace("@app-guid", appGuid(appName)),
 					replace("@service-instance-guid", serviceInstanceGuid)))));
-	}
-
-	public void stubServiceBindingExists(String appName, String serviceInstanceName) {
-		String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
-		String serviceBindingGuid = serviceBindingGuid(appName, serviceInstanceName);
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/service_bindings"))
 			.withQueryParam("q", equalTo("service_instance_guid:" + serviceInstanceGuid))
@@ -558,6 +607,21 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(ok()));
 	}
 
+	private void stubGetServiceAndGetPlan(String serviceName, String planName) {
+		stubFor(get(urlPathEqualTo("/v2/service_plans/" + planGuid(planName)))
+			.willReturn(ok()
+				.withBody(cc("get-service-plan")
+					.replace("@service-guid", serviceGuid(serviceName))
+					.replace("@plan-name", planName)
+					.replace("@plan-guid", planGuid(planName)))));
+
+		stubFor(get(urlPathEqualTo("/v2/services/" + serviceGuid(serviceName)))
+			.willReturn(ok()
+				.withBody(cc("get-service")
+					.replace("@service-guid", serviceGuid(serviceName))
+					.replace("@service-name", serviceName))));
+	}
+
 	private void stubSpaceExists(final String spaceName) {
 		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/spaces"))
 			.withQueryParam("q", equalTo("name:" + spaceName))
@@ -576,35 +640,43 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		return response;
 	}
 
-	private String appGuid(String appName) {
+	private static String appGuid(String appName) {
 		return appName + "-GUID";
 	}
 
-	private String routeGuid(String appName) {
+	private static String routeGuid(String appName) {
 		return appName + "-ROUTE-GUID";
 	}
 
-	private String stackGuid(String appName) {
+	private static String stackGuid(String appName) {
 		return appName + "-STACK-GUID";
 	}
 
-	private String serviceInstanceGuid(String serviceInstanceName) {
-		return serviceInstanceName + "-GUID";
+	public static String serviceGuid(String serviceName) {
+		return serviceName + "-SERVICE-GUID";
 	}
 
-	private String serviceBindingGuid(String appName, String serviceInstanceName) {
+	public static String planGuid(String planName) {
+		return planName + "-PLAN-GUID";
+	}
+
+	private static String serviceInstanceGuid(String serviceInstanceName) {
+		return serviceInstanceName + "-INSTANCE-GUID";
+	}
+
+	private static String serviceBindingGuid(String appName, String serviceInstanceName) {
 		return appGuid(appName) + "-" + serviceInstanceGuid(serviceInstanceName);
 	}
 
-	private String packageGuid(String appName) {
+	private static String packageGuid(String appName) {
 		return appName + "-PACKAGE-GUID";
 	}
 
-	private String buildGuid(String appName) {
+	private static String buildGuid(String appName) {
 		return appName + "-BUILD-GUID";
 	}
 
-	private String deploymentGuid(String appname) {
+	private static String deploymentGuid(String appname) {
 		return appname + "-DEPLOYMENT-GUID";
 	}
 

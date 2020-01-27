@@ -33,10 +33,12 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithOAuth2CredentialsComponentTest.APP_NAME_1;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithOAuth2CredentialsComponentTest.APP_NAME_2;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithOAuth2CredentialsComponentTest.PLAN_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithOAuth2CredentialsComponentTest.SERVICE_NAME;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.services[0].service-name=example",
-	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].service-name=" + SERVICE_NAME,
+	"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
 
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
@@ -68,6 +70,10 @@ class CreateInstanceWithOAuth2CredentialsComponentTest extends WiremockComponent
 	protected static final String APP_NAME_1 = "app-with-outh2-credentials1";
 
 	protected static final String APP_NAME_2 = "app-with-outh2-credentials2";
+
+	protected static final String SERVICE_NAME = "example";
+
+	protected static final String PLAN_NAME = "standard";
 
 	private static final String SERVICE_INSTANCE_ID = "instance-id";
 
@@ -122,6 +128,8 @@ class CreateInstanceWithOAuth2CredentialsComponentTest extends WiremockComponent
 
 	@Test
 	void deleteAppWithOAuth2Credentials() {
+		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
+							SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubAppExists(APP_NAME_1);
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME_1);
 		cloudControllerFixture.stubDeleteApp(APP_NAME_1);

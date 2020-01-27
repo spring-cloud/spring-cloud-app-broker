@@ -33,18 +33,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.integration.UpdateInstanceWithServicesParametersComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.UpdateInstanceWithServicesParametersComponentTest.BACKING_PLAN_NAME;
 import static org.springframework.cloud.appbroker.integration.UpdateInstanceWithServicesParametersComponentTest.BACKING_SERVICE_NAME;
 import static org.springframework.cloud.appbroker.integration.UpdateInstanceWithServicesParametersComponentTest.BACKING_SI_NAME;
+import static org.springframework.cloud.appbroker.integration.UpdateInstanceWithServicesParametersComponentTest.PLAN_NAME;
+import static org.springframework.cloud.appbroker.integration.UpdateInstanceWithServicesParametersComponentTest.SERVICE_NAME;
 
 @TestPropertySource(properties = {
-	"spring.cloud.appbroker.services[0].service-name=example",
-	"spring.cloud.appbroker.services[0].plan-name=standard",
+	"spring.cloud.appbroker.services[0].service-name=" + SERVICE_NAME,
+	"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
-	"spring.cloud.appbroker.services[0].services[0].plan=standard",
+	"spring.cloud.appbroker.services[0].services[0].plan=" + BACKING_PLAN_NAME,
 	"spring.cloud.appbroker.services[0].services[0].parameters-transformers[0].name=ParameterMapping",
 	"spring.cloud.appbroker.services[0].services[0].parameters-transformers[0].args.include=paramA,paramC"
 })
@@ -52,9 +55,15 @@ class UpdateInstanceWithServicesParametersComponentTest extends WiremockComponen
 
 	protected static final String APP_NAME = "app-update-services-param";
 
+	protected static final String SERVICE_NAME = "example";
+
+	protected static final String PLAN_NAME = "standard";
+
 	protected static final String BACKING_SI_NAME = "my-db-service";
 
 	protected static final String BACKING_SERVICE_NAME = "db-service";
+
+	protected static final String BACKING_PLAN_NAME = "backing-standard";
 
 	@Autowired
 	private OpenServiceBrokerApiFixture brokerFixture;
@@ -64,16 +73,18 @@ class UpdateInstanceWithServicesParametersComponentTest extends WiremockComponen
 
 	@Test
 	void updateAppWithBackingServicesParameters() {
-		cloudControllerFixture.stubAppExists(APP_NAME);
+		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SI_NAME, BACKING_SERVICE_NAME,
+			BACKING_PLAN_NAME);
+		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
+			SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubUpdateApp(APP_NAME);
-
-		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
 
 		// will update with filtered parameters and bind the service instance
 		HashMap<String, Object> expectedCreationParameters = new HashMap<>();
 		expectedCreationParameters.put("paramA", "valueA");
 		expectedCreationParameters.put("paramC", Collections.singletonMap("paramC1", "valueC1"));
 
+		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME, BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 		cloudControllerFixture.stubUpdateServiceInstanceWithParameters(BACKING_SI_NAME, expectedCreationParameters);
 
 		// when a service instance is created with parameters

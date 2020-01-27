@@ -47,10 +47,12 @@ import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.organizations.OrganizationSummary;
 import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
 import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +91,14 @@ abstract class CloudFoundryAcceptanceTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CloudFoundryAcceptanceTest.class);
 
+	private static final String BACKING_SERVICE_PLAN_ID = UUID.randomUUID().toString();
+
+	private static final String SERVICE_ID = UUID.randomUUID().toString();
+
+	private static final String PLAN_ID = UUID.randomUUID().toString();
+
+	private static final String BACKING_SERVICE_ID = UUID.randomUUID().toString();
+
 	protected static final String PLAN_NAME = "standard";
 
 	protected static final String BACKING_APP_PATH = "classpath:backing-app.jar";
@@ -123,22 +133,32 @@ abstract class CloudFoundryAcceptanceTest {
 	}
 
 	@BeforeEach
-	void setUp(BrokerProperties brokerProperties) {
+	void setUp(TestInfo testInfo, BrokerProperties brokerProperties) {
+		List<String> appBrokerProperties = getAppBrokerProperties(brokerProperties);
+		blockingSubscribe(initializeBroker(appBrokerProperties));
+	}
+
+	void setUpForBrokerUpdate(BrokerProperties brokerProperties) {
+		List<String> appBrokerProperties = getAppBrokerProperties(brokerProperties);
+		blockingSubscribe(updateBroker(appBrokerProperties));
+	}
+
+	private List<String> getAppBrokerProperties(BrokerProperties brokerProperties) {
 		String[] openServiceBrokerProperties = {
-			"spring.cloud.openservicebroker.catalog.services[0].id=" + UUID.randomUUID().toString(),
+			"spring.cloud.openservicebroker.catalog.services[0].id=" + SERVICE_ID,
 			"spring.cloud.openservicebroker.catalog.services[0].name=" + appServiceName(),
 			"spring.cloud.openservicebroker.catalog.services[0].description=A service that deploys a backing app",
 			"spring.cloud.openservicebroker.catalog.services[0].bindable=true",
-			"spring.cloud.openservicebroker.catalog.services[0].plans[0].id=" + UUID.randomUUID().toString(),
+			"spring.cloud.openservicebroker.catalog.services[0].plans[0].id=" + PLAN_ID,
 			"spring.cloud.openservicebroker.catalog.services[0].plans[0].name=standard",
 			"spring.cloud.openservicebroker.catalog.services[0].plans[0].bindable=true",
 			"spring.cloud.openservicebroker.catalog.services[0].plans[0].description=A simple plan",
 			"spring.cloud.openservicebroker.catalog.services[0].plans[0].free=true",
-			"spring.cloud.openservicebroker.catalog.services[1].id=" + UUID.randomUUID().toString(),
+			"spring.cloud.openservicebroker.catalog.services[1].id=" + BACKING_SERVICE_ID,
 			"spring.cloud.openservicebroker.catalog.services[1].name=" + backingServiceName(),
 			"spring.cloud.openservicebroker.catalog.services[1].description=A backing service that can be bound to backing apps",
 			"spring.cloud.openservicebroker.catalog.services[1].bindable=true",
-			"spring.cloud.openservicebroker.catalog.services[1].plans[0].id=" + UUID.randomUUID().toString(),
+			"spring.cloud.openservicebroker.catalog.services[1].plans[0].id=" + BACKING_SERVICE_PLAN_ID,
 			"spring.cloud.openservicebroker.catalog.services[1].plans[0].name=standard",
 			"spring.cloud.openservicebroker.catalog.services[1].plans[0].bindable=true",
 			"spring.cloud.openservicebroker.catalog.services[1].plans[0].description=A simple plan",
@@ -148,8 +168,7 @@ abstract class CloudFoundryAcceptanceTest {
 		List<String> appBrokerProperties = new ArrayList<>();
 		appBrokerProperties.addAll(Arrays.asList(openServiceBrokerProperties));
 		appBrokerProperties.addAll(brokerProperties.getProperties());
-
-		blockingSubscribe(initializeBroker(appBrokerProperties));
+		return appBrokerProperties;
 	}
 
 	@BeforeEach
@@ -177,7 +196,7 @@ abstract class CloudFoundryAcceptanceTest {
 	}
 
 	@AfterEach
-	public void tearDown() {
+	public void tearDown(TestInfo testInfo) {
 		blockingSubscribe(cloudFoundryService.getOrCreateDefaultOrganization()
 			.map(OrganizationSummary::getId)
 			.flatMap(orgId -> cloudFoundryService.getOrCreateDefaultSpace()
@@ -204,6 +223,12 @@ abstract class CloudFoundryAcceptanceTest {
 					.then(cloudFoundryService.createServiceBroker(serviceBrokerName(), testBrokerAppName()))
 					.then(cloudFoundryService.enableServiceBrokerAccess(appServiceName()))
 					.then(cloudFoundryService.enableServiceBrokerAccess(backingServiceName()))));
+	}
+
+	private Mono<Void> updateBroker(List<String> appBrokerProperties) {
+		return cloudFoundryService
+			.pushBrokerApp(testBrokerAppName(), getTestBrokerAppPath(), brokerClientId(), appBrokerProperties)
+			.then(cloudFoundryService.updateServiceBroker(serviceBrokerName(), testBrokerAppName()));
 	}
 
 	private Mono<Void> cleanup(String orgId, String spaceId) {
@@ -250,6 +275,13 @@ abstract class CloudFoundryAcceptanceTest {
 
 	protected void deleteServiceInstance(String serviceInstanceName) {
 		blockingSubscribe(cloudFoundryService.deleteServiceInstance(serviceInstanceName));
+	}
+
+	protected List<String> listServiceInstances() {
+		return cloudFoundryService.listServiceInstances()
+			.map(ServiceInstanceSummary::getName)
+			.collectList()
+			.block();
 	}
 
 	protected ServiceInstance getServiceInstance(String serviceInstanceName) {

@@ -29,13 +29,18 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.GetApplicationResponse;
 import org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.GetServiceInstanceResponse;
+import org.springframework.cloud.appbroker.deployer.ServicesSpec;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -307,6 +312,54 @@ class BackingAppManagementServiceTest {
 
 		verify(appDeployer).getServiceInstance(any(GetServiceInstanceRequest.class));
 		verify(targetService).addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id"));
+		verifyNoInteractions(managementClient);
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void getDeployedBackingApplications() {
+		given(appDeployer.getServiceInstance(any(GetServiceInstanceRequest.class)))
+			.willReturn(Mono.just(GetServiceInstanceResponse.builder()
+				.name("foo-service")
+				.plan("plan1")
+				.service("service1")
+				.build()));
+
+		given(appDeployer.get(any(GetApplicationRequest.class)))
+			.willReturn(Mono.just(GetApplicationResponse.builder()
+					.name("testApp1")
+					.service("service1")
+					.service("service2")
+					.build()),
+				Mono.just(GetApplicationResponse.builder()
+					.name("testApp2")
+					.service("service3")
+					.build()));
+
+		given(targetService.addToBackingApplications(eq(backingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(backingApps));
+
+		StepVerifier.create(backingAppManagementService.getDeployedBackingApplications("foo-service-id"))
+			.expectNext(BackingApplications.builder()
+				.backingApplication(BackingApplication.builder()
+					.name("testApp1")
+					.services(
+						ServicesSpec.builder().serviceInstanceName("service1").build(),
+						ServicesSpec.builder().serviceInstanceName("service2").build())
+					.build())
+				.backingApplication(BackingApplication.builder()
+					.name("testApp2")
+					.services(ServicesSpec.builder().serviceInstanceName("service3").build())
+					.build())
+				.build())
+			.verifyComplete();
+
+		then(targetService).should().addToBackingApplications(eq(backingApps), any(), eq("foo-service-id"));
+		then(appDeployer).should().getServiceInstance(argThat(req -> "foo-service-id".equals(req.getServiceInstanceId())));
+		then(appDeployer).should().get(argThat(req -> "testApp1".equals(req.getName())));
+		then(appDeployer).should().get(argThat(req -> "testApp2".equals(req.getName())));
+
 		verifyNoInteractions(managementClient);
 		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
 	}

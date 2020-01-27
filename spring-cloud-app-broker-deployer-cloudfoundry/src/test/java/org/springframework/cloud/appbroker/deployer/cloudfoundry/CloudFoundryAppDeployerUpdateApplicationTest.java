@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,10 +24,13 @@ import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.Metadata;
 import org.cloudfoundry.client.v2.applications.ApplicationsV2;
 import org.cloudfoundry.client.v2.applications.AssociateApplicationRouteRequest;
+import org.cloudfoundry.client.v2.applications.SummaryApplicationRequest;
+import org.cloudfoundry.client.v2.applications.SummaryApplicationResponse;
 import org.cloudfoundry.client.v2.applications.UpdateApplicationResponse;
 import org.cloudfoundry.client.v2.routes.CreateRouteRequest;
 import org.cloudfoundry.client.v2.routes.CreateRouteResponse;
 import org.cloudfoundry.client.v2.routes.Routes;
+import org.cloudfoundry.client.v2.serviceinstances.ServiceInstance;
 import org.cloudfoundry.client.v3.BuildpackData;
 import org.cloudfoundry.client.v3.Lifecycle;
 import org.cloudfoundry.client.v3.LifecycleType;
@@ -57,6 +61,8 @@ import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.domains.Domain;
 import org.cloudfoundry.operations.domains.Domains;
 import org.cloudfoundry.operations.domains.Status;
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
+import org.cloudfoundry.operations.services.Services;
 import org.cloudfoundry.operations.spaces.SpaceDetail;
 import org.cloudfoundry.operations.spaces.Spaces;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,16 +82,21 @@ import org.springframework.cloud.appbroker.deployer.UpdateApplicationRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CloudFoundryAppDeployerUpdateApplicationTest {
+
+	private static final String APP_ID = "app-id";
 
 	private static final String APP_NAME = "test-app";
 
@@ -95,6 +106,9 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 
 	@Mock
 	private Applications operationsApplications;
+
+	@Mock
+	private Services operationsServices;
 
 	@Mock
 	private ApplicationsV2 applicationsV2;
@@ -142,6 +156,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 		given(operationsApplications.pushManifest(any())).willReturn(Mono.empty());
 		given(resourceLoader.getResource(APP_PATH)).willReturn(new FileSystemResource(APP_PATH));
 
+		given(cloudFoundryOperations.services()).willReturn(operationsServices);
 		given(cloudFoundryOperations.applications()).willReturn(operationsApplications);
 		given(cloudFoundryOperations.domains()).willReturn(domains);
 		given(cloudFoundryOperations.spaces()).willReturn(spaces);
@@ -159,6 +174,13 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 
 		given(operationsApplications.get(any()))
 			.willReturn(Mono.just(createApplicationDetail()));
+
+		given(applicationsV2.summary(any(SummaryApplicationRequest.class)))
+			.willReturn(Mono.just(SummaryApplicationResponse.builder()
+				.id(APP_ID)
+				.name(APP_NAME)
+				.services(Collections.emptyList())
+				.build()));
 
 		given(packages.create(any()))
 			.willReturn(Mono.just(CreatePackageResponse.builder()
@@ -248,6 +270,27 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	}
 
 	@Test
+	void updateAppWithTarget() {
+		given(applicationsV2.update(any()))
+			.willReturn(Mono.just(UpdateApplicationResponse.builder()
+				.build()));
+
+		Map<String, String> properties = singletonMap(TARGET_PROPERTY_KEY, "service-instance-id");
+		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.properties(properties)
+			.build();
+
+		StepVerifier.create(appDeployer.update(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+
+		then(operationsUtils).should().getOperations(properties);
+		then(operationsUtils).shouldHaveNoMoreInteractions();
+	}
+
+	@Test
 	void updateAppProperties() {
 		ArgumentCaptor<org.cloudfoundry.client.v2.applications.UpdateApplicationRequest> updateApplicationRequestCaptor =
 			ArgumentCaptor.forClass(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class);
@@ -295,7 +338,74 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		then(applicationsV2).shouldHaveNoInteractions();
+		then(applicationsV2).should().summary(any(SummaryApplicationRequest.class));
+		then(applicationsV2).shouldHaveNoMoreInteractions();
+	}
+
+	@Test
+	void updateAppWithNoNewServices() {
+		given(applicationsV2.summary(any(SummaryApplicationRequest.class)))
+			.willReturn(Mono.just(SummaryApplicationResponse.builder()
+				.id(APP_ID)
+				.name(APP_NAME)
+				.service(ServiceInstance.builder()
+					.name("service-1")
+					.build())
+				.service(ServiceInstance.builder()
+					.name("service-2")
+					.build())
+				.build()));
+		given(applicationsV2.update(any()))
+			.willReturn(Mono.just(UpdateApplicationResponse.builder()
+				.build()));
+
+		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.service("service-1")
+			.service("service-2")
+			.build();
+
+		StepVerifier.create(appDeployer.update(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+
+		then(applicationsV2).should().summary(SummaryApplicationRequest.builder().applicationId(APP_ID).build());
+		then(applicationsV2).should().update(argThat(arg -> arg.getApplicationId().equals(APP_ID)));
+		then(operationsServices).shouldHaveNoMoreInteractions();
+		then(applicationsV2).shouldHaveNoMoreInteractions();
+	}
+
+	@Test
+	void updateAppWithNewServices() {
+		given(operationsServices.bind(any(BindServiceInstanceRequest.class)))
+			.willReturn(Mono.empty());
+		given(applicationsV2.update(any()))
+			.willReturn(Mono.just(UpdateApplicationResponse.builder()
+				.build()));
+
+		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.service("service-1")
+			.service("service-2")
+			.build();
+
+		StepVerifier.create(appDeployer.update(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+
+		then(applicationsV2).should().summary(SummaryApplicationRequest.builder().applicationId(APP_ID).build());
+		then(operationsServices).should()
+			.bind(BindServiceInstanceRequest.builder().serviceInstanceName("service-1").applicationName(APP_NAME)
+				.build());
+		then(operationsServices).should()
+			.bind(BindServiceInstanceRequest.builder().serviceInstanceName("service-2").applicationName(APP_NAME)
+				.build());
+		then(applicationsV2).should().update(argThat(arg -> arg.getApplicationId().equals(APP_ID)));
+
+		then(operationsServices).shouldHaveNoMoreInteractions();
+		then(applicationsV2).shouldHaveNoMoreInteractions();
 	}
 
 	@Test
@@ -342,7 +452,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.host("my.host")
 			.build());
 		then(applicationsV2).should().associateRoute(AssociateApplicationRouteRequest.builder()
-			.applicationId("app-id")
+			.applicationId(APP_ID)
 			.routeId("route-id")
 			.build());
 	}
@@ -376,9 +486,9 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		verifyRouteCreatedAndMapped("myDomainComId", "my.host", "space-id", "app-id");
-		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", "app-id");
-		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", "app-id");
+		verifyRouteCreatedAndMapped("myDomainComId", "my.host", "space-id", APP_ID);
+		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", APP_ID);
+		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", APP_ID);
 	}
 
 	@Test
@@ -409,8 +519,8 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", "app-id");
-		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", "app-id");
+		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", APP_ID);
+		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", APP_ID);
 	}
 
 	@Test
@@ -457,7 +567,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.host("my.host")
 			.build());
 		then(applicationsV2).should().associateRoute(AssociateApplicationRouteRequest.builder()
-			.applicationId("app-id")
+			.applicationId(APP_ID)
 			.routeId("route-id")
 			.build());
 	}
@@ -508,7 +618,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.build());
 		then(applicationsV2).should().associateRoute(AssociateApplicationRouteRequest
 			.builder()
-			.applicationId("app-id")
+			.applicationId(APP_ID)
 			.routeId("route-id")
 			.build());
 	}
@@ -572,12 +682,12 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	private ApplicationDetail createApplicationDetail() {
 		return ApplicationDetail
 			.builder()
-			.id("app-id")
+			.id(APP_ID)
 			.stack("")
 			.diskQuota(512)
 			.instances(1)
 			.memoryLimit(512)
-			.name("app")
+			.name(APP_NAME)
 			.requestedState("STARTED")
 			.runningInstances(1)
 			.build();

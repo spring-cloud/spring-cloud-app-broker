@@ -90,11 +90,16 @@ class CreateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);
 
-		// service has no applications bound to it
-		ServiceInstance serviceInstance2AfterDeletion = getServiceInstance(BACKING_SI_2_NAME);
-		assertThat(serviceInstance2AfterDeletion.getApplications()).isEmpty();
+		// and the backing services are deleted
+		assertThat(listServiceInstances()).doesNotContain(BACKING_SI_1_NAME);
+		assertThat(listServiceInstances()).doesNotContain(BACKING_SI_2_NAME);
 
-		deleteServiceInstance(BACKING_SI_2_NAME);
+		// TODO: another story to only remove the instances with service definition specified (https://github.com/spring-cloud/spring-cloud-app-broker/issues/316)
+//		// service without specification has no applications bound to it
+//		ServiceInstance serviceInstance2AfterDeletion = getServiceInstance(BACKING_SI_2_NAME);
+//		assertThat(serviceInstance2AfterDeletion.getApplications()).isEmpty();
+//
+//		deleteServiceInstance(BACKING_SI_2_NAME);
 	}
 
 }

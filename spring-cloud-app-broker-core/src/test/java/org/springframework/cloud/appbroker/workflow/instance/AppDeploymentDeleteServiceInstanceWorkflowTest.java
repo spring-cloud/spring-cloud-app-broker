@@ -33,15 +33,18 @@ import org.springframework.cloud.appbroker.deployer.BackingServices;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.ServicesSpec;
 import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -53,6 +56,9 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	private BackingAppDeploymentService backingAppDeploymentService;
 
 	@Mock
+	private BackingAppManagementService backingAppManagementService;
+
+	@Mock
 	private TargetService targetService;
 
 	@Mock
@@ -62,8 +68,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	private BackingServicesProvisionService backingServicesProvisionService;
 
 	private BackingApplications backingApps;
-
-	private BackingServices backingServices;
 
 	private TargetSpec targetSpec;
 
@@ -85,7 +89,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
-		backingServices = BackingServices
+		BackingServices backingServices = BackingServices
 			.builder()
 			.backingService(BackingService
 				.builder()
@@ -112,7 +116,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			new AppDeploymentDeleteServiceInstanceWorkflow(
 				brokeredServices,
 				backingAppDeploymentService,
-				backingServicesProvisionService,
+				backingAppManagementService, backingServicesProvisionService,
 				credentialProviderService,
 				targetService
 			);
@@ -125,14 +129,45 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 		given(this.backingAppDeploymentService.undeploy(eq(backingApps)))
 			.willReturn(Flux.just("undeployed1", "undeployed2"));
+		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(getExistingBackingAppsWithService("my-service-instance")));
 		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
 		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
-		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq("service-instance-id")))
-			.willReturn(Mono.just(backingServices));
-		given(this.backingServicesProvisionService.deleteServiceInstance(eq(backingServices)))
-			.willReturn(Flux.just("my-service-instance"));
+		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
+			boolean nameMatch = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
+			boolean sizeMatch = backingServices.size() == 1;
+			return sizeMatch && nameMatch;
+		}))).willReturn(Flux.just("my-service-instance"));
+
+		StepVerifier
+			.create(deleteServiceInstanceWorkflow.delete(request, response))
+			.expectNext()
+			.expectNext()
+			.verifyComplete();
+
+		verifyNoMoreInteractionsWithServices();
+	}
+
+	@Test
+	void deleteServiceInstanceSucceedsWhenBackingServicesDifferFromConfiguration() {
+		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
+		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
+
+		given(this.backingAppDeploymentService.undeploy(eq(backingApps)))
+			.willReturn(Flux.just("undeployed1", "undeployed2"));
+		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(getExistingBackingAppsWithService("different-service-instance")));
+		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(backingApps));
+		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
+			.willReturn(Mono.just(backingApps));
+		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
+			boolean nameMatch = "different-service-instance".equals(backingServices.get(0).getServiceInstanceName());
+			boolean sizeMatch = backingServices.size() == 1;
+			return sizeMatch && nameMatch;
+		}))).willReturn(Flux.just("different-service-instance"));
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
@@ -147,6 +182,9 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	void deleteServiceInstanceWithWithNoAppsDoesNothing() {
 		DeleteServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
+
+		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+					.willReturn(Mono.just(BackingApplications.builder().build()));
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
@@ -179,6 +217,28 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.plan(Plan.builder()
 				.id(planName + "-id")
 				.name(planName)
+				.build())
+			.build();
+	}
+
+	private BackingApplications getExistingBackingAppsWithService(String serviceInstanceName) {
+		return BackingApplications
+			.builder()
+			.backingApplication(BackingApplication
+				.builder()
+				.name("app1")
+				.services(ServicesSpec
+					.builder()
+					.serviceInstanceName(serviceInstanceName)
+					.build())
+				.build())
+			.backingApplication(BackingApplication
+				.builder()
+				.name("app2")
+				.services(ServicesSpec
+					.builder()
+					.serviceInstanceName(serviceInstanceName)
+					.build())
 				.build())
 			.build();
 	}

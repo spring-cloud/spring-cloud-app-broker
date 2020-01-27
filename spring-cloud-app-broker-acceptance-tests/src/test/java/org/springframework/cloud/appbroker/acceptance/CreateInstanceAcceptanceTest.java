@@ -84,7 +84,7 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		Optional<ApplicationSummary> backingApplication1 = getApplicationSummary(APP_CREATE_1);
 		assertThat(backingApplication1).hasValueSatisfying(app -> {
 			assertThat(app.getInstances()).isEqualTo(2);
-			assertThat(app.getRunningInstances()).isEqualTo(2);
+			assertThat(app.getRunningInstances()).isGreaterThanOrEqualTo(1);
 			assertThat(app.getMemoryLimit()).isEqualTo(2048);
 		});
 

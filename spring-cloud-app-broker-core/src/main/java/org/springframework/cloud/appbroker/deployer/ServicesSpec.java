@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
+import java.util.Objects;
+
 public class ServicesSpec {
 
 	private String serviceInstanceName;
@@ -37,6 +39,30 @@ public class ServicesSpec {
 
 	public static ServicesSpecBuilder builder() {
 		return new ServicesSpecBuilder();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		ServicesSpec that = (ServicesSpec) o;
+		return Objects.equals(serviceInstanceName, that.serviceInstanceName);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(serviceInstanceName);
+	}
+
+	@Override
+	public String toString() {
+		return "ServicesSpec{" +
+			"serviceInstanceName='" + serviceInstanceName + '\'' +
+			'}';
 	}
 
 	public static final class ServicesSpecBuilder {

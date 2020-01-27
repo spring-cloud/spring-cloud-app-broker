@@ -73,7 +73,8 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetAcceptanceTest extends Cl
 		final String serviceInstanceGuid = getServiceInstanceGuid(SI_NAME);
 
 		// then backing application is named as the concatenation of the name and it's service instance id
-		final String expectedApplicationName = APP_NAME_1 + "-" + serviceInstanceGuid;
+		final String truncatedAppName = APP_NAME_1.substring(0, 13);
+		final String expectedApplicationName = truncatedAppName + "-" + serviceInstanceGuid;
 		Optional<ApplicationSummary> backingApplication = getApplicationSummary(expectedApplicationName);
 		assertThat(backingApplication).hasValueSatisfying(app -> {
 			assertThat(app.getName()).isEqualTo(expectedApplicationName);

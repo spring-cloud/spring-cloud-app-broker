@@ -20,6 +20,10 @@ import java.util.Map;
 
 public class ServiceInstanceGuidSuffix extends TargetFactory<ServiceInstanceGuidSuffix.Config> {
 
+	private static final int CF_SERVICE_NAME_MAX_LENGTH = 50;
+
+	private static final String CONCAT_DELIM = "-";
+
 	public ServiceInstanceGuidSuffix() {
 		super(Config.class);
 	}
@@ -30,10 +34,23 @@ public class ServiceInstanceGuidSuffix extends TargetFactory<ServiceInstanceGuid
 	}
 
 	private ArtifactDetails apply(Map<String, String> properties, String name, String serviceInstanceId) {
+		final int availableLength = calculateAvailableLength(serviceInstanceId);
+		String modifiedName = name;
+		if (name.length() > calculateAvailableLength(serviceInstanceId)) {
+			modifiedName = name.substring(0, availableLength);
+		}
 		return ArtifactDetails.builder()
-			.name(name + "-" + serviceInstanceId)
+			.name(assembleName(modifiedName, serviceInstanceId))
 			.properties(properties)
 			.build();
+	}
+
+	private int calculateAvailableLength(String serviceInstanceId) {
+		return CF_SERVICE_NAME_MAX_LENGTH - CONCAT_DELIM.length() - serviceInstanceId.length();
+	}
+
+	private String assembleName(String appName, String serviceInstanceId) {
+		return appName + CONCAT_DELIM + serviceInstanceId;
 	}
 
 	public static class Config {

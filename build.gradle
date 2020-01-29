@@ -269,8 +269,8 @@ configure(rootProject) {
 			project.sourceSets.main.compileClasspath
 		})
 
-		exclude 'org/springframework/cloud/appbroker/integration-tests/**',
-			'org/springframework/cloud/appbroker/acceptance-tests/**'
+		exclude 'org/springframework/cloud/appbroker/integration/**',
+			'org/springframework/cloud/appbroker/acceptance/**'
 		maxMemory = "1024m"
 		destinationDir = new File(buildDir, "api")
 	}
@@ -297,7 +297,12 @@ configure(rootProject) {
 
 		from(zipTree(docsZip.archivePath)) { into "${baseDir}/docs" }
 
-		subprojects.each { subproject ->
+		def mainSubprojects = subprojects - [project(":spring-cloud-starter-app-broker"),
+				project(":spring-cloud-starter-app-broker-cloudfoundry"),
+				project(":spring-cloud-app-broker-docs"),
+				project(":spring-cloud-app-broker-acceptance-tests"),
+				project(":spring-cloud-app-broker-integration-tests")]
+		mainSubprojects.each { subproject ->
 			into ("${baseDir}/libs") {
 				from subproject.jar
 				if (subproject.tasks.findByPath("sourcesJar")) {

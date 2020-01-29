@@ -2,6 +2,7 @@ image:https://build.spring.io/plugins/servlet/wittified/build-status/CLOUD-SCAB[
 image:https://circleci.com/gh/spring-cloud/spring-cloud-app-broker.svg?style=svg["CircleCI", link="https://circleci.com/gh/spring-cloud/spring-cloud-app-broker"]
 image:https://api.codacy.com/project/badge/Grade/72dc83489cb84106bcca9d0d20430622["Codacy code quality", link="https://www.codacy.com/app/scottfrederick/spring-cloud-app-broker?utm_source=github.com&utm_medium=referral&utm_content=spring-cloud/spring-cloud-app-broker&utm_campaign=Badge_Grade"]
 image:https://codecov.io/gh/spring-cloud/spring-cloud-app-broker/branch/master/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-app-broker/branch/master"]
+image:https://img.shields.io/gitter/room/spring-cloud-app-broker/community.svg?style=flat-square["Gitter", link="https://gitter.im/spring-cloud-app-broker/community"]
 
 == Spring Cloud App Broker
 
@@ -15,6 +16,10 @@ Currently Cloud Foundry is supported as a target platform for service instance b
 === Getting Started
 
 See the https://spring.io/projects/spring-cloud-app-broker/[project site] and https://docs.spring.io/spring-cloud-app-broker/docs/current/reference/html5/[reference documentation] to get started building a service broker using this framework.
+
+Take a look at this https://spring.io/blog/2019/05/30/introducing-spring-cloud-app-broker[introduction blog post] and to our https://github.com/spring-cloud-samples/spring-cloud-app-broker-samples[sample apps].
+
+Join us in our gitter channel: https://gitter.im/spring-cloud-app-broker/community
 
 === Compatibility
 
@@ -42,13 +47,6 @@ This project requires Java 8 at a minimum.
 
 The project is built with Gradle.
 The https://docs.gradle.org/current/userguide/gradle_wrapper.html[Gradle wrapper] allows you to build the project on multiple platforms and even if you do not have Gradle installed; run it in place of the `gradle` command (as `./gradlew`) from the root of the main project directory.
-
-=== Getting Started
-
-See the https://spring.io/projects/spring-cloud-app-broker/[project site] and https://docs.spring.io/spring-cloud-app-broker/docs/current/reference/html5/[reference documentation] to get started building a service broker using this framework.
-
-Take a look at this https://spring.io/blog/2019/05/30/introducing-spring-cloud-app-broker[introduction blog post] and to our https://github.com/spring-cloud-samples/spring-cloud-app-broker-samples[sample apps].
-
 
 ==== Compile the project and run tests
 

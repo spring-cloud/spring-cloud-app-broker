@@ -1,0 +1,8 @@
+{
+	"credential_name" : "/some-credential-name",
+	"permissions" : [ {
+		"actor" : "uaa-user:106f52e2-5d01-4675-8d7a-c05ff9a2c081",
+		"path" : "some-path",
+		"operations" : [ "read" ]
+	} ]
+}

@@ -7,25 +7,27 @@ Create a Spring Boot application and include the Spring Cloud App Broker depende
 
 Include the following in your application's `pom.xml` file:
 
-```xml
+[source,xml,subs="attributes+"]
+----
 <dependencies>
     <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-starter-app-broker-cloudfoundry</artifactId>
-        <version>1.0.0.BUILD-SNAPSHOT</version>
+        <version>{project-version}</version>
     </dependency>
 </dependencies>
-```
+----
 
 === Gradle Dependencies
 
 Include the following in your application's `build.gradle` file:
 
-```groovy
+[source,groovy,subs="attributes+"]
+----
 dependencies {
-    compile 'org.springframework.cloud:spring-cloud-starter-app-broker-cloudfoundry:1.0.0.BUILD-SNAPSHOT'
+    api 'org.springframework.cloud:spring-cloud-starter-app-broker-cloudfoundry:{project-version}'
 }
-```
+----
 
 === Configuring the Service Broker
 

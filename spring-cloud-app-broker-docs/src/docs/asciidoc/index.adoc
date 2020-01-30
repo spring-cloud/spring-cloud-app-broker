@@ -8,7 +8,8 @@
 
 :sapbr: https://cloud.spring.io/spring-cloud-app-broker/
 :sapbr-href: {sapbr}[Spring Cloud App Broker]
-:sapbr-api: https://docs.spring.io/spring-cloud-app-broker/docs/current/apidocs/
+:sapbr-api: https://docs.spring.io/spring-cloud-app-broker/docs/{project-version}/api/
+:sapbr-docs: https://docs.spring.io/spring-cloud-app-broker/docs/{project-version}/reference/html5/
 :source: {github}/tree/{branch-or-tag}
 :scosb: https://cloud.spring.io/spring-cloud-open-service-broker/
 :scosb-href: {scosb}[Spring Cloud Open Service Broker]

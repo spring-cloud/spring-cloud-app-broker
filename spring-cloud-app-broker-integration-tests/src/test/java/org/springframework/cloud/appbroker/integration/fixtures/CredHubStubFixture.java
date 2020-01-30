@@ -21,6 +21,7 @@ import com.github.tomakehurst.wiremock.matching.ContentPattern;
 
 import org.springframework.boot.test.context.TestComponent;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -60,6 +61,26 @@ public class CredHubStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubDeleteCredential(String credentialName) {
+		stubFor(get(urlPathEqualTo("/api/v1/permissions"))
+			.withQueryParam("credential_name", equalTo(credentialName))
+			.willReturn(ok()
+				.withHeader("Content-type", "application/json")
+				.withBody(credhub("list-permissions"))));
+
+		stubFor(get(urlPathEqualTo("/api/v2/permissions"))
+			.withQueryParam("path", equalTo(credentialName))
+			.withQueryParam("actor", containing("uaa-user:"))
+			.willReturn(ok()
+				.withHeader("Content-type", "application/json")
+				.withBody(credhub("get-permission"))));
+
+		stubFor(delete(urlPathEqualTo("/api/v2/permissions/6e9a275a-6a4b-4634-9e97-b838fd0aa2c7"))
+			.willReturn(noContent()
+				.withHeader("Content-type", "application/json")
+				.withBody(credhub("put-data-json"))));
+	}
+
+	public void stubDeletePermission(String credentialName) {
 		stubFor(delete(urlPathEqualTo("/api/v1/data"))
 			.withQueryParam("name", equalTo(credentialName))
 			.willReturn(noContent()

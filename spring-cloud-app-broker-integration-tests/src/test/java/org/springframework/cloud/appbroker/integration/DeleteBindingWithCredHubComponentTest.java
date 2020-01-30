@@ -65,6 +65,7 @@ class DeleteBindingWithCredHubComponentTest extends WiremockComponentTest {
 
 		credHubFixture.stubFindCredential(credentialName);
 		credHubFixture.stubDeleteCredential(credentialName);
+		credHubFixture.stubDeletePermission(credentialName);
 
 		// when a service binding is deleted
 		given(brokerFixture.serviceAppBindingRequest())

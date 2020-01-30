@@ -19,7 +19,7 @@ package org.springframework.cloud.appbroker.state;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import reactor.core.publisher.Mono;
 
@@ -27,7 +27,7 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
 public class InMemoryServiceInstanceStateRepository implements ServiceInstanceStateRepository {
 
-	private final Map<String, ServiceInstanceState> states = new ConcurrentHashMap<>();
+	private final Map<String, ServiceInstanceState> states = new ConcurrentSkipListMap<>();
 
 	@Override
 	public Mono<ServiceInstanceState> saveState(String serviceInstanceId, OperationState state, String description) {

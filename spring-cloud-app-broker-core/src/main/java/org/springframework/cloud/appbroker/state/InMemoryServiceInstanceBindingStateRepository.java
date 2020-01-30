@@ -20,18 +20,15 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
-/**
- * @author Roy Clarkson
- */
 public class InMemoryServiceInstanceBindingStateRepository implements ServiceInstanceBindingStateRepository {
 
-	private final Map<BindingKey, ServiceInstanceState> states = new ConcurrentHashMap<>();
+	private final Map<BindingKey, ServiceInstanceState> states = new ConcurrentSkipListMap<>();
 
 	@Override
 	public Mono<ServiceInstanceState> saveState(String serviceInstanceId, String bindingId, OperationState state,
@@ -76,7 +73,7 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 		return Mono.fromCallable(() -> this.states.containsKey(bindingKey));
 	}
 
-	private static class BindingKey {
+	private static class BindingKey implements Comparable<BindingKey> {
 
 		private final String serviceInstanceId;
 
@@ -119,6 +116,12 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 				"serviceInstanceId='" + serviceInstanceId + '\'' +
 				", bindingId='" + bindingId + '\'' +
 				'}';
+		}
+
+		@Override
+		public int compareTo(BindingKey other) {
+			int compare = this.serviceInstanceId.compareTo(other.serviceInstanceId);
+			return compare == 0 ? this.bindingId.compareTo(other.bindingId) : compare;
 		}
 
 	}

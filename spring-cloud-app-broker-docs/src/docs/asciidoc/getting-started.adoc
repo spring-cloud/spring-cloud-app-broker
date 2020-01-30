@@ -35,7 +35,8 @@ The service broker is configured using Spring Boot externalized configuration, s
 
 Include Spring Cloud Open Servce Broker configuration using properties under `spring.cloud.openservicebroker` as in the following example:
 
-```yml
+[source,yaml]
+----
 spring:
   cloud:
     openservicebroker:
@@ -52,11 +53,12 @@ spring:
             id: e19e6bc3-37c1-4478-b70f-c7157ebbb28c
             description: A standard plan
             free: true
-```
+----
 
 Include Spring Cloud App Broker configuration using properties under `spring.cloud.appbroker` as in the following example:
 
-```yml
+[source,yaml]
+----
 spring:
   cloud:
     appbroker:
@@ -76,4 +78,4 @@ spring:
           password: adminpass
           default-org: test
           default-space: development
-```
+----

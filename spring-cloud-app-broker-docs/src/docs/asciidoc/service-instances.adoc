@@ -17,8 +17,8 @@ You can specify app deployment properties in configuration. These properties can
 
 For Cloud Foundry, set default values for all services under `spring.cloud.appbroker.deployer.cloudfoundry.*`, as shown in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -30,12 +30,12 @@ spring:
             *health-check-http-endpoint: /health*
             *health-check-timeout: 180*
             *api-polling-timeout: 300*
-```
+----
 
 Set overriding values for a specific service in the service's configuration under `spring.cloud.appbroker.services.*`, as shown in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -49,7 +49,7 @@ spring:
                 *memory: 2G*
                 *count: 2*
                 *no-route: true*
-```
+----
 
 The following table lists properties that can be set for all or specific app deployments.
 
@@ -136,8 +136,8 @@ The following table lists properties that can be set for all or specific app dep
 
 You can provide environment variables to be set on a deployed app. Environment variables are set using properties under `environment` for the deployed app, as in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -150,14 +150,14 @@ spring:
               *environment:*
                 *logging.level.spring.security: DEBUG*
                 *spring.profiles.active: cloud*
-```
+----
 
 ===== Service Configuration
 
 You can configure services which should be bound to a deployed app. Services are configured using properties under `services` for the deployed app, as in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -175,7 +175,7 @@ spring:
             *plan: small*
             *parameters:*
             *param-key: param-value*
-```
+----
 
 ==== Dynamic Customization
 
@@ -185,8 +185,8 @@ To customize the backing application deployment using information that is only a
 
 You can configure the target location for backing applications (in Cloud Foundry, an org and space) using a `target` specification, as in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -199,7 +199,7 @@ spring:
           apps:
             - name: example-service-app1
               path: classpath:app1.jar
-```
+----
 
 By default (if you do not provide a `target` specification), all backing applications are deployed to the default target specified under `spring.cloud.appbroker.deployer`. For Cloud Foundry, this is the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org` and the space named by `spring.cloud.appbroker.deployer.cloudfoundry.default-space`.
 
@@ -215,8 +215,8 @@ If you use the `ServiceInstanceGuidSuffix` target, App Broker will deploy backin
 
 When a user provides parameters while creating or updating a service instance, App Broker can transform these parameters into details of the backing app deployment using parameters transformers. You can configure parameters transformers using properties under `parameters-transformers`, as in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -233,7 +233,7 @@ spring:
                 *- name: PropertyMapping*
                   *args:*
                     *- include: count,memory*
-```
+----
 
 In this example, the named `parameters-transformers` refer to Java objects which have been contributed to the Spring application context. A parameters transformer can accept one or more arguments that configure its behavior, and can modify any aspect of the backing application deployment (properties, environment variables, services, etc.).
 
@@ -249,8 +249,8 @@ The `PropertyMapping` parameters transformer sets deployment properties of the b
 
 App Broker can generate and assign unique credentials for each backing app deployment. You can configure credential providers using properties under `credential-providers`, as in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -263,7 +263,7 @@ spring:
               *credential-providers:*
                 *- name: SpringSecurityBasicAuth*
                 *- name: SpringSecurityOAuth2*
-```
+----
 
 In this example, the named `credential-providers` refer to Java objects which have been contributed to the Spring application context. A credential provider can accept one or more arguments that configure its behavior. A credential provider typically generates credentials and set environment variables on the backing application.
 
@@ -271,8 +271,8 @@ In this example, the named `credential-providers` refer to Java objects which ha
 
 The `SpringSecurityBasicAuth` credential provider generates a username and password and sets Spring Boot security properties to the generated values. Username and password generation can be configured with arguments, as in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -290,14 +290,14 @@ spring:
                     *include-lowercase-alpha: true*
                     *include-numeric: true*
                     *include-special: true*
-```
+----
 
 ====== The `SpringSecurityOAuth2` Credential Provider
 
-The `SpringSecurityOAuth2` credential provider creates an OAuth2 client in a token server (e.g. UAA for Cloud Foundry) using details provided as arguments and a generated client secret, and sets Spring Boot security properties to the generated values. Client secret generation can also be configured with arguments, as in the following example: 
+The `SpringSecurityOAuth2` credential provider creates an OAuth2 client in a token server (e.g. UAA for Cloud Foundry) using details provided as arguments and a generated client secret, and sets Spring Boot security properties to the generated values. Client secret generation can also be configured with arguments, as in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -323,7 +323,7 @@ spring:
                     *include-lowercase-alpha: true*
                     *include-numeric: true*
                     *include-special: true*
-```
+----
 
 === Creating a Service Instance
 

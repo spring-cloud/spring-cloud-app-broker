@@ -5,8 +5,8 @@ You can configure details of deployment platforms in App Broker configuration pr
 
 To configure a Cloud Foundry deployment platform, use properties under `spring.cloud.appbroker.deployer.cloudfoundry`, as in the following example:
 
-[subs=+quotes]
-```yml
+[source,yaml,subs="+quotes"]
+----
 spring:
   cloud:
     appbroker:
@@ -20,6 +20,6 @@ spring:
           *client-secret: EXAMPLE_SECRET*
           *default-org: test*
           *default-space: development*
-```
+----
 
 NOTE: The two properties `username` and `password` and the two properties `client-id` and `client-secret` are mutually exclusive. The `client-id` and `client-secret` properties are for use with OAuth 2.0.

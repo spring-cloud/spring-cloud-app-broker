@@ -25,6 +25,11 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
+/**
+ * Default implementation of {@link ServiceInstanceStateRepository} meant for demonstration and testing purposes only.
+ * <p/>
+ * WARNING: This implementation is not intended for production applications!
+ */
 public class InMemoryServiceInstanceStateRepository implements ServiceInstanceStateRepository {
 
 	private final Map<String, ServiceInstanceState> states = new ConcurrentSkipListMap<>();

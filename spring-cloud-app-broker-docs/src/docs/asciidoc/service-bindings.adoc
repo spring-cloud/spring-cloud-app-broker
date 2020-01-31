@@ -1,3 +1,4 @@
+:examples-dir: ../../src/test/java/com/example/appbroker/
 [[service-bindings]]
 == Service Bindings
 
@@ -12,3 +13,32 @@ The service broker application can implement the {sapbr-api}/org/springframework
 === Deleting a Service Binding
 
 The service broker application can implement the {sapbr-api}/org/springframework/cloud/appbroker/service/DeleteServiceInstanceBindingWorkflow.html[`DeleteServiceInstanceBindingWorkflow`] interface. Alternatively, the service broker application can implement the `ServiceInstanceBindingService` interface provided by Spring Cloud Open Service Broker. See {scosb-docs}/#service-bindings[Service Bindings] in the {scosb-docs}/[Spring Cloud Open Service Broker documentation].
+
+=== Persisting Service Instance Binding State
+
+Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/state/ServiceInstanceBindingStateRepository.html[`ServiceInstanceBindingStateRepository`] interface for persisting service instance binding state. The default implementation is {sapbr-api}/org/springframework/cloud/appbroker/state/InMemoryServiceInstanceBindingStateRepository.html[`InMemoryServiceInstanceBindingStateRepository`], which uses an in memory `Map` to save state and offers an easy getting started experience. In order to use a proper database for persisting state, implement `ServiceInstanceBindingStateRepository` in your application.
+
+WARNING: The `InMemoryServiceInstanceBindingStateRepository` is provided for demonstration and testing purposes only. It is not suitable for production applications!
+
+==== Example Implementation
+
+The following example shows a service instance binding state repository implementation:
+
+[source,java,%autofit]
+----
+include::{examples-dir}/ExampleServiceInstanceBindingStateRepository.java[]
+----
+
+One option for persisting service instance binding state is to use a Spring Data `CrudRepository`. The following example shows a `ReactiveCrudRepository` implementation:
+
+[source,java,%autofit]
+----
+include::{examples-dir}/ServiceInstanceBindingStateCrudRepository.java[]
+----
+
+A model object is necessary for persisting data with a `CrudRepository`. The following example shows a `ServiceInstanceBinding` model:
+
+[source,java,%autofit]
+----
+include::{examples-dir}/ServiceInstanceBinding.java[]
+----

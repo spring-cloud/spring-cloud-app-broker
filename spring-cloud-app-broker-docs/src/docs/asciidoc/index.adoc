@@ -6,6 +6,7 @@
 :toclevels: 3
 :sectlinks:
 
+:examples-dir: ../../src/test/java/com/example/appbroker/
 :sapbr: https://cloud.spring.io/spring-cloud-app-broker/
 :sapbr-href: {sapbr}[Spring Cloud App Broker]
 :sapbr-api: https://docs.spring.io/spring-cloud-app-broker/docs/{project-version}/api/

@@ -36,7 +36,7 @@ ext {
 	cfJavaClientVersion = "4.2.0.RELEASE"
 	blockHoundVersion = "1.0.1.RELEASE"
 	junitPlatformLauncherVersion = "1.5.2"
-	checkstyleVersion = "8.21"
+	checkstyleVersion = "8.29"
 	pmdVersion = "6.21.0"
 
 	javadocLinks = [

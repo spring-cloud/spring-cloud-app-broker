@@ -57,6 +57,7 @@
 		<exclude name="AvoidFieldNameMatchingMethodName" />
 		<exclude name="BeanMembersShouldSerialize" />
 		<exclude name="DataflowAnomalyAnalysis" />
+		<exclude name="InvalidLogMessageFormat" />
 	</rule>
 	<rule ref="category/java/multithreading.xml">
 		<exclude name="UseConcurrentHashMap" />

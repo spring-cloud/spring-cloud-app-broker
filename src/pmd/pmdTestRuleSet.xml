@@ -68,6 +68,7 @@
 		<exclude name="AvoidDuplicateLiterals" />
 		<exclude name="BeanMembersShouldSerialize" />
 		<exclude name="DataflowAnomalyAnalysis" />
+		<exclude name="InvalidLogMessageFormat" />
 		<exclude name="NonStaticInitializer" />
 	</rule>
 	<rule ref="category/java/multithreading.xml">

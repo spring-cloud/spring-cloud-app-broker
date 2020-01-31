@@ -18,6 +18,9 @@ package org.springframework.cloud.appbroker.autoconfigure;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -80,6 +83,8 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter(CloudFoundryAppDeployerAutoConfiguration.class)
 @ConditionalOnBean(AppDeployer.class)
 public class AppBrokerAutoConfiguration {
+
+	private static final Logger LOG = LoggerFactory.getLogger(AppBrokerAutoConfiguration.class);
 
 	private static final String PROPERTY_PREFIX = "spring.cloud.appbroker";
 
@@ -152,6 +157,10 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(ServiceInstanceStateRepository.class)
 	public ServiceInstanceStateRepository serviceInstanceStateRepository() {
+		if (LOG.isWarnEnabled()) {
+			LOG.warn("The InMemoryServiceInstanceStateRepository is provided for demonstration and testing purposes " +
+					"only. It is not suitable for production applications!");
+		}
 		return new InMemoryServiceInstanceStateRepository();
 	}
 
@@ -163,6 +172,10 @@ public class AppBrokerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(ServiceInstanceBindingStateRepository.class)
 	public ServiceInstanceBindingStateRepository serviceInstanceBindingStateRepository() {
+		if (LOG.isWarnEnabled()) {
+			LOG.warn("The InMemoryServiceInstanceBindingStateRepository is provided for demonstration and testing " +
+					"purposes only. It is not suitable for production applications!");
+		}
 		return new InMemoryServiceInstanceBindingStateRepository();
 	}
 

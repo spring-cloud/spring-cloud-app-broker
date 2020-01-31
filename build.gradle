@@ -65,8 +65,7 @@ checkstyle {
 
 configure(allprojects) {
 	group = "org.springframework.cloud"
-	
-	apply plugin: "maven"
+
 	apply plugin: "eclipse"
 	apply plugin: "idea"
 	apply plugin: "jacoco"

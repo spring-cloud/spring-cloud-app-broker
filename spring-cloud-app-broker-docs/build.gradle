@@ -20,10 +20,6 @@ plugins {
 
 description = "Spring Cloud App Broker Documentation"
 
-repositories {
-	mavenCentral()
-}
-
 configurations {
 	docs
 }
@@ -42,6 +38,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-tomcat")
 	implementation("io.projectreactor:reactor-core")
+	implementation("org.springframework.boot.experimental:spring-boot-starter-r2dbc:0.1.0.M3")
+	implementation("org.springframework.boot.experimental:spring-boot-starter-data-r2dbc:0.1.0.M3")
+	implementation("io.r2dbc:r2dbc-h2:0.8.0.RELEASE")
 
 	docs("io.spring.docresources:spring-doc-resources:0.1.0.RELEASE@zip")
 }

@@ -1,3 +1,4 @@
+:examples-dir: ../../src/test/java/com/example/appbroker/
 [[service-instances]]
 == Service Instances
 
@@ -340,3 +341,32 @@ CAUTION: Modifying certain properties, such as disk and memory, when updating an
 === Deleting a Service Instance
 
 Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/workflow/instance/AppDeploymentDeleteServiceInstanceWorkflow.html[`AppDeploymentDeleteServiceInstanceWorkflow`] workflow, which handles deleting the configured backing applications and services as illustrated in the previous sections. The service broker application can implement the {sapbr-api}/org/springframework/cloud/appbroker/service/DeleteServiceInstanceWorkflow.html[`DeleteServiceInstanceWorkflow`] interface to further modify the deployment. Multiple workflows may be annotated with `@Order` so as to process the workflows in a specific order. Alternatively, the service broker application can implement the `ServiceInstanceService` interface provided by Spring Cloud Open Service Broker. See {scosb-docs}/#service-instances[Service Instances] in the {scosb-docs}/[Spring Cloud Open Service Broker documentation].
+
+=== Persisting Service Instance State
+
+Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/state/ServiceInstanceStateRepository.html[`ServiceInstanceStateRepository`] interface for persisting service instance state. The default implementation is {sapbr-api}/org/springframework/cloud/appbroker/state/InMemoryServiceInstanceStateRepository.html[`InMemoryServiceInstanceStateRepository`], which uses an in memory `Map` to save state and offers an easy getting started experience. In order to use a proper database for persisting state, implement `ServiceInstanceStateRepository` in your application.
+
+WARNING: The `InMemoryServiceInstanceStateRepository` is provided for demonstration and testing purposes only. It is not suitable for production applications!
+
+==== Example Implementation
+
+The following example shows a service instance state repository implementation:
+
+[source,java,%autofit]
+----
+include::{examples-dir}/ExampleServiceInstanceStateRepository.java[]
+----
+
+One option for persisting service instance state is to use a Spring Data `CrudRepository`. The following example shows a `ReactiveCrudRepository` implementation:
+
+[source,java,%autofit]
+----
+include::{examples-dir}/ServiceInstanceStateCrudRepository.java[]
+----
+
+A model object is necessary for persisting data with a `CrudRepository`. The following example shows a `ServiceInstance` model:
+
+[source,java,%autofit]
+----
+include::{examples-dir}/ServiceInstance.java[]
+----

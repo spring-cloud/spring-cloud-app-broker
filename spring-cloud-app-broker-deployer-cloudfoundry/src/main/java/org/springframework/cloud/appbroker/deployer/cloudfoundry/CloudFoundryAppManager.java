@@ -28,7 +28,7 @@ import org.springframework.cloud.appbroker.manager.StopApplicationRequest;
 
 public class CloudFoundryAppManager implements AppManager {
 
-	private final Logger logger = LoggerFactory.getLogger(CloudFoundryAppManager.class);
+	private static final Logger LOG = LoggerFactory.getLogger(CloudFoundryAppManager.class);
 
 	private final CloudFoundryOperationsUtils operationsUtils;
 
@@ -45,9 +45,9 @@ public class CloudFoundryAppManager implements AppManager {
 						org.cloudfoundry.operations.applications.StartApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> logger.debug("Starting application {}", appName))
-						.doOnSuccess(item -> logger.info("Successfully started application {}", appName))
-						.doOnError(error -> logger.error("Failed to start application {}", appName)))));
+						.doOnRequest(l -> LOG.debug("Starting application {}", appName))
+						.doOnSuccess(item -> LOG.info("Successfully started application {}", appName))
+						.doOnError(error -> LOG.error("Failed to start application {}", appName)))));
 	}
 
 	@Override
@@ -59,9 +59,9 @@ public class CloudFoundryAppManager implements AppManager {
 						org.cloudfoundry.operations.applications.StopApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> logger.debug("Stopping application {}", appName))
-						.doOnSuccess(item -> logger.info("Successfully stopped application {}", appName))
-						.doOnError(error -> logger.error("Failed to stop application {}", appName)))));
+						.doOnRequest(l -> LOG.debug("Stopping application {}", appName))
+						.doOnSuccess(item -> LOG.info("Successfully stopped application {}", appName))
+						.doOnError(error -> LOG.error("Failed to stop application {}", appName)))));
 	}
 
 	@Override
@@ -73,9 +73,9 @@ public class CloudFoundryAppManager implements AppManager {
 						org.cloudfoundry.operations.applications.RestartApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> logger.debug("Restarting application {}", appName))
-						.doOnSuccess(item -> logger.info("Successfully restarted application {}", appName))
-						.doOnError(error -> logger.error("Failed to restart application {}", appName)))));
+						.doOnRequest(l -> LOG.debug("Restarting application {}", appName))
+						.doOnSuccess(item -> LOG.info("Successfully restarted application {}", appName))
+						.doOnError(error -> LOG.error("Failed to restart application {}", appName)))));
 	}
 
 	@Override
@@ -87,9 +87,9 @@ public class CloudFoundryAppManager implements AppManager {
 						org.cloudfoundry.operations.applications.RestageApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> logger.debug("Restaging application {}", appName))
-						.doOnSuccess(item -> logger.info("Successfully restaged application {}", appName))
-						.doOnError(error -> logger.error("Failed to restage application {}", appName)))));
+						.doOnRequest(l -> LOG.debug("Restaging application {}", appName))
+						.doOnSuccess(item -> LOG.info("Successfully restaged application {}", appName))
+						.doOnError(error -> LOG.error("Failed to restage application {}", appName)))));
 	}
 
 }

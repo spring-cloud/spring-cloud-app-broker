@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class UaaService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(UaaService.class);
+	private static final Logger LOG = LoggerFactory.getLogger(UaaService.class);
 
 	private final UaaClient uaaClient;
 
@@ -52,7 +52,7 @@ public class UaaService {
 			.builder()
 			.clientId(clientId)
 			.build())
-			.doOnError(error -> LOGGER.warn("Error deleting client: " + clientId + " with error: " + error))
+			.doOnError(error -> LOG.warn("Error deleting client: " + clientId + " with error: " + error))
 			.onErrorResume(e -> Mono.empty())
 			.then(uaaClient.clients().create(CreateClientRequest
 				.builder()
@@ -61,7 +61,7 @@ public class UaaService {
 				.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
 				.authorities(authorities)
 				.build())
-				.doOnError(error -> LOGGER.error("Error creating client: " + clientId + " with error: " + error))
+				.doOnError(error -> LOG.error("Error creating client: " + clientId + " with error: " + error))
 				.onErrorResume(e -> Mono.empty()))
 			.then();
 	}

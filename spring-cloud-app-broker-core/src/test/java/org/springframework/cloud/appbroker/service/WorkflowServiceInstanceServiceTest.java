@@ -527,6 +527,12 @@ class WorkflowServiceInstanceServiceTest {
 
 	@Test
 	void deleteServiceInstanceWithResponseError() {
+		when(serviceInstanceStateRepository.getState(anyString()))
+			.thenReturn(Mono.error(new IllegalArgumentException("Unknown service instance ID ")));
+		when(serviceInstanceStateRepository.saveState(anyString(), any(OperationState.class), anyString()))
+			.thenReturn(Mono.just(new ServiceInstanceState(OperationState.IN_PROGRESS, "delete service instance started",
+				new Timestamp(Instant.now().minusSeconds(60).toEpochMilli()))));
+
 		DeleteServiceInstanceRequest request = DeleteServiceInstanceRequest.builder()
 				.serviceInstanceId("foo")
 				.build();

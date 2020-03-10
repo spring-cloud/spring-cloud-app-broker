@@ -21,6 +21,7 @@ import java.util.Map;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder;
@@ -30,6 +31,7 @@ import org.springframework.core.annotation.Order;
 
 @TestComponent
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@ConditionalOnProperty(name="spring.credhub.url")
 public class TestBindingCredentialsProviderFixture implements CreateServiceInstanceAppBindingWorkflow {
 
 	private final Map<String, Object> credentials;

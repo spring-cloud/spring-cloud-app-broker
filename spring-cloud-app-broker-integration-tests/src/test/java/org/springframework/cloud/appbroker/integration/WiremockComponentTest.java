@@ -27,6 +27,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.CredHubStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.OpenServiceBrokerApiFixture;
+import org.springframework.cloud.appbroker.integration.fixtures.ServiceKeyCreateServiceBindingWorkflow;
+import org.springframework.cloud.appbroker.integration.fixtures.ServiceKeyDeleteServiceBindingWorkflow;
 import org.springframework.cloud.appbroker.integration.fixtures.TestBindingCredentialsProviderFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.UaaStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.WiremockServerFixture;
@@ -42,7 +44,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 		CloudControllerStubFixture.class,
 		UaaStubFixture.class,
 		CredHubStubFixture.class,
-		TestBindingCredentialsProviderFixture.class},
+		TestBindingCredentialsProviderFixture.class
+		,
+		ServiceKeyCreateServiceBindingWorkflow.class,
+		ServiceKeyDeleteServiceBindingWorkflow.class
+	},
 	properties = {
 		"spring.cloud.appbroker.deployer.cloudfoundry.api-host=localhost",
 		"spring.cloud.appbroker.deployer.cloudfoundry.api-port=8080",

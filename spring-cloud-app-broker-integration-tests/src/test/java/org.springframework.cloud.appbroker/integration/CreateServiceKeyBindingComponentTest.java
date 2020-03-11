@@ -16,21 +16,22 @@
 
 package org.springframework.cloud.appbroker.integration;
 
-import org.junit.jupiter.api.Disabled;
+import java.util.HashMap;
+
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.OpenServiceBrokerApiFixture;
-import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
 import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SI_NAME;
 
@@ -55,25 +56,68 @@ class CreateServiceKeyBindingComponentTest extends WiremockComponentTest {
 	String serviceDefinitionId;
 
 	@Test
-	void createAppBindingCreatesBackendServiceKey() {
+	void createServiceKeyReturnsCredentialsFromServiceKey() {
 
-		// when a service binding is created
-		given(brokerFixture.serviceAppBindingRequest())
+		// given services are available in the marketplace
+		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
+
+		//given service key creation request gets accepted, and returns credentials
+		cloudControllerFixture.stubCreateServiceKey(BACKING_SI_NAME, BINDING_ID, new HashMap<>());
+
+		//given service key gets properly read
+		cloudControllerFixture.stubListServiceKey(BACKING_SI_NAME, BINDING_ID);
+
+		// when a service key is created
+		given(brokerFixture.serviceKeyRequestWithoutResource())
+			.filter(new ResponseLoggingFilter())
 			.when()
 			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
 			.then()
-			.statusCode(HttpStatus.CREATED.value());
+			.statusCode(HttpStatus.CREATED.value())
+			.body( //service key credentials are properly returned
+				"credentials",
+				equalTo(singletonMap("creds-key-43", "creds-val-43"))
+			);
+
+		// when a service key is created with a custom context resource
+		given(brokerFixture.serviceKeyRequestWithoutResource())
+			.filter(new ResponseLoggingFilter())
+			.when()
+			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
+			.then()
+			.statusCode(HttpStatus.CREATED.value())
+			.body( //service key credentials are properly returned
+				"credentials",
+				equalTo(singletonMap("creds-key-43", "creds-val-43"))
+			);
+
 	}
 
 	@Test
-	void createServiceKeyCreatesBackendServiceKey() {
+	void createServiceBindindReturnsCredentialsFromServiceKey() {
+
+		// given services are available in the marketplace
+		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
+
+		//given service key creation request gets accepted, and returns credentials
+		cloudControllerFixture.stubCreateServiceKey(BACKING_SI_NAME, BINDING_ID, new HashMap<>());
+
+		//given service key gets properly read
+		cloudControllerFixture.stubListServiceKey(BACKING_SI_NAME, BINDING_ID);
 
 		// when a service binding is created
-		given(brokerFixture.serviceKeyRequest())
+		given(brokerFixture.serviceAppBindingRequest())
+			.filter(new RequestLoggingFilter())
+			.filter(new ResponseLoggingFilter())
 			.when()
 			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
 			.then()
-			.statusCode(HttpStatus.CREATED.value());
+			.statusCode(HttpStatus.CREATED.value())
+			.body( //service key credentials are properly returned
+				"credentials",
+				equalTo(singletonMap("creds-key-43", "creds-val-43"))
+			);
+
 	}
 
 	protected static final String APP_NAME = "app-with-new-services";
@@ -85,33 +129,5 @@ class CreateServiceKeyBindingComponentTest extends WiremockComponentTest {
 	@Autowired
 	private CloudControllerStubFixture cloudControllerFixture;
 
-	@Test
-	@Disabled
-	void createsServicesWhenOnlyBackingServiceIsRequested() {
-
-		// given services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
-
-		// will create the service instance
-		cloudControllerFixture.stubCreateServiceInstance(BACKING_SI_NAME);
-
-		// when a service instance is created
-		given(brokerFixture.serviceInstanceRequest())
-			.when()
-			.put(brokerFixture.createServiceInstanceUrl(), "instance-id")
-			.then()
-			.statusCode(HttpStatus.ACCEPTED.value());
-
-		// when the "last_operation" API is polled
-		given(brokerFixture.serviceInstanceRequest())
-			.when()
-			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
-			.then()
-			.statusCode(HttpStatus.OK.value())
-			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
-
-		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
-		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
-	}
 
 }

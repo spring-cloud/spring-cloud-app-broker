@@ -540,6 +540,31 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(ok()));
 	}
 
+	public void stubCreateServiceKey(String serviceInstanceName, String serviceKeyId, Map<String, Object> params) {
+		stubFor(post(urlPathEqualTo("/v2/service_keys"))
+			.withRequestBody(matchingJsonPath("$.[?(@.service_instance_guid == '" + serviceInstanceGuid(serviceInstanceName) +
+				"')]"))
+			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + serviceKeyId + "')]"))
+			.withRequestBody(matchingJsonPath("$.[?(@.parameters == " + new JSONObject(params) + ")]"))
+			.willReturn(ok()));
+	}
+
+	public void stubListServiceKey(String serviceInstanceName, String serviceKeyName) {
+		String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
+		String serviceKeyGuid = serviceKeyGuid(serviceInstanceName, serviceKeyName);
+
+		stubFor(get(urlPathEqualTo("/v2/service_instances/" + serviceInstanceGuid + "/service_keys"))
+			.withQueryParam("q", equalTo("name:" + serviceKeyName))
+			.withQueryParam("page", equalTo("1"))
+			.willReturn(ok()
+				.withBody(cc("list-service-keys",
+					replace("@service-key-name", serviceKeyName),
+					replace("@guid", serviceKeyGuid),
+					replace("@service-instance-guid", serviceInstanceGuid)))));
+	}
+
+
+
 	public void stubDeleteServiceInstance(String serviceInstanceName) {
 		String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
 
@@ -667,6 +692,10 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 
 	private static String serviceBindingGuid(String appName, String serviceInstanceName) {
 		return appGuid(appName) + "-" + serviceInstanceGuid(serviceInstanceName);
+	}
+
+	private String serviceKeyGuid(String serviceInstanceName, String keyName) {
+		return serviceInstanceGuid(serviceInstanceName)  + "-" + keyName + "-GUID";
 	}
 
 	private static String packageGuid(String appName) {

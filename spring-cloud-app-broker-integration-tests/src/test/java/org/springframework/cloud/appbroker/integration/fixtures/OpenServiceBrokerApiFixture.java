@@ -120,6 +120,14 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 				"}");
 	}
 
+	public RequestSpecification serviceKeyRequestWithoutResource() {
+		return serviceBrokerSpecification()
+			.body("{" +
+				"\"service_id\": \"" + serviceDefinitionId + "\"," +
+				"\"plan_id\": \"" + planId +
+				"}");
+	}
+
 	private RequestSpecification serviceBrokerSpecification() {
 		return with()
 			.baseUri("http://localhost:" + port + "/v2")

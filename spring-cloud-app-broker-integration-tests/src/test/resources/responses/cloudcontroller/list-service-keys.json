@@ -1,0 +1,25 @@
+{
+	"total_results": 1,
+	"total_pages": 1,
+	"prev_url": null,
+	"next_url": null,
+	"resources": [
+		{
+			"metadata": {
+				"guid": "@guid",
+				"url": "/v2/service_keys/@guid",
+				"created_at": "2016-06-08T16:41:43Z",
+				"updated_at": "2016-06-08T16:41:26Z"
+			},
+			"entity": {
+				"name": "@service-key-name",
+				"service_instance_guid": "@service-instance-guid",
+				"credentials": {
+					"creds-key-43": "creds-val-43"
+				},
+				"service_instance_url": "/v2/service_instances/@service-instance-guid",
+				"service_key_parameters_url": "/v2/service_bindings/@guid/parameters"
+			}
+		}
+	]
+}

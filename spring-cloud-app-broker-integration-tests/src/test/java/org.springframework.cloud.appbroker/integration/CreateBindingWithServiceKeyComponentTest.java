@@ -44,7 +44,7 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.cloud.appbroker.services[0].services[0].plan=standard",
 	"service-bindings-as-service-keys=true"
 })
-class CreateServiceKeyBindingComponentTest extends WiremockComponentTest {
+class CreateBindingWithServiceKeyComponentTest extends WiremockComponentTest {
 
 	private static final String SERVICE_INSTANCE_ID = "instance-id";
 	private static final String BINDING_ID = "binding-id";

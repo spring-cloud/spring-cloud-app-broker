@@ -85,7 +85,7 @@ abstract class AbstractServiceInstanceWorkflow {
 	Mono<List<BackingServiceKey>> setServiceKeyName(BackingServiceKeys backingServiceKeys, String bindingId) {
 		return Flux.fromIterable(backingServiceKeys).
 			flatMap(backingServiceKey -> {
-				backingServiceKey.setName(bindingId);
+				backingServiceKey.setServiceKeyName(bindingId);
 				return Mono.just(backingServiceKey);
 			}).collectList();
 	}

@@ -104,7 +104,7 @@ public class ServiceKeyCreateServiceBindingWorkflow
 			.flatMap(backingService -> {
 				BackingServiceKey backingServiceKey = BackingServiceKey.builder()
 					.serviceInstanceName(backingService.getServiceInstanceName())
-					.name(backingService.getName())
+					.serviceKeyName(backingService.getName())
 					.properties(backingService.getProperties())
 					.parameters(backingService.getParameters())
 					.build();

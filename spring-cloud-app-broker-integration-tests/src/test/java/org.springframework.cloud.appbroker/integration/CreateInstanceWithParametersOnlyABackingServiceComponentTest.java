@@ -32,6 +32,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_PLAN_NAME;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SI_NAME;
 
@@ -62,7 +63,7 @@ class CreateInstanceWithParametersOnlyABackingServiceComponentTest extends Wirem
 	void createsServicesWhenOnlyBackingServiceIsRequested() {
 
 		// given services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME);
+		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 
 		// given a set of parameters
 		Map<String, Object> params = new HashMap<>();

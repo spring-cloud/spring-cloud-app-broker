@@ -131,8 +131,9 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	}
 
 	private boolean isAppBindingRequest(CreateServiceInstanceBindingRequest request) {
-		return request.getBindResource() != null
-			&& StringUtils.isEmpty(request.getBindResource().getRoute());
+		boolean missingBindResource = request.getBindResource() == null;
+			boolean notRouteBindingRequest = request.getBindResource() != null && StringUtils.isEmpty(request.getBindResource().getRoute());
+		return missingBindResource || notRouteBindingRequest;
 	}
 
 	private boolean isRouteBindingRequest(CreateServiceInstanceBindingRequest request) {

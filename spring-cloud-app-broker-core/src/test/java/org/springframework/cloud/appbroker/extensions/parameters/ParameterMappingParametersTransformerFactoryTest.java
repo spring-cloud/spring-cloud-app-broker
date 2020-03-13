@@ -29,17 +29,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ParameterMappingParametersTransformerFactoryTest {
 
-	private ParametersTransformer<BackingService> transformer;
-
-	@BeforeEach
-	void setUp() {
-		transformer = new ParameterMappingParametersTransformerFactory()
+	@Test
+	void withIncludeSelectedParametersOverrideApplicationEnvironment() {
+		ParametersTransformer<BackingService> transformer = new ParameterMappingParametersTransformerFactory()
 			.createWithConfig(config ->
 				config.setInclude("parameter1,parameter2"));
-	}
 
-	@Test
-	void parametersOverrideApplicationEnvironment() {
 		Map<String, Object> inputParameters = new HashMap<>();
 		inputParameters.put("parameter1", "value1");
 		inputParameters.put("parameter2", "value2");
@@ -49,6 +44,38 @@ class ParameterMappingParametersTransformerFactoryTest {
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.put("parameter1", "value1");
 		expectedParameters.put("parameter2", "value2");
+
+		BackingService backingService =
+			BackingService.builder()
+						  .parameters(expectedParameters)
+						  .build();
+
+		StepVerifier
+			.create(transformer.transform(backingService, inputParameters))
+			.expectNext(backingService)
+			.verifyComplete();
+
+		assertThat(backingService.getParameters()).containsEntry("parameter1", "value1");
+		assertThat(backingService.getParameters()).containsEntry("parameter2", "value2");
+		assertThat(backingService.getParameters()).doesNotContainEntry("parameter3", "value3");
+	}
+
+	@Test
+	void withIncludeAllParametersOverrideApplicationEnvironment() {
+		ParametersTransformer<BackingService> transformer = new ParameterMappingParametersTransformerFactory()
+			.createWithConfig(config ->
+				config.setIncludeAll(true));
+
+		Map<String, Object> inputParameters = new HashMap<>();
+		inputParameters.put("parameter1", "value1");
+		inputParameters.put("parameter2", "value2");
+		inputParameters.put("parameter3", "value3");
+
+
+		Map<String, Object> expectedParameters = new HashMap<>();
+		expectedParameters.put("parameter1", "value1");
+		expectedParameters.put("parameter2", "value2");
+		expectedParameters.put("parameter3", "value3");
 
 		BackingService backingService =
 			BackingService.builder()
@@ -62,7 +89,7 @@ class ParameterMappingParametersTransformerFactoryTest {
 
 		assertThat(backingService.getParameters()).containsEntry("parameter1", "value1");
 		assertThat(backingService.getParameters()).containsEntry("parameter2", "value2");
-		assertThat(backingService.getParameters()).doesNotContainEntry("parameter3", "value3");
+		assertThat(backingService.getParameters()).containsEntry("parameter3", "value3");
 	}
 
 }

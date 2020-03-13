@@ -23,10 +23,22 @@ import reactor.core.publisher.Flux;
 
 public interface BackingServicesProvisionService {
 
+	/**
+	 * Create service instances
+	 * @return A flux of created service instance name String objects
+	 */
 	Flux<String> createServiceInstance(List<BackingService> backingServices);
 
+	/**
+	 * Update service instances
+	 * @return A flux of updated service instance name String objects
+	 */
 	Flux<String> updateServiceInstance(List<BackingService> backingServices);
 
+	/**
+	 * Delete service instances
+	 * @return A flux of deleted service instance name String objects
+	 */
 	Flux<String> deleteServiceInstance(List<BackingService> backingServices);
 
 	/**

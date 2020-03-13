@@ -143,7 +143,7 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 				"}");
 	}
 
-	private RequestSpecification serviceBrokerSpecification() {
+	public RequestSpecification serviceBrokerSpecification() {
 		return with()
 			.baseUri("http://localhost:" + port + "/v2")
 			.accept(ContentType.JSON)

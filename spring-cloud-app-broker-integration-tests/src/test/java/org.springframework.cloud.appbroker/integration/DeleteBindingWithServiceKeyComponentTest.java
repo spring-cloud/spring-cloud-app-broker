@@ -30,11 +30,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
 import static io.restassured.RestAssured.given;
-import static java.util.Collections.singletonMap;
-import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
 import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SI_NAME;
-
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -43,8 +40,10 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 	"spring.cloud.appbroker.services[0].services[0].plan=standard",
 	"service-bindings-as-service-keys=true"
+
+
 })
-class CreateBindingWithServiceKeyComponentTest extends WiremockComponentTest {
+class DeleteBindingWithServiceKeyComponentTest extends WiremockComponentTest {
 
 	private static final String SERVICE_INSTANCE_ID = "instance-id";
 	private static final String BINDING_ID = "binding-id";
@@ -64,85 +63,28 @@ class CreateBindingWithServiceKeyComponentTest extends WiremockComponentTest {
 	@Value("${spring.cloud.openservicebroker.catalog.services[0].id}")
 	String serviceDefinitionId;
 
+
 	@Test
-	void createServiceKeyReturnsCredentialsFromServiceKey() {
+	void deleteServiceBindingDeletesServiceKey() {
 
 		// given services are available in the marketplace
 		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
 
-		//given service key creation request gets accepted, and returns credentials
-		cloudControllerFixture.stubCreateServiceKey(BACKING_SI_NAME, BINDING_ID, new HashMap<>());
-
-		//given service key gets properly read
+		//given service key guid gets properly looked up by name
 		cloudControllerFixture.stubListServiceKey(BACKING_SI_NAME, BINDING_ID);
 
-		// when a service key is created (using CF profile)
-		given(brokerFixture.serviceKeyBindingRequest())
-			.filter(new RequestLoggingFilter())
-			.filter(new ResponseLoggingFilter())
-			.when()
-			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
-			.then()
-			.statusCode(HttpStatus.CREATED.value())
-			.body( //service key credentials are properly returned
-				"credentials",
-				equalTo(singletonMap("creds-key-43", "creds-val-43"))
-			);
-
-
-		// when a service key is created by a custom OSB compliant client with empty  binding resource
-		given(brokerFixture.serviceBindingRequestWithEmptyResource())
-			.filter(new RequestLoggingFilter())
-			.filter(new ResponseLoggingFilter())
-			.when()
-			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
-			.then()
-			.statusCode(HttpStatus.CREATED.value())
-			.body( //service key credentials are properly returned
-				"credentials",
-				equalTo(singletonMap("creds-key-43", "creds-val-43"))
-			);
-
-		// when a service key is created a custom OSB compliant client without binding resource
-		given(brokerFixture.serviceBindingRequestWithoutResource())
-			.filter(new ResponseLoggingFilter())
-			.when()
-			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
-			.then()
-			.statusCode(HttpStatus.CREATED.value())
-			.body( //service key credentials are properly returned
-				"credentials",
-				equalTo(singletonMap("creds-key-43", "creds-val-43"))
-			);
-
-	}
-
-	@Test
-	void createServiceBindindReturnsCredentialsFromServiceKey() {
-
-		// given services are available in the marketplace
-		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
-
-		//given service key creation request gets accepted, and returns credentials
-		cloudControllerFixture.stubCreateServiceKey(BACKING_SI_NAME, BINDING_ID, new HashMap<>());
-
-		//given service key gets properly read
-		cloudControllerFixture.stubListServiceKey(BACKING_SI_NAME, BINDING_ID);
+		//given service key deletion by guid gets accepted
+		cloudControllerFixture.stubDeleteServiceKey(BACKING_SI_NAME, BINDING_ID);
 
 		// when a service binding is created
-		given(brokerFixture.serviceAppBindingRequest())
-			.filter(new RequestLoggingFilter())
-			.filter(new ResponseLoggingFilter())
+		given(brokerFixture.serviceBrokerSpecification())
+//			.filter(new RequestLoggingFilter())
+//			.filter(new ResponseLoggingFilter())
 			.when()
-			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
+			.delete(brokerFixture.deleteBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
 			.then()
-			.statusCode(HttpStatus.CREATED.value())
-			.body( //service key credentials are properly returned
-				"credentials",
-				equalTo(singletonMap("creds-key-43", "creds-val-43"))
-			);
+			.statusCode(HttpStatus.OK.value());
 
 	}
-
 
 }

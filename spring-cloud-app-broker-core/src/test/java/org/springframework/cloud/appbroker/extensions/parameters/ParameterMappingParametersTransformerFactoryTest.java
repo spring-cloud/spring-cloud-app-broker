@@ -19,7 +19,6 @@ package org.springframework.cloud.appbroker.extensions.parameters;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 
@@ -47,8 +46,8 @@ class ParameterMappingParametersTransformerFactoryTest {
 
 		BackingService backingService =
 			BackingService.builder()
-						  .parameters(expectedParameters)
-						  .build();
+				.parameters(expectedParameters)
+				.build();
 
 		StepVerifier
 			.create(transformer.transform(backingService, inputParameters))

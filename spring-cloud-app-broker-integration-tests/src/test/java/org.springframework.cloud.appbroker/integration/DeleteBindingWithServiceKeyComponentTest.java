@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.appbroker.integration;
 
-import java.util.HashMap;
+import static io.restassured.RestAssured.given;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SI_NAME;
 
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +28,6 @@ import org.springframework.cloud.appbroker.integration.fixtures.CloudControllerS
 import org.springframework.cloud.appbroker.integration.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
-
-import static io.restassured.RestAssured.given;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SI_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",

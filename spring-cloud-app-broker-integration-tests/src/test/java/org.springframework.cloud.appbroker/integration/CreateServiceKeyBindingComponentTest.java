@@ -67,8 +67,9 @@ class CreateServiceKeyBindingComponentTest extends WiremockComponentTest {
 		//given service key gets properly read
 		cloudControllerFixture.stubListServiceKey(BACKING_SI_NAME, BINDING_ID);
 
-		// when a service key is created
-		given(brokerFixture.serviceKeyRequestWithoutResource())
+		// when a service key is created (using CF profile)
+		given(brokerFixture.serviceKeyBindingRequest())
+			.filter(new RequestLoggingFilter())
 			.filter(new ResponseLoggingFilter())
 			.when()
 			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
@@ -79,8 +80,22 @@ class CreateServiceKeyBindingComponentTest extends WiremockComponentTest {
 				equalTo(singletonMap("creds-key-43", "creds-val-43"))
 			);
 
-		// when a service key is created with a custom context resource
-		given(brokerFixture.serviceKeyRequestWithoutResource())
+
+		// when a service key is created by a custom OSB compliant client with empty  binding resource
+		given(brokerFixture.serviceBindingRequestWithEmptyResource())
+			.filter(new RequestLoggingFilter())
+			.filter(new ResponseLoggingFilter())
+			.when()
+			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
+			.then()
+			.statusCode(HttpStatus.CREATED.value())
+			.body( //service key credentials are properly returned
+				"credentials",
+				equalTo(singletonMap("creds-key-43", "creds-val-43"))
+			);
+
+		// when a service key is created a custom OSB compliant client without binding resource
+		given(brokerFixture.serviceBindingRequestWithoutResource())
 			.filter(new ResponseLoggingFilter())
 			.when()
 			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)

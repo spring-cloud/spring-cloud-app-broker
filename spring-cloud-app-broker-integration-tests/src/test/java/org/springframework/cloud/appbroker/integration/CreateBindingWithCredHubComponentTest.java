@@ -104,7 +104,7 @@ class CreateBindingWithCredHubComponentTest extends WiremockComponentTest {
 		credHubFixture.stubAddAppPermission(credentialName, "uaa-client:service-key-client-id");
 
 		// when a service binding is created
-		given(brokerFixture.serviceKeyRequest())
+		given(brokerFixture.serviceKeyBindingRequest())
 			.when()
 			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
 			.then()

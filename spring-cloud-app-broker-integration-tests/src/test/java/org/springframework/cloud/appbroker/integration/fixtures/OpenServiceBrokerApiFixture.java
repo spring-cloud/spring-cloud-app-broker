@@ -109,7 +109,9 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 				"}");
 	}
 
-	public RequestSpecification serviceKeyRequest() {
+	//The default binding resource format used by CF, albeit yet undocumented,
+	// see https://github.com/openservicebrokerapi/servicebroker/pull/704
+	public RequestSpecification serviceKeyBindingRequest() {
 		return serviceBrokerSpecification()
 			.body("{" +
 				"\"service_id\": \"" + serviceDefinitionId + "\"," +
@@ -120,11 +122,24 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 				"}");
 	}
 
-	public RequestSpecification serviceKeyRequestWithoutResource() {
+	//A OSB-API compliant request (bind resource is optional per https://github.com/openservicebrokerapi/servicebroker/blob/master/spec.md#bind-resource-object
+	// "bind_resource and its fields are OPTIONAL"
+	public RequestSpecification serviceBindingRequestWithoutResource() {
 		return serviceBrokerSpecification()
 			.body("{" +
 				"\"service_id\": \"" + serviceDefinitionId + "\"," +
-				"\"plan_id\": \"" + planId +
+				"\"plan_id\": \"" + planId + "\""+
+				"}");
+	}
+
+	//A OSB-API compliant request (bind resource is optional per https://github.com/openservicebrokerapi/servicebroker/blob/master/spec.md#bind-resource-object
+	// "bind_resource and its fields are OPTIONAL"
+	public RequestSpecification serviceBindingRequestWithEmptyResource() {
+		return serviceBrokerSpecification()
+			.body("{" +
+				"\"service_id\": \"" + serviceDefinitionId + "\"," +
+				"\"plan_id\": \"" + planId + "\","+
+				"\"bind_resource\": {}" +
 				"}");
 	}
 

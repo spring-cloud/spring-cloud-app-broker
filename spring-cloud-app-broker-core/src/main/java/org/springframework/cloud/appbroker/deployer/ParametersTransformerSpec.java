@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.deployer;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.util.CollectionUtils;
 
@@ -49,6 +50,20 @@ public class ParametersTransformerSpec {
 
 	public void setArgs(Map<String, Object> args) {
 		this.args = args;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		ParametersTransformerSpec that = (ParametersTransformerSpec) o;
+		return Objects.equals(name, that.name) &&
+			Objects.equals(args, that.args);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name, args);
 	}
 
 	public static ParametersTransformerSpecBuilder builder() {

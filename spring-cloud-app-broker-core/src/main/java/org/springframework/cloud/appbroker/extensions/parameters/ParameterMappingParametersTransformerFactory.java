@@ -55,7 +55,7 @@ public class ParameterMappingParametersTransformerFactory extends
 
 		private String include = "";
 
-		private boolean includeAll = false;
+		private boolean includeAll;
 
 		public List<String> getIncludes() {
 			return Arrays.asList(include.split(","));

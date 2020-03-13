@@ -16,20 +16,21 @@
 
 package org.springframework.cloud.appbroker.deployer;
 
-import org.springframework.util.CollectionUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.util.CollectionUtils;
 
 public class BackingServiceKeys extends ArrayList<BackingServiceKey> {
 
 	private static final long serialVersionUID = 1L;
 
-	private BackingServiceKeys() {
+	private BackingServiceKeys()  {
+		super();
 	}
 
 	public BackingServiceKeys(List<BackingServiceKey> backingServiceKeys) {
-		super.addAll(backingServiceKeys);
+		super(backingServiceKeys);
 	}
 
 	public static BackingServiceKeysBuilder builder() {

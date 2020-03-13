@@ -145,4 +145,33 @@ class CreateBindingWithServiceKeyComponentTest extends WiremockComponentTest {
 	}
 
 
+	@Test
+	void createServiceBindindWithParamsCreatesServiceKeyWithParams() {
+
+		// given services are available in the marketplace
+		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
+
+		//given service key creation request gets accepted, and returns credentials
+		cloudControllerFixture.stubCreateServiceKey(BACKING_SI_NAME, BINDING_ID, singletonMap("a-key", "a-value"));
+
+		//given service key gets properly read
+		cloudControllerFixture.stubListServiceKey(BACKING_SI_NAME, BINDING_ID);
+
+		// when a service binding is created
+		given(brokerFixture.serviceAppBindingRequest(singletonMap("a-key", "a-value")))
+			.filter(new RequestLoggingFilter())
+			.filter(new ResponseLoggingFilter())
+			.when()
+			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
+			.then()
+			.statusCode(HttpStatus.CREATED.value())
+			.body( //service key credentials are properly returned
+				"credentials",
+				equalTo(singletonMap("creds-key-43", "creds-val-43"))
+			);
+
+	}
+
+
+
 }

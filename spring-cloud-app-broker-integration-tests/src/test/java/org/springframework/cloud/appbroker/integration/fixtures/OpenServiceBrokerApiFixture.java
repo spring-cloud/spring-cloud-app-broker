@@ -109,6 +109,19 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 				"}");
 	}
 
+	public RequestSpecification serviceAppBindingRequest(Map<String, Object> params) {
+		String stringParams = new JSONObject(params).toString();
+		return serviceBrokerSpecification()
+			.body("{" +
+				"\"service_id\": \"" + serviceDefinitionId + "\"," +
+				"\"plan_id\": \"" + planId + "\"," +
+				"\"bind_resource\": {" +
+					"\"app_guid\": \"" + APP_ID + "\"" +
+				"}," +
+				"\"parameters\": " + stringParams +
+				"}");
+	}
+
 	//The default binding resource format used by CF, albeit yet undocumented,
 	// see https://github.com/openservicebrokerapi/servicebroker/pull/704
 	public RequestSpecification serviceKeyBindingRequest() {

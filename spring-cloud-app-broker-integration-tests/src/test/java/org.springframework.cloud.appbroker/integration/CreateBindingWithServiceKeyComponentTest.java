@@ -42,6 +42,8 @@ import static org.springframework.cloud.appbroker.integration.CreateInstanceWith
 	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 	"spring.cloud.appbroker.services[0].services[0].plan=standard",
+	"spring.cloud.appbroker.services[0].services[0].parameters-transformers[0].name=ParameterMapping",
+	"spring.cloud.appbroker.services[0].services[0].parameters-transformers[0].args.includeAll=true",
 	"service-bindings-as-service-keys=true"
 })
 class CreateBindingWithServiceKeyComponentTest extends WiremockComponentTest {
@@ -159,8 +161,8 @@ class CreateBindingWithServiceKeyComponentTest extends WiremockComponentTest {
 
 		// when a service binding is created
 		given(brokerFixture.serviceAppBindingRequest(singletonMap("a-key", "a-value")))
-			.filter(new RequestLoggingFilter())
-			.filter(new ResponseLoggingFilter())
+//			.filter(new RequestLoggingFilter())
+//			.filter(new ResponseLoggingFilter())
 			.when()
 			.put(brokerFixture.createBindingUrl(), SERVICE_INSTANCE_ID, BINDING_ID)
 			.then()

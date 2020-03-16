@@ -550,11 +550,10 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubDeleteServiceKey(String serviceInstanceName, String serviceKeyName) {
-			String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
-			String serviceKeyGuid = serviceKeyGuid(serviceInstanceName, serviceKeyName);
+		String serviceKeyGuid = serviceKeyGuid(serviceInstanceName, serviceKeyName);
 
-			stubFor(delete(urlPathEqualTo("/v2/service_keys/" + serviceKeyGuid))
-			.willReturn(noContent()));
+		stubFor(delete(urlPathEqualTo("/v2/service_keys/" + serviceKeyGuid))
+				.willReturn(noContent()));
 	}
 
 	public void stubListServiceKey(String serviceInstanceName, String serviceKeyName) {

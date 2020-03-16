@@ -20,9 +20,6 @@ import java.util.Map;
 
 public class CreateServiceKeyResponse {
 
-	/**
-	 * Service key name
-	 */
 	private final String name;
 	private final Map<String, Object> credentials;
 

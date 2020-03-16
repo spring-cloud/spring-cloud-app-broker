@@ -29,7 +29,7 @@ public class CreateServiceKeyRequest {
 
 	private final Map<String, Object> parameters;
 
-	private final Map<String, String> properties;  // to access space target property
+	private final Map<String, String> properties;
 
 
 	public CreateServiceKeyRequest(String serviceInstanceName,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.integration.fixtures;
+package org.springframework.cloud.appbroker.workflow;
 
 import java.util.List;
 

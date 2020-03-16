@@ -14,88 +14,70 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.appbroker.integration.fixtures;
+package org.springframework.cloud.appbroker.workflow;
 
 import java.util.List;
-import java.util.Map;
+
+import org.springframework.cloud.appbroker.deployer.BackingService;
+import org.springframework.cloud.appbroker.deployer.BackingServiceKey;
+import org.springframework.cloud.appbroker.deployer.BackingServiceKeys;
+import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
+import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+import org.springframework.cloud.appbroker.service.DeleteServiceInstanceBindingWorkflow;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.test.context.TestComponent;
-import org.springframework.cloud.appbroker.deployer.BackingService;
-import org.springframework.cloud.appbroker.deployer.BackingServiceKey;
-import org.springframework.cloud.appbroker.deployer.BackingServiceKeys;
-import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
-import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
-import org.springframework.cloud.appbroker.extensions.targets.TargetService;
-import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
-import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
-import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-
 @SuppressWarnings("WeakerAccess")
-@TestComponent
-@Order(Ordered.HIGHEST_PRECEDENCE)
-@ConditionalOnProperty(name="service-bindings-as-service-keys")
-public class ServiceKeyCreateServiceBindingWorkflow
+public class ServiceKeyDeleteServiceBindingWorkflow
 	extends AbstractServiceInstanceWorkflow
-	implements CreateServiceInstanceAppBindingWorkflow {
+	implements DeleteServiceInstanceBindingWorkflow {
 
-	private final Logger log = Loggers.getLogger(ServiceKeyCreateServiceBindingWorkflow.class);
+	private final Logger log = Loggers.getLogger(ServiceKeyDeleteServiceBindingWorkflow.class);
 
 	private final BackingServicesProvisionService backingServicesProvisionService;
 
-	private final BackingServicesParametersTransformationService servicesParametersTransformationService;
-
 	private final TargetService targetService;
 
-	public ServiceKeyCreateServiceBindingWorkflow(BrokeredServices brokeredServices,
+	public ServiceKeyDeleteServiceBindingWorkflow(BrokeredServices brokeredServices,
 		BackingServicesProvisionService backingServicesProvisionService,
-		BackingServicesParametersTransformationService servicesParametersTransformationService,
 		TargetService targetService) {
 		super(brokeredServices);
 		this.backingServicesProvisionService = backingServicesProvisionService;
-		this.servicesParametersTransformationService = servicesParametersTransformationService;
 		this.targetService = targetService;
 	}
 
 	@Override
-	public Mono<Boolean> accept(CreateServiceInstanceBindingRequest request) {
+	public Mono<Boolean> accept(DeleteServiceInstanceBindingRequest request) {
 		//Only accept binding request matching one registered backing service
 		return accept(request.getServiceDefinition(), request.getPlan());
 	}
 
 	@Override
-	public Mono<CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder> buildResponse(CreateServiceInstanceBindingRequest request, CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder responseBuilder) {
-
-		return createBackingServiceKey(request).   //create service key, returning credentials
-			last(). //only keep last one (should never happen)
-			map(responseBuilder::credentials); //store it in builder
+	public Mono<DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder> buildResponse(DeleteServiceInstanceBindingRequest request, DeleteServiceInstanceBindingResponse.DeleteServiceInstanceBindingResponseBuilder responseBuilder) {
+		return deleteBackingServiceKey(request).
+			then(Mono.just(responseBuilder));
 	}
 
-	private Flux<Map<String, Object>> createBackingServiceKey(CreateServiceInstanceBindingRequest request) {
+	private Flux<String> deleteBackingServiceKey(DeleteServiceInstanceBindingRequest request) {
 		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
 			.flatMap(backingServices ->
 				targetService.addToBackingServices(backingServices,
 					getTargetForService(request.getServiceDefinition(), request.getPlan()) ,
 					request.getServiceInstanceId()))
-			.flatMap(backingServices ->
-				servicesParametersTransformationService.transformParameters(backingServices,
-					request.getParameters()))
-			.flatMap(ServiceKeyCreateServiceBindingWorkflow::getBackingServiceKeys)
+			.flatMap(ServiceKeyDeleteServiceBindingWorkflow::getBackingServiceKeys)
 			.flatMap(backingServiceKeys -> setServiceKeyName(backingServiceKeys, request.getBindingId()))
-			.flatMapMany(backingServicesProvisionService::createServiceKeys)
-			.doOnRequest(l -> log.debug("Creating backing service keys for {}/{}",
+			.flatMapMany(backingServicesProvisionService::deleteServiceKeys)
+			.doOnRequest(l -> log.debug("Deleting backing service keys for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnComplete(() -> log.debug("Finished creating backing service keys for {}/{}",
+			.doOnComplete(() -> log.debug("Finished deleting backing service keys for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error("Error creating backing services keysfor {}/{} with error '{}'",
+			.doOnError(exception -> log.error("Error deleting backing services keysfor {}/{} with error '{}'",
 				request.getServiceDefinition().getName(), request.getPlan().getName(), exceptionMessageOrToString(exception)));
 	}
 

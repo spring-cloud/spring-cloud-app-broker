@@ -32,6 +32,10 @@ import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.util.CollectionUtils;
 
+/**
+ * Base class for service instance worflow, in particular service binding leveraging service keys.
+ * Inspired from {@link org.springframework.cloud.appbroker.workflow.instance.AppDeploymentInstanceWorkflow}
+ */
 abstract class AbstractServiceInstanceWorkflow {
 
 	@SuppressWarnings("WeakerAccess")
@@ -75,11 +79,11 @@ abstract class AbstractServiceInstanceWorkflow {
 		String planName = plan.getName();
 
 		return brokeredServices.stream()
-							   .filter(brokeredService ->
-								   brokeredService.getServiceName().equals(serviceName)
-									   && brokeredService.getPlanName().equals(planName))
-							   .findFirst()
-							   .orElse(null);
+							.filter(brokeredService ->
+								brokeredService.getServiceName().equals(serviceName)
+									&& brokeredService.getPlanName().equals(planName))
+							.findFirst()
+							.orElse(null);
 	}
 
 	Mono<List<BackingServiceKey>> setServiceKeyName(BackingServiceKeys backingServiceKeys, String bindingId) {

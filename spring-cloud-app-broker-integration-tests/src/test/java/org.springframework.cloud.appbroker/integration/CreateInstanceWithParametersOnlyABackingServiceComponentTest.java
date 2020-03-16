@@ -16,6 +16,14 @@
 
 package org.springframework.cloud.appbroker.integration;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_PLAN_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SI_NAME;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,14 +35,6 @@ import org.springframework.cloud.appbroker.integration.fixtures.OpenServiceBroke
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_PLAN_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SERVICE_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithServicesComponentTest.BACKING_SI_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",

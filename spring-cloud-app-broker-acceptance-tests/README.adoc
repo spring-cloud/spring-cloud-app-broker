@@ -1,5 +1,24 @@
 = Spring Cloud App Broker Acceptance Tests
 
+The acceptance tests (AT), run end-to-end scenarios against real dependencies:
+* Cloud Foundry CC API
+* UAA API
+
+The AT set-up step (in `CloudFoundryAcceptanceTest`) populates the required shared environment to execute:
+* a CF org and nested space
+
+The AT set-up step (in `CloudFoundryAcceptanceTest`) populates on a per test basis (e.g. `CreateInstanceWithOnlyServicesAcceptanceTest` :
+* A UAA client id, with authorities "cloud_controller.read", "cloud_controller.write", "clients.write"
+* An app (e.g. `test-broker-app-create-instance-with-only-services`) exposing an OSB API endpoint
+* A service broker (e.g. `test-broker-create-instance-with-only-services`) with
+  * A service offering used as backend service (e.g. `app-service-create-instance-with-only-services` and a single plan (e.g. `Standard`)
+  * A service offering used as brokered service (e.g. `backing-service-create-instance-with-only-services` and a single plan (e.g. `Standard`)
+
+Each AT then provisions (and unprovisions) brokered services with associated backing apps and services. E.g. for `CreateInstanceWithOnlyServicesAcceptanceTest`
+* A pre-existing backing service instance (e.g. `backing-service-instance-existing`
+* A brokered service instance (e.g. `si-create-only-services`)
+* A backing service instance (e.g. `backing-service-instance-created`
+
 == Running locally
 
 === Compile the project
@@ -17,7 +36,7 @@ The tests require the following properties to be set:
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.skip-ssl-validation` - If SSL validation should be skipped.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.username` - The CF API username.
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.password` - The CF API password.
-* `spring.cloud.appbroker.acceptance-test.cloudfoundry.client-id` - The CF API OAuth2 client ID.
+* `spring.cloud.appbroker.acceptance-test.cloudfoundry.client-id` - The CF API OAuth2 client ID. It requires the following authorities: cloud_controller.read,cloud_controller.write,clients.admin
 * `spring.cloud.appbroker.acceptance-test.cloudfoundry.client-secret` - The CF API OAuth2 client secret.
 
 When running tests from an IDE, the following property must also be set (it is set automatically when running the entire suite via Gradle):
@@ -41,3 +60,7 @@ $ ./gradlew test -PacceptanceTests \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.client-id=admin \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.client-secret=secret
 ----
+
+
+=== Troubleshoot failing tests
+

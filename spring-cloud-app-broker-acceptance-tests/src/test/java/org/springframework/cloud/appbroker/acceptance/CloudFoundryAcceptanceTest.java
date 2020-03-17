@@ -168,6 +168,7 @@ abstract class CloudFoundryAcceptanceTest {
 		List<String> appBrokerProperties = new ArrayList<>();
 		appBrokerProperties.addAll(Arrays.asList(openServiceBrokerProperties));
 		appBrokerProperties.addAll(brokerProperties.getProperties());
+		LOG.debug("Configuring broker with properties {}", appBrokerProperties);
 		return appBrokerProperties;
 	}
 
@@ -201,7 +202,10 @@ abstract class CloudFoundryAcceptanceTest {
 			.map(OrganizationSummary::getId)
 			.flatMap(orgId -> cloudFoundryService.getOrCreateDefaultSpace()
 				.map(SpaceSummary::getId)
-				.flatMap(spaceId -> cleanup(orgId, spaceId))));
+				.flatMap(spaceId -> cleanup(orgId, spaceId)))
+			.doOnRequest(l -> LOG.debug("START cleaning up org and space"))
+			.doOnSuccess(l -> LOG.debug("FINISHED cleaning up org and space"))
+		);
 	}
 
 	private Mono<Void> initializeBroker(List<String> appBrokerProperties) {
@@ -222,7 +226,10 @@ abstract class CloudFoundryAcceptanceTest {
 							appBrokerProperties))
 					.then(cloudFoundryService.createServiceBroker(serviceBrokerName(), testBrokerAppName()))
 					.then(cloudFoundryService.enableServiceBrokerAccess(appServiceName()))
-					.then(cloudFoundryService.enableServiceBrokerAccess(backingServiceName()))));
+					.then(cloudFoundryService.enableServiceBrokerAccess(backingServiceName()))))
+			.doOnRequest(l -> LOG.debug("START creating default org/space/pushing broker app/create broker/enable " +
+					"broker access"))
+			.doOnSuccess(l -> LOG.debug("FINISHED default org/space/pushing broker app/create broker/enable broker access"));
 	}
 
 	private Mono<Void> updateBroker(List<String> appBrokerProperties) {

@@ -239,7 +239,8 @@ abstract class CloudFoundryAcceptanceTest {
 	}
 
 	private Mono<Void> cleanup(String orgId, String spaceId) {
-		return cloudFoundryService.deleteServiceBroker(serviceBrokerName())
+		return cloudFoundryService.logRecentAppLogs(serviceBrokerName())
+			.then(cloudFoundryService.deleteServiceBroker(serviceBrokerName()))
 			.then(cloudFoundryService.deleteApp(testBrokerAppName()))
 			.then(cloudFoundryService.removeAppBrokerClientFromOrgAndSpace(brokerClientId(), orgId, spaceId))
 			.onErrorResume(e -> Mono.empty());

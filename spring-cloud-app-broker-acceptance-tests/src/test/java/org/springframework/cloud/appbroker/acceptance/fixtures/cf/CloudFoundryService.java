@@ -43,6 +43,7 @@ import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.GetApplicationEnvironmentsRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
+import org.cloudfoundry.operations.applications.LogsRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.RestartApplicationRequest;
 import org.cloudfoundry.operations.applications.StopApplicationRequest;
@@ -158,6 +159,20 @@ public class CloudFoundryService {
 				.build())
 			.doOnSuccess(item -> LOG.info("Pushed broker app " + appName))
 			.doOnError(error -> LOG.error("Error pushing broker app " + appName + ": " + error));
+	}
+
+	public Mono<Void> logRecentAppLogs(String appName) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Dumping recent logs for broker {}", appName);
+			return cloudFoundryOperations.applications()
+					.logs(LogsRequest.builder().name(appName).recent(true).build())
+					.doOnEach(l  -> LOG.info("{}", l.get().toString()))
+					.doOnError(error -> LOG.warn("Error getting app " + appName + " logs: " + error))
+					.onErrorResume(e -> Mono.empty())
+				.then();
+		} else {
+			return Mono.empty();
+		}
 	}
 
 	public Mono<Void> updateBrokerApp(String appName, String brokerClientId, List<String> appBrokerProperties) {

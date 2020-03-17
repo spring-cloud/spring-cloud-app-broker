@@ -11,4 +11,29 @@
 	<root level="info">
 		<appender-ref ref="STDOUT"/>
 	</root>
+
+	<logger name="org.springframework.cloud.appbroker" level="debug" />
+	<logger name="org.springframework.cloud.appbroker.acceptance" level="debug" />
+	<logger name="org.springframework.cloud.appbroker.acceptance.fixtures.cf" level="debug" />
+	<logger name="org.springframework.cloud.appbroker.deployer" level="debug" />
+	<logger name="org.springframework.cloud.appbroker.deployer.cloudfoundry" level="debug" />
+	<logger name="org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryAppDeployer" level="TRACE" />
+
+	<logger name="org.springframework.cloud.servicebroker" level="debug" />
+
+	<!--	See https://github.com/cloudfoundry/cf-java-client/blob/master/cloudfoundry-client-reactor/src/test/resources/logback-test.xml-->
+	<!--	<logger name="cloudfoundry-client" level="trace" />-->
+	<logger name="cloudfoundry-client" level="debug" />
+	<logger name="cloudfoundry-client.operations" level="debug" />
+	<logger name="cloudfoundry-client.request" level="debug" />
+	<logger name="cloudfoundry-client.response" level="debug" />
+	<!--	<logger name="cloudfoundry-client.wire" level="trace" />-->
+
+	<!--	<logger name="okhttp3"                      level="DEBUG"/>-->
+
+	<!--	<logger name="org.springframework.test.context.junit.jupiter" level="debug" />-->
+	<!--	<logger name="org.springframework.boot.test" level="debug" />-->
+	<!--	&lt;!&ndash;	<logger name="org.apache.commons.beanutils" level="trace" />&ndash;&gt;-->
+	<!--	<logger name="com.github.tomakehurst.wiremock" level="debug" />-->
+
 </configuration>

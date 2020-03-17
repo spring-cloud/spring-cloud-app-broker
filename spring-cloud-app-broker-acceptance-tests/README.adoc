@@ -61,6 +61,9 @@ $ ./gradlew test -PacceptanceTests \
  -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.client-secret=secret
 ----
 
+== Running from CI
+
+See concourse pipeline configuration at [ci/pipeline.yml](ci/pipeline.yml) and associated acceptance test execution script at [ci/scripts/acceptance-tests.sh](ci/scripts/acceptance-tests.sh)
 
 === Troubleshoot failing tests
 

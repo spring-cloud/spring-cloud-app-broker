@@ -4,10 +4,10 @@ The acceptance tests (AT), run end-to-end scenarios against real dependencies:
 * Cloud Foundry CC API
 * UAA API
 
-The AT set-up step (in `CloudFoundryAcceptanceTest`) populates the required shared environment to execute:
+The AT setup step (in `CloudFoundryAcceptanceTest`) populates the required shared environment to execute:
 * a CF org and nested space
 
-The AT set-up step (in `CloudFoundryAcceptanceTest`) populates on a per test basis (e.g. `CreateInstanceWithOnlyServicesAcceptanceTest` :
+The AT setup step (in `CloudFoundryAcceptanceTest`) populates on a per test basis (e.g. `CreateInstanceWithOnlyServicesAcceptanceTest` :
 * A UAA client id, with authorities "cloud_controller.read", "cloud_controller.write", "clients.write"
 * An app (e.g. `test-broker-app-create-instance-with-only-services`) exposing an OSB API endpoint
 * A service broker (e.g. `test-broker-create-instance-with-only-services`) with
@@ -66,4 +66,17 @@ $ ./gradlew test -PacceptanceTests \
 See concourse pipeline configuration at [ci/pipeline.yml](ci/pipeline.yml) and associated acceptance test execution script at [ci/scripts/acceptance-tests.sh](ci/scripts/acceptance-tests.sh)
 
 === Troubleshoot failing tests
+
+Diagnostics:
+* check the broker logs
+   * Since cf app is removed by the tests, `cf logs broker-app --recent` can't be executed
+      * Set up a debugger breakpoint on test failures
+      * Access cf app logs drained by CF
+      * Collect logs locally (` cf logs broker-app`) in a sidecar script running on the local test execution
+   * Control the default logging levels
+      * at build-time in  spring-cloud-app-broker-acceptance-tests/src/main/resources/application.yml
+      * at runtime using springboot actuator endpoint ?
+
+Symptoms:
+* clean up step was not performed (e.g. because ot test failure or interrupted test)
 

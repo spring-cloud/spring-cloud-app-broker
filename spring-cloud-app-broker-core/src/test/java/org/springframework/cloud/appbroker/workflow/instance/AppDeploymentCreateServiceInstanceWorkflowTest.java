@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -129,10 +128,12 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 				.serviceName("service2_without_backing_app")
 				.planName("plan1")
 				.services(backingServices)
+				.target(targetSpec)
 				.build())
 			.service(BrokeredService.builder()
 				.serviceName("service3_without_backing_app_nor_service")
 				.planName("plan1")
+				.target(targetSpec)
 				.build())
 			.build();
 
@@ -152,7 +153,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		CreateServiceInstanceRequest request = buildRequest("service1", "plan1");
 		CreateServiceInstanceResponse response = CreateServiceInstanceResponse.builder().build();
 
-		setupMocks(request);
+		setupMocks(request, backingApps);
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request, response))
@@ -178,7 +179,7 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		CreateServiceInstanceRequest request = buildRequest("service1", "plan1", parameters);
 		CreateServiceInstanceResponse response = CreateServiceInstanceResponse.builder().build();
 
-		setupMocks(request);
+		setupMocks(request, backingApps);
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request, response))
@@ -199,11 +200,24 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 	}
 
 	@Test
-	@Disabled(value="java.lang.NullPointerException: The mapper returned a null Mono. Whereas Mono.justOrEmpty(null) " +
-		"is returned")
 	void createServiceInstanceWithNoAppsNorServicesDoesNothing() {
 		CreateServiceInstanceRequest request = buildRequest("service3_without_backing_app_nor_service", "plan1");
 		CreateServiceInstanceResponse response = CreateServiceInstanceResponse.builder().build();
+
+		BackingApplications emptyBackingApps = BackingApplications.builder().build();
+		given(this.appDeploymentService.deploy(eq(emptyBackingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Flux.just("app1", "app2"));
+
+		given(
+			this.appsParametersTransformationService.transformParameters(eq(emptyBackingApps), eq(request.getParameters())))
+			.willReturn(Mono.just(emptyBackingApps));
+
+		given(this.credentialProviderService.addCredentials(eq(emptyBackingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(emptyBackingApps));
+
+		given(this.targetService
+			.addToBackingApplications(eq(emptyBackingApps), eq(targetSpec), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(emptyBackingApps));
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request, response))
@@ -229,31 +243,22 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		CreateServiceInstanceRequest request = buildRequest("service2_without_backing_app", "plan1");
 		CreateServiceInstanceResponse response = CreateServiceInstanceResponse.builder().build();
 
-		given(this.servicesProvisionService.createServiceInstance(eq(backingServices)))
-			.willReturn(Flux.just("my-service-instance"));
-
-		given(this.servicesParametersTransformationService
-			.transformParameters(eq(backingServices), eq(request.getParameters())))
-			.willReturn(Mono.just(backingServices));
-
-
-		given(this.targetService
-			.addToBackingServices(eq(backingServices), eq(targetSpec), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingServices));
+		BackingApplications emptyBackingApps = BackingApplications.builder().build();
+		setupMocks(request, emptyBackingApps);
 
 		StepVerifier
 			.create(createServiceInstanceWorkflow.create(request, response))
 			.verifyComplete();
 
-		verify(servicesProvisionService).createServiceInstance(backingServices);
 		final String expectedServiceId = "service-instance-id";
 		verify(targetService).addToBackingServices(backingServices, targetSpec, expectedServiceId);
+		verify(servicesProvisionService).createServiceInstance(backingServices);
 
 		verifyNoMoreInteractionsWithServices();
 	}
 
 
-	private void setupMocks(CreateServiceInstanceRequest request) {
+	private void setupMocks(CreateServiceInstanceRequest request, BackingApplications backingApps) {
 		given(this.appDeploymentService.deploy(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Flux.just("app1", "app2"));
 		given(this.servicesProvisionService.createServiceInstance(eq(backingServices)))

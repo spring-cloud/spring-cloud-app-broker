@@ -80,3 +80,12 @@ Diagnostics:
 Symptoms:
 * clean up step was not performed (e.g. because ot test failure or interrupted test)
 
+Resolution:
+* clean up potential left overs from previous test executions, e.g.
+
+[source,bash]
+----
+cf purge-service-offering -f -b test-broker-create-instance-with-only-services   backing-service-create-instance-with-only-services
+cf purge-service-offering -f -b test-broker-create-instance-with-only-services   app-service-create-instance-with-only-services
+cf delete-service-broker -f test-broker-create-instance-with-only-services
+----

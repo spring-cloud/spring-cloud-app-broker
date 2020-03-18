@@ -110,6 +110,17 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.services(backingServices)
 				.target(targetSpec)
 				.build())
+			.service(BrokeredService.builder()
+				.serviceName("service2_without_backing_app")
+				.planName("plan1")
+				.services(backingServices)
+				.target(targetSpec)
+				.build())
+			.service(BrokeredService.builder()
+				.serviceName("service3_without_backing_app_nor_service")
+				.planName("plan1")
+				.target(targetSpec)
+				.build())
 			.build();
 
 		deleteServiceInstanceWorkflow =
@@ -179,7 +190,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	}
 
 	@Test
-	void deleteServiceInstanceWithWithNoAppsDoesNothing() {
+	void deleteServiceInstanceWithUnknownBrokeredServiceDoesNothing() {
 		DeleteServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
@@ -188,6 +199,51 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
+			.verifyComplete();
+
+		verifyNoMoreInteractionsWithServices();
+	}
+
+
+	@Test
+	void deleteServiceInstanceWithOnlyBackendServiceSucceeds() {
+//		DeleteServiceInstanceRequest request = buildRequest("service2_without_backing_app", "plan1");
+//		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
+//
+//		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+//			.willReturn(Mono.just(BackingApplications.builder().build()));
+//
+//		StepVerifier
+//			.create(deleteServiceInstanceWorkflow.delete(request, response))
+//			.verifyComplete();
+//
+//		verifyNoMoreInteractionsWithServices();
+
+////
+
+		DeleteServiceInstanceRequest request = buildRequest("service2_without_backing_app", "plan1");
+		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
+
+		BackingApplications emptyBackingApps = BackingApplications.builder().build();
+
+		given(this.backingAppDeploymentService.undeploy(eq(emptyBackingApps)))
+			.willReturn(Flux.just());
+		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(emptyBackingApps));
+		given(this.credentialProviderService.deleteCredentials(eq(emptyBackingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(emptyBackingApps));
+		given(this.targetService.addToBackingApplications(eq(emptyBackingApps), eq(targetSpec), eq("service-instance-id")))
+			.willReturn(Mono.just(emptyBackingApps));
+		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
+			boolean nameMatch = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
+			boolean sizeMatch = backingServices.size() == 1;
+			return sizeMatch && nameMatch;
+		}))).willReturn(Flux.just("my-service-instance"));
+
+		StepVerifier
+			.create(deleteServiceInstanceWorkflow.delete(request, response))
+			.expectNext()
+			.expectNext()
 			.verifyComplete();
 
 		verifyNoMoreInteractionsWithServices();

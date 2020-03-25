@@ -16,12 +16,11 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
-import static java.util.Collections.emptyMap;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.cloudfoundry.operations.services.ServiceInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+
+import static java.util.Collections.emptyMap;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithOnlyServicesAcceptanceTest extends CloudFoundryAcceptanceTest {
 
@@ -67,7 +66,7 @@ class CreateInstanceWithOnlyServicesAcceptanceTest extends CloudFoundryAcceptanc
 		// when a new service instance is created
 		createServiceInstance(SI_NAME);
 
-		// then a new backing service is created
+		// then a new backing service is created1
 		assertThat(getServiceInstance(BACKING_SI_1_NAME)).isNotNull();
 
 		// when the service instance is deleted

@@ -48,6 +48,7 @@ import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.organizations.OrganizationSummary;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.operations.services.ServiceKey;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
 import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -57,6 +58,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.netty.http.client.HttpClient;
@@ -134,6 +136,7 @@ abstract class CloudFoundryAcceptanceTest {
 
 	@BeforeEach
 	void setUp(TestInfo testInfo, BrokerProperties brokerProperties) {
+		Hooks.onOperatorDebug(); // get human readeable reactor stack traces
 		List<String> appBrokerProperties = getAppBrokerProperties(brokerProperties);
 		blockingSubscribe(initializeBroker(appBrokerProperties));
 	}
@@ -239,7 +242,9 @@ abstract class CloudFoundryAcceptanceTest {
 	}
 
 	private Mono<Void> cleanup(String orgId, String spaceId) {
-		return cloudFoundryService.logRecentAppLogs(serviceBrokerName())
+		return
+			cloudFoundryService.logRecentAppLogs(testBrokerAppName())
+				.onErrorResume(e -> Mono.empty())
 			.then(cloudFoundryService.deleteServiceBroker(serviceBrokerName()))
 			.then(cloudFoundryService.deleteApp(testBrokerAppName()))
 			.then(cloudFoundryService.removeAppBrokerClientFromOrgAndSpace(brokerClientId(), orgId, spaceId))
@@ -269,6 +274,22 @@ abstract class CloudFoundryAcceptanceTest {
 			.block();
 	}
 
+	protected void createServiceKey(String serviceKeyName, String serviceInstanceName) {
+		createServiceKey(serviceKeyName, serviceInstanceName, Collections.emptyMap());
+	}
+
+	protected void createServiceKey(String serviceKeyName, String serviceInstanceName, Map<String, Object> parameters) {
+		cloudFoundryService.createServiceKey(serviceKeyName, serviceInstanceName, parameters)
+			.then(getServiceInstanceMono(serviceInstanceName))
+			.flatMap(serviceInstance -> {
+				assertThat(serviceInstance.getStatus())
+					.withFailMessage("Create service instance failed:" + serviceInstance.getMessage())
+					.isEqualTo("succeeded");
+				return Mono.empty();
+			})
+			.block();
+	}
+
 	protected void updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
 		cloudFoundryService.updateServiceInstance(serviceInstanceName, parameters)
 			.then(getServiceInstanceMono(serviceInstanceName))
@@ -285,6 +306,10 @@ abstract class CloudFoundryAcceptanceTest {
 		blockingSubscribe(cloudFoundryService.deleteServiceInstance(serviceInstanceName));
 	}
 
+	protected void deleteServiceKey(String serviceKeyName, String serviceInstanceName) {
+		blockingSubscribe(cloudFoundryService.deleteServiceKey(serviceInstanceName, serviceKeyName));
+	}
+
 	protected List<String> listServiceInstances() {
 		return cloudFoundryService.listServiceInstances()
 			.map(ServiceInstanceSummary::getName)
@@ -294,6 +319,10 @@ abstract class CloudFoundryAcceptanceTest {
 
 	protected ServiceInstance getServiceInstance(String serviceInstanceName) {
 		return getServiceInstanceMono(serviceInstanceName).block();
+	}
+
+	protected ServiceKey getServiceKey(String serviceInstanceName, String serviceKeyName) {
+		return getServiceKeyMono(serviceInstanceName, serviceKeyName).block();
 	}
 
 	protected ServiceInstance getServiceInstance(String serviceInstanceName, String space) {
@@ -308,6 +337,10 @@ abstract class CloudFoundryAcceptanceTest {
 
 	private Mono<ServiceInstance> getServiceInstanceMono(String serviceInstanceName) {
 		return cloudFoundryService.getServiceInstance(serviceInstanceName);
+	}
+
+	private Mono<ServiceKey> getServiceKeyMono(String serviceInstanceName, String serviceInstanceKeyName) {
+		return cloudFoundryService.getServiceKey(serviceInstanceName, serviceInstanceKeyName);
 	}
 
 	protected Optional<ApplicationSummary> getApplicationSummary(String appName) {

@@ -29,6 +29,7 @@ import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
+import org.springframework.core.annotation.Order;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -36,6 +37,7 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 
 @SuppressWarnings("WeakerAccess")
+@Order(0)
 public class ServiceKeyCreateServiceBindingWorkflow
 	extends AbstractServiceInstanceWorkflow
 	implements CreateServiceInstanceAppBindingWorkflow {
@@ -61,11 +63,13 @@ public class ServiceKeyCreateServiceBindingWorkflow
 	@Override
 	public Mono<Boolean> accept(CreateServiceInstanceBindingRequest request) {
 		//Only accept binding request matching one registered backing service
+		log.debug("ServiceKeyCreateServiceBindingWorkflow.accept() invoked");
 		return accept(request.getServiceDefinition(), request.getPlan());
 	}
 
 	@Override
 	public Mono<CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder> buildResponse(CreateServiceInstanceBindingRequest request, CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder responseBuilder) {
+		log.debug("ServiceKeyCreateServiceBindingWorkflow.buildResponse() invoked");
 
 		return createBackingServiceKey(request).   //create service key, returning credentials
 			last(). //only keep last one (should never happen)

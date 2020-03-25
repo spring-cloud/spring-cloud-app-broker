@@ -70,12 +70,11 @@ See concourse pipeline configuration at [ci/pipeline.yml](ci/pipeline.yml) and a
 Diagnostics:
 * check the broker logs
    * Since cf app is removed by the tests, `cf logs broker-app --recent` can't be executed
-      * Set up a debugger breakpoint on test failures
+      * Enable debug log for `org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService` and look for Junit log `Dumping recent logs for broker `      * Set up a debugger breakpoint on test failures
       * Access cf app logs drained by CF
       * Collect logs locally (` cf logs broker-app`) in a sidecar script running on the local test execution
    * Control the default logging levels
       * at build-time in  spring-cloud-app-broker-acceptance-tests/src/main/resources/application.yml
-      * at runtime using springboot actuator endpoint ?
 
 Symptoms:
 * clean up step was not performed (e.g. because ot test failure or interrupted test)

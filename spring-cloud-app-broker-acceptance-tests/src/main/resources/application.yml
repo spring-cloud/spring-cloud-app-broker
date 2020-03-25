@@ -17,6 +17,7 @@ logging:
 
     org.springframework.cloud.appbroker: DEBUG
     org.springframework.cloud.appbroker.deployer: DEBUG
+    org.springframework.cloud.appbroker.workflow: DEBUG
     org.springframework.cloud.appbroker.workflow.instance: DEBUG
     org.springframework.cloud.appbroker.deployer.cloudfoundry: DEBUG
     org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryAppDeployer: DEBUG

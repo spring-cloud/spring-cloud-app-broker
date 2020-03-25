@@ -344,3 +344,7 @@ task codeCoverageReport(type: JacocoReport) {
 codeCoverageReport.dependsOn {
 	subprojects*.test
 }
+
+wrapper {
+	gradleVersion = "6.3"
+}

@@ -324,14 +324,42 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	}
 
 	@Test
+	void updateAppEnvironment() {
+		ArgumentCaptor<org.cloudfoundry.client.v2.applications.UpdateApplicationRequest> updateApplicationRequestCaptor =
+			ArgumentCaptor.forClass(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class);
+
+		given(applicationsV2.update(updateApplicationRequestCaptor.capture()))
+			.willReturn(Mono.just(UpdateApplicationResponse.builder()
+				.build()));
+
+		UpdateApplicationRequest request =
+			UpdateApplicationRequest
+				.builder()
+				.name(APP_NAME)
+				.path(APP_PATH)
+				.environment("ENV_VAR", "test-env")
+				.build();
+
+		StepVerifier.create(appDeployer.update(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+
+		assertThat(updateApplicationRequestCaptor.getValue().getEnvironmentJsons().get("SPRING_APPLICATION_JSON"))
+			.isEqualTo("{\"ENV_VAR\":\"test-env\"}");
+	}
+
+	@Test
 	void updateAppWithUpgrade() {
-		Map<String, String> properties = new HashMap<>();
-		properties.put("upgrade", "true");
+		ArgumentCaptor<org.cloudfoundry.client.v2.applications.UpdateApplicationRequest> updateApplicationRequestCaptor =
+			ArgumentCaptor.forClass(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class);
+
+		given(applicationsV2.update(any())).willReturn(Mono.just(UpdateApplicationResponse.builder().build()));
 
 		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
 			.name(APP_NAME)
 			.path(APP_PATH)
-			.properties(properties)
+			.property("upgrade", "true")
+			.environment("TEST_KEY", "TEST_VALUE")
 			.build();
 
 		StepVerifier.create(appDeployer.update(request))
@@ -339,6 +367,9 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.verifyComplete();
 
 		then(applicationsV2).should().summary(any(SummaryApplicationRequest.class));
+		then(applicationsV2).should().update(updateApplicationRequestCaptor.capture());
+		assertThat(updateApplicationRequestCaptor.getValue().getEnvironmentJsons().get("SPRING_APPLICATION_JSON"))
+			.isEqualTo("{\"TEST_KEY\":\"TEST_VALUE\"}");
 		then(applicationsV2).shouldHaveNoMoreInteractions();
 	}
 

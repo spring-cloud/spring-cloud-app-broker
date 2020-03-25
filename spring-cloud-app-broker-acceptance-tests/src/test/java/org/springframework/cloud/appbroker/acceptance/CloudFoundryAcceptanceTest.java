@@ -227,7 +227,7 @@ abstract class CloudFoundryAcceptanceTest {
 
 	private Mono<Void> updateBroker(List<String> appBrokerProperties) {
 		return cloudFoundryService
-			.pushBrokerApp(testBrokerAppName(), getTestBrokerAppPath(), brokerClientId(), appBrokerProperties)
+			.updateBrokerApp(testBrokerAppName(), brokerClientId(), appBrokerProperties)
 			.then(cloudFoundryService.updateServiceBroker(serviceBrokerName(), testBrokerAppName()));
 	}
 

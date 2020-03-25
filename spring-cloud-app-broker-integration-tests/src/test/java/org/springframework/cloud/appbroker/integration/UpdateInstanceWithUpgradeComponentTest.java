@@ -38,6 +38,7 @@ import static org.springframework.cloud.appbroker.integration.UpdateInstanceWith
 	"spring.cloud.appbroker.services[0].plan-name=standard",
 	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
 	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME_1,
+	"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR=testEnv",
 	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=PropertyMapping",
 	"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=upgrade"
 })

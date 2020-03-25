@@ -234,6 +234,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return get(GetApplicationRequest.builder().name(name).properties(request.getProperties()).build())
 			.flatMap(response -> bindNewServices(response, request.getServices(), request.getProperties()))
 			.flatMap(applicationId -> associateHostName(applicationId, request.getProperties()))
+			.flatMap(applicationId -> updateEnvironment(request, applicationId))
 			.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
 				upgradeApplication(request, applicationId)))
 			.flatMap(tuple2 -> {
@@ -464,11 +465,15 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 					.map(Package::getId));
 		}
 
+		return getPackageForApplication(applicationId);
+	}
+
+	private Mono<String> updateEnvironment(UpdateApplicationRequest request, String applicationId) {
 		final Map<String, Object> environmentVariables =
 			getApplicationEnvironment(request.getProperties(), request.getEnvironment(),
 				request.getServiceInstanceId());
 		return updateApplicationEnvironment(applicationId, environmentVariables, request.getProperties())
-			.flatMap(a -> getPackageForApplication(applicationId));
+			.thenReturn(applicationId);
 	}
 
 	private Mono<String> getPackageForApplication(String applicationId) {

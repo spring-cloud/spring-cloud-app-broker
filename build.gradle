@@ -34,6 +34,7 @@ ext {
 	openServiceBrokerVersion = "3.0.4.RELEASE"
 	springCredhubVersion = "2.0.1.RELEASE"
 	cfJavaClientVersion = "3.16.0.RELEASE"
+	junitJupiterVersion = "5.5.2"
 	checkstyleVersion = "8.21"
 	pmdVersion = "6.19.0"
 
@@ -50,6 +51,7 @@ if (project.hasProperty("springFrameworkVersion")) {
 if (project.hasProperty("reactorVersion")) {
 	ext['reactor-bom.version'] = ext.reactorVersion
 }
+ext['junit-jupiter.version'] = ext.junitJupiterVersion
 
 // NoHttp has to be applied at the root level
 // so that it reads all the root files, including the gradle ones.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,16 +76,20 @@ import org.springframework.cloud.appbroker.deployer.UpdateApplicationRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CloudFoundryAppDeployerUpdateApplicationTest {
+
+	private static final String APP_ID = "app-id";
 
 	private static final String APP_NAME = "test-app";
 
@@ -248,6 +252,27 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	}
 
 	@Test
+	void updateAppWithTarget() {
+		given(applicationsV2.update(any()))
+			.willReturn(Mono.just(UpdateApplicationResponse.builder()
+				.build()));
+
+		Map<String, String> properties = singletonMap(TARGET_PROPERTY_KEY, "service-instance-id");
+		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.properties(properties)
+			.build();
+
+		StepVerifier.create(appDeployer.update(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+
+		then(operationsUtils).should().getOperations(properties);
+		then(operationsUtils).shouldHaveNoMoreInteractions();
+	}
+
+	@Test
 	void updateAppProperties() {
 		ArgumentCaptor<org.cloudfoundry.client.v2.applications.UpdateApplicationRequest> updateApplicationRequestCaptor =
 			ArgumentCaptor.forClass(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class);
@@ -281,21 +306,55 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	}
 
 	@Test
+	void updateAppEnvironment() {
+		ArgumentCaptor<org.cloudfoundry.client.v2.applications.UpdateApplicationRequest> updateApplicationRequestCaptor =
+			ArgumentCaptor.forClass(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class);
+
+		given(applicationsV2.update(updateApplicationRequestCaptor.capture()))
+			.willReturn(Mono.just(UpdateApplicationResponse.builder()
+				.build()));
+
+		UpdateApplicationRequest request =
+			UpdateApplicationRequest
+				.builder()
+				.name(APP_NAME)
+				.path(APP_PATH)
+				.environment("ENV_VAR", "test-env")
+				.build();
+
+		StepVerifier.create(appDeployer.update(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+
+		assertThat(updateApplicationRequestCaptor.getValue().getEnvironmentJsons().get("SPRING_APPLICATION_JSON"))
+			.isEqualTo("{\"ENV_VAR\":\"test-env\"}");
+	}
+
+	@Test
 	void updateAppWithUpgrade() {
 		Map<String, String> properties = new HashMap<>();
 		properties.put("upgrade", "true");
+		ArgumentCaptor<org.cloudfoundry.client.v2.applications.UpdateApplicationRequest> updateApplicationRequestCaptor =
+			ArgumentCaptor.forClass(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class);
+
+		given(applicationsV2.update(any())).willReturn(Mono.just(UpdateApplicationResponse.builder().build()));
 
 		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
 			.name(APP_NAME)
 			.path(APP_PATH)
 			.properties(properties)
+			.property("upgrade", "true")
+			.environment("TEST_KEY", "TEST_VALUE")
 			.build();
 
 		StepVerifier.create(appDeployer.update(request))
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		then(applicationsV2).shouldHaveZeroInteractions();
+		then(applicationsV2).should().update(updateApplicationRequestCaptor.capture());
+		assertThat(updateApplicationRequestCaptor.getValue().getEnvironmentJsons().get("SPRING_APPLICATION_JSON"))
+			.isEqualTo("{\"TEST_KEY\":\"TEST_VALUE\"}");
+		then(applicationsV2).shouldHaveNoMoreInteractions();
 	}
 
 	@Test
@@ -342,7 +401,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.host("my.host")
 			.build());
 		then(applicationsV2).should().associateRoute(AssociateApplicationRouteRequest.builder()
-			.applicationId("app-id")
+			.applicationId(APP_ID)
 			.routeId("route-id")
 			.build());
 	}
@@ -376,9 +435,9 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		verifyRouteCreatedAndMapped("myDomainComId", "my.host", "space-id", "app-id");
-		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", "app-id");
-		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", "app-id");
+		verifyRouteCreatedAndMapped("myDomainComId", "my.host", "space-id", APP_ID);
+		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", APP_ID);
+		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", APP_ID);
 	}
 
 	@Test
@@ -409,8 +468,8 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
 			.verifyComplete();
 
-		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", "app-id");
-		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", "app-id");
+		verifyRouteCreatedAndMapped("myDomainInternalId", "my.host", "space-id", APP_ID);
+		verifyRouteCreatedAndMapped("myDomainDefaultId", "my.host", "space-id", APP_ID);
 	}
 
 	@Test
@@ -457,7 +516,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.host("my.host")
 			.build());
 		then(applicationsV2).should().associateRoute(AssociateApplicationRouteRequest.builder()
-			.applicationId("app-id")
+			.applicationId(APP_ID)
 			.routeId("route-id")
 			.build());
 	}
@@ -508,7 +567,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.build());
 		then(applicationsV2).should().associateRoute(AssociateApplicationRouteRequest
 			.builder()
-			.applicationId("app-id")
+			.applicationId(APP_ID)
 			.routeId("route-id")
 			.build());
 	}
@@ -572,12 +631,12 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	private ApplicationDetail createApplicationDetail() {
 		return ApplicationDetail
 			.builder()
-			.id("app-id")
+			.id(APP_ID)
 			.stack("")
 			.diskQuota(512)
 			.instances(1)
 			.memoryLimit(512)
-			.name("app")
+			.name(APP_NAME)
 			.requestedState("STARTED")
 			.runningInstances(1)
 			.build();

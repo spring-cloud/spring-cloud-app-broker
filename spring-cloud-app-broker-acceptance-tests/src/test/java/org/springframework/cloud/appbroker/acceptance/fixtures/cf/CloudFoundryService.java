@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.applications.UpdateApplicationRequest;
 import org.cloudfoundry.client.v2.organizations.AssociateOrganizationManagerRequest;
 import org.cloudfoundry.client.v2.organizations.AssociateOrganizationManagerResponse;
 import org.cloudfoundry.client.v2.organizations.AssociateOrganizationUserRequest;
@@ -43,6 +44,7 @@ import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.GetApplicationEnvironmentsRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.RestartApplicationRequest;
 import org.cloudfoundry.operations.applications.StopApplicationRequest;
 import org.cloudfoundry.operations.domains.CreateDomainRequest;
 import org.cloudfoundry.operations.domains.Domain;
@@ -52,6 +54,7 @@ import org.cloudfoundry.operations.organizations.Organizations;
 import org.cloudfoundry.operations.serviceadmin.CreateServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.DeleteServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.EnableServiceAccessRequest;
+import org.cloudfoundry.operations.serviceadmin.UpdateServiceBrokerRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
@@ -114,6 +117,19 @@ public class CloudFoundryService {
 				.doOnError(error -> LOGGER.error("Error creating service broker " + brokerName + ": " + error)));
 	}
 
+	public Mono<Void> updateServiceBroker(String brokerName, String testBrokerAppName) {
+		return getApplicationRoute(testBrokerAppName)
+			.flatMap(url -> cloudFoundryOperations.serviceAdmin()
+				.update(UpdateServiceBrokerRequest.builder()
+					.name(brokerName)
+					.username("user")
+					.password("password")
+					.url(url)
+					.build())
+				.doOnSuccess(item -> LOGGER.info("Updating service broker " + brokerName))
+				.doOnError(error -> LOGGER.error("Error updating service broker " + brokerName + ": " + error)));
+	}
+
 	public Mono<String> getApplicationRoute(String appName) {
 		return cloudFoundryOperations.applications()
 			.get(GetApplicationRequest.builder()
@@ -132,7 +148,7 @@ public class CloudFoundryService {
 		return cloudFoundryOperations.applications()
 			.pushManifest(PushApplicationManifestRequest.builder()
 				.manifest(ApplicationManifest.builder()
-					.putAllEnvironmentVariables(appBrokerDeployerEnvironmentVariables(brokerClientId))
+					.environmentVariables(appBrokerDeployerEnvironmentVariables(brokerClientId))
 					.putAllEnvironmentVariables(propertiesToEnvironment(appBrokerProperties))
 					.name(appName)
 					.path(appPath)
@@ -141,6 +157,29 @@ public class CloudFoundryService {
 				.build())
 			.doOnSuccess(item -> LOGGER.info("Pushed broker app " + appName))
 			.doOnError(error -> LOGGER.error("Error pushing broker app " + appName + ": " + error));
+	}
+
+	public Mono<Void> updateBrokerApp(String appName, String brokerClientId, List<String> appBrokerProperties) {
+		return cloudFoundryOperations.applications()
+			.get(GetApplicationRequest.builder().name(appName).build())
+			.map(ApplicationDetail::getId)
+			.flatMap(applicationId ->
+				cloudFoundryClient
+					.applicationsV2()
+					.update(UpdateApplicationRequest
+						.builder()
+						.applicationId(applicationId)
+						.putAllEnvironmentJsons(appBrokerDeployerEnvironmentVariables(brokerClientId))
+						.putAllEnvironmentJsons(propertiesToEnvironment(appBrokerProperties))
+						.name(appName)
+						.memory(1024)
+						.build())
+					.thenReturn(applicationId))
+			.then(cloudFoundryOperations.applications()
+				.restart(RestartApplicationRequest.builder().name(appName).build()))
+			.doOnSuccess(item -> LOGGER.info("Updated broker app " + appName))
+			.doOnError(error -> LOGGER.error("Error updating broker app " + appName + ": " + error))
+			.then();
 	}
 
 	public Mono<Void> deleteApp(String appName) {

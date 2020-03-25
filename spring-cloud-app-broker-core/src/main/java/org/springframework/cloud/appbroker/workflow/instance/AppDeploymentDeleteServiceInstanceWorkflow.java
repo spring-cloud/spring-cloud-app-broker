@@ -22,12 +22,10 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
-import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
-import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
@@ -43,8 +41,6 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	private final BackingAppDeploymentService deploymentService;
 
-	private final BackingAppManagementService backingAppManagementService;
-
 	private final CredentialProviderService credentialProviderService;
 
 	private final TargetService targetService;
@@ -53,13 +49,11 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
 		BackingAppDeploymentService deploymentService,
-		BackingAppManagementService backingAppManagementService,
 		BackingServicesProvisionService backingServicesProvisionService,
 		CredentialProviderService credentialProviderService,
 		TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
-		this.backingAppManagementService = backingAppManagementService;
 		this.credentialProviderService = credentialProviderService;
 		this.targetService = targetService;
 		this.backingServicesProvisionService = backingServicesProvisionService;
@@ -67,23 +61,20 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	@Override
 	public Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
-		return deleteBackingServices(request)
-			.thenMany(undeployBackingApplications(request))
+		return undeployBackingApplications(request)
+			.thenMany(deleteBackingServices(request))
 			.then();
 	}
 
 	private Flux<String> deleteBackingServices(DeleteServiceInstanceRequest request) {
-		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId())
-			.flatMapMany(Flux::fromIterable)
-			.flatMap(backingApplication ->
-				Flux.fromIterable(backingApplication.getServices())
-					.map(servicesSpec -> BackingService.builder()
-						.serviceInstanceName(servicesSpec.getServiceInstanceName())
-						.build())
-					.collectList())
-			.doOnEach(backingServices -> log.debug("Deleting backing services {} for {}/{}",
-				backingServices, request.getServiceDefinition().getName(), request.getPlan().getName()))
+		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
+			.flatMapMany(backingServices ->
+				targetService.addToBackingServices(backingServices,
+					getTargetForService(request.getServiceDefinition(), request.getPlan()),
+					request.getServiceInstanceId()))
 			.flatMap(backingServicesProvisionService::deleteServiceInstance)
+			.doOnRequest(l -> log.debug("Deleting backing services for{}/{}",
+				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnComplete(() -> log.debug("Finished deleting backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnError(exception -> log.error(String.format("Error deleting backing services for %s/%s with error '%s'",

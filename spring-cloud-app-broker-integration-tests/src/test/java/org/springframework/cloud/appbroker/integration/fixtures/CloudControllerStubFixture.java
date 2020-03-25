@@ -601,6 +601,29 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.willReturn(noContent()));
 	}
 
+	public void stubListServiceBindings(String appName, String serviceInstanceName) {
+		String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
+		String serviceBindingGuid = serviceBindingGuid(appName, serviceInstanceName);
+
+		stubFor(get(urlPathEqualTo("/v2/service_bindings"))
+			.withQueryParam("q", equalTo("service_instance_guid:" + serviceInstanceGuid))
+			.withQueryParam("page", equalTo("1"))
+			.willReturn(ok()
+				.withBody(cc("list-service-bindings",
+					replace("@guid", serviceBindingGuid),
+					replace("@app-guid", appGuid(appName)),
+					replace("@service-instance-guid", serviceInstanceGuid)))));
+	}
+
+	public void stubServiceInstanceDoesNotExist(String serviceInstanceName) {
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/service_instances"))
+			.withQueryParam("q", equalTo("name:" + serviceInstanceName))
+			.withQueryParam("page", equalTo("1"))
+			.withQueryParam("return_user_provided_service_instances", equalTo("true"))
+			.willReturn(ok()
+				.withBody(cc("list-space-service_instances-empty"))));
+	}
+
 	public void stubServiceBindingExists(String appName, String serviceInstanceName) {
 		String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
 		String serviceBindingGuid = serviceBindingGuid(appName, serviceInstanceName);

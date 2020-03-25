@@ -16,11 +16,20 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import java.util.Arrays;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -47,24 +56,19 @@ import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInsta
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
-	@Mock
 	private BackingAppDeploymentService backingAppDeploymentService;
-
-	@Mock
 	private BackingAppManagementService backingAppManagementService;
 
-	@Mock
+	private BackingServices backingServices;
+
 	private TargetService targetService;
-
-	@Mock
 	private CredentialProviderService credentialProviderService;
-
-	@Mock
 	private BackingServicesProvisionService backingServicesProvisionService;
 
 	private BackingApplications backingApps;
@@ -75,6 +79,12 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 	@BeforeEach
 	void setUp() {
+		backingAppDeploymentService = Mockito.mock(BackingAppDeploymentService.class, new RuntimeExceptionAnswer());
+		backingAppManagementService = Mockito.mock(BackingAppManagementService.class, new RuntimeExceptionAnswer());
+		targetService = Mockito.mock(TargetService.class, new RuntimeExceptionAnswer());
+		credentialProviderService = Mockito.mock(CredentialProviderService.class, new RuntimeExceptionAnswer());
+		backingServicesProvisionService = Mockito.mock(BackingServicesProvisionService.class, new RuntimeExceptionAnswer());
+
 		backingApps = BackingApplications
 			.builder()
 			.backingApplication(BackingApplication
@@ -89,7 +99,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
-		BackingServices backingServices = BackingServices
+		backingServices = BackingServices
 			.builder()
 			.backingService(BackingService
 				.builder()
@@ -127,7 +137,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			new AppDeploymentDeleteServiceInstanceWorkflow(
 				brokeredServices,
 				backingAppDeploymentService,
-				backingAppManagementService, backingServicesProvisionService,
+				backingServicesProvisionService,
 				credentialProviderService,
 				targetService
 			);
@@ -138,19 +148,25 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
-		given(this.backingAppDeploymentService.undeploy(eq(backingApps)))
-			.willReturn(Flux.just("undeployed1", "undeployed2"));
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(getExistingBackingAppsWithService("my-service-instance")));
-		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
-		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
-			.willReturn(Mono.just(backingApps));
-		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
-			boolean nameMatch = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
-			boolean sizeMatch = backingServices.size() == 1;
-			return sizeMatch && nameMatch;
-		}))).willReturn(Flux.just("my-service-instance"));
+		doReturn(Flux.just("undeployed1", "undeployed2"))
+			.when(this.backingAppDeploymentService).undeploy(eq(backingApps));
+//		doReturn(Mono.just(getExistingBackingAppsWithService("my-service-instance")))
+//			.when(this.backingAppManagementService).getDeployedBackingApplications(eq(request.getServiceInstanceId()));
+		doReturn(Mono.just(backingApps))
+			.when(this.credentialProviderService).deleteCredentials(eq(backingApps),
+		eq(request.getServiceInstanceId()));
+		doReturn(Mono.just(backingServices))
+			.when(this.targetService).addToBackingServices(eq(backingServices),
+			eq(targetSpec), eq("service-instance-id"));
+		doReturn(Mono.just(backingApps))
+			.when(this.targetService).addToBackingApplications(eq(backingApps),
+			eq(targetSpec), eq("service-instance-id"));
+		doReturn(Flux.just("my-service-instance"))
+			.when(this.backingServicesProvisionService).deleteServiceInstance(argThat(backingServices -> {
+				boolean nameMatch = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
+				boolean sizeMatch = backingServices.size() == 1;
+				return sizeMatch && nameMatch;
+			}));
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
@@ -166,19 +182,23 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
-		given(this.backingAppDeploymentService.undeploy(eq(backingApps)))
-			.willReturn(Flux.just("undeployed1", "undeployed2"));
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(getExistingBackingAppsWithService("different-service-instance")));
-		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
-		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
-			.willReturn(Mono.just(backingApps));
-		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
+		doReturn(Flux.just("undeployed1", "undeployed2"))
+			.when(this.backingAppDeploymentService).undeploy(eq(backingApps));
+		doReturn(Mono.just(getExistingBackingAppsWithService("different-service-instance")))
+			.when(this.backingAppManagementService).getDeployedBackingApplications(eq(request.getServiceInstanceId()));
+		doReturn(Mono.just(backingApps))
+			.when(this.credentialProviderService).deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId()));
+		doReturn(Mono.just(backingServices))
+			.when(this.targetService).addToBackingServices(eq(backingServices),
+			eq(targetSpec), eq("service-instance-id"));
+		doReturn(Mono.just(backingApps))
+			.when(this.targetService).addToBackingApplications(eq(backingApps), eq(targetSpec), eq("different-service-instance"));
+		doReturn(Flux.just("different-service-instance"))
+			.when(this.backingServicesProvisionService).deleteServiceInstance(argThat(backingServices -> {
 			boolean nameMatch = "different-service-instance".equals(backingServices.get(0).getServiceInstanceName());
 			boolean sizeMatch = backingServices.size() == 1;
 			return sizeMatch && nameMatch;
-		}))).willReturn(Flux.just("different-service-instance"));
+		}));
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
@@ -194,8 +214,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		DeleteServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
-					.willReturn(Mono.just(BackingApplications.builder().build()));
+//		doReturn(Mono.just(BackingApplications.builder().build()))
+//		.when(this.backingAppManagementService).getDeployedBackingApplications(eq(request.getServiceInstanceId()));
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
@@ -226,19 +246,41 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 		BackingApplications emptyBackingApps = BackingApplications.builder().build();
 
-		given(this.backingAppDeploymentService.undeploy(eq(emptyBackingApps)))
-			.willReturn(Flux.just());
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(emptyBackingApps));
-		given(this.credentialProviderService.deleteCredentials(eq(emptyBackingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(emptyBackingApps));
-		given(this.targetService.addToBackingApplications(eq(emptyBackingApps), eq(targetSpec), eq("service-instance-id")))
-			.willReturn(Mono.just(emptyBackingApps));
-		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
+		doReturn(Flux.just())
+			.when(this.backingAppDeploymentService).undeploy(eq(emptyBackingApps));
+//		doReturn(Mono.just(emptyBackingApps))
+//			.when(this.backingAppManagementService).getDeployedBackingApplications(eq(request.getServiceInstanceId()));
+		doReturn(Mono.just(emptyBackingApps))
+			.when(this.credentialProviderService).deleteCredentials(eq(emptyBackingApps),
+			eq(request.getServiceInstanceId()));
+		doReturn(Mono.just(backingServices))
+			.when(this.targetService).addToBackingServices(eq(backingServices),
+			eq(targetSpec), eq("service-instance-id"));
+		doReturn(Mono.just(emptyBackingApps))
+			.when(this.targetService).addToBackingApplications(eq(emptyBackingApps), eq(targetSpec), eq("service" +
+			"-instance-id"));
+		doReturn(Flux.just("my-service-instance"))
+			.when(this.backingServicesProvisionService).deleteServiceInstance(argThat(backingServices -> {
 			boolean nameMatch = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
 			boolean sizeMatch = backingServices.size() == 1;
 			return sizeMatch && nameMatch;
-		}))).willReturn(Flux.just("my-service-instance"));
+		}));
+
+//
+//
+//		given(this.backingAppDeploymentService.undeploy(eq(emptyBackingApps)))
+//			.willReturn(Flux.just());
+//		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+//			.willReturn(Mono.just(emptyBackingApps));
+//		given(this.credentialProviderService.deleteCredentials(eq(emptyBackingApps), eq(request.getServiceInstanceId())))
+//			.willReturn(Mono.just(emptyBackingApps));
+//		given(this.targetService.addToBackingApplications(eq(emptyBackingApps), eq(targetSpec), eq("service-instance-id")))
+//			.willReturn(Mono.just(emptyBackingApps));
+//		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
+//			boolean nameMatch = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
+//			boolean sizeMatch = backingServices.size() == 1;
+//			return sizeMatch && nameMatch;
+//		}))).willReturn(Flux.just("my-service-instance"));
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
@@ -299,4 +341,13 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.build();
 	}
 
+	public static class RuntimeExceptionAnswer implements Answer<Object> {
+
+		public Object answer( InvocationOnMock invocation ) throws Throwable {
+			throw new RuntimeException ( "Unexpected call to unstubbed mock method: " + invocation.toString() );
+		}
+
+	}
+
 }
+

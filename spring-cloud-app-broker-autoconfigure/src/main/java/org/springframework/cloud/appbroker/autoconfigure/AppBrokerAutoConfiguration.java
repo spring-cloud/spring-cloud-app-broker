@@ -406,7 +406,6 @@ public class AppBrokerAutoConfiguration {
 		return new AppDeploymentDeleteServiceInstanceWorkflow(
 			brokeredServices,
 			backingAppDeploymentService,
-			backingAppManagementService,
 			backingServicesProvisionService,
 			credentialProviderService,
 			targetService

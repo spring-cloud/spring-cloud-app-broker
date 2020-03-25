@@ -69,15 +69,14 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsAndServicesWhenTheyExist() {
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-							SERVICE_NAME, PLAN_NAME);
-		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SI_NAME,
-			BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
+		cloudControllerFixture.stubAppExists(APP_NAME);
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubDeleteApp(APP_NAME);
 
+//		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME, "doNotCare", "doNotCare");
 		cloudControllerFixture.stubGetBackingServiceInstance(BACKING_SI_NAME, BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 
+//		cloudControllerFixture.stubListServiceBindings(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubServiceBindingExists(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubDeleteServiceBinding(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubDeleteServiceInstance(BACKING_SI_NAME);
@@ -103,11 +102,11 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsWhenTheyExistAndServicesWhenTheyDoNotExist() {
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-							SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubAppExists(APP_NAME);
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubDeleteApp(APP_NAME);
+
+		cloudControllerFixture.stubServiceInstanceDoesNotExist(BACKING_SI_NAME);
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())
@@ -130,9 +129,9 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsAndServicesWhenTheyDoNotExist() {
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-							SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
+
+		cloudControllerFixture.stubServiceInstanceDoesNotExist(BACKING_SI_NAME);
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())

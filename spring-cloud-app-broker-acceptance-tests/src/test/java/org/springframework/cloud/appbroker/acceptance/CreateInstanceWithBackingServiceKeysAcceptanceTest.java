@@ -33,8 +33,6 @@ class CreateInstanceWithBackingServiceKeysAcceptanceTest extends CloudFoundryAcc
 
 	private static final String BACKING_SI_1_NAME = "backing-service-instance-created";
 
-	private static final String BACKING_SI_2_NAME = "backing-service-instance-existing";
-
 	private static final String SUFFIX = "create-instance-with-service-keys";
 
 	private static final String APP_SERVICE_NAME = "app-service-" + SUFFIX;

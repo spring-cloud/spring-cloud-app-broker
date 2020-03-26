@@ -175,7 +175,8 @@ public class CloudFoundryService {
 				.doOnError(error -> LOG.debug("Error getting logs for app " + appName + " : " + error))
 				.onErrorResume(e -> Mono.empty())
 				.then();
-		} else {
+		}
+		else {
 			return Mono.empty();
 		}
 	}

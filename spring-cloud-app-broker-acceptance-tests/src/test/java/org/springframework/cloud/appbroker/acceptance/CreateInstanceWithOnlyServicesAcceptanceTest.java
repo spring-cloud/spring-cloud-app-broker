@@ -57,7 +57,7 @@ class CreateInstanceWithOnlyServicesAcceptanceTest extends CloudFoundryAcceptanc
 		"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
 		"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 		"spring.cloud.appbroker.services[0].services[0].plan=" + PLAN_NAME,
-		"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_1_NAME,
+		"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_1_NAME
 	})
 	void createSingleServiceOnCreateService() {
 		// given that an existing backing service is available in the marketplace

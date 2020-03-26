@@ -36,27 +36,27 @@ import org.springframework.util.CollectionUtils;
  * Base class for service instance worflow, in particular service binding leveraging service keys.
  * Inspired from {@link org.springframework.cloud.appbroker.workflow.instance.AppDeploymentInstanceWorkflow}
  */
-abstract class AbstractServiceInstanceWorkflow {
+public class AbstractServiceInstanceWorkflow {
 
 	@SuppressWarnings("WeakerAccess")
-	final BrokeredServices brokeredServices;
+	private final BrokeredServices brokeredServices;
 
-	AbstractServiceInstanceWorkflow(BrokeredServices brokeredServices) {
+	public AbstractServiceInstanceWorkflow(BrokeredServices brokeredServices) {
 		this.brokeredServices = brokeredServices;
 	}
 
-	Mono<Boolean> accept(ServiceDefinition serviceDefinition, Plan plan) {
+	protected Mono<Boolean> accept(ServiceDefinition serviceDefinition, Plan plan) {
 		return getBackingServicesForService(serviceDefinition, plan)
 				.map(backingServices -> !backingServices.isEmpty())
 				.defaultIfEmpty(false);
 	}
 
-	TargetSpec getTargetForService(ServiceDefinition serviceDefinition, Plan plan) {
+	protected TargetSpec getTargetForService(ServiceDefinition serviceDefinition, Plan plan) {
 		BrokeredService brokeredService = findBrokeredService(serviceDefinition, plan);
 		return brokeredService == null ? null : brokeredService.getTarget();
 	}
 
-	Mono<List<BackingService>> getBackingServicesForService(ServiceDefinition serviceDefinition, Plan plan) {
+	protected Mono<List<BackingService>> getBackingServicesForService(ServiceDefinition serviceDefinition, Plan plan) {
 		return Mono.defer(() ->
 			Mono.justOrEmpty(findBackingServices(serviceDefinition, plan)));
 	}

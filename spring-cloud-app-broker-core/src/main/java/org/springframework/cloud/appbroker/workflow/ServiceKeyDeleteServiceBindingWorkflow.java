@@ -18,6 +18,11 @@ package org.springframework.cloud.appbroker.workflow;
 
 import java.util.List;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.Logger;
+import reactor.util.Loggers;
+
 import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServiceKey;
 import org.springframework.cloud.appbroker.deployer.BackingServiceKeys;
@@ -28,11 +33,6 @@ import org.springframework.cloud.appbroker.service.DeleteServiceInstanceBindingW
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingResponse;
 import org.springframework.core.annotation.Order;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.util.Logger;
-import reactor.util.Loggers;
 
 @SuppressWarnings("WeakerAccess")
 @Order(0)

@@ -300,6 +300,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 	public static class RuntimeExceptionAnswer implements Answer<Object> {
 
+		@Override
 		public Object answer( InvocationOnMock invocation ) throws Throwable {
 			throw new RuntimeException ( "Unexpected call to unstubbed mock method: " + invocation.toString() );
 		}

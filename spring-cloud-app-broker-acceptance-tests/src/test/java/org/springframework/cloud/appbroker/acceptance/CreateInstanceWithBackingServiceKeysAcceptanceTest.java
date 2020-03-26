@@ -19,16 +19,12 @@ package org.springframework.cloud.appbroker.acceptance;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceKey;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.cloud.appbroker.acceptance.services.NoOpCreateServiceInstanceAppBindingWorkflow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithBackingServiceKeysAcceptanceTest extends CloudFoundryAcceptanceTest {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CreateInstanceWithBackingServiceKeysAcceptanceTest.class);
 
 	private static final String SI_NAME = "si-create-service-keys";
 	private static final String SK_NAME = "sk-create-service-keys";

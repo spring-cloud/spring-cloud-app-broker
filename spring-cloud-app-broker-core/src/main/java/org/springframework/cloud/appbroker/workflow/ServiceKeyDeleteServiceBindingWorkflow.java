@@ -73,7 +73,7 @@ public class ServiceKeyDeleteServiceBindingWorkflow
 					getTargetForService(request.getServiceDefinition(), request.getPlan()) ,
 					request.getServiceInstanceId()))
 			.flatMap(ServiceKeyDeleteServiceBindingWorkflow::getBackingServiceKeys)
-			.flatMap(backingServiceKeys -> setServiceKeyName(backingServiceKeys, request.getBindingId()))
+			.flatMap(backingServiceKeys -> assignServiceKeyName(backingServiceKeys, request.getBindingId()))
 			.flatMapMany(backingServicesProvisionService::deleteServiceKeys)
 			.doOnRequest(l -> log.debug("Deleting backing service keys for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))

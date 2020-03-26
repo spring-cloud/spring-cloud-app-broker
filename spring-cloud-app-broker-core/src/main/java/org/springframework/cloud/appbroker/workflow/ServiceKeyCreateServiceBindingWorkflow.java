@@ -86,7 +86,7 @@ public class ServiceKeyCreateServiceBindingWorkflow
 				servicesParametersTransformationService.transformParameters(backingServices,
 					request.getParameters()))
 			.flatMap(ServiceKeyCreateServiceBindingWorkflow::getBackingServiceKeys)
-			.flatMap(backingServiceKeys -> setServiceKeyName(backingServiceKeys, request.getBindingId()))
+			.flatMap(backingServiceKeys -> assignServiceKeyName(backingServiceKeys, request.getBindingId()))
 			.flatMapMany(backingServicesProvisionService::createServiceKeys)
 			.doOnRequest(l -> log.debug("Creating backing service keys for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))

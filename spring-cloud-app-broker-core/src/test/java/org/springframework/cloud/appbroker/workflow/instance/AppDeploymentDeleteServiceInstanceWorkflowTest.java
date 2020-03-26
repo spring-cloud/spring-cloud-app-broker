@@ -168,7 +168,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		verifyNoMoreInteractionsWithServices();
 	}
 
-	@Disabled(value = "backing services with previous config would need fix such as metadata to be deleted")
+	@Disabled("backing services with previous config would need fix such as metadata to be deleted")
 	@Test
 	void deleteServiceInstanceSucceedsWhenBackingServicesDifferFromConfiguration() {
 		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");

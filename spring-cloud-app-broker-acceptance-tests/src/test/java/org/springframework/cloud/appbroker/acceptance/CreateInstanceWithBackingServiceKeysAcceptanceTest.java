@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.cloud.appbroker.acceptance.services.NoOpCreateServiceInstanceAppBindingWorkflow;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateInstanceWithBackingServiceKeysAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -61,7 +63,7 @@ class CreateInstanceWithBackingServiceKeysAcceptanceTest extends CloudFoundryAcc
 		"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 		"spring.cloud.appbroker.services[0].services[0].plan=" + PLAN_NAME,
 		"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_1_NAME,
-		"service-bindings-as-service-keys=true",
+		"service-bindings-as-service-keys=true", //controls autoconfigure
 		"debug=true" //Spring boot debug mode
 	})
 	void deployAppsAndCreateServiceKeyssOnBindService() {
@@ -73,17 +75,19 @@ class CreateInstanceWithBackingServiceKeysAcceptanceTest extends CloudFoundryAcc
 
 		//when a service key is created with params
 		createServiceKey(SK_NAME, SI_NAME);
+		ServiceKey brokeredServiceKey = getServiceKey(SK_NAME, SI_NAME);
 
-		//then a backing service key with params is created
-		ServiceKey serviceKey = getServiceKey(BACKING_SI_1_NAME, backingServiceInstance.getId());
-		assertThat(serviceKey).isNotNull();
-		LOG.warn("Manually check that serviceKey.getCredentials() {} is not null/empty or fix backing service broker", serviceKey.getCredentials());
-//		assertThat(serviceKey.getCredentials()).isNotNull();
+		//then a backing service key with params is created, whose name matches the brokered service binding id
+		assertThat(listServiceKeys(BACKING_SI_1_NAME)).containsOnly(brokeredServiceKey.getId());
+		ServiceKey serviceKey = getServiceKey(brokeredServiceKey.getId(), BACKING_SI_1_NAME);
+		// and credentials from backing service key is returned in brokered service key
+		assertThat(serviceKey.getCredentials()).isEqualTo(NoOpCreateServiceInstanceAppBindingWorkflow.CREDENTIALS);
 
 		//when a service key is deleted
 		deleteServiceKey(SK_NAME, SI_NAME);
+
 		//then the backing service key is deleted
-		assertThat(getServiceKey(BACKING_SI_1_NAME, backingServiceInstance.getId())).isNull();
+		assertThat(listServiceKeys(BACKING_SI_1_NAME)).isEmpty();
 
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);

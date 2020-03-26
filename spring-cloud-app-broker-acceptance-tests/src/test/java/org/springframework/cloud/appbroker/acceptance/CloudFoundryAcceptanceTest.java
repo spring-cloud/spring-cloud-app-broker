@@ -316,12 +316,18 @@ abstract class CloudFoundryAcceptanceTest {
 			.collectList()
 			.block();
 	}
+	protected List<String> listServiceKeys(String serviceInstanceName) {
+		return cloudFoundryService.listServiceKeys(serviceInstanceName)
+			.map(ServiceKey::getName)
+			.collectList()
+			.block();
+	}
 
 	protected ServiceInstance getServiceInstance(String serviceInstanceName) {
 		return getServiceInstanceMono(serviceInstanceName).block();
 	}
 
-	protected ServiceKey getServiceKey(String serviceInstanceName, String serviceKeyName) {
+	protected ServiceKey getServiceKey(String serviceKeyName, String serviceInstanceName) {
 		return getServiceKeyMono(serviceInstanceName, serviceKeyName).block();
 	}
 

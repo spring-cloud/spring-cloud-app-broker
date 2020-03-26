@@ -62,6 +62,7 @@ import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
 import org.cloudfoundry.operations.services.DeleteServiceKeyRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceKeyRequest;
+import org.cloudfoundry.operations.services.ListServiceKeysRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.ServiceKey;
@@ -290,6 +291,12 @@ public class CloudFoundryService {
 
 	public Flux<ServiceInstanceSummary> listServiceInstances() {
 		return cloudFoundryOperations.services().listInstances();
+	}
+
+	public Flux<ServiceKey> listServiceKeys(String serviceInstanceName) {
+		return cloudFoundryOperations.services().listServiceKeys(
+			ListServiceKeysRequest.builder()
+			.serviceInstanceName(serviceInstanceName).build());
 	}
 
 	public Mono<ServiceInstance> getServiceInstance(String serviceInstanceName) {

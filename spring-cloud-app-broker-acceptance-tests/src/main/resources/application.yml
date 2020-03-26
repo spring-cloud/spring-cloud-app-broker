@@ -12,13 +12,14 @@ logging:
   level:
     cloudfoundry-client: DEBUG
     cloudfoundry-client.operations: DEBUG
-#    cloudfoundry-client.request: DEBUG
-#    cloudfoundry-client.response: DEBUG
+    #    cloudfoundry-client.request: DEBUG
+    #    cloudfoundry-client.response: DEBUG
 
     org.springframework.cloud.appbroker: DEBUG
+    org.springframework.cloud.appbroker.acceptance.services: DEBUG
     org.springframework.cloud.appbroker.deployer: DEBUG
-    org.springframework.cloud.appbroker.workflow: DEBUG
-    org.springframework.cloud.appbroker.workflow.instance: DEBUG
     org.springframework.cloud.appbroker.deployer.cloudfoundry: DEBUG
     org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryAppDeployer: DEBUG
+    org.springframework.cloud.appbroker.workflow: DEBUG
+    org.springframework.cloud.appbroker.workflow.instance: DEBUG
     org.springframework.cloud.servicebroker: DEBUG

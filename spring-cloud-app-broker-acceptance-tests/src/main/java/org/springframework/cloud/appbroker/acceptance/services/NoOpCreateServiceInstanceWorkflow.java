@@ -44,7 +44,7 @@ public class NoOpCreateServiceInstanceWorkflow implements CreateServiceInstanceW
 	@Override
 	public Mono<Boolean> accept(CreateServiceInstanceRequest request) {
 		if (LOG.isInfoEnabled()) {
-			LOG.info("Got request to create service instance: " + request);
+			LOG.info("Got request to accept service instance request: " + request);
 		}
 		return Mono.just(request.getServiceDefinitionId().equals(backingServiceId));
 	}

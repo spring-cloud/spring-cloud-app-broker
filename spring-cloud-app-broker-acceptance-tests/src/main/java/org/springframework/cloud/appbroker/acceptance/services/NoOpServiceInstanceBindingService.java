@@ -17,6 +17,8 @@
 package org.springframework.cloud.appbroker.acceptance.services;
 
 import reactor.core.publisher.Mono;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
@@ -30,15 +32,24 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingSer
  */
 public class NoOpServiceInstanceBindingService implements ServiceInstanceBindingService {
 
+	private final Logger LOG = Loggers.getLogger(NoOpServiceInstanceBindingService.class);
+
+
 	@Override
 	public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(
 		CreateServiceInstanceBindingRequest request) {
+		if (LOG.isInfoEnabled()) {
+			LOG.info("Got request to create service binding: " + request);
+		}
 		return Mono.just(CreateServiceInstanceAppBindingResponse.builder().build());
 	}
 
 	@Override
 	public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(
 		DeleteServiceInstanceBindingRequest request) {
+		if (LOG.isInfoEnabled()) {
+			LOG.info("Got request to bind service instance: " + request);
+		}
 		return Mono.just(DeleteServiceInstanceBindingResponse.builder().build());
 	}
 

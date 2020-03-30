@@ -20,10 +20,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.Answers;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -55,29 +54,29 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @ExtendWith(MockitoExtension.class)
 class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
 	private BackingAppDeploymentService backingAppDeploymentService;
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
 	private BackingAppManagementService backingAppManagementService;
 
 	private BackingServices backingServices;
 
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
 	private TargetService targetService;
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
 	private CredentialProviderService credentialProviderService;
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
 	private BackingServicesProvisionService backingServicesProvisionService;
 
 	private BackingApplications backingApps;
 
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
 	private TargetSpec targetSpec;
 
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
 
 	@BeforeEach
 	void setUp() {
-		backingAppDeploymentService = Mockito.mock(BackingAppDeploymentService.class, new RuntimeExceptionAnswer());
-		backingAppManagementService = Mockito.mock(BackingAppManagementService.class, new RuntimeExceptionAnswer());
-		targetService = Mockito.mock(TargetService.class, new RuntimeExceptionAnswer());
-		credentialProviderService = Mockito.mock(CredentialProviderService.class, new RuntimeExceptionAnswer());
-		backingServicesProvisionService = Mockito.mock(BackingServicesProvisionService.class, new RuntimeExceptionAnswer());
-
 		backingApps = BackingApplications
 			.builder()
 			.backingApplication(BackingApplication
@@ -296,15 +295,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 					.build())
 				.build())
 			.build();
-	}
-
-	public static class RuntimeExceptionAnswer implements Answer<Object> {
-
-		@Override
-		public Object answer( InvocationOnMock invocation ) throws Throwable {
-			throw new RuntimeException ( "Unexpected call to unstubbed mock method: " + invocation.toString() );
-		}
-
 	}
 
 }

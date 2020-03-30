@@ -12,6 +12,7 @@ target
 bin
 .idea
 out
+.vscode
 .envrc*
 envrc-local.txt
 bbl-state.json

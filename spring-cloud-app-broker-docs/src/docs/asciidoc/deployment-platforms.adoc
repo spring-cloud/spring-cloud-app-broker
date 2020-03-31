@@ -12,7 +12,7 @@ spring:
     appbroker:
       deployer:
         *cloudfoundry:*
-          *api-host: api.sys.example.com*
+          *api-host: api.sys.example.local*
           *api-port: 443*
           *username: admin*
           *password: adminpass*

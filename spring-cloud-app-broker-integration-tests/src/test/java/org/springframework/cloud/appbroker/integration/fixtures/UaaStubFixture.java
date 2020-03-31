@@ -67,7 +67,7 @@ public class UaaStubFixture extends WiremockStubFixture {
 	 *  "rev_sig": "c594512e",
 	 *  "iat": 1539188141,
 	 *  "exp": 1539195341,
-	 *  "iss": "https://uaa.system.example.com/oauth/token",
+	 *  "iss": "https://uaa.system.example.local/oauth/token",
 	 *  "zid": "uaa",
 	 *  "aud": [
 	 *   "cloud_controller",

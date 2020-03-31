@@ -44,7 +44,7 @@ class CredHubAutoConfigurationTest {
 		))
 		.withUserConfiguration(CredHubConfiguration.class)
 		.withPropertyValues(
-			"spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
+			"spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.local",
 			"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
 			"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
 		);

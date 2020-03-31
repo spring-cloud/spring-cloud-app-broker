@@ -47,7 +47,7 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 	void clientIsCreatedWithPasswordGrantConfiguration() {
 		this.contextRunner
 			.withPropertyValues(
-				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=api.example.local",
 				"spring.cloud.appbroker.deployer.cloudfoundry.api-port=443",
 				"spring.cloud.appbroker.deployer.cloudfoundry.default-org=example-org",
 				"spring.cloud.appbroker.deployer.cloudfoundry.default-space=example-space",
@@ -56,12 +56,12 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				"spring.cloud.appbroker.deployer.cloudfoundry.properties.memory=2G",
 				"spring.cloud.appbroker.deployer.cloudfoundry.properties.count=3",
 				"spring.cloud.appbroker.deployer.cloudfoundry.properties.buildpack=example-buildpack",
-				"spring.cloud.appbroker.deployer.cloudfoundry.properties.domain=example.com"
+				"spring.cloud.appbroker.deployer.cloudfoundry.properties.domain=example.local"
 			)
 			.run((context) -> {
 				assertThat(context).hasSingleBean(CloudFoundryTargetProperties.class);
 				CloudFoundryTargetProperties targetProperties = context.getBean(CloudFoundryTargetProperties.class);
-				assertThat(targetProperties.getApiHost()).isEqualTo("api.example.com");
+				assertThat(targetProperties.getApiHost()).isEqualTo("api.example.local");
 				assertThat(targetProperties.getApiPort()).isEqualTo(443);
 				assertThat(targetProperties.getDefaultOrg()).isEqualTo("example-org");
 				assertThat(targetProperties.getDefaultSpace()).isEqualTo("example-space");
@@ -74,7 +74,7 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				assertThat(deploymentProperties.getMemory()).isEqualTo("2G");
 				assertThat(deploymentProperties.getCount()).isEqualTo(3);
 				assertThat(deploymentProperties.getBuildpack()).isEqualTo("example-buildpack");
-				assertThat(deploymentProperties.getDomain()).isEqualTo("example.com");
+				assertThat(deploymentProperties.getDomain()).isEqualTo("example.local");
 
 				assertThat(context).hasSingleBean(AppDeployer.class);
 				assertThat(context).hasSingleBean(AppManager.class);
@@ -94,7 +94,7 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 	void clientIsCreatedWithCredentialsGrantConfiguration() {
 		this.contextRunner
 			.withPropertyValues(
-				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=api.example.local",
 				"spring.cloud.appbroker.deployer.cloudfoundry.api-port=443",
 				"spring.cloud.appbroker.deployer.cloudfoundry.default-org=example-org",
 				"spring.cloud.appbroker.deployer.cloudfoundry.default-space=example-space",
@@ -104,7 +104,7 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 			.run((context) -> {
 				assertThat(context).hasSingleBean(CloudFoundryTargetProperties.class);
 				CloudFoundryTargetProperties targetProperties = context.getBean(CloudFoundryTargetProperties.class);
-				assertThat(targetProperties.getApiHost()).isEqualTo("api.example.com");
+				assertThat(targetProperties.getApiHost()).isEqualTo("api.example.local");
 				assertThat(targetProperties.getApiPort()).isEqualTo(443);
 				assertThat(targetProperties.getDefaultOrg()).isEqualTo("example-org");
 				assertThat(targetProperties.getDefaultSpace()).isEqualTo("example-space");

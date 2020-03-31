@@ -129,7 +129,7 @@ class AppBrokerAutoConfigurationTest {
 	@Test
 	void clientCredentialsNotAllowedWhenUsernameAndPasswordSet() {
 		assertThatThrownBy(() -> this.contextRunner
-			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
+			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.local",
 				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
 				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret",
 				"spring.cloud.appbroker.deployer.cloudfoundry.client_id=user",
@@ -140,7 +140,7 @@ class AppBrokerAutoConfigurationTest {
 	@Test
 	void clientIdWithoutSecretNotAllowed() {
 		assertThatThrownBy(() -> this.contextRunner
-			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
+			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.local",
 				"spring.cloud.appbroker.deployer.cloudfoundry.client_id=user")
 			.run(Lifecycle::start));
 	}
@@ -148,7 +148,7 @@ class AppBrokerAutoConfigurationTest {
 	@Test
 	void configureCloudFoundryClientWithClientCredentials() {
 		this.contextRunner
-			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
+			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.local",
 				"spring.cloud.appbroker.deployer.cloudfoundry.client_id=user",
 				"spring.cloud.appbroker.deployer.cloudfoundry.client_secret=secret")
 			.run(context -> {
@@ -220,7 +220,7 @@ class AppBrokerAutoConfigurationTest {
 				"spring.cloud.appbroker.services[1].apps[0].path=classpath:app3.jar",
 				"spring.cloud.appbroker.services[1].apps[0].name=app3",
 
-				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.com",
+				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.local",
 				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
 				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
 			);

@@ -5,7 +5,7 @@
 	"created_by": {
 		"guid": "3cb4e243-bed4-49d5-8739-f8b45abdec1c",
 		"name": "bill",
-		"email": "bill@example.com"
+		"email": "bill@example.local"
 	},
 	"state": "STAGED",
 	"error": null,

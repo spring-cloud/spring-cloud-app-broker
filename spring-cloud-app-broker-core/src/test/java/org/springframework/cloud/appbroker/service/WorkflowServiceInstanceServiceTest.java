@@ -107,7 +107,7 @@ class WorkflowServiceInstanceServiceTest {
 		CreateServiceInstanceResponseBuilder responseBuilder = CreateServiceInstanceResponse.builder();
 		CreateServiceInstanceResponse builtResponse = CreateServiceInstanceResponse.builder()
 				.async(true)
-				.dashboardUrl("https://dashboard.example.com")
+				.dashboardUrl("https://dashboard.example.local")
 				.operation("working2")
 				.build();
 
@@ -132,7 +132,7 @@ class WorkflowServiceInstanceServiceTest {
 		given(createServiceInstanceWorkflow2
 				.buildResponse(eq(request), any(CreateServiceInstanceResponseBuilder.class)))
 				.willReturn(Mono.just(responseBuilder
-						.dashboardUrl("https://dashboard.example.com")
+						.dashboardUrl("https://dashboard.example.local")
 						.operation("working2")));
 
 		StepVerifier.create(workflowServiceInstanceService.createServiceInstance(request))
@@ -163,7 +163,7 @@ class WorkflowServiceInstanceServiceTest {
 
 					assertThat(response).isNotNull();
 					assertThat(response.isAsync()).isTrue();
-					assertThat(response.getDashboardUrl()).isEqualTo("https://dashboard.example.com");
+					assertThat(response.getDashboardUrl()).isEqualTo("https://dashboard.example.local");
 					assertThat(response.getOperation()).isEqualTo("working2");
 				})
 				.verifyComplete();
@@ -523,7 +523,7 @@ class WorkflowServiceInstanceServiceTest {
 		UpdateServiceInstanceResponseBuilder responseBuilder = UpdateServiceInstanceResponse.builder();
 		UpdateServiceInstanceResponse builtResponse = UpdateServiceInstanceResponse.builder()
 				.async(true)
-				.dashboardUrl("https://dashboard.example.com")
+				.dashboardUrl("https://dashboard.example.local")
 				.operation("working2")
 				.build();
 
@@ -547,7 +547,7 @@ class WorkflowServiceInstanceServiceTest {
 				updateServiceInstanceWorkflow2
 						.buildResponse(eq(request), any(UpdateServiceInstanceResponseBuilder.class)))
 				.willReturn(Mono.just(responseBuilder
-						.dashboardUrl("https://dashboard.example.com")
+						.dashboardUrl("https://dashboard.example.local")
 						.operation("working2")));
 		given(updateServiceInstanceWorkflow2.update(eq(request), eq(builtResponse)))
 				.willReturn(higherOrderFlow.mono());
@@ -580,7 +580,7 @@ class WorkflowServiceInstanceServiceTest {
 
 					assertThat(response).isNotNull();
 					assertThat(response.isAsync()).isTrue();
-					assertThat(response.getDashboardUrl()).isEqualTo("https://dashboard.example.com");
+					assertThat(response.getDashboardUrl()).isEqualTo("https://dashboard.example.local");
 					assertThat(response.getOperation()).isEqualTo("working2");
 				})
 				.verifyComplete();

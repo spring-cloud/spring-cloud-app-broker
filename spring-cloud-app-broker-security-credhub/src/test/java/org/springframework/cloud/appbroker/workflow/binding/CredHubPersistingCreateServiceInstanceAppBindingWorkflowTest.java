@@ -82,7 +82,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 		CreateServiceInstanceAppBindingResponseBuilder responseBuilder = CreateServiceInstanceAppBindingResponse
 			.builder()
 			.bindingExisted(true)
-			.syslogDrainUrl("https://logs.example.com")
+			.syslogDrainUrl("https://logs.example.local")
 			.volumeMounts(VolumeMount.builder().build())
 			.volumeMounts(VolumeMount.builder().build())
 			.volumeMounts(Arrays.asList(
@@ -97,7 +97,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 					.build();
 				assertThat(response.isBindingExisted()).isEqualTo(true);
 				assertThat(response.getCredentials()).hasSize(0);
-				assertThat(response.getSyslogDrainUrl()).isEqualTo("https://logs.example.com");
+				assertThat(response.getSyslogDrainUrl()).isEqualTo("https://logs.example.local");
 				assertThat(response.getVolumeMounts()).hasSize(4);
 
 			})
@@ -139,7 +139,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 			.credentials("credential2", 2)
 			.credentials("credential3", true)
 			.credentials(credentials)
-			.syslogDrainUrl("https://logs.example.com")
+			.syslogDrainUrl("https://logs.example.local")
 			.volumeMounts(VolumeMount.builder().build())
 			.volumeMounts(VolumeMount.builder().build())
 			.volumeMounts(Arrays.asList(
@@ -166,7 +166,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 				assertThat(response.isBindingExisted()).isEqualTo(true);
 				assertThat(response.getCredentials()).hasSize(1);
 				assertThat(response.getCredentials().get("credhub-ref")).isEqualTo(credentialName.getName());
-				assertThat(response.getSyslogDrainUrl()).isEqualTo("https://logs.example.com");
+				assertThat(response.getSyslogDrainUrl()).isEqualTo("https://logs.example.local");
 				assertThat(response.getVolumeMounts()).hasSize(4);
 
 			})

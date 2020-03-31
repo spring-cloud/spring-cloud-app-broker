@@ -9,7 +9,7 @@
 			"path": "",
 			"domain": {
 				"guid": "28e83b6f-3cb4-4df4-a056-4e4ae5d0efad",
-				"name": "apps.example.com"
+				"name": "apps.example.local"
 			}
 		}
 	],
@@ -19,7 +19,7 @@
 	"available_domains": [
 		{
 			"guid": "28e83b6f-3cb4-4df4-a056-4e4ae5d0efad",
-			"name": "apps.example.com",
+			"name": "apps.example.local",
 			"router_group_guid": null,
 			"router_group_type": null
 		}

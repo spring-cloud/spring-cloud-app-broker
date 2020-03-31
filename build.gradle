@@ -69,8 +69,12 @@ configure(allprojects) {
 
 	repositories {
 		mavenCentral()
-		maven { url "https://repo.spring.io/libs-release" }
-		maven { url "https://repo.spring.io/libs-snapshot" }
+		if (!version.endsWith('RELEASE')) {
+			maven { url "https://repo.spring.io/milestone" }
+		}
+		if (version.endsWith('BUILD-SNAPSHOT')) {
+			maven { url "https://repo.spring.io/snapshot" }
+		}
 	}
 
 	dependencies {

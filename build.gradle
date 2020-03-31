@@ -23,7 +23,7 @@ buildscript {
 		classpath("io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE")
 		classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.6.1")
 		classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.9.9")
-		classpath("io.spring.nohttp:nohttp-gradle:0.0.3.RELEASE")
+		classpath("io.spring.nohttp:nohttp-gradle:0.0.4.RELEASE")
 	}
 }
 
@@ -53,15 +53,7 @@ if (project.hasProperty("reactorVersion")) {
 	ext['reactor-bom.version'] = ext.reactorVersion
 }
 
-// NoHttp has to be applied at the root level
-// so that it reads all the root files, including the gradle ones.
 apply plugin: "io.spring.nohttp"
-
-// nohttp requires a valid checkstyle configuration
-checkstyle {
-	configFile = file("${project.rootDir}/src/checkstyle/checkstyle-nohttp.xml")
-	toolVersion = "${checkstyleVersion}"
-}
 
 configure(allprojects) {
 	group = "org.springframework.cloud"

@@ -45,6 +45,7 @@ import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.Route;
 import org.cloudfoundry.operations.organizations.OrganizationDetail;
 import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
 import org.cloudfoundry.operations.organizations.OrganizationQuota;
@@ -91,7 +92,7 @@ import static org.mockito.BDDMockito.then;
 import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.DEFAULT_API_POLLING_TIMEOUT_SECONDS;
 
-@SuppressWarnings("UnassignedFluxMonoInstance")
+@SuppressWarnings({"UnassignedFluxMonoInstance", "PMD.ExcessiveClassLength"})
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CloudFoundryAppDeployerTest {
@@ -360,6 +361,52 @@ class CloudFoundryAppDeployerTest {
 			.domains("domain1", "default-domain", "domain2")
 			.host("host2")
 			.noRoute(true)
+			.build();
+
+		then(operationsApplications).should().pushManifest(argThat(matchesManifest(expectedManifest)));
+	}
+
+	@Test
+	void deployAppWithRoutesAndMutuallyExclusiveProperties() {
+		deploymentProperties.setCount(3);
+		deploymentProperties.setMemory("2G");
+		deploymentProperties.setDisk("3G");
+		deploymentProperties.setBuildpack("buildpack1");
+		deploymentProperties.setHealthCheck(ApplicationHealthCheck.HTTP);
+		deploymentProperties.setHealthCheckHttpEndpoint("/healthcheck1");
+		deploymentProperties.setHost("host1");
+		deploymentProperties.setDomain("domain1");
+		deploymentProperties.setDomains(singleton("domain2"));
+
+		DeployApplicationRequest request = DeployApplicationRequest.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.serviceInstanceId(SERVICE_INSTANCE_ID)
+			.property(DeploymentProperties.COUNT_PROPERTY_KEY, "5")
+			.property(DeploymentProperties.MEMORY_PROPERTY_KEY, "4G")
+			.property(DeploymentProperties.DISK_PROPERTY_KEY, "5G")
+			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY, "port")
+			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY, "/healthcheck2")
+			.property(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY, "buildpack2")
+			.property(CloudFoundryDeploymentProperties.DOMAIN_PROPERTY, "domain1")
+			.property(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY, "domain2")
+			.property(CloudFoundryDeploymentProperties.ROUTES_PROPERTY, "route.domain3")
+			.build();
+
+		StepVerifier.create(appDeployer.deploy(request))
+					.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+					.verifyComplete();
+
+		ApplicationManifest expectedManifest = baseManifestWithSpringAppJson()
+			.name(APP_NAME)
+			.path(new File(APP_PATH).toPath())
+			.instances(5)
+			.memory(4096)
+			.disk(5120)
+			.healthCheckType(ApplicationHealthCheck.PORT)
+			.healthCheckHttpEndpoint("/healthcheck2")
+			.buildpack("buildpack2")
+			.routes(Route.builder().route("route.domain3").build())
 			.build();
 
 		then(operationsApplications).should().pushManifest(argThat(matchesManifest(expectedManifest)));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -207,7 +208,14 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.doOnSuccess(response -> LOG.info("Success getting application {}", name))
 				.doOnError(e -> LOG.warn(String.format("Error getting application %s: %s", name, e.getMessage())))
 				.map(ApplicationDetail::getId)
-				.flatMap(applicationId -> associateHostName(applicationId, request.getProperties()))
+				.flatMap(applicationId -> {
+					if (request.getProperties().containsKey("routes")) {
+						return associateRoutes(applicationId, request.getProperties());
+					}
+					else {
+						return associateHostName(applicationId, request.getProperties());
+					}
+				})
 				.flatMap(applicationId -> updateEnvironment(request, applicationId))
 				.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
 					upgradeApplication(request, applicationId)))
@@ -242,7 +250,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			return Mono.just(applicationId);
 		}
 
-		return operationsUtils.getOperations(properties).map(cfOperations -> cfOperations.domains().list())
+		return operationsUtils.getOperations(properties)
+			.map(cfOperations -> cfOperations.domains().list())
 			.flatMap(Flux::collectList)
 			.map(allDomains -> Stream.concat(Stream.of(domain), domains.stream())
 				.map(d -> getDomainId(d, allDomains))
@@ -253,6 +262,30 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				String spaceId = domainIdsWithSpaceId.getT2();
 				return Flux.fromIterable(uniqueDomainIds)
 					.flatMap(domainId -> associateHostForDomain(applicationId, host, domainId, spaceId));
+			})
+			.then(Mono.just(applicationId));
+	}
+
+	private Mono<String> associateRoutes(String applicationId, Map<String, String> properties) {
+		List<String[]> routes = Arrays.stream(properties.get("routes").split(","))
+			.map(uri -> uri.split("\\.", 2))
+			.collect(Collectors.toList());
+
+		return Mono.just(routes)
+			.zipWith(operationsUtils.getOperations(properties)
+				.map(cfOperations -> cfOperations.domains().list())
+				.flatMap(domains -> domains.collectMap(Domain::getName)))
+			.zipWith(getSpaceId(properties))
+			.flatMapMany(routesDomainsAndSpace -> {
+				List<String[]> routesComponents = routesDomainsAndSpace.getT1().getT1();
+				Map<String, Domain> domainsByName = routesDomainsAndSpace.getT1().getT2();
+				String spaceId = routesDomainsAndSpace.getT2();
+
+				return Flux.fromStream(routesComponents.stream()
+					.map(route -> new String[] {route[0], domainsByName.get(route[1]).getId()}))
+					.flatMap(
+						hostAndDomainId -> associateHostForDomain(applicationId, hostAndDomainId[0], hostAndDomainId[1],
+							spaceId));
 			})
 			.then(Mono.just(applicationId));
 	}
@@ -541,23 +574,20 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.timeout(healthCheckTimeout(deploymentProperties))
 			.noRoute(toggleNoRoute(deploymentProperties));
 
-		Optional.ofNullable(host(deploymentProperties)).ifPresent(manifest::host);
-		Optional.ofNullable(domain(deploymentProperties)).ifPresent(manifest::domain);
 		Optional.ofNullable(routePath(deploymentProperties)).ifPresent(manifest::routePath);
 
-		if (route(deploymentProperties) != null) {
-			manifest.route(Route.builder().route(route(deploymentProperties)).build());
+		if (routes(deploymentProperties).isEmpty()) {
+			Optional.ofNullable(host(deploymentProperties)).ifPresent(manifest::host);
+			Optional.ofNullable(domain(deploymentProperties)).ifPresent(manifest::domain);
+			if (!domains(deploymentProperties).isEmpty()) {
+				domains(deploymentProperties).forEach(manifest::domain);
+			}
 		}
-
-		if (!routes(deploymentProperties).isEmpty()) {
+		else {
 			Set<Route> routes = routes(deploymentProperties).stream()
 				.map(r -> Route.builder().route(r).build())
 				.collect(Collectors.toSet());
 			manifest.routes(routes);
-		}
-
-		if (!domains(deploymentProperties).isEmpty()) {
-			domains(deploymentProperties).forEach(manifest::domain);
 		}
 
 		if (getDockerImage(appResource) == null) {
@@ -566,6 +596,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		else {
 			manifest.docker(Docker.builder().image(getDockerImage(appResource)).build());
 		}
+
 		return manifest.build();
 	}
 
@@ -818,10 +849,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				"Cloud Foundry routes must start with \"/\". Route passed = [" + routePath + "].");
 		}
 		return routePath;
-	}
-
-	private String route(Map<String, String> properties) {
-		return properties.get(CloudFoundryDeploymentProperties.ROUTE_PROPERTY);
 	}
 
 	private Set<String> routes(Map<String, String> properties) {

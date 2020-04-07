@@ -28,6 +28,10 @@ import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindi
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 
+/**
+ * A binding workflow which systematically returned hard coded credentials. Useful in backing service broker, to
+ * support test service keys that returned credentials to brokered service bindings.
+ */
 public class NoOpCreateServiceInstanceAppBindingWorkflow implements CreateServiceInstanceAppBindingWorkflow {
 
 	public static final Map<String, Object> CREDENTIALS = Collections.singletonMap("noop-binding-key", "noop-binding-value");

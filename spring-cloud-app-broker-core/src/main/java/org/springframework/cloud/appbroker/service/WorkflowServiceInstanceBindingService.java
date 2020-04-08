@@ -81,9 +81,16 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(
 		CreateServiceInstanceBindingRequest request) {
 		return invokeCreateResponseBuilders(request)
-			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> create(request, response)
-				.subscribe());
+			.flatMap(response -> {
+				if (response.isAsync()) {
+					return Mono.just(response).publishOn(Schedulers.parallel())
+						.doOnNext(r -> create(request, r)
+							.subscribe());
+				}
+				else {
+					return create(request, response).thenReturn(response);
+				}
+			});
 	}
 
 	private Mono<CreateServiceInstanceBindingResponse> invokeCreateResponseBuilders(
@@ -181,9 +188,16 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 	public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(
 		DeleteServiceInstanceBindingRequest request) {
 		return invokeDeleteResponseBuilders(request)
-			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> delete(request, response)
-				.subscribe());
+			.flatMap(response -> {
+				if (response.isAsync()) {
+					return Mono.just(response).publishOn(Schedulers.parallel())
+						.doOnNext(r -> delete(request, r)
+							.subscribe());
+				}
+				else {
+					return delete(request, response).thenReturn(response);
+				}
+			});
 	}
 
 	private Mono<DeleteServiceInstanceBindingResponse> invokeDeleteResponseBuilders(

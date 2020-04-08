@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
@@ -88,6 +89,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.KEEP_TARGET_ON_DELETE_PROPERTY_KEY;
 import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.DEFAULT_API_POLLING_TIMEOUT_SECONDS;
 
@@ -587,6 +589,98 @@ class CloudFoundryAppDeployerTest {
 			appDeployer.deleteServiceInstance(request))
 			.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
 			.verifyComplete();
+	}
+
+	@Test
+	void deleteServiceInstanceWithKeepTargetOnDeleteSetToTrue() {
+		given(operationsServices.deleteInstance(
+			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest.builder()
+				.name("service-instance-name")
+				.completionTimeout(Duration.ofSeconds(DEFAULT_COMPLETION_DURATION))
+				.build()))
+			.willReturn(Mono.empty());
+
+		given(operationsServices.getInstance(GetServiceInstanceRequest.builder().name("service-instance-name").build()))
+			.willReturn(Mono.just(ServiceInstance.builder()
+				.id("siid")
+				.type(ServiceInstanceType.MANAGED)
+				.name("service-instance-name")
+				.applications("app1", "app2")
+				.build()));
+
+		given(operationsServices.unbind(UnbindServiceInstanceRequest.builder()
+			.serviceInstanceName("service-instance-name")
+			.applicationName("app1")
+			.build()))
+			.willReturn(Mono.empty());
+
+		given(operationsServices.unbind(UnbindServiceInstanceRequest.builder()
+			.serviceInstanceName("service-instance-name")
+			.applicationName("app2")
+			.build()))
+			.willReturn(Mono.empty());
+
+		given(operationsOrganizations
+			.get(
+				OrganizationInfoRequest
+					.builder()
+					.name("default-org")
+					.build()))
+			.willReturn(Mono.just(
+				OrganizationDetail
+					.builder()
+					.id("default-org-id")
+					.name("default-org")
+					.quota(OrganizationQuota
+						.builder()
+						.id("quota-id")
+						.instanceMemoryLimit(0)
+						.organizationId("default-org-id")
+						.name("quota")
+						.paidServicePlans(false)
+						.totalMemoryLimit(0)
+						.totalRoutes(0)
+						.totalServiceInstances(0)
+						.build())
+					.build()));
+
+		given(clientOrganizations
+			.listSpaces(ListOrganizationSpacesRequest
+				.builder()
+				.name("service-instance-id")
+				.organizationId("default-org-id")
+				.page(1)
+				.build()))
+			.willReturn(Mono.just(ListOrganizationSpacesResponse
+				.builder()
+				.resource(SpaceResource
+					.builder()
+					.entity(SpaceEntity
+						.builder()
+						.name("service-instance-id")
+						.build())
+					.metadata(Metadata
+						.builder()
+						.id("service-instance-space-id")
+						.build())
+					.build())
+				.build()));
+
+		Map<String, String> properties = new HashMap<>();
+		properties.put(TARGET_PROPERTY_KEY, "service-instance-id");
+		properties.put(KEEP_TARGET_ON_DELETE_PROPERTY_KEY, "true");
+		DeleteServiceInstanceRequest request =
+			DeleteServiceInstanceRequest.builder()
+				.serviceInstanceName("service-instance-name")
+				.properties(emptyMap())
+				.properties(properties)
+				.build();
+
+		StepVerifier.create(
+			appDeployer.deleteServiceInstance(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo("service-instance-name"))
+			.verifyComplete();
+		then(clientSpaces).shouldHaveNoMoreInteractions();
 	}
 
 	@Test

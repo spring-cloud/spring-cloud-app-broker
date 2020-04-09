@@ -61,11 +61,6 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	protected static final String ROUTE_PATH_PROPERTY = "route-path";
 
 	/**
-	 * Key for storing the route deployment property
-	 */
-	protected static final String ROUTE_PROPERTY = "route";
-
-	/**
 	 * Key for storing the routes deployment property
 	 */
 	protected static final String ROUTES_PROPERTY = "routes";

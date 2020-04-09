@@ -18,8 +18,11 @@ package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
+import org.assertj.core.api.SoftAssertions;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.Metadata;
 import org.cloudfoundry.client.v2.applications.ApplicationsV2;
@@ -90,6 +93,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 
 @ExtendWith(MockitoExtension.class)
@@ -441,26 +445,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 
 	@Test
 	void updateAppWithHostAndDomain() {
-		given(applicationsV2.update(any()))
-			.willReturn(Mono.just(UpdateApplicationResponse.builder()
-				.build()));
-
-		given(domains.list()).willReturn(getDomains());
-
-		given(spaces.get(any())).willReturn(
-			Mono.just(
-				SpaceDetail.builder()
-					.id("space-id")
-					.name("space-name")
-					.organization("org-name")
-					.build()));
-		given(routes.create(any()))
-			.willReturn(Mono.just(CreateRouteResponse.builder()
-				.metadata(Metadata.builder()
-					.id("route-id")
-					.build()).build()));
-		given(applicationsV2.associateRoute(any()))
-			.willReturn(Mono.empty());
+		mockDomainsAndRoutesUpdate();
 
 		Map<String, String> properties = new HashMap<>();
 		properties.put("host", "my.host");
@@ -484,23 +469,78 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.build());
 		then(applicationsV2).should().associateRoute(AssociateApplicationRouteRequest.builder()
 			.applicationId(APP_ID)
-			.routeId("route-id")
+			.routeId("myDomainComId-route")
 			.build());
 	}
 
 	@Test
+	void updateAppWithHostDomainAndDomains() {
+		mockDomainsAndRoutesUpdate();
+		given(domains.list()).willReturn(Flux.fromStream(IntStream.range(1, 4)
+					.mapToObj(i -> Domain.builder().name("domain" + i).id("domain" + i + "-id").status(Status.OWNED).build())));
+
+		Map<String, String> properties = new HashMap<>();
+		properties.put("host", "foo");
+		properties.put("domain", "domain1");
+		properties.put("domains", "domain2,domain3");
+		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
+			.name(APP_NAME)
+			.properties(properties)
+			.build();
+
+		StepVerifier.create(
+			appDeployer.update(request))
+					.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+					.verifyComplete();
+
+		ArgumentCaptor<CreateRouteRequest> createRouteRequestArgumentCaptor = ArgumentCaptor.forClass(CreateRouteRequest.class);
+		then(routes).should(times(3)).create(createRouteRequestArgumentCaptor.capture());
+
+		List<CreateRouteRequest> routeRequests = createRouteRequestArgumentCaptor.getAllValues();
+		SoftAssertions softAssertions = new SoftAssertions();
+		softAssertions.assertThat(routeRequests.get(0).getHost()).isEqualTo("foo");
+		softAssertions.assertThat(routeRequests.get(0).getDomainId()).isEqualTo("domain1-id");
+		softAssertions.assertThat(routeRequests.get(1).getHost()).isEqualTo("foo");
+		softAssertions.assertThat(routeRequests.get(1).getDomainId()).isEqualTo("domain2-id");
+		softAssertions.assertThat(routeRequests.get(2).getHost()).isEqualTo("foo");
+		softAssertions.assertThat(routeRequests.get(2).getDomainId()).isEqualTo("domain3-id");
+		softAssertions.assertAll();
+	}
+
+	@Test
+	void updateAppWithRoutes() {
+		mockDomainsAndRoutesUpdate();
+
+		given(domains.list()).willReturn(Flux.fromStream(IntStream.range(1, 4)
+					.mapToObj(i -> Domain.builder().name("domain" + i).id("domain" + i + "-id").status(Status.OWNED).build())));
+
+		Map<String, String> properties = singletonMap("routes", "foo.domain1,bar.domain2");
+
+		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
+			.name(APP_NAME)
+			.properties(properties)
+			.build();
+
+		StepVerifier.create(
+			appDeployer.update(request))
+					.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+					.verifyComplete();
+
+		ArgumentCaptor<CreateRouteRequest> createRouteRequestArgumentCaptor = ArgumentCaptor.forClass(CreateRouteRequest.class);
+		then(routes).should(times(2)).create(createRouteRequestArgumentCaptor.capture());
+
+		List<CreateRouteRequest> routeRequests = createRouteRequestArgumentCaptor.getAllValues();
+		SoftAssertions softAssertions = new SoftAssertions();
+		softAssertions.assertThat(routeRequests.get(0).getHost()).isEqualTo("foo");
+		softAssertions.assertThat(routeRequests.get(0).getDomainId()).isEqualTo("domain1-id");
+		softAssertions.assertThat(routeRequests.get(1).getHost()).isEqualTo("bar");
+		softAssertions.assertThat(routeRequests.get(1).getDomainId()).isEqualTo("domain2-id");
+		softAssertions.assertAll();
+	}
+
+	@Test
 	void updateAppWithHostAndMergedDomains() {
-		given(applicationsV2.update(any()))
-			.willReturn(Mono.just(UpdateApplicationResponse.builder()
-				.build()));
-
-		given(spaces.get(any())).willReturn(Mono.just(SpaceDetail.builder()
-			.id("space-id")
-			.name("space-name")
-			.organization("org-name")
-			.build()));
-
-		mockDomainsAndRoutes();
+		mockDomainsAndRoutesUpdate();
 
 		Map<String, String> properties = new HashMap<>();
 		properties.put("host", "my.host");
@@ -524,17 +564,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 
 	@Test
 	void updateAppWithHostAndDomains() {
-		given(applicationsV2.update(any()))
-			.willReturn(Mono.just(UpdateApplicationResponse.builder()
-				.build()));
-
-		given(spaces.get(any())).willReturn(Mono.just(SpaceDetail.builder()
-			.id("space-id")
-			.name("space-name")
-			.organization("org-name")
-			.build()));
-
-		mockDomainsAndRoutes();
+		mockDomainsAndRoutesUpdate();
 
 		Map<String, String> properties = new HashMap<>();
 		properties.put("host", "my.host");
@@ -556,28 +586,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 
 	@Test
 	void updateAppWithHostAndNoDomain() {
-		given(applicationsV2.update(any()))
-			.willReturn(Mono.just(UpdateApplicationResponse.builder()
-				.build()));
-
-		given(domains.list())
-			.willReturn(getDomains());
-
-		given(spaces.get(any()))
-			.willReturn(Mono.just(SpaceDetail.builder()
-				.id("space-id")
-				.name("space-name")
-				.organization("org-name")
-				.build()));
-		given(routes.create(any()))
-			.willReturn(Mono.just(CreateRouteResponse.builder()
-				.metadata(Metadata
-					.builder()
-					.id("route-id")
-					.build())
-				.build()));
-		given(applicationsV2.associateRoute(any()))
-			.willReturn(Mono.empty());
+		mockDomainsAndRoutesUpdate();
 
 		Map<String, String> properties = new HashMap<>();
 		properties.put("host", "my.host");
@@ -599,7 +608,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.build());
 		then(applicationsV2).should().associateRoute(AssociateApplicationRouteRequest.builder()
 			.applicationId(APP_ID)
-			.routeId("route-id")
+			.routeId("myDomainDefaultId-route")
 			.build());
 	}
 
@@ -753,7 +762,17 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 		return domainId + "-route";
 	}
 
-	private void mockDomainsAndRoutes() {
+	private void mockDomainsAndRoutesUpdate() {
+		given(applicationsV2.update(any()))
+			.willReturn(Mono.just(UpdateApplicationResponse.builder()
+				.build()));
+		given(spaces.get(any())).willReturn(
+			Mono.just(
+				SpaceDetail.builder()
+					.id("space-id")
+					.name("space-name")
+					.organization("org-name")
+					.build()));
 		given(domains.list()).willReturn(getDomains());
 		given(routes.create(any())).willAnswer(invocation -> {
 			CreateRouteRequest createRouteRequest = invocation.getArgument(0);

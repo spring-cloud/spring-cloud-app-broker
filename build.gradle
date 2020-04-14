@@ -77,10 +77,6 @@ configure(allprojects) {
 		}
 	}
 
-	dependencies {
-		testRuntimeOnly("io.spring.nohttp:nohttp:0.0.3.RELEASE")
-	}
-
 	if (project.hasProperty("springFrameworkVersion") || project.hasProperty("springBootVersion") || project.hasProperty("reactorVersion")) {
 		repositories {
 			maven { url "https://repo.spring.io/libs-snapshot" }

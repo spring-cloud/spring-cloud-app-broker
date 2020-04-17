@@ -1,12 +1,13 @@
 [[getting-started]]
 == Getting Started
 
-Create a Spring Boot application and include the Spring Cloud App Broker dependency in the application's build file.
+To get started, create a Spring Boot application and include the Spring Cloud App Broker dependency in the application's build file.
 
 === Maven Dependencies
 
-Include the following in your application's `pom.xml` file:
+If you use Maven, include the following in your application's `pom.xml` file:
 
+====
 [source,xml,subs="attributes+"]
 ----
 <dependencies>
@@ -17,24 +18,28 @@ Include the following in your application's `pom.xml` file:
     </dependency>
 </dependencies>
 ----
+====
 
 === Gradle Dependencies
 
-Include the following in your application's `build.gradle` file:
+If you use Gradle, include the following in your application's `build.gradle` file:
 
+====
 [source,groovy,subs="attributes+"]
 ----
 dependencies {
     api 'org.springframework.cloud:spring-cloud-starter-app-broker-cloudfoundry:{project-version}'
 }
 ----
+====
 
 === Configuring the Service Broker
 
-The service broker is configured using Spring Boot externalized configuration, supplied using a YAML or Java Properties file (for example, you can provide configuration in the `application.yml` file). Because Spring Cloud App Broker builds on Spring Cloud Open Service Broker, you must provide Spring Cloud Open Service Broker configuration to use Spring Cloud App Broker.
+The service broker is configured with Spring Boot externalized configuration, supplied by a YAML or Java Properties file (for example, you can provide configuration in the `application.yml` file). Because Spring Cloud App Broker builds on Spring Cloud Open Service Broker, you must provide Spring Cloud Open Service Broker configuration to use Spring Cloud App Broker.
 
-Include Spring Cloud Open Servce Broker configuration using properties under `spring.cloud.openservicebroker` as in the following example:
+To do so, include Spring Cloud Open Servce Broker configuration using properties under `spring.cloud.openservicebroker` as follows:
 
+====
 [source,yaml]
 ----
 spring:
@@ -54,9 +59,11 @@ spring:
             description: A standard plan
             free: true
 ----
+====
 
-Include Spring Cloud App Broker configuration using properties under `spring.cloud.appbroker` as in the following example:
+Then include Spring Cloud App Broker configuration using properties under `spring.cloud.appbroker`, as follows:
 
+====
 [source,yaml]
 ----
 spring:
@@ -79,3 +86,4 @@ spring:
           default-org: test
           default-space: development
 ----
+====

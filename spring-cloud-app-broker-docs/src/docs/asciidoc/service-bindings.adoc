@@ -2,7 +2,7 @@
 [[service-bindings]]
 == Service Bindings
 
-By default, Spring Cloud App Broker does not include functionality for managing bindings to its service instances. App Broker provides interfaces which service broker authors can implement to control service bindings.
+By default, Spring Cloud App Broker does not include functionality for managing bindings to its service instances. App Broker provides interfaces that service broker authors can implement to control service bindings.
 
 //TODO: Move App Broker API docs base to AsciiDoc attribute.
 
@@ -24,21 +24,27 @@ WARNING: The `InMemoryServiceInstanceBindingStateRepository` is provided for dem
 
 The following example shows a service instance binding state repository implementation:
 
+====
 [source,java,%autofit]
 ----
 include::{examples-dir}/ExampleServiceInstanceBindingStateRepository.java[]
 ----
+====
 
 One option for persisting service instance binding state is to use a Spring Data `CrudRepository`. The following example shows a `ReactiveCrudRepository` implementation:
 
+====
 [source,java,%autofit]
 ----
 include::{examples-dir}/ServiceInstanceBindingStateCrudRepository.java[]
 ----
+====
 
 A model object is necessary for persisting data with a `CrudRepository`. The following example shows a `ServiceInstanceBinding` model:
 
+====
 [source,java,%autofit]
 ----
 include::{examples-dir}/ServiceInstanceBinding.java[]
 ----
+====

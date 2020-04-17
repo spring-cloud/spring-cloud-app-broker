@@ -1,6 +1,6 @@
 [[introduction]]
 == Introduction
 
-Spring Cloud App Broker builds on Spring Cloud Open Service Broker. It can be used to create a service broker which complies with the Open Service Broker API and deploys applications and backing services to a platform, such as Cloud Foundry or Kubernetes.
+Spring Cloud App Broker builds on https://spring.io/projects/spring-cloud-open-service-broker[Spring Cloud Open Service Broker]. It can be used to create a service broker that complies with the Open Service Broker API and deploys applications and backing services to a platform, such as Cloud Foundry or Kubernetes.
 
 A service broker using Spring Cloud App Broker is a Spring Boot application. The broker can deploy applications written in any language supported by the targeted platform.

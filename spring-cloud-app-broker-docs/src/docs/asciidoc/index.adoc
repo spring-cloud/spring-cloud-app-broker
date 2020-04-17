@@ -1,9 +1,9 @@
 = Spring Cloud App Broker
 :doctype: book
 :icons: font
-:source-highlighter: highlightjs
+:source-highlighter: github
 :toc: left
-:toclevels: 3
+:toclevels: 4
 :sectlinks:
 
 :examples-dir: ../../src/test/java/com/example/appbroker/
@@ -23,12 +23,16 @@
 :springboot-api: https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/
 
 [[abstract]]
-
 Spring Cloud App Broker is a framework for building {springboot-href} applications that implement the {osbapi-href} and deploy applications as brokered services.
 
 include::introduction.adoc[]
+
 include::getting-started.adoc[]
+
 include::advertising-services.adoc[]
+
 include::service-instances.adoc[]
+
 include::service-bindings.adoc[]
+
 include::deployment-platforms.adoc[]

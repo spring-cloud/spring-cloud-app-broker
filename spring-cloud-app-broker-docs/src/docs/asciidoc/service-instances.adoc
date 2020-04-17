@@ -2,22 +2,23 @@
 [[service-instances]]
 == Service Instances
 
-You can configure details of services, including apps to deploy, app deployment details, and backing services to create, in App Broker configuration properties. These properties are generally under `spring.cloud.appbroker.services`.
+You can configure the details of services, including applications to deploy, application deployment details, and backing services to create, in App Broker configuration properties. These properties are generally under `spring.cloud.appbroker.services`.
 
 === Configuring App Deployment
 
-Deployment details for a backing application can be configured statically in the service broker's application configuration and dynamically using service instance parameters and customization implementations.
+Deployment details for a backing application can be configured statically in the service broker's application configuration and dynamically by using service instance parameters and customization implementations.
 
 ==== Static Customization
 
-You can statically configure backing application deployment details in the application configuration for the service broker, using properties under `spring.cloud.appbroker`.
+You can statically configure backing application deployment details in the application configuration for the service broker by using properties under `spring.cloud.appbroker`.
 
 ===== Properties Configuration
 
-You can specify app deployment properties in configuration. These properties can have default values and service-specific values.
+You can specify application deployment properties in configuration. These properties can have default values and service-specific values.
 
-For Cloud Foundry, set default values for all services under `spring.cloud.appbroker.deployer.cloudfoundry.*`, as shown in the following example:
+For Cloud Foundry, you can set default values for all services under `spring.cloud.appbroker.deployer.cloudfoundry.*`, as follows:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -32,9 +33,11 @@ spring:
             *health-check-timeout: 180*
             *api-polling-timeout: 300*
 ----
+====
 
-Set overriding values for a specific service in the service's configuration under `spring.cloud.appbroker.services.*`, as shown in the following example:
+You can set overriding values for a specific service in the service's configuration under `spring.cloud.appbroker.services.*`, as follows:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -51,17 +54,18 @@ spring:
                 *count: 2*
                 *no-route: true*
 ----
+====
 
-The following table lists properties that can be set for all or specific app deployments.
+The following table lists properties that can be set for all or for specific application deployments:
 
-[%header,cols="2,2,1"] 
+[%header,cols="2,2,1"]
 |===
 |Property
 |Description
 |Default
 
 |`count`
-| 
+|
 |
 
 |`memory`
@@ -109,7 +113,7 @@ The following table lists properties that can be set for all or specific app dep
 |`360`
 
 |`api-polling-timeout`
-|The timeout value used for polling asynchronous API endpoints (e.g. CF create/update/delete service instance), in seconds.
+|The timeout value used for polling asynchronous API endpoints (for example, CF create/update/delete service instance), in seconds.
 |`300`
 
 |`status-timeout`
@@ -135,8 +139,9 @@ The following table lists properties that can be set for all or specific app dep
 
 ===== Environment Configuration
 
-You can provide environment variables to be set on a deployed app. Environment variables are set using properties under `environment` for the deployed app, as in the following example:
+You can provide environment variables to be set on a deployed application. Environment variables are set by using properties under `environment` for the deployed application, as follows:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -152,11 +157,13 @@ spring:
                 *logging.level.spring.security: DEBUG*
                 *spring.profiles.active: cloud*
 ----
+====
 
 ===== Service Configuration
 
-You can configure services which should be bound to a deployed app. Services are configured using properties under `services` for the deployed app, as in the following example:
+You can configure services that should be bound to a deployed application. Services are configured by using properties under `services` for the deployed application, as follows:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -177,15 +184,17 @@ spring:
             *parameters:*
             *param-key: param-value*
 ----
+====
 
 ==== Dynamic Customization
 
-To customize the backing application deployment using information that is only available when performing a service broker operation or that must be generated per service instance, you can use the service broker application configuration to provide the names of customization implementations.
+To customize the backing application deployment by using information that is only available when performing a service broker operation or that must be generated per service instance, you can use the service broker application configuration to provide the names of customization implementations.
 
 ===== Backing Application Target
 
 You can configure the target location for backing applications (in Cloud Foundry, an org and space) using a `target` specification, as in the following example:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -201,21 +210,23 @@ spring:
             - name: example-service-app1
               path: classpath:app1.jar
 ----
+====
 
 By default (if you do not provide a `target` specification), all backing applications are deployed to the default target specified under `spring.cloud.appbroker.deployer`. For Cloud Foundry, this is the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org` and the space named by `spring.cloud.appbroker.deployer.cloudfoundry.default-space`.
 
 ====== The `SpacePerServiceInstance` Target
 
-If you use the `SpacePerServiceInstance` target, App Broker will deploy backing applications to a unique target location that is named using the service instance GUID provided by the platform at service instance create time. For Cloud Foundry, this target location will be the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org` and a new space created using the service instance GUID as the space name.
+If you use the `SpacePerServiceInstance` target, App Broker deploys backing applications to a unique target location that is named by using the service instance GUID provided by the platform at service instance create time. For Cloud Foundry, this target location is the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org`, and a new space is created by using the service instance GUID as the space name.
 
 ====== The `ServiceInstanceGuidSuffix` Target
 
-If you use the `ServiceInstanceGuidSuffix` target, App Broker will deploy backing applications using a unique name and hostname that incorporates the service instance GUID provided by the platform at service instance create time. For Cloud Foundry, the target location will be the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org`, the space named by `spring.cloud.appbroker.deployer.cloudfoundry.default-space`, and an application name as `[APP-NAME]-[SI-GUID]`, where `[APP-NAME]` is the `name` listed for the application under `spring.cloud.appbroker.services.apps` and `[SI-GUID]` is the service instance GUID. The application will also use a hostname incorporating the service instance GUID as a suffix, as `[APP-NAME]-[SI-GUID]`.
+If you use the `ServiceInstanceGuidSuffix` target, App Broker deploys backing applications by using a unique name and hostname that incorporates the service instance GUID provided by the platform at service instance create time. For Cloud Foundry, the target location is the org named by `spring.cloud.appbroker.deployer.cloudfoundry.default-org`, the space named by `spring.cloud.appbroker.deployer.cloudfoundry.default-space`, and an application name as `[APP-NAME]-[SI-GUID]`, where `[APP-NAME]` is the `name` listed for the application under `spring.cloud.appbroker.services.apps` and `[SI-GUID]` is the service instance GUID. The application also uses a hostname that incorporates the service instance GUID as a suffix, as `[APP-NAME]-[SI-GUID]`.
 
-====== Creating a custom Target
+====== Creating a Custom Target
 
-If you want to create a custom Target, app broker provides a flexible way to add new targets by just creating a new `Bean` that extends from `TargetFactory` and implementing the `create` method:
+If you want to create a custom Target, App Broker provides a flexible way to add new targets by creating a new `Bean` that extends from `TargetFactory` and implementing the `create` method, as follows:
 
+====
 [source,java]
 ----
 public class CustomSpaceTarget extends TargetFactory<CustomSpaceTarget.Config> {
@@ -244,9 +255,11 @@ public class CustomSpaceTarget extends TargetFactory<CustomSpaceTarget.Config> {
 
 }
 ----
+====
 
-Once configured, we can specify in our service the new custom Target:
+Once configured, we can specify in our service the new custom Target, as follows:
 
+====
 [source, yml, indent=0]
 ----
 spring:
@@ -258,12 +271,13 @@ spring:
           target:
             name: CustomSpaceTarget
 ----
-
+====
 
 ===== Service Instance Parameters
 
-When a user provides parameters while creating or updating a service instance, App Broker can transform these parameters into details of the backing app deployment using parameters transformers. You can configure parameters transformers using properties under `parameters-transformers`, as in the following example:
+When a user provides parameters while creating or updating a service instance, App Broker can transform these parameters into the details of the backing app deployment by using parameters transformers. You can configure parameters transformers by using properties under `parameters-transformers`, as follows:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -283,12 +297,13 @@ spring:
                   *args:*
                     *- include: count,memory*
 ----
+====
 
-In this example, the named `parameters-transformers` refer to Java objects which have been contributed to the Spring application context. A parameters transformer can accept one or more arguments that configure its behavior, and can modify any aspect of the backing application deployment (properties, environment variables, services, etc.).
+The named `parameters-transformers` refer to Java objects that have been contributed to the Spring application context. A parameters transformer can accept one or more arguments that configure its behavior and can modify any aspect of the backing application deployment (properties, environment variables, services, and so on).
 
 ====== The `EnvironmentMapping` Parameters Transformer
 
-The `EnvironmentMapping` parameters transformer populates environment variables on the backing application from parameters provided when a service instance is created or updated. It supports a single argument, `include`, which specifies the names of parameters that will be mapped to environment variables. 
+The `EnvironmentMapping` parameters transformer populates environment variables on the backing application from parameters provided when a service instance is created or updated. It supports a single argument, `include`, which specifies the names of parameters that are mapped to environment variables.
 
 ====== The `PropertyMapping` Parameters Transformer
 
@@ -296,8 +311,9 @@ The `PropertyMapping` parameters transformer sets deployment properties of the b
 
 ===== Credentials Generation
 
-App Broker can generate and assign unique credentials for each backing app deployment. You can configure credential providers using properties under `credential-providers`, as in the following example:
+App Broker can generate and assign unique credentials for each backing app deployment. You can configure credential providers by using properties under `credential-providers`, as follows:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -313,13 +329,15 @@ spring:
                 *- name: SpringSecurityBasicAuth*
                 *- name: SpringSecurityOAuth2*
 ----
+====
 
-In this example, the named `credential-providers` refer to Java objects which have been contributed to the Spring application context. A credential provider can accept one or more arguments that configure its behavior. A credential provider typically generates credentials and set environment variables on the backing application.
+In this example, the named `credential-providers` refer to Java objects that have been contributed to the Spring application context. A credential provider can accept one or more arguments that configure its behavior. A credential provider typically generates credentials and sets environment variables on the backing application.
 
 ====== The `SpringSecurityBasicAuth` Credential Provider
 
-The `SpringSecurityBasicAuth` credential provider generates a username and password and sets Spring Boot security properties to the generated values. Username and password generation can be configured with arguments, as in the following example:
+The `SpringSecurityBasicAuth` credential provider generates a username and password and sets Spring Boot security properties to the generated values. Username and password generation can be configured with arguments, as follows:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -340,11 +358,13 @@ spring:
                     *include-numeric: true*
                     *include-special: true*
 ----
+====
 
 ====== The `SpringSecurityOAuth2` Credential Provider
 
-The `SpringSecurityOAuth2` credential provider creates an OAuth2 client in a token server (e.g. UAA for Cloud Foundry) using details provided as arguments and a generated client secret, and sets Spring Boot security properties to the generated values. Client secret generation can also be configured with arguments, as in the following example:
+The `SpringSecurityOAuth2` credential provider creates an OAuth2 client in a token server (for example, UAA for Cloud Foundry) by using details provided as arguments and a generated client secret. It also sets Spring Boot security properties to the generated values. Client secret generation can also be configured with arguments, as follows:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -373,26 +393,27 @@ spring:
                     *include-numeric: true*
                     *include-special: true*
 ----
+====
 
 === Creating a Service Instance
 
-Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/workflow/instance/AppDeploymentCreateServiceInstanceWorkflow.html[`AppDeploymentCreateServiceInstanceWorkflow`] workflow, which handles deploying the configured backing applications and services as illustrated in the previous sections. The service broker application can implement the {sapbr-api}/org/springframework/cloud/appbroker/service/CreateServiceInstanceWorkflow.html[`CreateServiceInstanceWorkflow`] interface to further modify the deployment. Multiple workflows may be annotated with `@Order` so as to process the workflows in a specific order. Alternatively, the service broker application can implement the `ServiceInstanceService` interface provided by Spring Cloud Open Service Broker. See {scosb-docs}/#service-instances[Service Instances] in the {scosb-docs}/[Spring Cloud Open Service Broker documentation].
+Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/workflow/instance/AppDeploymentCreateServiceInstanceWorkflow.html[`AppDeploymentCreateServiceInstanceWorkflow`] workflow, which handles deploying the configured backing applications and services, as illustrated in the previous sections. The service broker application can implement the {sapbr-api}/org/springframework/cloud/appbroker/service/CreateServiceInstanceWorkflow.html[`CreateServiceInstanceWorkflow`] interface to further modify the deployment. Multiple workflows can be annotated with `@Order` so as to process the workflows in a specific order. Alternatively, the service broker application can implement the `ServiceInstanceService` interface provided by Spring Cloud Open Service Broker. See {scosb-docs}/#service-instances[Service Instances] in the {scosb-docs}/[Spring Cloud Open Service Broker documentation].
 
 === Updating a Service Instance
 
-Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/workflow/instance/AppDeploymentUpdateServiceInstanceWorkflow.html[`AppDeploymentUpdateServiceInstanceWorkflow`] workflow, which handles updating the configured backing applications and services as illustrated in the previous sections. If the list of backing services is updated, the default behavior is to create and bind the new backing service instances, and to unbind and delete the existing backing service instances that are no longer listed in the configuration.
+Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/workflow/instance/AppDeploymentUpdateServiceInstanceWorkflow.html[`AppDeploymentUpdateServiceInstanceWorkflow`] workflow, which handles updating the configured backing applications and services, as illustrated in the previous sections. If the list of backing services is updated, the default behavior is to create and bind the new backing service instances and to unbind and delete the existing backing service instances that are no longer listed in the configuration.
 
-The service broker application can implement the {sapbr-api}/org/springframework/cloud/appbroker/service/UpdateServiceInstanceWorkflow.html[`UpdateServiceInstanceWorkflow`] interface to further modify the deployment. Multiple workflows may be annotated with `@Order` so as to process the workflows in a specific order. Alternatively, the service broker application can implement the `ServiceInstanceService` interface provided by Spring Cloud Open Service Broker. See {scosb-docs}/#service-instances[Service Instances] in the {scosb-docs}/[Spring Cloud Open Service Broker documentation].
+The service broker application can implement the {sapbr-api}/org/springframework/cloud/appbroker/service/UpdateServiceInstanceWorkflow.html[`UpdateServiceInstanceWorkflow`] interface to further modify the deployment. Multiple workflows can be annotated with `@Order` so as to process the workflows in a specific order. Alternatively, the service broker application can implement the `ServiceInstanceService` interface provided by Spring Cloud Open Service Broker. See {scosb-docs}/#service-instances[Service Instances] in the {scosb-docs}/[Spring Cloud Open Service Broker documentation].
 
 CAUTION: Modifying certain properties, such as disk and memory, when updating an application, may result in downtime.
 
 === Deleting a Service Instance
 
-Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/workflow/instance/AppDeploymentDeleteServiceInstanceWorkflow.html[`AppDeploymentDeleteServiceInstanceWorkflow`] workflow, which handles deleting the configured backing applications and services as illustrated in the previous sections. The service broker application can implement the {sapbr-api}/org/springframework/cloud/appbroker/service/DeleteServiceInstanceWorkflow.html[`DeleteServiceInstanceWorkflow`] interface to further modify the deployment. Multiple workflows may be annotated with `@Order` so as to process the workflows in a specific order. Alternatively, the service broker application can implement the `ServiceInstanceService` interface provided by Spring Cloud Open Service Broker. See {scosb-docs}/#service-instances[Service Instances] in the {scosb-docs}/[Spring Cloud Open Service Broker documentation].
+Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/workflow/instance/AppDeploymentDeleteServiceInstanceWorkflow.html[`AppDeploymentDeleteServiceInstanceWorkflow`] workflow, which handles deleting the configured backing applications and services, as illustrated in the previous sections. The service broker application can implement the {sapbr-api}/org/springframework/cloud/appbroker/service/DeleteServiceInstanceWorkflow.html[`DeleteServiceInstanceWorkflow`] interface to further modify the deployment. Multiple workflows can be annotated with `@Order` so as to process the workflows in a specific order. Alternatively, the service broker application can implement the `ServiceInstanceService` interface provided by Spring Cloud Open Service Broker. See {scosb-docs}/#service-instances[Service Instances] in the {scosb-docs}/[Spring Cloud Open Service Broker documentation].
 
 === Persisting Service Instance State
 
-Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/state/ServiceInstanceStateRepository.html[`ServiceInstanceStateRepository`] interface for persisting service instance state. The default implementation is {sapbr-api}/org/springframework/cloud/appbroker/state/InMemoryServiceInstanceStateRepository.html[`InMemoryServiceInstanceStateRepository`], which uses an in memory `Map` to save state and offers an easy getting started experience. In order to use a proper database for persisting state, implement `ServiceInstanceStateRepository` in your application.
+Spring Cloud App Broker provides the {sapbr-api}/org/springframework/cloud/appbroker/state/ServiceInstanceStateRepository.html[`ServiceInstanceStateRepository`] interface for persisting service instance state. The default implementation is {sapbr-api}/org/springframework/cloud/appbroker/state/InMemoryServiceInstanceStateRepository.html[`InMemoryServiceInstanceStateRepository`], which uses an in memory `Map` to save state and offers an easy getting-started experience. To use a proper database for persisting state, you can implement `ServiceInstanceStateRepository` in your application.
 
 WARNING: The `InMemoryServiceInstanceStateRepository` is provided for demonstration and testing purposes only. It is not suitable for production applications!
 
@@ -400,21 +421,27 @@ WARNING: The `InMemoryServiceInstanceStateRepository` is provided for demonstrat
 
 The following example shows a service instance state repository implementation:
 
+====
 [source,java,%autofit]
 ----
 include::{examples-dir}/ExampleServiceInstanceStateRepository.java[]
 ----
+====
 
 One option for persisting service instance state is to use a Spring Data `CrudRepository`. The following example shows a `ReactiveCrudRepository` implementation:
 
+====
 [source,java,%autofit]
 ----
 include::{examples-dir}/ServiceInstanceStateCrudRepository.java[]
 ----
+====
 
 A model object is necessary for persisting data with a `CrudRepository`. The following example shows a `ServiceInstance` model:
+====
 
 [source,java,%autofit]
 ----
 include::{examples-dir}/ServiceInstance.java[]
 ----
+====

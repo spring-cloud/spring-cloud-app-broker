@@ -3,8 +3,9 @@
 
 You can configure details of deployment platforms in App Broker configuration properties. These properties are under `spring.cloud.appbroker.deployer`. Currently, Spring Cloud App Broker supports only Cloud Foundry as a deployment platform.
 
-To configure a Cloud Foundry deployment platform, use properties under `spring.cloud.appbroker.deployer.cloudfoundry`, as in the following example:
+To configure a Cloud Foundry deployment platform, use properties under `spring.cloud.appbroker.deployer.cloudfoundry`, as follows:
 
+====
 [source,yaml,subs="+quotes"]
 ----
 spring:
@@ -21,5 +22,6 @@ spring:
           *default-org: test*
           *default-space: development*
 ----
+====
 
-NOTE: The two properties `username` and `password` and the two properties `client-id` and `client-secret` are mutually exclusive. The `client-id` and `client-secret` properties are for use with OAuth 2.0.
+NOTE: The two properties, `username` and `password`, and the two properties, `client-id` and `client-secret`, are mutually exclusive. The `client-id` and `client-secret` properties are for use with OAuth 2.0.

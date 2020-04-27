@@ -151,7 +151,7 @@ subprojects {
 	task dependencyReport(type: DependencyReportTask)
 }
 
-configure(subprojects - [project(":spring-cloud-starter-app-broker"), 
+configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 						 project(":spring-cloud-starter-app-broker-cloudfoundry")]) {
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8
@@ -267,6 +267,9 @@ configure(rootProject) {
 
 		from (api) { into "api" }
 		from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctor')) {
+			into 'reference'
+		}
+    from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctorPdf')) {
 			into 'reference'
 		}
 	}

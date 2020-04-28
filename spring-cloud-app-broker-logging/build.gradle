@@ -1,0 +1,27 @@
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+    }
+}
+
+ext {
+    immutablesVersion = "2.8.1"
+    awaitilityVersion = "4.0.2"
+}
+
+dependencies {
+    compile "org.springframework:spring-webflux"
+    compile "org.springframework:spring-context"
+    compile "org.springframework.boot:spring-boot-autoconfigure"
+
+    compile "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
+    compile "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+    compile "org.immutables:value:${immutablesVersion}"
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude group: 'junit', module: 'junit'
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation "org.awaitility:awaitility:${awaitilityVersion}"
+}

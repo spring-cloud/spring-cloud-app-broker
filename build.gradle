@@ -32,7 +32,7 @@ ext {
 	reactorVersion = project.findProperty("reactorVersion") ?: "Dysprosium-SR6"
 	openServiceBrokerVersion = "3.1.1.RELEASE"
 	springCredhubVersion = "2.1.0.RELEASE"
-	cfJavaClientVersion = "4.5.0.RELEASE"
+	cfJavaClientVersion = "4.6.0.RELEASE"
 	blockHoundVersion = "1.0.3.RELEASE"
 	junitPlatformLauncherVersion = "1.6.1"
 	checkstyleVersion = "8.29"

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import java.util.List;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
@@ -73,14 +75,8 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	}
 
 	private Flux<String> deleteBackingServices(DeleteServiceInstanceRequest request) {
-		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId())
-			.flatMapMany(Flux::fromIterable)
-			.flatMap(backingApplication ->
-				Flux.fromIterable(backingApplication.getServices())
-					.map(servicesSpec -> BackingService.builder()
-						.serviceInstanceName(servicesSpec.getServiceInstanceName())
-						.build())
-					.collectList())
+		return collectConfiguredBackingServices(request)
+			.mergeWith(collectBoundBackingServices(request))
 			.doOnEach(backingServices -> log.debug("Deleting backing services {} for {}/{}",
 				backingServices, request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.flatMap(backingServicesProvisionService::deleteServiceInstance)
@@ -89,6 +85,23 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 			.doOnError(exception -> log.error(String.format("Error deleting backing services for %s/%s with error '%s'",
 				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
 				exception));
+	}
+
+	private Flux<List<BackingService>> collectConfiguredBackingServices(DeleteServiceInstanceRequest request) {
+		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
+			.flatMapMany(backingServices -> targetService.addToBackingServices(backingServices,
+				getTargetForService(request.getServiceDefinition(), request.getPlan()),
+				request.getServiceInstanceId()));
+	}
+
+	private Flux<List<BackingService>> collectBoundBackingServices(DeleteServiceInstanceRequest request) {
+		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId())
+			.flatMapMany(Flux::fromIterable)
+			.flatMap(backingApplication -> Flux.fromIterable(backingApplication.getServices())
+				.map(servicesSpec -> BackingService.builder()
+					.serviceInstanceName(servicesSpec.getServiceInstanceName())
+					.build())
+				.collectList());
 	}
 
 	private Flux<String> undeployBackingApplications(DeleteServiceInstanceRequest request) {

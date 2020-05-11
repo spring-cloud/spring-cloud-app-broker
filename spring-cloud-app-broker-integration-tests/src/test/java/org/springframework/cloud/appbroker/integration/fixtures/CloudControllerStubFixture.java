@@ -492,6 +492,14 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubGetServiceAndGetPlan(serviceName, planName);
 	}
 
+	public void stubServiceBindingsDoNotExist(String serviceInstanceName) {
+		stubFor(get(urlPathEqualTo("/v2/service_bindings"))
+			.withQueryParam("q", equalTo("service_instance_guid:" + serviceInstanceGuid(serviceInstanceName)))
+			.withQueryParam("page", equalTo("1"))
+			.willReturn(ok()
+				.withBody(cc("empty-query-results"))));
+	}
+
 	public void stubGetBackingServiceInstance(String serviceInstanceName, String serviceName, String planName) {
 		String serviceInstanceId = serviceInstanceGuid(serviceInstanceName);
 		stubServiceInstanceExists(serviceInstanceId, serviceInstanceName, serviceName, planName);

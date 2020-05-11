@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -44,9 +45,11 @@ import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,6 +72,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 	private BackingApplications backingApps;
 
+	private BackingServices backingServices;
+
 	private TargetSpec targetSpec;
 
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
@@ -89,7 +94,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
-		BackingServices backingServices = BackingServices
+		this.backingServices = BackingServices
 			.builder()
 			.backingService(BackingService
 				.builder()
@@ -110,6 +115,12 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.services(backingServices)
 				.target(targetSpec)
 				.build())
+			.service(BrokeredService.builder()
+				.serviceName("service2")
+				.planName("plan2")
+				.services(backingServices)
+				.target(targetSpec)
+				.build())
 			.build();
 
 		deleteServiceInstanceWorkflow =
@@ -123,18 +134,25 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	}
 
 	@Test
-	void deleteServiceInstanceSucceeds() {
+	void deleteServiceInstanceWithDeployedAppsAndBoundServicesSucceeds() {
 		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
 		given(this.backingAppDeploymentService.undeploy(eq(backingApps)))
 			.willReturn(Flux.just("undeployed1", "undeployed2"));
+
+		// configured backing services
+		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq("service-instance-id")))
+			.willReturn(Mono.just(backingServices));
+
+		// services bound to deployed apps
 		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(getExistingBackingAppsWithService("my-service-instance")));
 		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
 		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
+
 		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
 			boolean nameMatch = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
 			boolean sizeMatch = backingServices.size() == 1;
@@ -147,6 +165,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
+		// the same service is a configured backing service, and it is bound to two different deployed apps
+		verify(this.backingServicesProvisionService, Mockito.times(3)).deleteServiceInstance(any());
 		verifyNoMoreInteractionsWithServices();
 	}
 
@@ -157,24 +177,33 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 		given(this.backingAppDeploymentService.undeploy(eq(backingApps)))
 			.willReturn(Flux.just("undeployed1", "undeployed2"));
+
+		// configured backing services
+		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq("service-instance-id")))
+			.willReturn(Mono.just(backingServices));
+
+		// different bound services
 		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(getExistingBackingAppsWithService("different-service-instance")));
 		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
 		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
+
 		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
-			boolean nameMatch = "different-service-instance".equals(backingServices.get(0).getServiceInstanceName());
+			boolean nameMatch1 = "different-service-instance".equals(backingServices.get(0).getServiceInstanceName());
+			boolean nameMatch2 = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
 			boolean sizeMatch = backingServices.size() == 1;
-			return sizeMatch && nameMatch;
+			return sizeMatch && (nameMatch1 || nameMatch2);
 		}))).willReturn(Flux.just("different-service-instance"));
 
-		StepVerifier
-			.create(deleteServiceInstanceWorkflow.delete(request, response))
+		StepVerifier.create(deleteServiceInstanceWorkflow.delete(request, response))
 			.expectNext()
 			.expectNext()
 			.verifyComplete();
 
+		// the same service is a configured backing service, and it is bound to two different deployed apps
+		verify(this.backingServicesProvisionService, Mockito.times(3)).deleteServiceInstance(any());
 		verifyNoMoreInteractionsWithServices();
 	}
 
@@ -184,12 +213,42 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
 		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
-					.willReturn(Mono.just(BackingApplications.builder().build()));
+			.willReturn(Mono.just(BackingApplications.builder().build()));
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
 			.verifyComplete();
 
+		verifyNoMoreInteractionsWithServices();
+	}
+
+	@Test
+	void deleteServiceInstanceWithOnlyBoundServicesSucceeds() {
+		DeleteServiceInstanceRequest request = buildRequest("service2", "plan2");
+		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
+
+		// configured backing services
+		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq("service-instance-id")))
+			.willReturn(Mono.just(backingServices));
+
+		// no backing apps
+		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+			.willReturn(Mono.empty());
+		given(this.credentialProviderService.deleteCredentials(any(), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.empty());
+
+		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
+			boolean nameMatch = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
+			boolean sizeMatch = backingServices.size() == 1;
+			return sizeMatch && nameMatch;
+		}))).willReturn(Flux.just("my-service-instance"));
+
+		StepVerifier.create(deleteServiceInstanceWorkflow.delete(request, response))
+			.expectNext()
+			.expectNext()
+			.verifyComplete();
+
+		verify(this.backingServicesProvisionService, Mockito.times(1)).deleteServiceInstance(any());
 		verifyNoMoreInteractionsWithServices();
 	}
 

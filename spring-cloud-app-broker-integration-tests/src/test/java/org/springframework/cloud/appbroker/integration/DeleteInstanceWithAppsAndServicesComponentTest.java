@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithAppsAndServicesComponentTest.APP_NAME;
 import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithAppsAndServicesComponentTest.BACKING_PLAN_NAME;
 import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithAppsAndServicesComponentTest.BACKING_SERVICE_NAME;
 import static org.springframework.cloud.appbroker.integration.DeleteInstanceWithAppsAndServicesComponentTest.BACKING_SI_NAME;
@@ -39,11 +40,16 @@ import static org.springframework.cloud.appbroker.integration.DeleteInstanceWith
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=" + SERVICE_NAME,
 	"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].path=classpath:demo.jar",
+	"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
+	"spring.cloud.appbroker.services[0].apps[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].service-instance-name=" + BACKING_SI_NAME,
 	"spring.cloud.appbroker.services[0].services[0].name=" + BACKING_SERVICE_NAME,
 	"spring.cloud.appbroker.services[0].services[0].plan=" + BACKING_PLAN_NAME
 })
-class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
+class DeleteInstanceWithAppsAndServicesComponentTest extends WiremockComponentTest {
+
+	protected static final String APP_NAME = "app-delete-with-services";
 
 	protected static final String SERVICE_NAME = "example";
 
@@ -62,13 +68,18 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 	private CloudControllerStubFixture cloudControllerFixture;
 
 	@Test
-	void deleteServicesWhenTheyExist() {
+	void deleteAppsAndServicesWhenTheyExist() {
 		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-			SERVICE_NAME, PLAN_NAME);
+							SERVICE_NAME, PLAN_NAME);
+		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SI_NAME,
+			BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
+		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
+		cloudControllerFixture.stubDeleteApp(APP_NAME);
 
 		cloudControllerFixture.stubGetBackingServiceInstance(BACKING_SI_NAME, BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 
-		cloudControllerFixture.stubServiceBindingsDoNotExist(BACKING_SI_NAME);
+		cloudControllerFixture.stubServiceBindingExists(APP_NAME, BACKING_SI_NAME);
+		cloudControllerFixture.stubDeleteServiceBinding(APP_NAME, BACKING_SI_NAME);
 		cloudControllerFixture.stubDeleteServiceInstance(BACKING_SI_NAME);
 
 		// when the service instance is deleted
@@ -91,9 +102,37 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 	}
 
 	@Test
-	void deleteServicesWhenTheyDoNotExist() {
+	void deleteAppsWhenTheyExistAndServicesWhenTheyDoNotExist() {
 		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
 							SERVICE_NAME, PLAN_NAME);
+		cloudControllerFixture.stubAppExists(APP_NAME);
+		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
+		cloudControllerFixture.stubDeleteApp(APP_NAME);
+
+		// when the service instance is deleted
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.delete(brokerFixture.deleteServiceInstanceUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.ACCEPTED.value());
+
+		// when the "last_operation" API is polled
+		given(brokerFixture.serviceInstanceRequest())
+			.when()
+			.get(brokerFixture.getLastInstanceOperationUrl(), "instance-id")
+			.then()
+			.statusCode(HttpStatus.OK.value())
+			.body("state", is(equalTo(OperationState.IN_PROGRESS.toString())));
+
+		String state = brokerFixture.waitForAsyncOperationComplete("instance-id");
+		assertThat(state).isEqualTo(OperationState.SUCCEEDED.toString());
+	}
+
+	@Test
+	void deleteAppsAndServicesWhenTheyDoNotExist() {
+		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
+							SERVICE_NAME, PLAN_NAME);
+		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())

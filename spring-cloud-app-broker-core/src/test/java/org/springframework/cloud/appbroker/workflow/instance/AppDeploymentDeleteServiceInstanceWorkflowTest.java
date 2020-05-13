@@ -234,8 +234,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		// no backing apps
 		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
 			.willReturn(Mono.empty());
-		given(this.credentialProviderService.deleteCredentials(any(), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.empty());
 
 		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
 			boolean nameMatch = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());

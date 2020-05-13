@@ -87,10 +87,10 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 
 	private Flux<String> updateBackingServices(UpdateServiceInstanceRequest request) {
 		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingServices ->
-				targetService.addToBackingServices(backingServices,
-					getTargetForService(request.getServiceDefinition(), request.getPlan()),
+			.flatMap(backingServices -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap(targetSpec -> targetService.addToBackingServices(backingServices, targetSpec,
 					request.getServiceInstanceId()))
+				.defaultIfEmpty(backingServices))
 			.flatMap(backingServices ->
 				servicesParametersTransformationService.transformParameters(backingServices,
 					request.getParameters()))
@@ -163,10 +163,10 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 
 	private Flux<String> updateBackingApplications(UpdateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingApps ->
-				targetService.addToBackingApplications(backingApps,
-					getTargetForService(request.getServiceDefinition(), request.getPlan()),
+			.flatMap(backingApps -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap(targetSpec -> targetService.addToBackingApplications(backingApps, targetSpec,
 					request.getServiceInstanceId()))
+				.defaultIfEmpty(backingApps))
 			.flatMap(backingApps ->
 				appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
 			.flatMapMany(backingApps -> deploymentService.update(backingApps, request.getServiceInstanceId()))

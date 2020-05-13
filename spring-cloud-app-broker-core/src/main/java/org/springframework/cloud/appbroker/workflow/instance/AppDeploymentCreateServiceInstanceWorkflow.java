@@ -78,10 +78,10 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 
 	private Flux<String> createBackingServices(CreateServiceInstanceRequest request) {
 		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingServices ->
-				targetService.addToBackingServices(backingServices,
-					getTargetForService(request.getServiceDefinition(), request.getPlan()),
+			.flatMap(backingServices -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap(targetSpec -> targetService.addToBackingServices(backingServices, targetSpec,
 					request.getServiceInstanceId()))
+				.defaultIfEmpty(backingServices))
 			.flatMap(backingServices ->
 				servicesParametersTransformationService.transformParameters(backingServices,
 					request.getParameters()))
@@ -97,10 +97,10 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 
 	private Flux<String> deployBackingApplications(CreateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingApps ->
-				targetService.addToBackingApplications(backingApps,
-					getTargetForService(request.getServiceDefinition(),
-						request.getPlan()), request.getServiceInstanceId()))
+			.flatMap(backingApps -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap(targetSpec -> targetService.addToBackingApplications(backingApps, targetSpec,
+					request.getServiceInstanceId()))
+				.defaultIfEmpty(backingApps))
 			.flatMap(backingApps ->
 				appsParametersTransformationService.transformParameters(backingApps,
 					request.getParameters()))

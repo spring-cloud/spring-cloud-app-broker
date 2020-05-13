@@ -89,9 +89,10 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	private Flux<List<BackingService>> collectConfiguredBackingServices(DeleteServiceInstanceRequest request) {
 		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-			.flatMapMany(backingServices -> targetService.addToBackingServices(backingServices,
-				getTargetForService(request.getServiceDefinition(), request.getPlan()),
-				request.getServiceInstanceId()));
+			.flatMapMany(backingServices -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap(targetSpec -> targetService.addToBackingServices(backingServices, targetSpec,
+					request.getServiceInstanceId()))
+				.defaultIfEmpty(backingServices));
 	}
 
 	private Flux<List<BackingService>> collectBoundBackingServices(DeleteServiceInstanceRequest request) {
@@ -109,10 +110,10 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 			.flatMap(backingApps ->
 				credentialProviderService.deleteCredentials(backingApps,
 					request.getServiceInstanceId()))
-			.flatMap(backingApps ->
-				targetService.addToBackingApplications(backingApps,
-					getTargetForService(request.getServiceDefinition(), request.getPlan()),
+			.flatMap(backingApps -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap(targetSpec -> targetService.addToBackingApplications(backingApps, targetSpec,
 					request.getServiceInstanceId()))
+				.defaultIfEmpty(backingApps))
 			.flatMapMany(deploymentService::undeploy)
 			.doOnRequest(l -> log.debug("Undeploying backing applications for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))

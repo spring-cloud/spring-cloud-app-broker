@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +36,7 @@ import org.springframework.cloud.appbroker.deployer.BackingServices;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.ServicesSpec;
 import org.springframework.cloud.appbroker.deployer.TargetSpec;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
@@ -74,6 +77,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 	private BackingServices backingServices;
 
+	private BackingServices backingServices2;
+
 	private TargetSpec targetSpec;
 
 	private DeleteServiceInstanceWorkflow deleteServiceInstanceWorkflow;
@@ -104,7 +109,21 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.build())
 			.build();
 
-		targetSpec = TargetSpec.builder().name("TargetSpace").build();
+		this.backingServices2 = BackingServices
+			.builder()
+			.backingService(BackingService
+				.builder()
+				.name("my-service2")
+				.plan("a-plan2")
+				.serviceInstanceName("my-service-instance2")
+				.properties(Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, "my-space2"))
+				.build())
+			.build();
+
+		targetSpec = TargetSpec.builder()
+			.name("TargetSpace")
+			.build();
+
 		BrokeredServices brokeredServices = BrokeredServices
 			.builder()
 			.service(BrokeredService
@@ -119,6 +138,13 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.serviceName("service2")
 				.planName("plan2")
 				.services(backingServices)
+				.target(targetSpec)
+				.build())
+			.service(BrokeredService.builder()
+				.serviceName("service3")
+				.planName("plan3")
+				.apps(backingApps)
+				.services(backingServices2)
 				.target(targetSpec)
 				.build())
 			.build();
@@ -165,22 +191,21 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		// the same service is a configured backing service, and it is bound to two different deployed apps
-		verify(this.backingServicesProvisionService, Mockito.times(3)).deleteServiceInstance(any());
+		verify(this.backingServicesProvisionService, Mockito.times(1)).deleteServiceInstance(any());
 		verifyNoMoreInteractionsWithServices();
 	}
 
 	@Test
 	void deleteServiceInstanceSucceedsWhenBackingServicesDifferFromConfiguration() {
-		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
+		DeleteServiceInstanceRequest request = buildRequest("service3", "plan3");
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
 		given(this.backingAppDeploymentService.undeploy(eq(backingApps)))
 			.willReturn(Flux.just("undeployed1", "undeployed2"));
 
 		// configured backing services
-		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq("service-instance-id")))
-			.willReturn(Mono.just(backingServices));
+		given(this.targetService.addToBackingServices(eq(backingServices2), eq(targetSpec), eq("service-instance-id")))
+			.willReturn(Mono.just(backingServices2));
 
 		// different bound services
 		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
@@ -191,10 +216,14 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.willReturn(Mono.just(backingApps));
 
 		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {
-			boolean nameMatch1 = "different-service-instance".equals(backingServices.get(0).getServiceInstanceName());
-			boolean nameMatch2 = "my-service-instance".equals(backingServices.get(0).getServiceInstanceName());
-			boolean sizeMatch = backingServices.size() == 1;
-			return sizeMatch && (nameMatch1 || nameMatch2);
+			boolean nameMatch0 = "my-service-instance2".equals(backingServices.get(0).getServiceInstanceName());
+			boolean spaceMatch0 = "my-space2".equals(backingServices.get(0).getProperties()
+				.get(DeploymentProperties.TARGET_PROPERTY_KEY));
+			boolean nameMatch1 = "different-service-instance".equals(backingServices.get(1).getServiceInstanceName());
+			boolean spaceMatch1 = "TargetSpace".equals(backingServices.get(1).getProperties()
+				.get(DeploymentProperties.TARGET_PROPERTY_KEY));
+			boolean sizeMatch = backingServices.size() == 2;
+			return sizeMatch && (nameMatch0 && spaceMatch0 || nameMatch1 && spaceMatch1);
 		}))).willReturn(Flux.just("different-service-instance"));
 
 		StepVerifier.create(deleteServiceInstanceWorkflow.delete(request, response))
@@ -202,8 +231,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		// the same service is a configured backing service, and it is bound to two different deployed apps
-		verify(this.backingServicesProvisionService, Mockito.times(3)).deleteServiceInstance(any());
+		verify(this.backingServicesProvisionService, Mockito.times(1)).deleteServiceInstance(any());
 		verifyNoMoreInteractionsWithServices();
 	}
 
@@ -213,7 +241,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
 		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(BackingApplications.builder().build()));
+			.willReturn(Mono.empty());
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))

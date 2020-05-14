@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,6 +28,7 @@ import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
@@ -35,6 +37,7 @@ import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
 import org.springframework.core.annotation.Order;
+import org.springframework.util.CollectionUtils;
 
 @Order(0)
 public class AppDeploymentDeleteServiceInstanceWorkflow
@@ -75,11 +78,14 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	}
 
 	private Flux<String> deleteBackingServices(DeleteServiceInstanceRequest request) {
-		return collectConfiguredBackingServices(request)
-			.mergeWith(collectBoundBackingServices(request))
-			.doOnEach(backingServices -> log.debug("Deleting backing services {} for {}/{}",
-				backingServices, request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.flatMap(backingServicesProvisionService::deleteServiceInstance)
+		return collectBackingServices(request)
+			.collectList()
+			.flatMapMany(backingServices -> {
+				if (!CollectionUtils.isEmpty(backingServices)) {
+					return backingServicesProvisionService.deleteServiceInstance(backingServices);
+				}
+				return Flux.empty();
+			})
 			.doOnComplete(() -> log.debug("Finished deleting backing services for {}/{}",
 				request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.doOnError(exception -> log.error(String.format("Error deleting backing services for %s/%s with error '%s'",
@@ -87,22 +93,39 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 				exception));
 	}
 
-	private Flux<List<BackingService>> collectConfiguredBackingServices(DeleteServiceInstanceRequest request) {
-		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-			.flatMapMany(backingServices -> getTargetForService(request.getServiceDefinition(), request.getPlan())
-				.flatMap(targetSpec -> targetService.addToBackingServices(backingServices, targetSpec,
-					request.getServiceInstanceId()))
-				.defaultIfEmpty(backingServices));
+	private Flux<BackingService> collectBackingServices(DeleteServiceInstanceRequest request) {
+		return collectConfiguredBackingServices(request)
+			.concatWith(collectBoundBackingServices(request))
+			.distinct(BackingService::serviceInstanceNameAndSpaceHashCode);
 	}
 
-	private Flux<List<BackingService>> collectBoundBackingServices(DeleteServiceInstanceRequest request) {
+	private Flux<BackingService> collectConfiguredBackingServices(DeleteServiceInstanceRequest request) {
+		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
+			.flatMap(backingServices -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap(targetSpec -> targetService.addToBackingServices(backingServices, targetSpec,
+					request.getServiceInstanceId()))
+				.defaultIfEmpty(backingServices))
+			.flatMapMany(Flux::fromIterable);
+	}
+
+	private Flux<BackingService> collectBoundBackingServices(DeleteServiceInstanceRequest request) {
 		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId())
 			.flatMapMany(Flux::fromIterable)
-			.flatMap(backingApplication -> Flux.fromIterable(backingApplication.getServices())
-				.map(servicesSpec -> BackingService.builder()
-					.serviceInstanceName(servicesSpec.getServiceInstanceName())
-					.build())
-				.collectList());
+			.flatMap(backingApplication -> Mono.justOrEmpty(backingApplication.getServices())
+				.flatMapMany(Flux::fromIterable)
+				.flatMap(servicesSpec -> Mono.justOrEmpty(servicesSpec.getServiceInstanceName()))
+				.map(serviceInstanceName -> {
+					Map<String, String> properties = null;
+					if (!CollectionUtils.isEmpty(backingApplication.getProperties())) {
+						String target = backingApplication.getProperties()
+							.get(DeploymentProperties.TARGET_PROPERTY_KEY);
+						properties = Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, target);
+					}
+					return BackingService.builder()
+						.serviceInstanceName(serviceInstanceName)
+						.properties(properties)
+						.build();
+				}));
 	}
 
 	private Flux<String> undeployBackingApplications(DeleteServiceInstanceRequest request) {

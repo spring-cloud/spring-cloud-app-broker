@@ -120,6 +120,14 @@ public class BackingService {
 		this.rebindOnUpdate = rebindOnUpdate;
 	}
 
+	public int serviceInstanceNameAndSpaceHashCode() {
+		String space = null;
+		if (!CollectionUtils.isEmpty(properties)) {
+			space = properties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
+		}
+		return Objects.hash(serviceInstanceName, space);
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {

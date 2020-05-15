@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -67,6 +69,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
 import org.springframework.cloud.appbroker.acceptance.fixtures.uaa.UaaService;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -102,6 +105,9 @@ abstract class CloudFoundryAcceptanceTest {
 	protected static final String PLAN_NAME = "standard";
 
 	protected static final String BACKING_APP_PATH = "classpath:backing-app.jar";
+
+	@Autowired
+	ResourceLoader resourceLoader;
 
 	@Autowired
 	protected CloudFoundryService cloudFoundryService;
@@ -236,6 +242,56 @@ abstract class CloudFoundryAcceptanceTest {
 			.then(cloudFoundryService.deleteApp(testBrokerAppName()))
 			.then(cloudFoundryService.removeAppBrokerClientFromOrgAndSpace(brokerClientId(), orgId, spaceId))
 			.onErrorResume(e -> Mono.empty());
+	}
+
+	protected void pushAppAndBind(String appName, String serviceInstanceName) {
+		try {
+			Path pathToJar = null;
+			pathToJar = resourceLoader.getResource(BACKING_APP_PATH).getFile().toPath();
+			cloudFoundryService.pushAppBoundToService(appName, pathToJar, serviceInstanceName).block();
+		}
+		catch (IOException e) {
+			LOG.error("Failed to push app", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Map<String, Object> getVcapServiceCredentials(String appName, String serviceName) {
+		Map<String, Object> systemEnv = getApplicationEnvironment(appName).getSystemProvided();
+		return getCredentialsFromVcapServices(serviceName, systemEnv);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getCredentialsFromVcapServices(String serviceName, Map<String, Object> env) {
+		Object vcapServices = env.get("VCAP_SERVICES");
+		if (vcapServices != null) {
+			Map<String, List<Map<String, Object>>> services = (Map<String, List<Map<String, Object>>>) vcapServices;
+
+			return services
+				.get(serviceName)
+				.stream()
+				.map(serviceParams -> {
+					Object rawCredentials = serviceParams.get("credentials");
+					if (rawCredentials instanceof Map) {
+						return (Map<String, Object>) rawCredentials;
+					}
+					return Collections.<String, Object>emptyMap();
+				})
+				.reduce(new HashMap<>(), (acc, map) -> {
+					acc.putAll(map);
+					return acc;
+				});
+		}
+
+		return Collections.emptyMap();
+	}
+
+	protected void unbind(String appName, String serviceInstanceName) {
+		cloudFoundryService.unbind(appName, serviceInstanceName).block();
+	}
+
+	protected void deleteApp(String appName) {
+		cloudFoundryService.deleteApp(appName).block();
 	}
 
 	protected void createServiceInstance(String serviceInstanceName) {

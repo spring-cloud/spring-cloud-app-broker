@@ -12,3 +12,8 @@ logging:
   level:
     cloudfoundry-client: DEBUG
     org.springframework.cloud.appbroker: DEBUG
+spring:
+  credhub:
+    url: https://credhub.service.cf.internal:8844
+  application:
+    name: sample-broker

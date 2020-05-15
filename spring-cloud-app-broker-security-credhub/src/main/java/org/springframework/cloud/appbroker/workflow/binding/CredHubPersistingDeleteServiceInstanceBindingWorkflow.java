@@ -47,12 +47,12 @@ public class CredHubPersistingDeleteServiceInstanceBindingWorkflow extends CredH
 		DeleteServiceInstanceBindingResponseBuilder responseBuilder) {
 		return buildCredentialName(request.getServiceDefinitionId(), request.getBindingId())
 			.filterWhen(this::credentialExists)
-			.flatMap(this::deleteCredential)
-			.flatMap(this::deletePermission)
+			.delayUntil(this::deletePermission)
+			.delayUntil(this::deleteCredential)
 			.thenReturn(responseBuilder);
 	}
 
-	private Mono<ServiceInstanceCredentialName> deleteCredential(ServiceInstanceCredentialName credentialName) {
+	private Mono<Void> deleteCredential(ServiceInstanceCredentialName credentialName) {
 		return credHubOperations.credentials()
 			.deleteByName(credentialName)
 			.doOnRequest(
@@ -61,8 +61,7 @@ public class CredHubPersistingDeleteServiceInstanceBindingWorkflow extends CredH
 				.debug("Finished deleting binding credentials with name '{}' in CredHub", credentialName.getName()))
 			.doOnError(exception -> LOG.error(
 				String.format("Error deleting binding credentials with name '%s' in CredHub with error: '%s'",
-					credentialName.getName(), exception.getMessage()), exception))
-			.thenReturn(credentialName);
+					credentialName.getName(), exception.getMessage()), exception));
 	}
 
 	private Mono<Void> deletePermission(ServiceInstanceCredentialName credentialName) {

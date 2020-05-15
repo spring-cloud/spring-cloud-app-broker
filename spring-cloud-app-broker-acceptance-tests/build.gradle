@@ -35,6 +35,7 @@ apply plugin: 'org.springframework.boot'
 dependencies {
 	implementation project(":spring-cloud-starter-app-broker-cloudfoundry")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
+	implementation "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'

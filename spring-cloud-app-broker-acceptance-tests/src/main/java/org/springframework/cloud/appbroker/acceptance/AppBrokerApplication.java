@@ -16,23 +16,42 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
+import java.security.NoSuchAlgorithmException;
+
+import javax.net.ssl.SSLContext;
+
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.IdentityCipherSuiteFilter;
+import io.netty.handler.ssl.JdkSslContext;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.Logger;
+import reactor.util.Loggers;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.appbroker.acceptance.services.HelloCredentialCreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.acceptance.services.NoOpCreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.acceptance.services.NoOpDeleteServiceInstanceWorkflow;
-import org.springframework.cloud.appbroker.acceptance.services.NoOpServiceInstanceBindingService;
 import org.springframework.cloud.appbroker.acceptance.services.NoOpUpdateServiceInstanceWorkflow;
+import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
 import org.springframework.cloud.appbroker.service.UpdateServiceInstanceWorkflow;
-import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.context.annotation.Bean;
+import org.springframework.credhub.core.CredHubProperties;
+import org.springframework.credhub.core.ReactiveCredHubOperations;
+import org.springframework.credhub.core.ReactiveCredHubTemplate;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 
 /**
  * A Spring Boot application for running acceptance tests
  */
 @SpringBootApplication
 public class AppBrokerApplication {
+
+	private static final Logger LOG = Loggers.getLogger(AppBrokerApplication.class);
 
 	/**
 	 * main application entry point
@@ -79,8 +98,37 @@ public class AppBrokerApplication {
 	 * @return the bean
 	 */
 	@Bean
-	public ServiceInstanceBindingService serviceInstanceBindingService() {
-		return new NoOpServiceInstanceBindingService();
+	public CreateServiceInstanceAppBindingWorkflow createServiceInstanceAppBindingWorkflow() {
+		return new HelloCredentialCreateServiceInstanceAppBindingWorkflow();
+	}
+
+	/**
+	 * A temporary ReactiveCredHubOperation bean before spring-credhub fix the auto-configured one in the next release.
+	 *
+	 * @return the bean
+	 */
+	@Bean // TODO: remove manual configuration of ReactiveCredHubOperations with spring-credhub 2.1.1.RELEASE
+	public ReactiveCredHubOperations mtlsCredHubOperations(@Value("${spring.credhub.url}") String runtimeCredHubUrl) {
+		CredHubProperties credHubProperties = new CredHubProperties();
+		credHubProperties.setUrl(runtimeCredHubUrl);
+
+		return new ReactiveCredHubTemplate(credHubProperties, getConnector());
+	}
+
+	private ClientHttpConnector getConnector() {
+		HttpClient httpClient = HttpClient.create();
+
+		httpClient = httpClient.secure(sslContextSpec -> {
+			try {
+				sslContextSpec.sslContext(
+					new JdkSslContext(SSLContext.getDefault(), true, null, IdentityCipherSuiteFilter.INSTANCE,
+						null, ClientAuth.REQUIRE, null, false));
+			}
+			catch (NoSuchAlgorithmException e) {
+				LOG.error("Failed to get default SSL context", e);
+			}
+		});
+		return new ReactorClientHttpConnector(httpClient);
 	}
 
 }

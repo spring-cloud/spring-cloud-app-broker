@@ -60,6 +60,7 @@ import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
@@ -118,6 +119,16 @@ public class CloudFoundryService {
 				.doOnError(error -> LOG.error("Error creating service broker " + brokerName + ": " + error)));
 	}
 
+	public Mono<Void> unbind(String appName, String siName) {
+		return cloudFoundryOperations.services()
+					.unbind(UnbindServiceInstanceRequest.builder()
+						.applicationName(appName)
+						.serviceInstanceName(siName)
+						.build())
+					.doOnSuccess(item -> LOG.info("Unbind service {} and app {} succeeded", siName, appName))
+					.doOnError(error -> LOG.error("Error unbinding service " + siName + " and app " + appName + " : " + error));
+	}
+
 	public Mono<Void> updateServiceBroker(String brokerName, String testBrokerAppName) {
 		return getApplicationRoute(testBrokerAppName)
 			.flatMap(url -> cloudFoundryOperations.serviceAdmin()
@@ -160,6 +171,19 @@ public class CloudFoundryService {
 			.doOnError(error -> LOG.error("Error pushing broker app " + appName + ": " + error));
 	}
 
+	public Mono<Void> pushAppBoundToService(String appName, Path appPath, String serviceInstanceName) {
+		return cloudFoundryOperations.applications()
+			.pushManifest(PushApplicationManifestRequest.builder()
+				.manifest(ApplicationManifest.builder()
+					.name(appName)
+					.service(serviceInstanceName)
+					.path(appPath)
+					.memory(1024)
+					.build())
+				.build())
+			.doOnSuccess(item -> LOG.info("Pushed app {} that bound to service {}", appName, serviceInstanceName))
+			.doOnError(error -> LOG.error("Error pushing app " + appName + ": " + error));
+	}
 	public Mono<Void> updateBrokerApp(String appName, String brokerClientId, List<String> appBrokerProperties) {
 		return cloudFoundryOperations.applications()
 			.get(GetApplicationRequest.builder().name(appName).build())

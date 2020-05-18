@@ -23,10 +23,15 @@ import reactor.core.publisher.Flux;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.appbroker.logging.ApplicationIdsProvider;
 import org.springframework.cloud.appbroker.logging.streaming.events.StopServiceInstanceLoggingEvent;
+import org.springframework.cloud.servicebroker.autoconfigure.web.ServiceBrokerAutoConfiguration;
+import org.springframework.cloud.servicebroker.autoconfigure.web.reactive.ServiceBrokerWebFluxAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+	ServiceBrokerAutoConfiguration.class,
+	ServiceBrokerWebFluxAutoConfiguration.class
+})
 public class LogStreamingTestApp {
 
 	static final String APP_ID = UUID.randomUUID().toString();

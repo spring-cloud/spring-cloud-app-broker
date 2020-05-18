@@ -26,6 +26,7 @@ dependencies {
 	compile project(":spring-cloud-app-broker-core")
 	compile project(":spring-cloud-app-broker-deployer")
 	compile project(":spring-cloud-app-broker-deployer-cloudfoundry")
+	optional project(":spring-cloud-app-broker-logging")
 	compile project(":spring-cloud-app-broker-security-credhub")
 	compile("org.springframework.boot:spring-boot-starter")
 	compile("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")

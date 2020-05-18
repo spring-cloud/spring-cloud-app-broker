@@ -22,9 +22,14 @@ import reactor.core.publisher.Flux;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.appbroker.logging.ApplicationIdsProvider;
+import org.springframework.cloud.servicebroker.autoconfigure.web.ServiceBrokerAutoConfiguration;
+import org.springframework.cloud.servicebroker.autoconfigure.web.reactive.ServiceBrokerWebFluxAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+	ServiceBrokerAutoConfiguration.class,
+	ServiceBrokerWebFluxAutoConfiguration.class
+})
 public class RecentLogsTestApp {
 
 	static final String APP_ID = UUID.randomUUID().toString();

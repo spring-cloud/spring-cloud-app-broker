@@ -28,7 +28,7 @@ import reactor.core.publisher.Flux;
 import org.springframework.cloud.appbroker.logging.ApplicationIdsProvider;
 import org.springframework.cloud.appbroker.logging.LoggingUtils;
 
-class DopplerLogStreamPublisher implements LogStreamPublisher<Envelope> {
+public class DopplerLogStreamPublisher implements LogStreamPublisher<Envelope> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DopplerLogStreamPublisher.class);
 

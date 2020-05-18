@@ -31,7 +31,7 @@ import org.springframework.cloud.appbroker.logging.streaming.events.ServiceInsta
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 
-class ApplicationLogStreamPublisher implements ApplicationListener<ServiceInstanceLoggingEvent> {
+public class ApplicationLogStreamPublisher implements ApplicationListener<ServiceInstanceLoggingEvent> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ApplicationLogStreamPublisher.class);
 
@@ -41,7 +41,7 @@ class ApplicationLogStreamPublisher implements ApplicationListener<ServiceInstan
 
 	private final ApplicationEventPublisher publisher;
 
-	protected ApplicationLogStreamPublisher(LogStreamPublisher<Envelope> logStreamPublisher,
+	public ApplicationLogStreamPublisher(LogStreamPublisher<Envelope> logStreamPublisher,
 		ApplicationEventPublisher publisher) {
 		this.logStreamPublisher = logStreamPublisher;
 		this.publisher = publisher;

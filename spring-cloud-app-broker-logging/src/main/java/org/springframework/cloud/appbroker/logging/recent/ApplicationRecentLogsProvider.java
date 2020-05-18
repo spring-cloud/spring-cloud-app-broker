@@ -26,7 +26,7 @@ import reactor.core.publisher.Flux;
 import org.springframework.cloud.appbroker.logging.ApplicationIdsProvider;
 import org.springframework.cloud.appbroker.logging.LoggingUtils;
 
-class ApplicationRecentLogsProvider implements RecentLogsProvider {
+public class ApplicationRecentLogsProvider implements RecentLogsProvider {
 
 	private final CloudFoundryClient client;
 

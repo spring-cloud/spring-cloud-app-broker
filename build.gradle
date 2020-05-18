@@ -27,9 +27,9 @@ buildscript {
 }
 
 ext {
-	springBootVersion = project.findProperty("springBootVersion") ?: "2.2.6.RELEASE"
-	springFrameworkVersion = project.findProperty("springFrameworkVersion") ?: "5.2.5.RELEASE"
-	reactorVersion = project.findProperty("reactorVersion") ?: "Dysprosium-SR6"
+	springBootVersion = project.findProperty("springBootVersion") ?: "2.2.7.RELEASE"
+	springFrameworkVersion = project.findProperty("springFrameworkVersion") ?: "5.2.6.RELEASE"
+	reactorVersion = project.findProperty("reactorVersion") ?: "Dysprosium-SR7"
 	openServiceBrokerVersion = "3.1.1.RELEASE"
 	springCredhubVersion = "2.1.0.RELEASE"
 	cfJavaClientVersion = "4.6.0.RELEASE"

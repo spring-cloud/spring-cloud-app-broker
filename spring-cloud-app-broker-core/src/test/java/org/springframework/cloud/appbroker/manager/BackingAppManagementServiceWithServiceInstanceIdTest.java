@@ -1,0 +1,320 @@
+/*
+ * Copyright 2002-2020 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.cloud.appbroker.manager;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import org.springframework.cloud.appbroker.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.BackingApplications;
+import org.springframework.cloud.appbroker.deployer.BrokeredService;
+import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.GetApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.ServicesSpec;
+import org.springframework.cloud.appbroker.extensions.targets.TargetService;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+@ExtendWith(MockitoExtension.class)
+class BackingAppManagementServiceWithServiceInstanceIdTest {
+
+	private BackingAppManagementService backingAppManagementService;
+
+	private BackingApplications backingApps;
+
+	@Mock
+	private ManagementClient managementClient;
+
+	@Mock
+	private AppDeployer appDeployer;
+
+	@Mock
+	private TargetService targetService;
+
+	@BeforeEach
+	void setUp() {
+		this.backingApps = BackingApplications.builder()
+			.backingApplication(BackingApplication.builder()
+				.name("testApp1")
+				.path("https://myfiles/app1.jar")
+				.build())
+			.backingApplication(BackingApplication.builder()
+				.name("testApp2")
+				.path("https://myfiles/app2.jar")
+				.build())
+			.build();
+
+		BrokeredServices brokeredServices = BrokeredServices
+			.builder()
+			.service(BrokeredService
+				.builder()
+				.serviceName("service1")
+				.planName("plan1")
+				.apps(backingApps)
+				.build())
+			.build();
+
+		this.backingAppManagementService = new BackingAppManagementService(managementClient, appDeployer,
+			brokeredServices,
+			targetService);
+	}
+
+	@Test
+	void stopApplications() {
+		doReturn(Mono.empty()).when(managementClient).stop(backingApps.get(0));
+		doReturn(Mono.empty()).when(managementClient).stop(backingApps.get(1));
+
+		given(targetService.addToBackingApplications(eq(backingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(backingApps));
+
+		StepVerifier.create(backingAppManagementService.stop("foo-service-id", "service1", "plan1"))
+			.expectNext()
+			.expectNext()
+			.verifyComplete();
+
+		verify(targetService).addToBackingApplications(eq(backingApps), any(), eq("foo-service-id"));
+		verify(managementClient, times(2)).stop(any(BackingApplication.class));
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+	@Test
+	void stopApplicationsWithEmptyApplications() {
+		BackingApplications emptyBackingApps = BackingApplications.builder().build();
+
+		BrokeredServices brokeredServicesNoApps = BrokeredServices
+			.builder()
+			.service(BrokeredService
+				.builder()
+				.serviceName("service1")
+				.planName("plan1")
+				.apps(emptyBackingApps)
+				.build())
+			.build();
+
+		this.backingAppManagementService = new BackingAppManagementService(managementClient, appDeployer,
+			brokeredServicesNoApps,
+			targetService);
+
+		given(targetService.addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(emptyBackingApps));
+
+		StepVerifier.create(backingAppManagementService.stop("foo-service-id", "service1", "plan1"))
+			.verifyComplete();
+
+		verify(targetService).addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id"));
+		verifyNoInteractions(managementClient);
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+	@Test
+	void startApplications() {
+		given(targetService.addToBackingApplications(eq(backingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(backingApps));
+
+		doReturn(Mono.empty()).when(managementClient).start(backingApps.get(0));
+		doReturn(Mono.empty()).when(managementClient).start(backingApps.get(1));
+
+		StepVerifier.create(backingAppManagementService.start("foo-service-id", "service1", "plan1"))
+			.expectNext()
+			.expectNext()
+			.verifyComplete();
+
+		verify(targetService).addToBackingApplications(eq(backingApps), any(), eq("foo-service-id"));
+		verify(managementClient, times(2)).start(any(BackingApplication.class));
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+	@Test
+	void startApplicationsWithEmptyApplications() {
+		BackingApplications emptyBackingApps = BackingApplications.builder().build();
+
+		BrokeredServices brokeredServicesNoApps = BrokeredServices
+			.builder()
+			.service(BrokeredService
+				.builder()
+				.serviceName("service1")
+				.planName("plan1")
+				.apps(emptyBackingApps)
+				.build())
+			.build();
+
+		this.backingAppManagementService = new BackingAppManagementService(managementClient, appDeployer,
+			brokeredServicesNoApps,
+			targetService);
+
+		given(targetService.addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(emptyBackingApps));
+
+		StepVerifier.create(backingAppManagementService.start("foo-service-id", "service1", "plan1"))
+			.verifyComplete();
+
+		verify(targetService).addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id"));
+		verifyNoInteractions(managementClient);
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+	@Test
+	void restartApplications() {
+		given(targetService.addToBackingApplications(eq(backingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(backingApps));
+
+		doReturn(Mono.empty()).when(managementClient).restart(backingApps.get(0));
+		doReturn(Mono.empty()).when(managementClient).restart(backingApps.get(1));
+
+		StepVerifier.create(backingAppManagementService.restart("foo-service-id", "service1", "plan1"))
+			.expectNext()
+			.expectNext()
+			.verifyComplete();
+
+		verify(targetService).addToBackingApplications(eq(backingApps), any(), eq("foo-service-id"));
+		verify(managementClient, times(2)).restart(any(BackingApplication.class));
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+	@Test
+	void restartApplicationsWithEmptyApplications() {
+		BackingApplications emptyBackingApps = BackingApplications.builder().build();
+
+		BrokeredServices brokeredServicesNoApps = BrokeredServices
+			.builder()
+			.service(BrokeredService
+				.builder()
+				.serviceName("service1")
+				.planName("plan1")
+				.apps(emptyBackingApps)
+				.build())
+			.build();
+
+		this.backingAppManagementService = new BackingAppManagementService(managementClient, appDeployer,
+			brokeredServicesNoApps,
+			targetService);
+
+		given(targetService.addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(emptyBackingApps));
+
+		StepVerifier.create(backingAppManagementService.restart("foo-service-id", "service1", "plan1"))
+			.verifyComplete();
+
+		verify(targetService).addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id"));
+		verifyNoInteractions(managementClient);
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void getDeployedBackingApplications() {
+		given(appDeployer.get(any(GetApplicationRequest.class)))
+			.willReturn(Mono.just(GetApplicationResponse.builder()
+					.name("testApp1")
+					.service("service1")
+					.service("service2")
+					.build()),
+				Mono.just(GetApplicationResponse.builder()
+					.name("testApp2")
+					.service("service3")
+					.build()));
+
+		given(targetService.addToBackingApplications(eq(backingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(backingApps));
+
+		StepVerifier.create(backingAppManagementService.getDeployedBackingApplications("foo-service-id", "service1", "plan1"))
+			.expectNext(BackingApplications.builder()
+				.backingApplication(BackingApplication.builder()
+					.name("testApp1")
+					.services(
+						ServicesSpec.builder().serviceInstanceName("service1").build(),
+						ServicesSpec.builder().serviceInstanceName("service2").build())
+					.build())
+				.backingApplication(BackingApplication.builder()
+					.name("testApp2")
+					.services(ServicesSpec.builder().serviceInstanceName("service3").build())
+					.build())
+				.build())
+			.verifyComplete();
+
+		then(targetService).should().addToBackingApplications(eq(backingApps), any(), eq("foo-service-id"));
+		then(appDeployer).should().get(argThat(req -> "testApp1".equals(req.getName())));
+		then(appDeployer).should().get(argThat(req -> "testApp2".equals(req.getName())));
+
+		verifyNoInteractions(managementClient);
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+	@Test
+	void restageApplications() {
+		given(targetService.addToBackingApplications(eq(backingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(backingApps));
+
+		doReturn(Mono.empty()).when(managementClient).restage(backingApps.get(0));
+		doReturn(Mono.empty()).when(managementClient).restage(backingApps.get(1));
+
+		StepVerifier.create(backingAppManagementService.restage("foo-service-id", "service1", "plan1"))
+			.expectNext()
+			.expectNext()
+			.verifyComplete();
+
+		verify(targetService).addToBackingApplications(eq(backingApps), any(), eq("foo-service-id"));
+		verify(managementClient, times(2)).restage(any(BackingApplication.class));
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+	@Test
+	void restageApplicationsWithEmptyApplications() {
+		BackingApplications emptyBackingApps = BackingApplications.builder().build();
+
+		BrokeredServices brokeredServicesNoApps = BrokeredServices
+			.builder()
+			.service(BrokeredService
+				.builder()
+				.serviceName("service1")
+				.planName("plan1")
+				.apps(emptyBackingApps)
+				.build())
+			.build();
+
+		this.backingAppManagementService = new BackingAppManagementService(managementClient, appDeployer,
+			brokeredServicesNoApps,
+			targetService);
+
+		given(targetService.addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id")))
+			.willReturn(Mono.just(emptyBackingApps));
+
+		StepVerifier.create(backingAppManagementService.restage("foo-service-id", "service1", "plan1"))
+			.verifyComplete();
+
+		verify(targetService).addToBackingApplications(eq(emptyBackingApps), any(), eq("foo-service-id"));
+		verifyNoInteractions(managementClient);
+		verifyNoMoreInteractions(appDeployer, targetService, managementClient);
+	}
+
+}

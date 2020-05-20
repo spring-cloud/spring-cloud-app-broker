@@ -60,9 +60,6 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsWhenTheyExist() {
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-					SERVICE_NAME, PLAN_NAME);
-
 		cloudControllerFixture.stubAppExists(APP_NAME_1);
 		cloudControllerFixture.stubAppExists(APP_NAME_2);
 
@@ -93,9 +90,6 @@ class DeleteInstanceComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteAppsWhenTheyDoNotExist() {
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-					SERVICE_NAME, PLAN_NAME);
-
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_2);
 

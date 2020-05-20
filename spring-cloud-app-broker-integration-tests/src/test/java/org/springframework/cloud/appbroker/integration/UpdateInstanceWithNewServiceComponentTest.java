@@ -76,8 +76,6 @@ class UpdateInstanceWithNewServiceComponentTest extends WiremockComponentTest {
 	void updateAppWithNewService() {
 		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SI_NAME,
 			BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-			SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubUpdateApp(APP_NAME);
 
 		// will unbind and delete the existing service instance

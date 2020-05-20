@@ -172,7 +172,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.willReturn(Mono.just(backingServices));
 
 		// services bound to deployed apps
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.just(getExistingBackingAppsWithService("my-service-instance")));
 		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
@@ -208,7 +209,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.willReturn(Mono.just(backingServices2));
 
 		// different bound services
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.just(getExistingBackingAppsWithService("different-service-instance")));
 		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
@@ -240,7 +242,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		DeleteServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
 		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
 
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.empty());
 
 		StepVerifier
@@ -260,7 +263,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			.willReturn(Mono.just(backingServices));
 
 		// no backing apps
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.empty());
 
 		given(this.backingServicesProvisionService.deleteServiceInstance(argThat(backingServices -> {

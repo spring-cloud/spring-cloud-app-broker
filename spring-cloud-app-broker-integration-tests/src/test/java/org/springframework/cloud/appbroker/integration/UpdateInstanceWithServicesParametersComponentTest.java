@@ -75,8 +75,6 @@ class UpdateInstanceWithServicesParametersComponentTest extends WiremockComponen
 	void updateAppWithBackingServicesParameters() {
 		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SI_NAME, BACKING_SERVICE_NAME,
 			BACKING_PLAN_NAME);
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-			SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubUpdateApp(APP_NAME);
 
 		// will update with filtered parameters and bind the service instance

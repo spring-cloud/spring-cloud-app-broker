@@ -66,6 +66,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
+import org.springframework.cloud.appbroker.acceptance.fixtures.cf.UserCloudFoundryService;
 import org.springframework.cloud.appbroker.acceptance.fixtures.uaa.UaaService;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -76,10 +77,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_AUTHORITIES;
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.APP_BROKER_CLIENT_SECRET;
+import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.USER_CLIENT_AUTHORITIES;
+import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.USER_CLIENT_ID;
+import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration.USER_CLIENT_SECRET;
 
 @SpringBootTest(classes = {
 	CloudFoundryClientConfiguration.class,
 	CloudFoundryService.class,
+	UserCloudFoundryService.class,
 	UaaService.class,
 	HealthListener.class,
 	RestTemplate.class
@@ -105,6 +110,9 @@ abstract class CloudFoundryAcceptanceTest {
 
 	@Autowired
 	protected CloudFoundryService cloudFoundryService;
+
+	@Autowired
+	protected UserCloudFoundryService userCloudFoundryService;
 
 	@Autowired
 	private UaaService uaaService;
@@ -136,6 +144,7 @@ abstract class CloudFoundryAcceptanceTest {
 	void setUp(TestInfo testInfo, BrokerProperties brokerProperties) {
 		List<String> appBrokerProperties = getAppBrokerProperties(brokerProperties);
 		blockingSubscribe(initializeBroker(appBrokerProperties));
+		blockingSubscribe(initializeUser());
 	}
 
 	void setUpForBrokerUpdate(BrokerProperties brokerProperties) {
@@ -197,16 +206,29 @@ abstract class CloudFoundryAcceptanceTest {
 
 	@AfterEach
 	public void tearDown(TestInfo testInfo) {
-		blockingSubscribe(cloudFoundryService.getOrCreateDefaultOrganization()
+		blockingSubscribe(cloudFoundryService.getOrCreateDefaultOrg()
 			.map(OrganizationSummary::getId)
 			.flatMap(orgId -> cloudFoundryService.getOrCreateDefaultSpace()
 				.map(SpaceSummary::getId)
 				.flatMap(spaceId -> cleanup(orgId, spaceId))));
 	}
 
+	private Mono<Void> initializeUser() {
+		return cloudFoundryService.getOrCreateOrganization(userCloudFoundryService.getOrgName())
+			.map(OrganizationSummary::getId)
+			.flatMap(orgId -> cloudFoundryService
+				.getOrCreateSpace(userCloudFoundryService.getOrgName(), userCloudFoundryService.getSpaceName())
+				.map(SpaceSummary::getId)
+				.flatMap(spaceId -> uaaService.createClient(
+						USER_CLIENT_ID,
+						USER_CLIENT_SECRET,
+						USER_CLIENT_AUTHORITIES)
+					.then(cloudFoundryService
+						.associateClientWithOrgAndSpace(USER_CLIENT_ID, orgId, spaceId))));
+	}
+
 	private Mono<Void> initializeBroker(List<String> appBrokerProperties) {
-		return cloudFoundryService
-			.getOrCreateDefaultOrganization()
+		return cloudFoundryService.getOrCreateDefaultOrg()
 			.map(OrganizationSummary::getId)
 			.flatMap(orgId -> cloudFoundryService
 				.getOrCreateDefaultSpace()
@@ -216,7 +238,8 @@ abstract class CloudFoundryAcceptanceTest {
 						brokerClientId(),
 						APP_BROKER_CLIENT_SECRET,
 						APP_BROKER_CLIENT_AUTHORITIES))
-					.then(cloudFoundryService.associateAppBrokerClientWithOrgAndSpace(brokerClientId(), orgId, spaceId))
+					.then(cloudFoundryService
+						.associateAppBrokerClientWithOrgAndSpace(brokerClientId(), orgId, spaceId))
 					.then(cloudFoundryService
 						.pushBrokerApp(testBrokerAppName(), getTestBrokerAppPath(), brokerClientId(),
 							appBrokerProperties))
@@ -250,7 +273,7 @@ abstract class CloudFoundryAcceptanceTest {
 		String planName,
 		String serviceInstanceName,
 		Map<String, Object> parameters) {
-		cloudFoundryService.createServiceInstance(planName, serviceName, serviceInstanceName, parameters)
+		userCloudFoundryService.createServiceInstance(planName, serviceName, serviceInstanceName, parameters)
 			.then(getServiceInstanceMono(serviceInstanceName))
 			.flatMap(serviceInstance -> {
 				assertThat(serviceInstance.getStatus())
@@ -261,8 +284,23 @@ abstract class CloudFoundryAcceptanceTest {
 			.block();
 	}
 
+	protected void createBackingServiceInstance(String serviceName,
+		String planName,
+		String serviceInstanceName,
+		Map<String, Object> parameters) {
+		cloudFoundryService.createBackingServiceInstance(planName, serviceName, serviceInstanceName, parameters)
+			.then(cloudFoundryService.getServiceInstance(serviceInstanceName))
+			.flatMap(serviceInstance -> {
+				assertThat(serviceInstance.getStatus())
+					.withFailMessage("Create service instance failed:" + serviceInstance.getMessage())
+					.isEqualTo("succeeded");
+				return Mono.empty();
+			})
+			.block();
+	}
+
 	protected void updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
-		cloudFoundryService.updateServiceInstance(serviceInstanceName, parameters)
+		userCloudFoundryService.updateServiceInstance(serviceInstanceName, parameters)
 			.then(getServiceInstanceMono(serviceInstanceName))
 			.flatMap(serviceInstance -> {
 				assertThat(serviceInstance.getStatus())
@@ -274,7 +312,7 @@ abstract class CloudFoundryAcceptanceTest {
 	}
 
 	protected void deleteServiceInstance(String serviceInstanceName) {
-		blockingSubscribe(cloudFoundryService.deleteServiceInstance(serviceInstanceName));
+		blockingSubscribe(userCloudFoundryService.deleteServiceInstance(serviceInstanceName));
 	}
 
 	protected List<String> listServiceInstances() {
@@ -284,11 +322,11 @@ abstract class CloudFoundryAcceptanceTest {
 			.block();
 	}
 
-	protected ServiceInstance getServiceInstance(String serviceInstanceName) {
-		return getServiceInstanceMono(serviceInstanceName).block();
+	protected ServiceInstance getBackingServiceInstance(String serviceInstanceName) {
+		return cloudFoundryService.getServiceInstance(serviceInstanceName).block();
 	}
 
-	protected ServiceInstance getServiceInstance(String serviceInstanceName, String space) {
+	protected ServiceInstance getBackingServiceInstance(String serviceInstanceName, String space) {
 		return cloudFoundryService.getServiceInstance(serviceInstanceName, space).block();
 	}
 
@@ -299,7 +337,7 @@ abstract class CloudFoundryAcceptanceTest {
 	}
 
 	private Mono<ServiceInstance> getServiceInstanceMono(String serviceInstanceName) {
-		return cloudFoundryService.getServiceInstance(serviceInstanceName);
+		return userCloudFoundryService.getServiceInstance(serviceInstanceName);
 	}
 
 	protected Optional<ApplicationSummary> getApplicationSummary(String appName) {
@@ -372,8 +410,9 @@ abstract class CloudFoundryAcceptanceTest {
 		}
 	}
 
-	protected Mono<String> manageApps(String serviceInstanceName, String operation) {
-		return cloudFoundryService
+	protected Mono<String> manageApps(String serviceInstanceName, String serviceName,
+		String planName, String operation) {
+		return userCloudFoundryService
 			.getServiceInstance(serviceInstanceName)
 			.map(ServiceInstance::getId)
 			.flatMap(serviceInstanceId ->
@@ -381,7 +420,7 @@ abstract class CloudFoundryAcceptanceTest {
 					.getApplicationRoute(testBrokerAppName())
 					.flatMap(appRoute ->
 						webClient.get()
-							.uri(URI.create(appRoute + "/" + operation + "/" + serviceInstanceId))
+							.uri(URI.create(appRoute + "/" + operation + "/" + serviceName + "/" + planName + "/" + serviceInstanceId))
 							.exchange()
 							.flatMap(clientResponse -> clientResponse.toEntity(String.class))
 							.map(HttpEntity::getBody)));

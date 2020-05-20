@@ -124,7 +124,8 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	}
 
 	private Flux<BackingService> collectBoundBackingServices(DeleteServiceInstanceRequest request) {
-		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId())
+		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName())
 			.flatMapMany(Flux::fromIterable)
 			.flatMap(backingApplication -> Mono.justOrEmpty(backingApplication.getServices())
 				.flatMapMany(Flux::fromIterable)

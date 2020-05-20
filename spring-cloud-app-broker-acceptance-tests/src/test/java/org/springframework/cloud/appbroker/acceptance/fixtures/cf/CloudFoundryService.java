@@ -56,11 +56,9 @@ import org.cloudfoundry.operations.serviceadmin.DeleteServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.EnableServiceAccessRequest;
 import org.cloudfoundry.operations.serviceadmin.UpdateServiceBrokerRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
-import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
-import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
 import org.cloudfoundry.operations.spaces.Spaces;
@@ -198,22 +196,9 @@ public class CloudFoundryService {
 			.onErrorResume(e -> Mono.empty());
 	}
 
-	public Mono<Void> deleteServiceInstance(String serviceInstanceName) {
-		return getServiceInstance(serviceInstanceName)
-			.flatMap(si -> cloudFoundryOperations.services().deleteInstance(DeleteServiceInstanceRequest.builder()
-				.name(si.getName())
-				.build())
-				.doOnSuccess(v -> LOG.info("Success deleting service instance. serviceInstanceName={}",
-					serviceInstanceName))
-				.doOnError(e -> LOG.error(String.format("Error deleting service instance. serviceInstanceName=%s, " +
-					"error=%s", serviceInstanceName, e.getMessage()), e))
-				.onErrorResume(e -> Mono.empty()))
-			.doOnError(e -> LOG.warn(String.format("Error getting service instance. serviceInstanceName=%s, " +
-				"error=%s", serviceInstanceName, e.getMessage()), e))
-			.onErrorResume(e -> Mono.empty());
-	}
-
-	public Mono<Void> createServiceInstance(String planName, String serviceName, String serviceInstanceName,
+	public Mono<Void> createBackingServiceInstance(String planName,
+		String serviceName,
+		String serviceInstanceName,
 		Map<String, Object> parameters) {
 		return cloudFoundryOperations.services().createInstance(CreateServiceInstanceRequest.builder()
 			.planName(planName)
@@ -224,17 +209,6 @@ public class CloudFoundryService {
 			.doOnSuccess(item -> LOG.info("Success creating service instance. serviceInstanceName={}",
 				serviceInstanceName))
 			.doOnError(e -> LOG.error(String.format("Error creating service instance. serviceInstanceName=%s, " +
-				"error=%s", serviceInstanceName, e.getMessage()), e));
-	}
-
-	public Mono<Void> updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
-		return cloudFoundryOperations.services().updateInstance(UpdateServiceInstanceRequest.builder()
-			.serviceInstanceName(serviceInstanceName)
-			.parameters(parameters)
-			.build())
-			.doOnSuccess(item -> LOG.info("Success updating service instance. serviceInstanceName={}",
-				serviceInstanceName))
-			.doOnError(e -> LOG.error(String.format("Error updating service instance. serviceInstanceName=%s, " +
 				"error=%s", serviceInstanceName, e.getMessage()), e));
 	}
 
@@ -309,6 +283,14 @@ public class CloudFoundryService {
 			.build());
 	}
 
+	public Mono<SpaceSummary> getOrCreateDefaultSpace() {
+		return getOrCreateSpace(cloudFoundryProperties.getDefaultOrg(), cloudFoundryProperties.getDefaultSpace());
+	}
+
+	public Mono<OrganizationSummary> getOrCreateDefaultOrg() {
+		return getOrCreateOrganization(cloudFoundryProperties.getDefaultOrg());
+	}
+
 	public Mono<List<String>> getSpaces() {
 		return cloudFoundryOperations.spaces().list()
 			.doOnComplete(() -> LOG.info("Success listing spaces"))
@@ -317,47 +299,43 @@ public class CloudFoundryService {
 			.collectList();
 	}
 
-	public Mono<SpaceSummary> getOrCreateDefaultSpace() {
-		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
-
+	public Mono<SpaceSummary> getOrCreateSpace(String orgName, String spaceName) {
 		Spaces spaceOperations = DefaultCloudFoundryOperations.builder()
 			.from((DefaultCloudFoundryOperations) this.cloudFoundryOperations)
-			.organization(cloudFoundryProperties.getDefaultOrg())
+			.organization(orgName)
 			.build()
 			.spaces();
 
-		final String defaultSpace = cloudFoundryProperties.getDefaultSpace();
-		return getDefaultSpace(spaceOperations).switchIfEmpty(spaceOperations.create(CreateSpaceRequest.builder()
-			.name(defaultSpace)
-			.organization(defaultOrg)
+		return getSpace(spaceOperations, spaceName).switchIfEmpty(spaceOperations.create(CreateSpaceRequest.builder()
+			.name(spaceName)
+			.organization(orgName)
 			.build())
-			.then(getDefaultSpace(spaceOperations)));
+			.then(getSpace(spaceOperations, spaceName)));
 	}
 
-	public Mono<OrganizationSummary> getOrCreateDefaultOrganization() {
+	public Mono<OrganizationSummary> getOrCreateOrganization(String orgName) {
 		Organizations organizationOperations = cloudFoundryOperations.organizations();
 
-		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
-		return getDefaultOrg(organizationOperations)
+		return getOrg(organizationOperations, orgName)
 			.switchIfEmpty(organizationOperations.create(CreateOrganizationRequest.builder()
-				.organizationName(defaultOrg)
+				.organizationName(orgName)
 				.build())
-				.then(getDefaultOrg(organizationOperations)));
+				.then(getOrg(organizationOperations, orgName)));
 	}
 
-	private Mono<OrganizationSummary> getDefaultOrg(Organizations orgOperations) {
+	private Mono<OrganizationSummary> getOrg(Organizations orgOperations, String orgName) {
 		return orgOperations.list()
 			.filter(r -> r
 				.getName()
-				.equals(cloudFoundryProperties.getDefaultOrg()))
+				.equals(orgName))
 			.next();
 	}
 
-	private Mono<SpaceSummary> getDefaultSpace(Spaces spaceOperations) {
+	private Mono<SpaceSummary> getSpace(Spaces spaceOperations, String spaceName) {
 		return spaceOperations.list()
 			.filter(r -> r
 				.getName()
-				.equals(cloudFoundryProperties.getDefaultSpace()))
+				.equals(spaceName))
 			.next();
 	}
 
@@ -366,6 +344,12 @@ public class CloudFoundryService {
 			.flatMap(userId -> associateOrgUser(orgId, userId)
 				.then(associateOrgManager(orgId, userId))
 				.then(associateSpaceDeveloper(spaceId, userId)))
+			.then();
+	}
+
+	public Mono<Void> associateClientWithOrgAndSpace(String clientId, String orgId, String spaceId) {
+		return associateOrgUser(orgId, clientId)
+			.then(associateSpaceDeveloper(spaceId, clientId))
 			.then();
 	}
 

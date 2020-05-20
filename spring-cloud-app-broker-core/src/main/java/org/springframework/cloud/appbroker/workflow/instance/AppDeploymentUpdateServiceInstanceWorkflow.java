@@ -144,7 +144,8 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 	}
 
 	private Mono<Map<String, BackingService>> getExistingBackingServiceNameMap(UpdateServiceInstanceRequest request) {
-		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId())
+		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName())
 			.flatMapMany(Flux::fromIterable)
 			.map(BackingApplication::getServices)
 			.flatMap(Flux::fromIterable)

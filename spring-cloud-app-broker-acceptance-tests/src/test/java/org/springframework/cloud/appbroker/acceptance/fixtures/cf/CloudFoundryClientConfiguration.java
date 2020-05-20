@@ -43,15 +43,32 @@ import org.springframework.context.annotation.Configuration;
 public class CloudFoundryClientConfiguration {
 
 	/**
-	 * The client secret
+	 * The broker client secret
 	 */
 	public static final String APP_BROKER_CLIENT_SECRET = "app-broker-client-secret";
 
 	/**
-	 * The client authorities
+	 * The broker client authorities
 	 */
 	public static final String[] APP_BROKER_CLIENT_AUTHORITIES = {
 		"cloud_controller.read", "cloud_controller.write", "clients.write"
+	};
+
+	/**
+	 * The user client id
+	 */
+	public static final String USER_CLIENT_ID = "app-broker-user-client";
+
+	/**
+	 * The user client secret
+	 */
+	public static final String USER_CLIENT_SECRET = "app-broker-user-client-secret";
+
+	/**
+	 * The user client authorities
+	 */
+	public static final String[] USER_CLIENT_AUTHORITIES = {
+		"cloud_controller.read", "cloud_controller.write"
 	};
 
 	@Bean

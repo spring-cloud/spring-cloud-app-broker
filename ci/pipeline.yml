@@ -1,11 +1,18 @@
 ---
 aliases:
+  - &slack-success-notification
+    put: alert
+    params:
+      icon_emoji: ":concourse:"
+      username: concourse
+      channel: {{ab-slack-success-channel}}
+      text: "$BUILD_PIPELINE_NAME pipeline has succeeded with build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME>!"
   - &slack-failure-notification
     put: alert
     params:
       icon_emoji: ":animal:"
       username: concourse
-      channel: {{scs-slack-failure-channel}}
+      channel: {{ab-slack-failure-channel}}
       text: <!here> Build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
 
 jobs:
@@ -61,6 +68,8 @@ jobs:
           DEFAULT_ORG: {{DEFAULT_ORG}}
           DEFAULT_SPACE: {{DEFAULT_SPACE}}
           SKIP_SSL_VALIDATION: {{SKIP_SSL_VALIDATION}}
+    on_success:
+      *slack-success-notification
     on_failure:
       *slack-failure-notification
 

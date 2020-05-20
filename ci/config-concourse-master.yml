@@ -1,4 +1,5 @@
-scs-slack-failure-channel: "#sc-app-broker"
+ab-slack-success-channel: "#sc-app-broker"
+ab-slack-failure-channel: "#sc-app-broker"
 
 bintray-distribution-repo: spring-cloud-app-broker
 bintray-package: spring-cloud-app-broker

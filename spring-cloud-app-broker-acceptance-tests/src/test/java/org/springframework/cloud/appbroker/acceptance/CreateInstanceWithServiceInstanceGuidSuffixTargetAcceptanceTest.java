@@ -83,7 +83,7 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetAcceptanceTest extends Cl
 
 		// and the services are bound to it
 		final String expectedServiceInstanceName = BACKING_SI_NAME + "-" + serviceInstanceGuid;
-		ServiceInstance serviceInstance1 = getServiceInstance(expectedServiceInstanceName);
+		ServiceInstance serviceInstance1 = getBackingServiceInstance(expectedServiceInstanceName);
 		assertThat(serviceInstance1.getApplications()).contains(expectedApplicationName);
 
 		// when the service instance is deleted

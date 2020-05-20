@@ -84,7 +84,7 @@ class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		// and the services are bound to it
-		ServiceInstance backingServiceInstance = getServiceInstance(BACKING_SI_NAME);
+		ServiceInstance backingServiceInstance = getBackingServiceInstance(BACKING_SI_NAME);
 		assertThat(backingServiceInstance.getApplications()).contains(APP_NAME);
 
 		String path = backingApplication.get().getUrls().get(0);
@@ -108,7 +108,7 @@ class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		// and the services are still bound to it
-		ServiceInstance backingServiceInstanceUpdated = getServiceInstance(BACKING_SI_NAME);
+		ServiceInstance backingServiceInstanceUpdated = getBackingServiceInstance(BACKING_SI_NAME);
 		assertThat(backingServiceInstanceUpdated.getApplications()).contains(APP_NAME);
 
 		// then the service instance is deleted

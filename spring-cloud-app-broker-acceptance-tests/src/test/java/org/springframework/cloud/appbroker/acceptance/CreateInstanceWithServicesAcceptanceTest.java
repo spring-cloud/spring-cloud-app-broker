@@ -70,7 +70,7 @@ class CreateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 	})
 	void deployAppsAndCreateServicesOnCreateService() {
 		// given that a service is available in the marketplace
-		createServiceInstance(BACKING_SERVICE_NAME, PLAN_NAME, BACKING_SI_2_NAME, emptyMap());
+		createBackingServiceInstance(BACKING_SERVICE_NAME, PLAN_NAME, BACKING_SI_2_NAME, emptyMap());
 
 		// when a service instance is created
 		createServiceInstance(SI_NAME);
@@ -81,10 +81,10 @@ class CreateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		// and the services are bound to it
-		ServiceInstance serviceInstance1 = getServiceInstance(BACKING_SI_1_NAME);
+		ServiceInstance serviceInstance1 = getBackingServiceInstance(BACKING_SI_1_NAME);
 		assertThat(serviceInstance1.getApplications()).contains(APP_NAME);
 
-		ServiceInstance serviceInstance2 = getServiceInstance(BACKING_SI_2_NAME);
+		ServiceInstance serviceInstance2 = getBackingServiceInstance(BACKING_SI_2_NAME);
 		assertThat(serviceInstance2.getApplications()).contains(APP_NAME);
 
 		// when the service instance is deleted

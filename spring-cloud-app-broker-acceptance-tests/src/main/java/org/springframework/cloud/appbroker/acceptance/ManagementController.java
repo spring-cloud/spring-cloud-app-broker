@@ -46,9 +46,13 @@ public class ManagementController {
 	 * @param serviceInstanceId the id of the service to test
 	 * @return a response
 	 */
-	@GetMapping("/start/{serviceInstanceId}")
-	public Mono<String> startApplications(@PathVariable String serviceInstanceId) {
-		return service.start(serviceInstanceId)
+	@GetMapping("/start/{serviceName}/{planName}/{serviceInstanceId}")
+	public Mono<String> startApplications(
+		@PathVariable String serviceInstanceId,
+		@PathVariable String serviceName,
+		@PathVariable String planName
+	) {
+		return service.start(serviceInstanceId, serviceName, planName)
 			.thenReturn("starting " + serviceInstanceId);
 	}
 
@@ -58,9 +62,13 @@ public class ManagementController {
 	 * @param serviceInstanceId the id of the service to test
 	 * @return a response
 	 */
-	@GetMapping("/stop/{serviceInstanceId}")
-	public Mono<String> stopApplications(@PathVariable String serviceInstanceId) {
-		return service.stop(serviceInstanceId)
+	@GetMapping("/stop/{serviceName}/{planName}/{serviceInstanceId}")
+	public Mono<String> stopApplications(
+		@PathVariable String serviceInstanceId,
+		@PathVariable String serviceName,
+		@PathVariable String planName
+	) {
+		return service.stop(serviceInstanceId, serviceName, planName)
 			.thenReturn("stopping " + serviceInstanceId);
 	}
 
@@ -70,9 +78,13 @@ public class ManagementController {
 	 * @param serviceInstanceId the id of the service to test
 	 * @return a response
 	 */
-	@GetMapping("/restart/{serviceInstanceId}")
-	public Mono<String> restartApplications(@PathVariable String serviceInstanceId) {
-		return service.restart(serviceInstanceId)
+	@GetMapping("/restart/{serviceName}/{planName}/{serviceInstanceId}")
+	public Mono<String> restartApplications(
+		@PathVariable String serviceInstanceId,
+		@PathVariable String serviceName,
+		@PathVariable String planName
+	) {
+		return service.restart(serviceInstanceId, serviceName, planName)
 			.thenReturn("restarting " + serviceInstanceId);
 	}
 
@@ -82,9 +94,13 @@ public class ManagementController {
 	 * @param serviceInstanceId the id of the service to test
 	 * @return a response
 	 */
-	@GetMapping("/restage/{serviceInstanceId}")
-	public Mono<String> restageApplications(@PathVariable String serviceInstanceId) {
-		return service.restage(serviceInstanceId)
+	@GetMapping("/restage/{serviceName}/{planName}/{serviceInstanceId}")
+	public Mono<String> restageApplications(
+		@PathVariable String serviceInstanceId,
+		@PathVariable String serviceName,
+		@PathVariable String planName
+	) {
+		return service.restage(serviceInstanceId, serviceName, planName)
 			.thenReturn("restaging " + serviceInstanceId);
 	}
 

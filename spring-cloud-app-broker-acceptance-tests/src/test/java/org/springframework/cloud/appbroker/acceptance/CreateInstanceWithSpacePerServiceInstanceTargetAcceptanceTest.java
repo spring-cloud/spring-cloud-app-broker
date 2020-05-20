@@ -95,7 +95,7 @@ class CreateInstanceWithSpacePerServiceInstanceTargetAcceptanceTest extends Clou
 			assertThat(app.getRunningInstances()).isEqualTo(1));
 
 		// and the services are bound to it
-		ServiceInstance serviceInstance1 = getServiceInstance(BACKING_SI_NAME, spaceName);
+		ServiceInstance serviceInstance1 = getBackingServiceInstance(BACKING_SI_NAME, spaceName);
 		assertThat(serviceInstance1.getApplications()).contains(APP_NAME_1);
 
 		// when the service instance is deleted

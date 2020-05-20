@@ -58,20 +58,20 @@ class AppManagementRestageAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	@BeforeEach
 	void setUp() {
-		StepVerifier.create(cloudFoundryService.deleteServiceInstance(SI_NAME))
+		StepVerifier.create(userCloudFoundryService.deleteServiceInstance(SI_NAME))
 			.verifyComplete();
 
-		StepVerifier.create(cloudFoundryService.createServiceInstance(PLAN_NAME, APP_SERVICE_NAME, SI_NAME, null))
+		StepVerifier.create(userCloudFoundryService.createServiceInstance(PLAN_NAME, APP_SERVICE_NAME, SI_NAME, null))
 			.verifyComplete();
 
-		StepVerifier.create(cloudFoundryService.getServiceInstance(SI_NAME))
+		StepVerifier.create(userCloudFoundryService.getServiceInstance(SI_NAME))
 			.assertNext(serviceInstance -> assertThat(serviceInstance.getStatus()).isEqualTo("succeeded"))
 			.verifyComplete();
 	}
 
 	@AfterEach
 	void cleanUp() {
-		StepVerifier.create(cloudFoundryService.deleteServiceInstance(SI_NAME))
+		StepVerifier.create(userCloudFoundryService.deleteServiceInstance(SI_NAME))
 			.verifyComplete();
 
 		StepVerifier.create(getApplications(APP_1, APP_2))
@@ -93,7 +93,7 @@ class AppManagementRestageAcceptanceTest extends CloudFoundryAcceptanceTest {
 		Date originallySince2 = apps.get(1).getInstanceDetails().get(0).getSince();
 		assertThat(apps).extracting("runningInstances").containsOnly(1);
 
-		StepVerifier.create(manageApps(SI_NAME, "restage"))
+		StepVerifier.create(manageApps(SI_NAME, APP_SERVICE_NAME, PLAN_NAME, "restage"))
 			.assertNext(result -> assertThat(result).contains("restaging"))
 			.verifyComplete();
 

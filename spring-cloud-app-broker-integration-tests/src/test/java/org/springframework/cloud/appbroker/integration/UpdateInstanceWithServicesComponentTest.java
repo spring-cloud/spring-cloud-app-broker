@@ -70,8 +70,6 @@ class UpdateInstanceWithServicesComponentTest extends WiremockComponentTest {
 	void updateAppWithServices() {
 		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SERVICE_INSTANCE_NAME,
 			BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-			SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubUpdateApp(APP_NAME);
 
 		// when a service instance is updated

@@ -54,20 +54,20 @@ class AppManagementStopAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	@BeforeEach
 	void setUp() {
-		StepVerifier.create(cloudFoundryService.deleteServiceInstance(SI_NAME))
+		StepVerifier.create(userCloudFoundryService.deleteServiceInstance(SI_NAME))
 			.verifyComplete();
 
-		StepVerifier.create(cloudFoundryService.createServiceInstance(PLAN_NAME, APP_SERVICE_NAME, SI_NAME, null))
+		StepVerifier.create(userCloudFoundryService.createServiceInstance(PLAN_NAME, APP_SERVICE_NAME, SI_NAME, null))
 			.verifyComplete();
 
-		StepVerifier.create(cloudFoundryService.getServiceInstance(SI_NAME))
+		StepVerifier.create(userCloudFoundryService.getServiceInstance(SI_NAME))
 			.assertNext(serviceInstance -> assertThat(serviceInstance.getStatus()).isEqualTo("succeeded"))
 			.verifyComplete();
 	}
 
 	@AfterEach
 	void cleanUp() {
-		StepVerifier.create(cloudFoundryService.deleteServiceInstance(SI_NAME))
+		StepVerifier.create(userCloudFoundryService.deleteServiceInstance(SI_NAME))
 			.verifyComplete();
 
 		StepVerifier.create(getApplications(APP_1, APP_2))
@@ -84,7 +84,7 @@ class AppManagementStopAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[1].path=" + BACKING_APP_PATH
 	})
 	void stopApps() {
-		StepVerifier.create(manageApps(SI_NAME, "stop"))
+		StepVerifier.create(manageApps(SI_NAME, APP_SERVICE_NAME, PLAN_NAME, "stop"))
 			.assertNext(result -> assertThat(result).contains("stopping"))
 			.verifyComplete();
 

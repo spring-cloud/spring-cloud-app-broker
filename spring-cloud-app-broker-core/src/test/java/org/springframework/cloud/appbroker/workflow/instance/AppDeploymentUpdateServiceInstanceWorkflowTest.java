@@ -182,7 +182,8 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
 
 		setupMocks(request);
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.just(getExistingBackingAppsWithService("existing-service-instance")));
 		given(this.servicesProvisionService.createServiceInstance(any()))
 			.willReturn(Flux.just("my-service-instance"));
@@ -214,7 +215,8 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		UpdateServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
 		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
 
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.empty());
 
 		StepVerifier
@@ -250,7 +252,8 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		given(this.servicesProvisionService.deleteServiceInstance(any()))
 			.willReturn(Flux.empty());
 
-		given(this.backingAppManagementService.getDeployedBackingApplications(eq(request.getServiceInstanceId())))
+		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.just(getExistingBackingAppsWithService("my-service-instance")));
 	}
 

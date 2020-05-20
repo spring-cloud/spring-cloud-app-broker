@@ -63,9 +63,6 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteServicesWhenTheyExist() {
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-			SERVICE_NAME, PLAN_NAME);
-
 		cloudControllerFixture.stubGetBackingServiceInstance(BACKING_SI_NAME, BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 
 		cloudControllerFixture.stubServiceBindingsDoNotExist(BACKING_SI_NAME);
@@ -92,9 +89,6 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteServicesWhenTheyDoNotExist() {
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-							SERVICE_NAME, PLAN_NAME);
-
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())
 			.when()

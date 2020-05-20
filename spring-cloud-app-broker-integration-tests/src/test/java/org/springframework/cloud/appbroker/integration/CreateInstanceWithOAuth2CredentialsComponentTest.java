@@ -128,8 +128,6 @@ class CreateInstanceWithOAuth2CredentialsComponentTest extends WiremockComponent
 
 	@Test
 	void deleteAppWithOAuth2Credentials() {
-		cloudControllerFixture.stubGetServiceInstanceWithNoBinding("instance-id", "instance-name",
-							SERVICE_NAME, PLAN_NAME);
 		cloudControllerFixture.stubAppExists(APP_NAME_1);
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME_1);
 		cloudControllerFixture.stubDeleteApp(APP_NAME_1);

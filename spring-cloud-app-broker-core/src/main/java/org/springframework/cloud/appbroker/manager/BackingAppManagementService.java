@@ -56,8 +56,32 @@ public class BackingAppManagementService {
 		this.targetService = targetService;
 	}
 
+	/**
+	 * Helper method that fetches service name and plan name from Cloud Foundry Service Instances API (CF API) and
+	 * invokes {@code stop(serviceInstanceId, serviceName, planName)}.
+	 *
+	 * Because this method will try to fetch user-created service instance, UAA client used by the broker has to be a
+	 * space developer of the space containing the service instance, or has to have {@code cloud_controller.admin}
+	 * authority. If you want to avoid CF API call, use
+	 * {@link BackingAppManagementService#stop(String, String, String)} method.
+	 *
+	 * @param serviceInstanceId target service instance id
+	 * @return completes when the operation is completed
+	 */
 	public Mono<Void> stop(String serviceInstanceId) {
-		return getBackingApplicationsForService(serviceInstanceId)
+		return fetchServiceDetailsAndInvoke(serviceInstanceId, this::stop);
+	}
+
+
+	/**
+	 * Stops the backing applications for the service instance with the given id
+	 * @param serviceInstanceId target service instance id
+	 * @param serviceName service name
+	 * @param planName plan name
+	 * @return completes when the operation is completed
+	 */
+	public Mono<Void> stop(String serviceInstanceId, String serviceName, String planName) {
+		return getBackingApplicationsForService(serviceInstanceId, serviceName, planName)
 			.flatMapMany(backingApps -> Flux.fromIterable(backingApps)
 				.parallel()
 				.runOn(Schedulers.parallel())
@@ -77,8 +101,31 @@ public class BackingAppManagementService {
 			.then();
 	}
 
+	/**
+	 * Helper method that fetches service name and plan name from Cloud Foundry Service Instances API (CF API) and
+	 * invokes {@code start(serviceInstanceId, serviceName, planName)}.
+	 *
+	 * Because this method will try to fetch user-created service instance, UAA client used by the broker has to be a
+	 * space developer of the space containing the service instance, or has to have {@code cloud_controller.admin}
+	 * authority. If you want to avoid CF API call, use
+	 * {@link BackingAppManagementService#start(String, String, String)} method.
+	 *
+	 * @param serviceInstanceId target service instance id
+	 * @return completes when the operation is completed
+	 */
 	public Mono<Void> start(String serviceInstanceId) {
-		return getBackingApplicationsForService(serviceInstanceId)
+		return fetchServiceDetailsAndInvoke(serviceInstanceId, this::start);
+	}
+
+	/**
+	 * Starts the backing applications for the service instance with the given id
+	 * @param serviceInstanceId target service instance id
+	 * @param serviceName service name
+	 * @param planName plan name
+	 * @return completes when the operation is completed
+	 */
+	public Mono<Void> start(String serviceInstanceId, String serviceName, String planName) {
+		return getBackingApplicationsForService(serviceInstanceId, serviceName, planName)
 			.flatMapMany(backingApps -> Flux.fromIterable(backingApps)
 				.parallel()
 				.runOn(Schedulers.parallel())
@@ -98,8 +145,31 @@ public class BackingAppManagementService {
 			.then();
 	}
 
+	/**
+	 * Helper method that fetches service name and plan name from Cloud Foundry Service Instances API (CF API) and
+	 * invokes {@code restart(serviceInstanceId, serviceName, planName)}.
+	 *
+	 * Because this method will try to fetch user-created service instance, UAA client used by the broker has to be a
+	 * space developer of the space containing the service instance, or has to have {@code cloud_controller.admin}
+	 * authority. If you want to avoid CF API call, use
+	 * {@link BackingAppManagementService#restart(String, String, String)} method.
+	 *
+	 * @param serviceInstanceId target service instance id
+	 * @return completes when the operation is completed
+	 */
 	public Mono<Void> restart(String serviceInstanceId) {
-		return getBackingApplicationsForService(serviceInstanceId)
+		return fetchServiceDetailsAndInvoke(serviceInstanceId, this::restart);
+	}
+
+	/**
+	 * Restarts the backing applications for the service instance with the given id
+	 * @param serviceInstanceId target service instance id
+	 * @param serviceName service name
+	 * @param planName plan name
+	 * @return completes when the operation is completed
+	 */
+	public Mono<Void> restart(String serviceInstanceId, String serviceName, String planName) {
+		return getBackingApplicationsForService(serviceInstanceId, serviceName, planName)
 			.flatMapMany(backingApps -> Flux.fromIterable(backingApps)
 				.parallel()
 				.runOn(Schedulers.parallel())
@@ -119,8 +189,31 @@ public class BackingAppManagementService {
 			.then();
 	}
 
+	/**
+	 * Helper method that fetches service name and plan name from Cloud Foundry Service Instances API (CF API) and
+	 * invokes {@code restage(serviceInstanceId, serviceName, planName)}.
+	 *
+	 * Because this method will try to fetch user-created service instance, UAA client used by the broker has to be a
+	 * space developer of the space containing the service instance, or has to have {@code cloud_controller.admin}
+	 * authority. If you want to avoid CF API call, use
+	 * {@link BackingAppManagementService#restage(String, String, String)} method.
+	 *
+	 * @param serviceInstanceId target service instance id
+	 * @return completes when the operation is completed
+	 */
 	public Mono<Void> restage(String serviceInstanceId) {
-		return getBackingApplicationsForService(serviceInstanceId)
+		return fetchServiceDetailsAndInvoke(serviceInstanceId, this::restage);
+	}
+
+	/**
+	 * Restages the backing applications for the service instance with the given id
+	 * @param serviceInstanceId target service instance id
+	 * @param serviceName service name
+	 * @param planName plan name
+	 * @return completes when the operation is completed
+	 */
+	public Mono<Void> restage(String serviceInstanceId, String serviceName, String planName) {
+		return getBackingApplicationsForService(serviceInstanceId, serviceName, planName)
 			.flatMapMany(backingApps -> Flux.fromIterable(backingApps)
 				.parallel()
 				.runOn(Schedulers.parallel())
@@ -140,8 +233,31 @@ public class BackingAppManagementService {
 			.then();
 	}
 
+	/**
+	 * Helper method that fetches service name and plan name from Cloud Foundry Service Instances API (CF API) and
+	 * invokes {@code getDeployedBackingApplications(serviceInstanceId, serviceName, planName)}.
+	 *
+	 * Because this method will try to fetch user-created service instance, UAA client used by the broker has to be a
+	 * space developer of the space containing the service instance, or has to have {@code cloud_controller.admin}
+	 * authority. If you want to avoid CF API call, use
+	 * {@link BackingAppManagementService#getDeployedBackingApplications(String, String, String)} method.
+	 *
+	 * @param serviceInstanceId target service instance id
+	 * @return backing applications for the target service instance
+	 */
 	public Mono<BackingApplications> getDeployedBackingApplications(String serviceInstanceId) {
-		return getBackingApplicationsForService(serviceInstanceId)
+		return fetchServiceDetailsAndInvoke(serviceInstanceId, this::getDeployedBackingApplications);
+	}
+
+	/**
+	 * Returns a list of backing applications for the service instance with the given id
+	 * @param serviceInstanceId target service instance id
+	 * @param serviceName service name
+	 * @param planName plan name
+	 * @return backing applications for the target service instance
+	 */
+	public Mono<BackingApplications> getDeployedBackingApplications(String serviceInstanceId, String serviceName, String planName) {
+		return getBackingApplicationsForService(serviceInstanceId, serviceName, planName)
 			.flatMapMany(Flux::fromIterable)
 			.flatMap(app ->
 				appDeployer
@@ -150,9 +266,9 @@ public class BackingAppManagementService {
 						.properties(app.getProperties())
 						.build())
 					.flatMap(response -> Flux.fromIterable(response.getServices())
-						.map(serviceName ->
+						.map(boundServiceName ->
 							ServicesSpec.builder()
-								.serviceInstanceName(serviceName)
+								.serviceInstanceName(boundServiceName)
 								.build())
 						.collectList()
 						.map(services -> BackingApplication
@@ -176,13 +292,18 @@ public class BackingAppManagementService {
 			.doOnSuccess(backingApplications -> LOG.debug("backingApplications={}", backingApplications));
 	}
 
-	private Mono<BackingApplications> getBackingApplicationsForService(String serviceInstanceId) {
-		return appDeployer.getServiceInstance(GetServiceInstanceRequest.builder()
-			.serviceInstanceId(serviceInstanceId)
-			.build())
-			.flatMap(response -> findBrokeredService(response.getService(), response.getPlan()))
+	public Mono<BackingApplications> getBackingApplicationsForService(String serviceInstanceId, String serviceName,
+		String planName) {
+		return findBrokeredService(serviceName, planName)
 			.flatMap(brokeredService -> updateBackingApps(brokeredService, serviceInstanceId))
 			.map(backingApplications -> BackingApplications.builder().backingApplications(backingApplications).build());
+	}
+
+	private <T> Mono<T> fetchServiceDetailsAndInvoke(String serviceInstanceId, BackingAppAction<T> action) {
+		return appDeployer
+			.getServiceInstance(GetServiceInstanceRequest.builder().serviceInstanceId(serviceInstanceId).build())
+			.flatMap(serviceInstance -> action.invoke(serviceInstanceId, serviceInstance.getService(),
+				serviceInstance.getPlan()));
 	}
 
 	private Mono<BrokeredService> findBrokeredService(String serviceName, String planName) {
@@ -199,6 +320,11 @@ public class BackingAppManagementService {
 			.build())
 			.flatMap(backingApps -> targetService.addToBackingApplications(backingApps,
 				brokeredService.getTarget(), serviceInstanceId));
+	}
+
+	@FunctionalInterface
+	private interface BackingAppAction<T> {
+		Mono<T> invoke(String serviceInstanceId, String serviceName, String planName);
 	}
 
 }

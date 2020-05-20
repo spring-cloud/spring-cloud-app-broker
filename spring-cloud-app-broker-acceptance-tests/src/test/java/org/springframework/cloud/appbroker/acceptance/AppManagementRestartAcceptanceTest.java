@@ -33,7 +33,7 @@ class AppManagementRestartAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	private static final String APP_1 = "app-1-" + SUFFIX;
 
-	private static final String APP_2 = "app-2" + SUFFIX;
+	private static final String APP_2 = "app-2-" + SUFFIX;
 
 	private static final String SI_NAME = "si-managed" + SUFFIX;
 
@@ -58,20 +58,20 @@ class AppManagementRestartAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 	@BeforeEach
 	void setUp() {
-		StepVerifier.create(cloudFoundryService.deleteServiceInstance(SI_NAME))
+		StepVerifier.create(userCloudFoundryService.deleteServiceInstance(SI_NAME))
 			.verifyComplete();
 
-		StepVerifier.create(cloudFoundryService.createServiceInstance(PLAN_NAME, APP_SERVICE_NAME, SI_NAME, null))
+		StepVerifier.create(userCloudFoundryService.createServiceInstance(PLAN_NAME, APP_SERVICE_NAME, SI_NAME, null))
 			.verifyComplete();
 
-		StepVerifier.create(cloudFoundryService.getServiceInstance(SI_NAME))
+		StepVerifier.create(userCloudFoundryService.getServiceInstance(SI_NAME))
 			.assertNext(serviceInstance -> assertThat(serviceInstance.getStatus()).isEqualTo("succeeded"))
 			.verifyComplete();
 	}
 
 	@AfterEach
 	void cleanUp() {
-		StepVerifier.create(cloudFoundryService.deleteServiceInstance(SI_NAME))
+		StepVerifier.create(userCloudFoundryService.deleteServiceInstance(SI_NAME))
 			.verifyComplete();
 
 		StepVerifier.create(getApplications(APP_1, APP_2))
@@ -92,7 +92,7 @@ class AppManagementRestartAcceptanceTest extends CloudFoundryAcceptanceTest {
 		Date originallySince1 = apps.get(0).getInstanceDetails().get(0).getSince();
 		Date originallySince2 = apps.get(1).getInstanceDetails().get(0).getSince();
 
-		StepVerifier.create(manageApps(SI_NAME, "restart"))
+		StepVerifier.create(manageApps(SI_NAME, APP_SERVICE_NAME, PLAN_NAME, "restart"))
 			.assertNext(result -> assertThat(result).contains("restarting"))
 			.verifyComplete();
 

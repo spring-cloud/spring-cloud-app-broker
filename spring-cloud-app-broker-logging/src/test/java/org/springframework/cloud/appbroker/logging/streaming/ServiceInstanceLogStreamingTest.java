@@ -40,10 +40,13 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.appbroker.logging.LoggingUtils;
+import org.springframework.cloud.appbroker.logging.streaming.events.ServiceInstanceLogEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -64,6 +67,9 @@ class ServiceInstanceLogStreamingTest {
 
 	@MockBean(answer = Answers.RETURNS_DEEP_STUBS)
 	CloudFoundryClient cloudFoundryClient;
+
+	@Autowired
+	ApplicationEventPublisher applicationEventPublisher;
 
 	private Envelope expectedEnvelope;
 
@@ -132,6 +138,19 @@ class ServiceInstanceLogStreamingTest {
 
 		await().atMost(Duration.ofSeconds(1))
 			.untilAsserted(() -> assertThat(LogStreamingTestApp.isReceivedStopEvent()).isTrue());
+	}
+
+	@Test
+	void shouldStopStreamingIfNoClient() {
+		// CLI plugin doesn't always handle disconnect gracefully, so sometimes it is possible that log stream is
+		// being published but there is no listener. In this case log streaming should be stopped.
+
+		Disposable subscription = connectToLogsStreamEndpoint();
+		subscription.dispose();
+
+		applicationEventPublisher.publishEvent(new ServiceInstanceLogEvent(this, serviceInstanceId, expectedEnvelope));
+		await().atMost(Duration.ofSeconds(1))
+			.untilAsserted(() -> assertThat(LogStreamingTestApp.getReceivedStopEventServiceInstanceId()).isEqualTo(serviceInstanceId));
 	}
 
 	private Disposable connectToLogsStreamEndpoint() {

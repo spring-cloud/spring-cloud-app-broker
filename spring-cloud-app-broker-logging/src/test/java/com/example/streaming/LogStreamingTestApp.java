@@ -37,6 +37,7 @@ public class LogStreamingTestApp {
 	static final String APP_ID = UUID.randomUUID().toString();
 
 	static boolean receivedStopEvent;
+	static String receivedStopEventServiceInstanceId;
 
 	public static String getAppId() {
 		return APP_ID;
@@ -46,6 +47,10 @@ public class LogStreamingTestApp {
 		return receivedStopEvent;
 	}
 
+	public static String getReceivedStopEventServiceInstanceId() {
+		return receivedStopEventServiceInstanceId;
+	}
+
 	@Bean
 	ApplicationIdsProvider applicationIdsProvider() {
 		return serviceInstanceId -> Flux.just(APP_ID);
@@ -53,6 +58,7 @@ public class LogStreamingTestApp {
 
 	@EventListener
 	public void onStop(StopServiceInstanceLoggingEvent stopServiceInstanceLoggingEvent) {
+		receivedStopEventServiceInstanceId = stopServiceInstanceLoggingEvent.getServiceInstanceId();
 		receivedStopEvent = true;
 	}
 

@@ -84,8 +84,10 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 		EmitterProcessor<Envelope> processor = this.processors.get(event.getServiceInstanceId());
 		if (processor == null) {
 			if (LOG.isWarnEnabled()) {
-				LOG.warn("No processor found for {}, can't stream logs", event.getServiceInstanceId());
+				LOG.warn("No processor found for {}, stopping log streaming", event.getServiceInstanceId());
 			}
+
+			eventPublisher.publishEvent(new StopServiceInstanceLoggingEvent(this, event.getServiceInstanceId()));
 
 			return;
 		}

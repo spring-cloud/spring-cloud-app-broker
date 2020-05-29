@@ -36,7 +36,9 @@ import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 
 public class BackingAppManagementService {
 
-	private final Logger log = Loggers.getLogger(BackingAppManagementService.class);
+	private static final Logger LOG = Loggers.getLogger(BackingAppManagementService.class);
+
+	private static final String BACKINGAPPS_LOG_TEMPLATE = "backingApp={}";
 
 	private final ManagementClient managementClient;
 
@@ -60,11 +62,18 @@ public class BackingAppManagementService {
 				.parallel()
 				.runOn(Schedulers.parallel())
 				.flatMap(managementClient::stop)
-				.doOnRequest(l -> log.debug("Stopping applications {}", backingApps))
-				.doOnEach(response -> log.debug("Finished stopping application {}", response))
-				.doOnComplete(() -> log.debug("Finished stopping application {}", backingApps))
-				.doOnError(exception -> log.error(String.format("Error stopping applications %s with error '%s'",
-					backingApps, exception.getMessage()), exception)))
+				.doOnRequest(l -> {
+					LOG.info("Stopping applications");
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				})
+				.doOnComplete(() -> {
+					LOG.info("Finish stopping applications");
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				})
+				.doOnError(e -> {
+					LOG.error(String.format("Error stopping applications. error=%s", e.getMessage()), e);
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				}))
 			.then();
 	}
 
@@ -74,11 +83,18 @@ public class BackingAppManagementService {
 				.parallel()
 				.runOn(Schedulers.parallel())
 				.flatMap(managementClient::start)
-				.doOnRequest(l -> log.debug("Starting applications {}", backingApps))
-				.doOnEach(response -> log.debug("Finished starting application {}", response))
-				.doOnComplete(() -> log.debug("Finished starting application {}", backingApps))
-				.doOnError(exception -> log.error(String.format("Error starting applications %s with error '%s'",
-					backingApps, exception.getMessage()), exception)))
+				.doOnRequest(l -> {
+					LOG.info("Starting applications");
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				})
+				.doOnComplete(() -> {
+					LOG.info("Finish starting applications");
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				})
+				.doOnError(e -> {
+					LOG.error(String.format("Error starting applications. error=%s", e.getMessage()), e);
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				}))
 			.then();
 	}
 
@@ -88,11 +104,18 @@ public class BackingAppManagementService {
 				.parallel()
 				.runOn(Schedulers.parallel())
 				.flatMap(managementClient::restart)
-				.doOnRequest(l -> log.debug("Restarting applications {}", backingApps))
-				.doOnEach(response -> log.debug("Finished restarting application {}", response))
-				.doOnComplete(() -> log.debug("Finished restarting application {}", backingApps))
-				.doOnError(exception -> log.error(String.format("Error restarting applications %s with error '%s'",
-					backingApps, exception.getMessage()), exception)))
+				.doOnRequest(l -> {
+					LOG.info("Restarting applications");
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				})
+				.doOnComplete(() -> {
+					LOG.info("Finish restarting applications");
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				})
+				.doOnError(e -> {
+					LOG.error(String.format("Error restarting applications. error=%s", e.getMessage()), e);
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				}))
 			.then();
 	}
 
@@ -102,11 +125,18 @@ public class BackingAppManagementService {
 				.parallel()
 				.runOn(Schedulers.parallel())
 				.flatMap(managementClient::restage)
-				.doOnRequest(l -> log.debug("Restaging applications {}", backingApps))
-				.doOnEach(response -> log.debug("Finished restaging application {}", response))
-				.doOnComplete(() -> log.debug("Finished restaging application {}", backingApps))
-				.doOnError(exception -> log.error(String.format("Error restaging applications %s with error '%s'",
-					backingApps, exception.getMessage()), exception)))
+				.doOnRequest(l -> {
+					LOG.info("Restaging applications");
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				})
+				.doOnComplete(() -> {
+					LOG.info("Finish restaging applications");
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				})
+				.doOnError(e -> {
+					LOG.error(String.format("Error restaging applications. error=%s", e.getMessage()), e);
+					LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+				}))
 			.then();
 	}
 
@@ -131,12 +161,19 @@ public class BackingAppManagementService {
 							.services(services)
 							.environment(response.getEnvironment())
 							.build()))
-					.doOnRequest(l -> log.debug("Getting deployed backing applications {}", app))
-					.doOnError(exception -> log.error(String.format("Error getting deployed backing application %s " +
-						"with error '%s'", app.getName(), exception.getMessage()), exception))
+					.doOnRequest(l -> {
+						LOG.info("Getting deployed backing application. appName={}", app.getName());
+						LOG.debug("backingApp={}", app);
+					})
+					.doOnError(e -> {
+						LOG.error(String.format("Error getting deployed backing application. appName=%s, error=%s",
+							app.getName(), e.getMessage()), e);
+						LOG.debug("backingApp={}", app);
+					})
 					.onErrorResume(exception -> Mono.empty()))
 			.collectList()
-			.map(BackingApplications::new);
+			.map(BackingApplications::new)
+			.doOnSuccess(backingApplications -> LOG.debug("backingApplications={}", backingApplications));
 	}
 
 	private Mono<BackingApplications> getBackingApplicationsForService(String serviceInstanceId) {

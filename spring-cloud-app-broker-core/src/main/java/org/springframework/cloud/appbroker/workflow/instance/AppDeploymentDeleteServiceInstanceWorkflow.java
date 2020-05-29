@@ -44,7 +44,9 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	extends AppDeploymentInstanceWorkflow
 	implements DeleteServiceInstanceWorkflow {
 
-	private final Logger log = Loggers.getLogger(AppDeploymentDeleteServiceInstanceWorkflow.class);
+	private static final Logger LOG = Loggers.getLogger(AppDeploymentDeleteServiceInstanceWorkflow.class);
+
+	private static final String REQUEST_LOG_TEMPLATE = "request={}";
 
 	private final BackingAppDeploymentService deploymentService;
 
@@ -86,11 +88,24 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 				}
 				return Flux.empty();
 			})
-			.doOnComplete(() -> log.debug("Finished deleting backing services for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error(String.format("Error deleting backing services for %s/%s with error '%s'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
-				exception));
+			.doOnRequest(l -> {
+				LOG.info("Deleting backing services. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish deleting backing services. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnError(e -> {
+				if (LOG.isErrorEnabled()) {
+					LOG.error(String.format("Error deleting backing services. " +
+							"serviceDefinitionName=%s, planName=%s, error=%s", request.getServiceDefinition().getName(),
+						request.getPlan().getName(), e.getMessage()), e);
+				}
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			});
 	}
 
 	private Flux<BackingService> collectBackingServices(DeleteServiceInstanceRequest request) {
@@ -138,14 +153,24 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 					request.getServiceInstanceId()))
 				.defaultIfEmpty(backingApps))
 			.flatMapMany(deploymentService::undeploy)
-			.doOnRequest(l -> log.debug("Undeploying backing applications for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnComplete(() -> log.debug("Finished undeploying backing applications for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(
-				exception -> log.error(String.format("Error undeploying backing applications for %s/%s with error '%s'",
-					request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
-					exception));
+			.doOnRequest(l -> {
+				LOG.info("Undeploying backing applications. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish undeploying backing applications. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnError(e -> {
+				if (LOG.isErrorEnabled()) {
+					LOG.error(String.format("Error undeploying backing applications. serviceDefinitionName=%s, " +
+							"planName=%s, error=%s", request.getServiceDefinition().getName(), request.getPlan().getName(),
+						e.getMessage()), e);
+				}
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			});
 	}
 
 	@Override

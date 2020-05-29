@@ -30,6 +30,8 @@ public class CloudFoundryAppManager implements AppManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CloudFoundryAppManager.class);
 
+	private static final String REQUEST_LOG_TEMPLATE = "request={}";
+
 	private final CloudFoundryOperationsUtils operationsUtils;
 
 	public CloudFoundryAppManager(CloudFoundryOperationsUtils operationsUtils) {
@@ -45,9 +47,19 @@ public class CloudFoundryAppManager implements AppManager {
 						org.cloudfoundry.operations.applications.StartApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> LOG.debug("Starting application {}", appName))
-						.doOnSuccess(item -> LOG.info("Successfully started application {}", appName))
-						.doOnError(error -> LOG.error("Failed to start application {}", appName)))));
+						.doOnRequest(l -> {
+							LOG.info("Starting application. appName={}", appName);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnSuccess(v -> {
+							LOG.info("Success starting application. appName={}", appName);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnError(e -> {
+							LOG.error(String.format("Error starting application. appName=%s, error=%s", appName,
+								e.getMessage()), e);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						}))));
 	}
 
 	@Override
@@ -59,9 +71,19 @@ public class CloudFoundryAppManager implements AppManager {
 						org.cloudfoundry.operations.applications.StopApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> LOG.debug("Stopping application {}", appName))
-						.doOnSuccess(item -> LOG.info("Successfully stopped application {}", appName))
-						.doOnError(error -> LOG.error("Failed to stop application {}", appName)))));
+						.doOnRequest(l -> {
+							LOG.info("Stopping application. appName={}", appName);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnSuccess(v -> {
+							LOG.info("Success stopping application. appName={}", appName);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnError(e -> {
+							LOG.error(String.format("Error stopping application. appName=%s, error=%s", appName,
+								e.getMessage()), e);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						}))));
 	}
 
 	@Override
@@ -73,9 +95,19 @@ public class CloudFoundryAppManager implements AppManager {
 						org.cloudfoundry.operations.applications.RestartApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> LOG.debug("Restarting application {}", appName))
-						.doOnSuccess(item -> LOG.info("Successfully restarted application {}", appName))
-						.doOnError(error -> LOG.error("Failed to restart application {}", appName)))));
+						.doOnRequest(l -> {
+							LOG.info("Restarting application. appName={}", appName);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnSuccess(v -> {
+							LOG.info("Success restarting application. appName={}", appName);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnError(e -> {
+							LOG.error(String.format("Error restarting application. appName=%s, error=%s", appName,
+								e.getMessage()), e);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						}))));
 	}
 
 	@Override
@@ -87,9 +119,19 @@ public class CloudFoundryAppManager implements AppManager {
 						org.cloudfoundry.operations.applications.RestageApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> LOG.debug("Restaging application {}", appName))
-						.doOnSuccess(item -> LOG.info("Successfully restaged application {}", appName))
-						.doOnError(error -> LOG.error("Failed to restage application {}", appName)))));
+						.doOnRequest(l -> {
+							LOG.info("Restaging application. appName={}", appName);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnSuccess(v -> {
+							LOG.info("Success restaging application. appName={}", appName);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnError(e -> {
+							LOG.error(String.format("Error restaging application. appName=%s, error=%s", appName,
+								e.getMessage()), e);
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						}))));
 	}
 
 }

@@ -26,6 +26,8 @@ public class ManagementClient {
 
 	private static final Logger LOG = Loggers.getLogger(ManagementClient.class);
 
+	private static final String BACKINGAPP_LOG_TEMPLATE = "backingApp={}";
+
 	private final AppManager appManager;
 
 	public ManagementClient(AppManager appManager) {
@@ -38,10 +40,19 @@ public class ManagementClient {
 				.name(backingApp.getName())
 				.properties(backingApp.getProperties())
 				.build())
-				.doOnRequest(l -> LOG.debug("Starting application {}", backingApp))
-				.doOnSuccess(response -> LOG.debug("Finished starting application {}", backingApp))
-				.doOnError(exception -> LOG.error(String.format("Error starting application %s with error '%s'",
-					backingApp, exception.getMessage()), exception)));
+				.doOnRequest(l -> {
+					LOG.info("Starting application. backingAppName={}", backingApp.getName());
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				})
+				.doOnSuccess(response -> {
+					LOG.info("Success starting application. backingAppName={}", backingApp.getName());
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				})
+				.doOnError(e -> {
+					LOG.error(String.format("Error starting application. backingAppName=%s, error=%s",
+						backingApp.getName(), e.getMessage()), e);
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				}));
 	}
 
 	public Mono<Void> stop(BackingApplication backingApplication) {
@@ -50,10 +61,19 @@ public class ManagementClient {
 				.name(backingApp.getName())
 				.properties(backingApp.getProperties())
 				.build())
-				.doOnRequest(l -> LOG.debug("Stopping application {}", backingApp))
-				.doOnSuccess(response -> LOG.debug("Finished stopping application {}", backingApp))
-				.doOnError(exception -> LOG.error(String.format("Error stopping application %s with error '%s'",
-					backingApp, exception.getMessage()), exception)));
+				.doOnRequest(l -> {
+					LOG.info("Stopping application. backingAppName={}", backingApp.getName());
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				})
+				.doOnSuccess(response -> {
+					LOG.info("Success stopping application. backingAppName={}", backingApp.getName());
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				})
+				.doOnError(e -> {
+					LOG.error(String.format("Error stopping application. backingAppName=%s, error=%s",
+						backingApp.getName(), e.getMessage()), e);
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				}));
 	}
 
 	public Mono<Void> restart(BackingApplication backingApplication) {
@@ -62,10 +82,19 @@ public class ManagementClient {
 				.name(backingApp.getName())
 				.properties(backingApp.getProperties())
 				.build())
-				.doOnRequest(l -> LOG.debug("Restarting application {}", backingApp))
-				.doOnSuccess(response -> LOG.debug("Finished restarting application {}", backingApp))
-				.doOnError(exception -> LOG.error(String.format("Error restarting application %s with error '%s'",
-					backingApp, exception.getMessage()), exception)));
+				.doOnRequest(l -> {
+					LOG.info("Restarting application. backingAppName={}", backingApp.getName());
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				})
+				.doOnSuccess(response -> {
+					LOG.info("Success restarting application. backingAppName={}", backingApp.getName());
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				})
+				.doOnError(e -> {
+					LOG.error(String.format("Error restarting application. backingAppName=%s, error=%s",
+						backingApp.getName(), e.getMessage()), e);
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				}));
 	}
 
 	public Mono<Void> restage(BackingApplication backingApplication) {
@@ -74,10 +103,19 @@ public class ManagementClient {
 				.name(backingApp.getName())
 				.properties(backingApp.getProperties())
 				.build())
-				.doOnRequest(l -> LOG.debug("Restaging application {}", backingApp))
-				.doOnSuccess(response -> LOG.debug("Finished restaging application {}", backingApp))
-				.doOnError(exception -> LOG.error(String.format("Error restaging application %s with error '%s'",
-					backingApp, exception.getMessage()), exception)));
+				.doOnRequest(l -> {
+					LOG.info("Restaging application. backingAppName={}", backingApp.getName());
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				})
+				.doOnSuccess(response -> {
+					LOG.info("Success restaging application. backingAppName={}", backingApp.getName());
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				})
+				.doOnError(e -> {
+					LOG.error(String.format("Error restaging application. backingAppName=%s, error=%s",
+						backingApp.getName(), e.getMessage()), e);
+					LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApp);
+				}));
 	}
 
 }

@@ -61,8 +61,8 @@ public class KebabCasePropertyBeanIntrospector implements BeanIntrospector {
 				}
 				catch (final IntrospectionException e) {
 					if (LOG.isErrorEnabled()) {
-						LOG.error("Error when creating PropertyDescriptor for method '{}'. " +
-							"This property will be ignored. {}", m, e);
+						LOG.error(String.format("Error when creating PropertyDescriptor for method '%s'. This " +
+							"property will be ignored. %s", m), e);
 					}
 				}
 			}

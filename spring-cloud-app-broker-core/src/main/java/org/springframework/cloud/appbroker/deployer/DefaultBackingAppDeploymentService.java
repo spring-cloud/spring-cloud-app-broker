@@ -25,7 +25,9 @@ import reactor.util.Loggers;
 
 public class DefaultBackingAppDeploymentService implements BackingAppDeploymentService {
 
-	private final Logger log = Loggers.getLogger(DefaultBackingAppDeploymentService.class);
+	private static final Logger LOG = Loggers.getLogger(DefaultBackingAppDeploymentService.class);
+
+	private static final String BACKINGAPPS_LOG_TEMPLATE = "backingApps={}";
 
 	private final DeployerClient deployerClient;
 
@@ -40,11 +42,18 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 			.runOn(Schedulers.parallel())
 			.flatMap(backingApplication -> deployerClient.deploy(backingApplication, serviceInstanceId))
 			.sequential()
-			.doOnRequest(l -> log.debug("Deploying applications {}", backingApps))
-			.doOnEach(response -> log.debug("Finished deploying application {}", response))
-			.doOnComplete(() -> log.debug("Finished deploying application {}", backingApps))
-			.doOnError(exception -> log.error(String.format("Error deploying applications %s with error '%s'",
-				backingApps, exception.getMessage()), exception));
+			.doOnRequest(l -> {
+				LOG.info("Deploying applications");
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish deploying applications");
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			})
+			.doOnError(e -> {
+				LOG.error(String.format("Error deploying applications. error=%s", e.getMessage()), e);
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			});
 	}
 
 	@Override
@@ -54,11 +63,18 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 			.runOn(Schedulers.parallel())
 			.flatMap(backingApplication -> deployerClient.update(backingApplication, serviceInstanceId))
 			.sequential()
-			.doOnRequest(l -> log.debug("Updating applications {}", backingApps))
-			.doOnEach(response -> log.debug("Finished updating application {}", response))
-			.doOnComplete(() -> log.debug("Finished updating application {}", backingApps))
-			.doOnError(exception -> log
-				.error(String.format("Error updating applications %s with error '%s'", backingApps, exception)));
+			.doOnRequest(l -> {
+				LOG.info("Updating applications");
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish updating applications");
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			})
+			.doOnError(e -> {
+				LOG.error(String.format("Error updating applications. error=%s", e.getMessage()), e);
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			});
 	}
 
 	@Override
@@ -68,11 +84,18 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::undeploy)
 			.sequential()
-			.doOnRequest(l -> log.debug("Undeploying applications {}", backingApps))
-			.doOnEach(response -> log.debug("Finished undeploying application {}", response))
-			.doOnComplete(() -> log.debug("Finished undeploying application {}", backingApps))
-			.doOnError(exception -> log.error(String.format("Error undeploying applications %s with error '%s'",
-				backingApps, exception.getMessage()), exception));
+			.doOnRequest(l -> {
+				LOG.info("Undeploying applications");
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish undeploying applications");
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			})
+			.doOnError(e -> {
+				LOG.error(String.format("Error undeploying applications. error=%s", e.getMessage()), e);
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			});
 	}
 
 }

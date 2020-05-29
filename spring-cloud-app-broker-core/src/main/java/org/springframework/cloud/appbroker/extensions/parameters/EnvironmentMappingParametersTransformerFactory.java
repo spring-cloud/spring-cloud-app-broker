@@ -31,7 +31,7 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 public class EnvironmentMappingParametersTransformerFactory extends
 	ParametersTransformerFactory<BackingApplication, EnvironmentMappingParametersTransformerFactory.Config> {
 
-	private final Logger logger = Loggers.getLogger(EnvironmentMappingParametersTransformerFactory.class);
+	private static final Logger LOG = Loggers.getLogger(EnvironmentMappingParametersTransformerFactory.class);
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -62,7 +62,7 @@ public class EnvironmentMappingParametersTransformerFactory extends
 							valueString = OBJECT_MAPPER.writeValueAsString(value);
 						}
 						catch (JsonProcessingException e) {
-							logger.error("Failed to write object as JSON String", e);
+							LOG.error("Failed to write object as JSON String", e);
 							valueString = value.toString();
 						}
 					}

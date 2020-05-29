@@ -71,8 +71,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.stereotype.Service;
 
-import static java.lang.String.format;
-
 @Service
 public class CloudFoundryService {
 
@@ -88,8 +86,7 @@ public class CloudFoundryService {
 
 	private final CloudFoundryProperties cloudFoundryProperties;
 
-	public CloudFoundryService(CloudFoundryClient cloudFoundryClient,
-		CloudFoundryOperations cloudFoundryOperations,
+	public CloudFoundryService(CloudFoundryClient cloudFoundryClient, CloudFoundryOperations cloudFoundryOperations,
 		CloudFoundryProperties cloudFoundryProperties) {
 		this.cloudFoundryClient = cloudFoundryClient;
 		this.cloudFoundryOperations = cloudFoundryOperations;
@@ -97,47 +94,47 @@ public class CloudFoundryService {
 	}
 
 	public Mono<Void> enableServiceBrokerAccess(String serviceName) {
-		return cloudFoundryOperations.serviceAdmin()
-			.enableServiceAccess(EnableServiceAccessRequest.builder()
-				.serviceName(serviceName)
-				.build())
-			.doOnSuccess(item -> LOG.info("Enabled access to service " + serviceName))
-			.doOnError(error -> LOG.error("Error enabling access to service " + serviceName + ": " + error));
+		return cloudFoundryOperations.serviceAdmin().enableServiceAccess(EnableServiceAccessRequest.builder()
+			.serviceName(serviceName)
+			.build())
+			.doOnSuccess(v -> LOG.info("Enabled access to service. serviceName={}", serviceName))
+			.doOnError(e -> LOG.error(String.format("Error enabling access to service. serviceName=%s, error=%s",
+				serviceName, e.getMessage()), e));
 	}
 
 	public Mono<Void> createServiceBroker(String brokerName, String testBrokerAppName) {
 		return getApplicationRoute(testBrokerAppName)
-			.flatMap(url -> cloudFoundryOperations.serviceAdmin()
-				.create(CreateServiceBrokerRequest.builder()
-					.name(brokerName)
-					.username("user")
-					.password("password")
-					.url(url)
-					.build())
-				.doOnSuccess(item -> LOG.info("Created service broker " + brokerName))
-				.doOnError(error -> LOG.error("Error creating service broker " + brokerName + ": " + error)));
+			.flatMap(url -> cloudFoundryOperations.serviceAdmin().create(CreateServiceBrokerRequest.builder()
+				.name(brokerName)
+				.username("user")
+				.password("password")
+				.url(url)
+				.build())
+				.doOnSuccess(v -> LOG.info("Success creating service broker. brokerName={}", brokerName))
+				.doOnError(e -> LOG.error(String.format("Error creating service broker. brokerName=%s, error=%s",
+					brokerName, e.getMessage()), e)));
 	}
 
 	public Mono<Void> updateServiceBroker(String brokerName, String testBrokerAppName) {
 		return getApplicationRoute(testBrokerAppName)
-			.flatMap(url -> cloudFoundryOperations.serviceAdmin()
-				.update(UpdateServiceBrokerRequest.builder()
-					.name(brokerName)
-					.username("user")
-					.password("password")
-					.url(url)
-					.build())
-				.doOnSuccess(item -> LOG.info("Updating service broker " + brokerName))
-				.doOnError(error -> LOG.error("Error updating service broker " + brokerName + ": " + error)));
+			.flatMap(url -> cloudFoundryOperations.serviceAdmin().update(UpdateServiceBrokerRequest.builder()
+				.name(brokerName)
+				.username("user")
+				.password("password")
+				.url(url)
+				.build())
+				.doOnSuccess(v -> LOG.info("Success updating service broker. brokerName={}", brokerName))
+				.doOnError(e -> LOG.error(String.format("Error updating service broker. brokerName=%s, error=%s",
+					brokerName, e.getMessage()), e)));
 	}
 
 	public Mono<String> getApplicationRoute(String appName) {
-		return cloudFoundryOperations.applications()
-			.get(GetApplicationRequest.builder()
-				.name(appName)
-				.build())
-			.doOnSuccess(item -> LOG.info("Got route for app " + appName))
-			.doOnError(error -> LOG.error("Error getting route for app " + appName + ": " + error))
+		return cloudFoundryOperations.applications().get(GetApplicationRequest.builder()
+			.name(appName)
+			.build())
+			.doOnSuccess(item -> LOG.info("Success getting route for app. appName={}", appName))
+			.doOnError(e -> LOG.error(String.format("Error getting route for app. appName=%s, error=%s", appName,
+				e.getMessage()), e))
 			.map(ApplicationDetail::getUrls)
 			.flatMapMany(Flux::fromIterable)
 			.next()
@@ -146,101 +143,99 @@ public class CloudFoundryService {
 
 	public Mono<Void> pushBrokerApp(String appName, Path appPath, String brokerClientId,
 		List<String> appBrokerProperties) {
-		return cloudFoundryOperations.applications()
-			.pushManifest(PushApplicationManifestRequest.builder()
-				.manifest(ApplicationManifest.builder()
-					.environmentVariables(appBrokerDeployerEnvironmentVariables(brokerClientId))
-					.putAllEnvironmentVariables(propertiesToEnvironment(appBrokerProperties))
-					.name(appName)
-					.path(appPath)
-					.memory(1024)
-					.build())
+		return cloudFoundryOperations.applications().pushManifest(PushApplicationManifestRequest.builder()
+			.manifest(ApplicationManifest.builder()
+				.environmentVariables(appBrokerDeployerEnvironmentVariables(brokerClientId))
+				.putAllEnvironmentVariables(propertiesToEnvironment(appBrokerProperties))
+				.name(appName)
+				.path(appPath)
+				.memory(1024)
 				.build())
-			.doOnSuccess(item -> LOG.info("Pushed broker app " + appName))
-			.doOnError(error -> LOG.error("Error pushing broker app " + appName + ": " + error));
+			.build())
+			.doOnSuccess(v -> LOG.info("Success pushing broker app. appName={}", appName))
+			.doOnError(e -> LOG.error(String.format("Error pushing broker app. appName=%s, error=%s", appName,
+				e.getMessage()), e));
 	}
 
 	public Mono<Void> updateBrokerApp(String appName, String brokerClientId, List<String> appBrokerProperties) {
-		return cloudFoundryOperations.applications()
-			.get(GetApplicationRequest.builder().name(appName).build())
+		return cloudFoundryOperations.applications().get(GetApplicationRequest.builder().name(appName).build())
 			.map(ApplicationDetail::getId)
-			.flatMap(applicationId ->
-				cloudFoundryClient
-					.applicationsV2()
-					.update(UpdateApplicationRequest
-						.builder()
-						.applicationId(applicationId)
-						.putAllEnvironmentJsons(appBrokerDeployerEnvironmentVariables(brokerClientId))
-						.putAllEnvironmentJsons(propertiesToEnvironment(appBrokerProperties))
-						.name(appName)
-						.memory(1024)
-						.build())
-					.thenReturn(applicationId))
-			.then(cloudFoundryOperations.applications()
-				.restart(RestartApplicationRequest.builder().name(appName).build()))
+			.flatMap(applicationId -> cloudFoundryClient.applicationsV2().update(UpdateApplicationRequest
+				.builder()
+				.applicationId(applicationId)
+				.putAllEnvironmentJsons(appBrokerDeployerEnvironmentVariables(brokerClientId))
+				.putAllEnvironmentJsons(propertiesToEnvironment(appBrokerProperties))
+				.name(appName)
+				.memory(1024)
+				.build())
+				.thenReturn(applicationId))
+			.then(cloudFoundryOperations.applications().restart(RestartApplicationRequest.builder()
+				.name(appName)
+				.build()))
 			.doOnSuccess(item -> LOG.info("Updated broker app " + appName))
 			.doOnError(error -> LOG.error("Error updating broker app " + appName + ": " + error))
 			.then();
 	}
 
 	public Mono<Void> deleteApp(String appName) {
-		return cloudFoundryOperations.applications()
-			.delete(DeleteApplicationRequest.builder()
-				.name(appName)
-				.deleteRoutes(true)
-				.build())
-			.doOnSuccess(item -> LOG.info("Deleted app " + appName))
-			.doOnError(error -> LOG.warn("Error deleting app " + appName + ": " + error))
+		return cloudFoundryOperations.applications().delete(DeleteApplicationRequest.builder()
+			.name(appName)
+			.deleteRoutes(true)
+			.build())
+			.doOnSuccess(item -> LOG.info("Success deleting app. appName={}", appName))
+			.doOnError(e -> LOG.warn(String.format("Error deleting app. appName=%s, error=%s", appName,
+				e.getMessage()), e))
 			.onErrorResume(e -> Mono.empty());
 	}
 
 	public Mono<Void> deleteServiceBroker(String brokerName) {
-		return cloudFoundryOperations.serviceAdmin()
-			.delete(DeleteServiceBrokerRequest.builder()
-				.name(brokerName)
-				.build())
-			.doOnSuccess(item -> LOG.info("Deleted service broker " + brokerName))
-			.doOnError(error -> LOG.warn("Error deleting service broker " + brokerName + ": " + error))
+		return cloudFoundryOperations.serviceAdmin().delete(DeleteServiceBrokerRequest.builder()
+			.name(brokerName)
+			.build())
+			.doOnSuccess(item -> LOG.info("Success deleting service broker. brokerName={}", brokerName))
+			.doOnError(e -> LOG.warn(String.format("Error deleting service broker. brokerName=%s, error=%s ",
+				brokerName, e.getMessage()), e))
 			.onErrorResume(e -> Mono.empty());
 	}
 
 	public Mono<Void> deleteServiceInstance(String serviceInstanceName) {
 		return getServiceInstance(serviceInstanceName)
-			.flatMap(si -> cloudFoundryOperations.services()
-				.deleteInstance(DeleteServiceInstanceRequest.builder()
-					.name(si.getName())
-					.build())
-				.doOnSuccess(item -> LOG.info("Deleted service instance " + serviceInstanceName))
-				.doOnError(
-					error -> LOG.error("Error deleting service instance " + serviceInstanceName + ": " + error))
+			.flatMap(si -> cloudFoundryOperations.services().deleteInstance(DeleteServiceInstanceRequest.builder()
+				.name(si.getName())
+				.build())
+				.doOnSuccess(v -> LOG.info("Success deleting service instance. serviceInstanceName={}",
+					serviceInstanceName))
+				.doOnError(e -> LOG.error(String.format("Error deleting service instance. serviceInstanceName=%s, " +
+					"error=%s", serviceInstanceName, e.getMessage()), e))
 				.onErrorResume(e -> Mono.empty()))
-			.doOnError(error -> LOG.warn("Error getting service instance " + serviceInstanceName + ": " + error))
+			.doOnError(e -> LOG.warn(String.format("Error getting service instance. serviceInstanceName=%s, " +
+				"error=%s", serviceInstanceName, e.getMessage()), e))
 			.onErrorResume(e -> Mono.empty());
 	}
 
-	public Mono<Void> createServiceInstance(String planName,
-		String serviceName,
-		String serviceInstanceName,
+	public Mono<Void> createServiceInstance(String planName, String serviceName, String serviceInstanceName,
 		Map<String, Object> parameters) {
-		return cloudFoundryOperations.services()
-			.createInstance(CreateServiceInstanceRequest.builder()
-				.planName(planName)
-				.serviceName(serviceName)
-				.serviceInstanceName(serviceInstanceName)
-				.parameters(parameters)
-				.build())
-			.doOnSuccess(item -> LOG.info("Created service instance " + serviceInstanceName))
-			.doOnError(error -> LOG.error("Error creating service instance " + serviceInstanceName + ": " + error));
+		return cloudFoundryOperations.services().createInstance(CreateServiceInstanceRequest.builder()
+			.planName(planName)
+			.serviceName(serviceName)
+			.serviceInstanceName(serviceInstanceName)
+			.parameters(parameters)
+			.build())
+			.doOnSuccess(item -> LOG.info("Success creating service instance. serviceInstanceName={}",
+				serviceInstanceName))
+			.doOnError(e -> LOG.error(String.format("Error creating service instance. serviceInstanceName=%s, " +
+				"error=%s", serviceInstanceName, e.getMessage()), e));
 	}
 
 	public Mono<Void> updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
-		return cloudFoundryOperations.services()
-			.updateInstance(UpdateServiceInstanceRequest.builder()
-				.serviceInstanceName(serviceInstanceName)
-				.parameters(parameters)
-				.build())
-			.doOnSuccess(item -> LOG.info("Updated service instance " + serviceInstanceName))
-			.doOnError(error -> LOG.error("Error updating service instance " + serviceInstanceName + ": " + error));
+		return cloudFoundryOperations.services().updateInstance(UpdateServiceInstanceRequest.builder()
+			.serviceInstanceName(serviceInstanceName)
+			.parameters(parameters)
+			.build())
+			.doOnSuccess(item -> LOG.info("Success updating service instance. serviceInstanceName={}",
+				serviceInstanceName))
+			.doOnError(e -> LOG.error(String.format("Error updating service instance. serviceInstanceName=%s, " +
+				"error=%s", serviceInstanceName, e.getMessage()), e));
 	}
 
 	public Flux<ServiceInstanceSummary> listServiceInstances() {
@@ -257,12 +252,13 @@ public class CloudFoundryService {
 
 	private Mono<ServiceInstance> getServiceInstance(CloudFoundryOperations operations,
 		String serviceInstanceName) {
-		return operations.services()
-			.getInstance(GetServiceInstanceRequest.builder()
-				.name(serviceInstanceName)
-				.build())
-			.doOnSuccess(item -> LOG.info("Got service instance " + serviceInstanceName))
-			.doOnError(error -> LOG.error("Error getting service instance " + serviceInstanceName + ": " + error));
+		return operations.services().getInstance(GetServiceInstanceRequest.builder()
+			.name(serviceInstanceName)
+			.build())
+			.doOnSuccess(item -> LOG.info("Success getting service instance. serviceInstanceName={}",
+				serviceInstanceName))
+			.doOnError(e -> LOG.error(String.format("Error getting service instance. serviceInstanceName=%s, " +
+				"error=%s", serviceInstanceName, e.getMessage()), e));
 	}
 
 	public Mono<List<ApplicationSummary>> getApplications() {
@@ -286,7 +282,7 @@ public class CloudFoundryService {
 		return operations.applications()
 			.list()
 			.doOnComplete(() -> LOG.info("Listed applications"))
-			.doOnError(error -> LOG.error("Error listing applications: " + error));
+			.doOnError(e -> LOG.error(String.format("Error listing applications. error=%s", e.getMessage()), e));
 	}
 
 	public Mono<ApplicationEnvironments> getApplicationEnvironment(String appName) {
@@ -302,8 +298,9 @@ public class CloudFoundryService {
 			.getEnvironments(GetApplicationEnvironmentsRequest.builder()
 				.name(appName)
 				.build())
-			.doOnSuccess(item -> LOG.info("Got environment for application " + appName))
-			.doOnError(error -> LOG.error("Error getting environment for application " + appName + ": " + error));
+			.doOnSuccess(item -> LOG.info("Success getting environment for application. appName={}", appName))
+			.doOnError(e -> LOG.error(String.format("Error getting environment for application. appName=%s, " +
+				"error=%s", appName, e.getMessage()), e));
 	}
 
 	public Mono<Void> stopApplication(String appName) {
@@ -313,10 +310,9 @@ public class CloudFoundryService {
 	}
 
 	public Mono<List<String>> getSpaces() {
-		return cloudFoundryOperations.spaces()
-			.list()
-			.doOnComplete(() -> LOG.info("Listed spaces"))
-			.doOnError(error -> LOG.error("Error listing spaces: " + error))
+		return cloudFoundryOperations.spaces().list()
+			.doOnComplete(() -> LOG.info("Success listing spaces"))
+			.doOnError(e -> LOG.error(String.format("Error listing spaces. error=%s" + e.getMessage()), e))
 			.map(SpaceSummary::getName)
 			.collectList();
 	}
@@ -331,13 +327,11 @@ public class CloudFoundryService {
 			.spaces();
 
 		final String defaultSpace = cloudFoundryProperties.getDefaultSpace();
-		return getDefaultSpace(spaceOperations)
-			.switchIfEmpty(spaceOperations.create(CreateSpaceRequest
-				.builder()
-				.name(defaultSpace)
-				.organization(defaultOrg)
-				.build())
-				.then(getDefaultSpace(spaceOperations)));
+		return getDefaultSpace(spaceOperations).switchIfEmpty(spaceOperations.create(CreateSpaceRequest.builder()
+			.name(defaultSpace)
+			.organization(defaultOrg)
+			.build())
+			.then(getDefaultSpace(spaceOperations)));
 	}
 
 	public Mono<OrganizationSummary> getOrCreateDefaultOrganization() {
@@ -345,11 +339,9 @@ public class CloudFoundryService {
 
 		final String defaultOrg = cloudFoundryProperties.getDefaultOrg();
 		return getDefaultOrg(organizationOperations)
-			.switchIfEmpty(organizationOperations
-				.create(CreateOrganizationRequest
-					.builder()
-					.organizationName(defaultOrg)
-					.build())
+			.switchIfEmpty(organizationOperations.create(CreateOrganizationRequest.builder()
+				.organizationName(defaultOrg)
+				.build())
 				.then(getDefaultOrg(organizationOperations)));
 	}
 
@@ -488,7 +480,7 @@ public class CloudFoundryService {
 				environment.put(propertyKeyValue[0], propertyKeyValue[1]);
 			}
 			else {
-				throw new IllegalArgumentException(format("App Broker property '%s' is incorrectly formatted",
+				throw new IllegalArgumentException(String.format("App Broker property '%s' is incorrectly formatted",
 					Arrays.toString(propertyKeyValue)));
 			}
 		}

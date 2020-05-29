@@ -48,7 +48,9 @@ import org.springframework.core.annotation.Order;
 public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentInstanceWorkflow
 	implements UpdateServiceInstanceWorkflow {
 
-	private final Logger log = Loggers.getLogger(AppDeploymentUpdateServiceInstanceWorkflow.class);
+	private static final Logger LOG = Loggers.getLogger(AppDeploymentUpdateServiceInstanceWorkflow.class);
+
+	private static final String REQUEST_LOG_TEMPLATE = "request={}";
 
 	private final BackingAppDeploymentService deploymentService;
 
@@ -110,9 +112,9 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 				List<BackingService> servicesToDelete = servicesInNameList(existingServices,
 					serviceNamesToDelete);
 
-				log.debug("Backing services to update: {}", serviceNamesToUpdate);
-				log.debug("Backing services to create: {}", serviceNamesToCreate);
-				log.debug("Backing services to delete: {}", serviceNamesToDelete);
+				LOG.debug("Backing services to update: {}", serviceNamesToUpdate);
+				LOG.debug("Backing services to create: {}", serviceNamesToCreate);
+				LOG.debug("Backing services to delete: {}", serviceNamesToDelete);
 
 				return Flux.concat(
 					backingServicesProvisionService.updateServiceInstance(servicesToUpdate),
@@ -121,14 +123,24 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 					.parallel()
 					.runOn(Schedulers.parallel());
 			})
-			.doOnRequest(l -> log.debug("Updating backing services for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnComplete(() -> log.debug("Finished updating backing services for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(
-				exception -> log.error(String.format("Error updating backing services for %s/%s with error '%s'",
-					request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
-					exception));
+			.doOnRequest(l -> {
+				LOG.info("Updating backing services. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish updating backing services. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnError(e -> {
+				if (LOG.isErrorEnabled()) {
+					LOG.error(String.format("Error updating backing services. serviceDefinitionName=%s, planName=%s, " +
+							"error=%s", request.getServiceDefinition().getName(), request.getPlan().getName(),
+						e.getMessage()), e);
+				}
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			});
 	}
 
 	private Mono<Map<String, BackingService>> getExistingBackingServiceNameMap(UpdateServiceInstanceRequest request) {
@@ -170,14 +182,24 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 			.flatMap(backingApps ->
 				appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
 			.flatMapMany(backingApps -> deploymentService.update(backingApps, request.getServiceInstanceId()))
-			.doOnRequest(l -> log.debug("Updating backing applications for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnComplete(() -> log.debug("Finished updating backing applications for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(
-				exception -> log.error(String.format("Error updating backing applications for %s/%s with error '%s'",
-					request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
-					exception));
+			.doOnRequest(l -> {
+				LOG.info("Updating backing applications. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish updating backing applications. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnError(e -> {
+				if (LOG.isErrorEnabled()) {
+					LOG.error(String.format("Error updating backing applications. serviceDefinitionName=%s, " +
+							"planName=%s, error=%s", request.getServiceDefinition().getName(), request.getPlan().getName(),
+						e.getMessage()), e);
+				}
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			});
 	}
 
 	@Override

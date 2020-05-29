@@ -25,7 +25,9 @@ import reactor.util.Loggers;
 
 public class DefaultBackingServicesProvisionService implements BackingServicesProvisionService {
 
-	private final Logger log = Loggers.getLogger(DefaultBackingServicesProvisionService.class);
+	private static final Logger LOG = Loggers.getLogger(DefaultBackingServicesProvisionService.class);
+
+	private static final String BACKINGSERVICES_LOG_TEMPLATE = "backingServices={}";
 
 	private final DeployerClient deployerClient;
 
@@ -40,11 +42,15 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::createServiceInstance)
 			.sequential()
-			.doOnRequest(l -> log.debug("Creating backing services {}", backingServices))
-			.doOnEach(response -> log.debug("Finished creating backing service {}", response))
-			.doOnComplete(() -> log.debug("Finished creating backing services {}", backingServices))
-			.doOnError(exception -> log.error(String.format("Error creating backing services %s with error '%s'",
-				backingServices, exception.getMessage()), exception));
+			.doOnRequest(l -> {
+				LOG.info("Creating backing services");
+				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish creating backing services");
+				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
+			})
+			.doOnError(e -> LOG.error(String.format("Error creating backing services. error=%s", e.getMessage()), e));
 	}
 
 	@Override
@@ -54,11 +60,15 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::updateServiceInstance)
 			.sequential()
-			.doOnRequest(l -> log.debug("Updating backing services {}", backingServices))
-			.doOnEach(response -> log.debug("Finished updating backing service {}", response))
-			.doOnComplete(() -> log.debug("Finished updating backing services {}", backingServices))
-			.doOnError(exception -> log.error(String.format("Error updating backing services %s with error '%s'",
-				backingServices, exception.getMessage()), exception));
+			.doOnRequest(l -> {
+				LOG.info("Updating backing services");
+				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish updating backing services");
+				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
+			})
+			.doOnError(e -> LOG.error(String.format("Error updating backing services. error=%s", e.getMessage()), e));
 	}
 
 	@Override
@@ -68,11 +78,15 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 			.runOn(Schedulers.parallel())
 			.flatMap(deployerClient::deleteServiceInstance)
 			.sequential()
-			.doOnRequest(l -> log.debug("Deleting backing services {}", backingServices))
-			.doOnEach(response -> log.debug("Finished deleting backing service {}", response))
-			.doOnComplete(() -> log.debug("Finished deleting backing services {}", backingServices))
-			.doOnError(exception -> log.error(String.format("Error deleting backing services %s with error '%s'",
-				backingServices, exception.getMessage()), exception));
+			.doOnRequest(l -> {
+				LOG.info("Deleting backing services");
+				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish deleting backing services");
+				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
+			})
+			.doOnError(e -> LOG.error(String.format("Error deleting backing services. error=%s", e.getMessage()), e));
 	}
 
 }

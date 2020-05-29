@@ -39,7 +39,9 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 	extends AppDeploymentInstanceWorkflow
 	implements CreateServiceInstanceWorkflow {
 
-	private final Logger log = Loggers.getLogger(AppDeploymentCreateServiceInstanceWorkflow.class);
+	private static final Logger LOG = Loggers.getLogger(AppDeploymentCreateServiceInstanceWorkflow.class);
+
+	private static final String REQUEST_LOG_TEMPLATE = "request={}";
 
 	private final BackingAppDeploymentService deploymentService;
 
@@ -86,13 +88,24 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 				servicesParametersTransformationService.transformParameters(backingServices,
 					request.getParameters()))
 			.flatMapMany(backingServicesProvisionService::createServiceInstance)
-			.doOnRequest(l -> log.debug("Creating backing services for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnComplete(() -> log.debug("Finished creating backing services for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(exception -> log.error(String.format("Error creating backing services for %s/%s with error '%s'",
-				request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
-				exception));
+			.doOnRequest(l -> {
+				LOG.info("Creating backing services. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish creating backing services. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnError(e -> {
+				if (LOG.isErrorEnabled()) {
+					LOG.error(String.format("Error creating backing services. serviceDefinitionName=%s, planName=%s, " +
+							"error=%s",
+						request.getServiceDefinition().getName(), request.getPlan().getName(), e.getMessage()), e);
+				}
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			});
 	}
 
 	private Flux<String> deployBackingApplications(CreateServiceInstanceRequest request) {
@@ -108,14 +121,24 @@ public class AppDeploymentCreateServiceInstanceWorkflow
 				credentialProviderService.addCredentials(backingApps,
 					request.getServiceInstanceId()))
 			.flatMapMany(backingApps -> deploymentService.deploy(backingApps, request.getServiceInstanceId()))
-			.doOnRequest(l -> log.debug("Deploying backing applications for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnComplete(() -> log.debug("Finished deploying backing applications for {}/{}",
-				request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.doOnError(
-				exception -> log.error(String.format("Error deploying backing applications for %s/%s with error '%s'",
-					request.getServiceDefinition().getName(), request.getPlan().getName(), exception.getMessage()),
-					exception));
+			.doOnRequest(l -> {
+				LOG.info("Deploying backing applications. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish deploying backing applications. serviceDefinitionName={}, planName={}",
+					request.getServiceDefinition().getName(), request.getPlan().getName());
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			})
+			.doOnError(e -> {
+				if (LOG.isErrorEnabled()) {
+					LOG.error(String.format("Error deploying backing applications. serviceDefinitionName=%s, " +
+							"planName=%s, error=%s", request.getServiceDefinition().getName(), request.getPlan().getName(),
+						e.getMessage()), e);
+				}
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			});
 	}
 
 	@Override

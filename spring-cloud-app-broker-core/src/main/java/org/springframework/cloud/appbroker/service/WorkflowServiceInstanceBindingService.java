@@ -152,10 +152,16 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 		return stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 			OperationState.IN_PROGRESS, "create service instance binding started")
 			.thenMany(invokeCreateWorkflows(request, response)
-				.doOnRequest(l -> LOG.debug("Creating service instance binding"))
-				.doOnComplete(() -> LOG.debug("Finished creating service instance binding"))
-				.doOnError(exception -> LOG.error(String.format("Error creating service instance binding with error " +
-					"'%s'", exception.getMessage()), exception)))
+				.doOnRequest(l -> {
+					LOG.info("Creating service instance binding");
+					LOG.debug("request={}", request);
+				})
+				.doOnComplete(() -> {
+					LOG.debug("Finish creating service instance binding");
+					LOG.debug("request={}, response={}", request, response);
+				})
+				.doOnError(e -> LOG.error(String.format("Error creating service instance binding. error=%s",
+					e.getMessage()), e)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 				OperationState.SUCCEEDED, "create service instance binding completed")
 				.then())
@@ -218,10 +224,16 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 		return stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 			OperationState.IN_PROGRESS, "delete service instance binding started")
 			.thenMany(invokeDeleteWorkflows(request, response)
-				.doOnRequest(l -> LOG.debug("Deleting service instance binding"))
-				.doOnComplete(() -> LOG.debug("Finished deleting service instance binding"))
-				.doOnError(exception -> LOG.error(String.format("Error deleting service instance binding with error " +
-					"'%s'", exception.getMessage()), exception)))
+				.doOnRequest(l -> {
+					LOG.info("Deleting service instance binding");
+					LOG.debug("request={}", request);
+				})
+				.doOnComplete(() -> {
+					LOG.info("Finish deleting service instance binding");
+					LOG.debug("request={}, response={}", request, response);
+				})
+				.doOnError(e -> LOG.error(String.format("Error deleting service instance binding. error=%s",
+					e.getMessage()), e)))
 			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(), request.getBindingId(),
 				OperationState.SUCCEEDED, "delete service instance binding completed")
 				.then())

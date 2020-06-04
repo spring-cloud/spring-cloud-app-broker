@@ -32,11 +32,11 @@ ext {
 	reactorVersion = project.findProperty("reactorVersion") ?: "Dysprosium-SR7"
 	openServiceBrokerVersion = "3.1.1.RELEASE"
 	springCredhubVersion = "2.1.1.RELEASE"
-	cfJavaClientVersion = "4.6.0.RELEASE"
+	cfJavaClientVersion = "4.7.0.RELEASE"
 	blockHoundVersion = "1.0.3.RELEASE"
-	junitPlatformLauncherVersion = "1.6.1"
-	checkstyleVersion = "8.29"
-	pmdVersion = "6.21.0"
+	junitPlatformLauncherVersion = "1.6.2"
+	checkstyleVersion = "8.33"
+	pmdVersion = "6.24.0"
 
 	javadocLinks = [
 		"https://docs.oracle.com/javase/8/docs/api/",

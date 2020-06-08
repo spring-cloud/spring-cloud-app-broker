@@ -1,12 +1,17 @@
 ---
 platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: ((docker-hub-organization))/release-ci-image
+    tag: ((release-image-tag))
 inputs:
   - name: git-repo
 outputs:
   - name: stage-git-repo
   - name: distribution-repository
 params:
-  RELEASE_TYPE:
+  RELEASE_TYPE: ((release-type))
 caches:
   - path: maven
   - path: gradle

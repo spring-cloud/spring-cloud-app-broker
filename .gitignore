@@ -12,7 +12,7 @@ target
 bin
 .idea
 out
-.envrc*
+.vscode
 envrc-local.txt
 bbl-state.json
 director-vars-store.yml

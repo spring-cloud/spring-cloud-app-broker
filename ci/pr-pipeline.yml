@@ -1,0 +1,72 @@
+---
+aliases:
+  - &slack-success-notification
+    put: alert
+    params:
+      icon_emoji: ":concourse:"
+      username: concourse
+      channel: ((ab-slack-success-channel))
+      text: "$BUILD_PIPELINE_NAME pipeline has succeeded with build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME>!"
+  - &slack-failure-notification
+    put: alert
+    params:
+      icon_emoji: ":animal-1252:"
+      username: concourse
+      channel: ((ab-slack-failure-channel))
+      text: <!here> Build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
+
+jobs:
+  - name: build
+    plan:
+      - get: pull-request
+        trigger: true
+        version: every
+      - task: build-project
+        timeout: 1h30m
+        file: pull-request/ci/tasks/build-project.yml
+        input_mapping:
+          git-repo: pull-request
+        vars:
+          release-image-tag: ((release-image-tag))
+
+  - name: run-acceptance-tests
+    serial: true
+    plan:
+      - get: pull-request
+        passed: [build]
+        trigger: true
+      - task: acceptance-tests
+        file: pull-request/ci/tasks/acceptance-tests.yml
+        input_mapping:
+          git-repo: pull-request
+    on_success:
+      *slack-success-notification
+    on_failure:
+      *slack-failure-notification        
+
+resource_types:
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: teliaoss/github-pr-resource
+
+  - name: slack-notification
+    type: docker-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: latest
+
+resources:
+  - name: pull-request
+    type: pull-request
+    check_every: 10s
+    source:
+      repository: ((app-broker-pr-github-pull-requests-repo))
+      access_token: ((app-broker-pr-github-pull-requests-access-token))
+      base_branch: ((branch))
+
+  - name: alert
+    type: slack-notification
+    source:
+      url: ((scs-slack-webhook))
+

@@ -1,11 +1,18 @@
 ---
 aliases:
+  - &slack-success-notification
+    put: alert
+    params:
+      icon_emoji: ":concourse:"
+      username: concourse
+      channel: ((ab-slack-success-channel))
+      text: "$BUILD_PIPELINE_NAME pipeline has succeeded with build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME>!"
   - &slack-failure-notification
     put: alert
     params:
-      icon_emoji: ":animal:"
+      icon_emoji: ":animal-1252:"
       username: concourse
-      channel: {{scs-slack-failure-channel}}
+      channel: ((ab-slack-failure-channel))
       text: <!here> Build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
 
 jobs:
@@ -21,15 +28,13 @@ jobs:
     serial: true
     public: true
     plan:
-      - get: release-ci-image
       - get: git-repo
         trigger: true
-      - do:
-          - task: build-project
-            privileged: true
-            timeout: 1h30m
-            image: release-ci-image
-            file: git-repo/ci/tasks/build-project.yml
+      - task: build-project
+        timeout: 1h30m
+        file: git-repo/ci/tasks/build-project.yml
+        vars:
+          release-image-tag: ((release-image-tag))
       - put: artifactory-repo
         params: &artifactory-params
           repo: libs-snapshot-local
@@ -39,7 +44,7 @@ jobs:
           disable_checksum_uploads: true
           artifact_set:
             - include:
-                - "/**/releasetest-*-docs.zip"
+                - "/**/spring-cloud-app-broker-*-docs.zip"
               properties:
                 "zip.type": "docs"
                 "zip.deployed": "false"
@@ -52,31 +57,22 @@ jobs:
         trigger: true
       - task: acceptance-tests
         file: git-repo/ci/tasks/acceptance-tests.yml
-        params:
-          API_HOST: {{API_HOST}}
-          API_PORT: {{API_PORT}}
-          USERNAME: {{USERNAME}}
-          PASSWORD: {{PASSWORD}}
-          CLIENT_ID: {{CLIENT_ID}}
-          CLIENT_SECRET: {{CLIENT_SECRET}}
-          DEFAULT_ORG: {{DEFAULT_ORG}}
-          DEFAULT_SPACE: {{DEFAULT_SPACE}}
-          SKIP_SSL_VALIDATION: {{SKIP_SSL_VALIDATION}}
+    on_success:
+      *slack-success-notification
     on_failure:
       *slack-failure-notification
 
   - name: stage-milestone
     serial: true
     plan:
-      - get: release-ci-image
       - get: git-repo
         trigger: false
         passed: [run-acceptance-tests]
       - task: stage
-        image: release-ci-image
         file: git-repo/ci/tasks/stage.yml
-        params:
-          RELEASE_TYPE: M
+        vars:
+          release-type: M
+          release-image-tag: ((release-image-tag))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -88,15 +84,14 @@ jobs:
   - name: stage-rc
     serial: true
     plan:
-      - get: release-ci-image
       - get: git-repo
         trigger: false
         passed: [run-acceptance-tests]
       - task: stage
-        image: release-ci-image
         file: git-repo/ci/tasks/stage.yml
-        params:
-          RELEASE_TYPE: RC
+        vars:
+          release-type: RC
+          release-image-tag: ((release-image-tag))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -108,15 +103,14 @@ jobs:
   - name: stage-release
     serial: true
     plan:
-      - get: release-ci-image
       - get: git-repo
         trigger: false
         passed: [run-acceptance-tests]
       - task: stage
-        image: release-ci-image
         file: git-repo/ci/tasks/stage.yml
-        params:
-          RELEASE_TYPE: RELEASE
+        vars:
+          release-type: RELEASE
+          release-image-tag: ((release-image-tag))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -128,7 +122,6 @@ jobs:
   - name: promote-milestone
     serial: true
     plan:
-      - get: release-ci-image
       - get: git-repo
         trigger: false
       - get: artifactory-repo
@@ -137,114 +130,84 @@ jobs:
         params:
           save_build_info: true
       - task: promote
-        image: release-ci-image
         file: git-repo/ci/tasks/promote.yml
-        params:
-          RELEASE_TYPE: M
-          ARTIFACTORY_SERVER: ((artifactory-server))
-          ARTIFACTORY_USERNAME: ((artifactory-username))
-          ARTIFACTORY_PASSWORD: ((artifactory-password))
+        vars:
+          release-type: M
+          release-image-tag: ((release-image-tag))
 
   - name: promote-rc
     serial: true
     plan:
-      - get: release-ci-image
-      - get: git-repo
-        trigger: false
-      - get: artifactory-repo
-        trigger: false
-        passed: [stage-rc]
-        params:
-          save_build_info: true
+      - in_parallel:
+        - get: git-repo
+          trigger: false
+        - get: artifactory-repo
+          trigger: false
+          passed: [stage-rc]
+          params:
+            save_build_info: true
       - task: promote
-        image: release-ci-image
         file: git-repo/ci/tasks/promote.yml
-        params:
-          RELEASE_TYPE: RC
-          ARTIFACTORY_SERVER: ((artifactory-server))
-          ARTIFACTORY_USERNAME: ((artifactory-username))
-          ARTIFACTORY_PASSWORD: ((artifactory-password))
+        vars:
+          release-type: RC
+          release-image-tag: ((release-image-tag))
 
   - name: promote-release
     serial: true
     plan:
-      - get: release-ci-image
-      - get: git-repo
-        trigger: false
-      - get: artifactory-repo
-        trigger: false
-        passed: [stage-release]
-        params:
-          save_build_info: true
+      - in_parallel:
+        - get: git-repo
+          trigger: false
+        - get: artifactory-repo
+          trigger: false
+          passed: [stage-release]
+          params:
+            save_build_info: true
       - task: promote
-        image: release-ci-image
         file: git-repo/ci/tasks/promote.yml
-        params:
-          RELEASE_TYPE: RELEASE
-          ARTIFACTORY_SERVER: ((artifactory-server))
-          ARTIFACTORY_USERNAME: ((artifactory-username))
-          ARTIFACTORY_PASSWORD: ((artifactory-password))
-          BINTRAY_SUBJECT: ((bintray-subject))
-          BINTRAY_REPO: ((bintray-repo))
-          BINTRAY_USERNAME: ((bintray-username))
-          BINTRAY_API_KEY: ((bintray-api-key))
-          BINTRAY_PACKAGE: ((bintray-package))
-          BINTRAY_DISTRIBUTION_REPO: ((bintray-distribution-repo))
+        vars:
+          release-type: RELEASE
+          release-image-tag: ((release-image-tag))
 
   - name: distribute-release
     serial: true
     plan:
-      - get: release-ci-image
-      - get: git-repo
-        trigger: false
-      - get: artifactory-repo
-        trigger: false
-        passed: [promote-release]
-        params:
-          save_build_info: true
+      - in_parallel:
+        - get: git-repo
+          trigger: false
+        - get: artifactory-repo
+          trigger: false
+          passed: [promote-release]
+          params:
+            save_build_info: true
       - task: distribute
-        image: release-ci-image
         file: git-repo/ci/tasks/distribute.yml
-        params:
-          ARTIFACTORY_SERVER: ((artifactory-server))
-          ARTIFACTORY_USERNAME: ((artifactory-username))
-          ARTIFACTORY_PASSWORD: ((artifactory-password))
-          BINTRAY_SUBJECT: ((bintray-subject))
-          BINTRAY_REPO: ((bintray-repo))
-          BINTRAY_USERNAME: ((bintray-username))
-          BINTRAY_API_KEY: ((bintray-api-key))
-          BINTRAY_PACKAGE: ((bintray-package))
-          BINTRAY_DISTRIBUTION_REPO: ((bintray-distribution-repo))
+        vars:
+          release-image-tag: ((release-image-tag))
 
   - name: sync-to-maven-central
     serial: true
     plan:
-      - get: release-ci-image
-      - get: git-repo
-        trigger: false
-      - get: artifactory-repo
-        trigger: false
-        passed: [distribute-release]
-        params:
-          save_build_info: true
+      - in_parallel:
+        - get: git-repo
+          trigger: false
+        - get: artifactory-repo
+          trigger: false
+          passed: [distribute-release]
+          params:
+            save_build_info: true
       - task: sync-to-maven-central
-        image: release-ci-image
         file: git-repo/ci/tasks/sync-to-maven-central.yml
-        params:
-          BINTRAY_USERNAME: ((bintray-username))
-          BINTRAY_API_KEY: ((bintray-api-key))
-          SONATYPE_USER_TOKEN: ((sonatype-user-token))
-          SONATYPE_PASSWORD_TOKEN: ((sonatype-user-token-password))
-          BINTRAY_SUBJECT: ((bintray-subject))
-          BINTRAY_REPO: ((bintray-repo))
-          BINTRAY_PACKAGE: ((bintray-package))
+        vars:
+          release-image-tag: ((release-image-tag))
 
 resource_types:
   - name: artifactory-resource
     type: docker-image
     source:
       repository: springio/artifactory-resource
-      tag: 0.0.7
+      tag: 0.0.12
+
   - name: slack-notification
     type: docker-image
     source:
@@ -261,6 +224,7 @@ resources:
       branch: ((branch))
       ignore_paths: ["ci/images/*"]
       fetch_tags: true
+
   - name: git-repo-staging
     type: git
     source:
@@ -268,19 +232,27 @@ resources:
       username: ((github-username))
       password: ((github-password))
       branch: ((github-username))/staging
+      git_config:
+        - name: user.name
+          value: ((git-username))
+        - name: user.email
+          value: ((git-email))
+
   - name: ci-images-git-repo
     type: git
     source:
       uri: ((github-repo))
       branch: ((branch))
       paths: ["ci/images/*"]
+
   - name: release-ci-image
     type: docker-image
     source:
       repository: ((docker-hub-organization))/release-ci-image
       username: ((docker-hub-username))
       password: ((docker-hub-password))
-      tag: ((branch))
+      tag: ((release-image-tag))
+
   - name: artifactory-repo
     type: artifactory-resource
     source:
@@ -288,13 +260,25 @@ resources:
       username: ((artifactory-username))
       password: ((artifactory-password))
       build_name: ((build-name))
+
   - name: alert
     type: slack-notification
     source:
-      url: {{scs-slack-webhook}}
+      url: ((scs-slack-webhook))
 
 groups:
   - name: "Main"
-    jobs: ["build", "run-acceptance-tests", "stage-milestone", "stage-rc", "stage-release", "promote-milestone", "promote-rc", "promote-release", "distribute-release", "sync-to-maven-central"]
+    jobs:
+      - build
+      - run-acceptance-tests
+      - stage-milestone
+      - stage-rc
+      - stage-release
+      - promote-milestone
+      - promote-rc
+      - promote-release
+      - distribute-release
+      - sync-to-maven-central
   - name: "CI Images"
-    jobs: ["build-release-ci-images"]
+    jobs:
+      - build-release-ci-images

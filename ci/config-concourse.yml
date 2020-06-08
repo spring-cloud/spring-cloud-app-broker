@@ -5,4 +5,3 @@ bintray-package: spring-cloud-app-broker
 bintray-repo: jars
 bintray-subject: spring
 build-name: spring-cloud-app-broker
-branch: 1.0.x

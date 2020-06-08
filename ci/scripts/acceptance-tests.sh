@@ -11,7 +11,7 @@ readonly CLIENT_SECRET="${CLIENT_SECRET:?must be set}"
 readonly DEFAULT_ORG="${DEFAULT_ORG:?must be set}"
 readonly DEFAULT_SPACE="${DEFAULT_SPACE:?must be set}"
 readonly SKIP_SSL_VALIDATION="${SKIP_SSL_VALIDATION:?must be set}"
-readonly ONLY_SHOW_STANDARD_STREAMS_ON_TEST_FAILURE="${ONLY_SHOW_STANDARD_STREAMS_ON_TEST_FAILURE:?must be set}"
+readonly ONLY_SHOW_STANDARD_STREAMS_ON_TEST_FAILURE="${ONLY_SHOW_STANDARD_STREAMS_ON_TEST_FAILURE:-true}"
 
 run_tests() {
   export SPRING_CLOUD_APPBROKER_ACCEPTANCETEST_CLOUDFOUNDRY_API_HOST="${API_HOST}"
@@ -30,6 +30,9 @@ run_tests() {
 }
 
 main() {
+  echo "Running tests against $API_HOST"
+  echo
+
   pushd "git-repo" > /dev/null
     run_tests
   popd > /dev/null

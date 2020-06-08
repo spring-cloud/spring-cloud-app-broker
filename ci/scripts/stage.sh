@@ -9,8 +9,6 @@ git clone git-repo stage-git-repo
 echo
 
 pushd stage-git-repo >/dev/null
-git config user.name "Spring Buildmaster"
-git config user.email "buildmaster@springframework.org"
 
 snapshotVersion=$(awk -F '=' '$1 == "version" { print $2 }' gradle.properties)
 if [[ $RELEASE_TYPE == "M" ]]; then

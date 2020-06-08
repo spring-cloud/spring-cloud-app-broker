@@ -70,6 +70,7 @@ jobs:
       - get: release-ci-image
       - get: git-repo
         trigger: false
+        passed: [run-acceptance-tests]
       - task: stage
         image: release-ci-image
         file: git-repo/ci/tasks/stage.yml
@@ -88,6 +89,7 @@ jobs:
       - get: release-ci-image
       - get: git-repo
         trigger: false
+        passed: [run-acceptance-tests]
       - task: stage
         image: release-ci-image
         file: git-repo/ci/tasks/stage.yml
@@ -106,6 +108,7 @@ jobs:
       - get: release-ci-image
       - get: git-repo
         trigger: false
+        passed: [run-acceptance-tests]
       - task: stage
         image: release-ci-image
         file: git-repo/ci/tasks/stage.yml
@@ -249,6 +252,7 @@ resources:
       password: ((github-password))
       branch: ((branch))
       ignore_paths: ["ci/images/*"]
+      fetch_tags: true
   - name: ci-images-git-repo
     type: git
     source:
@@ -274,9 +278,7 @@ resources:
     source:
       url: {{scs-slack-webhook}}
 groups:
-  - name: "Build"
-    jobs: ["build", "run-acceptance-tests"]
-  - name: "Release"
-    jobs: ["stage-milestone", "stage-rc", "stage-release", "promote-milestone", "promote-rc", "promote-release", "distribute-release", "sync-to-maven-central"]
+  - name: "Main"
+    jobs: ["build", "run-acceptance-tests", "stage-milestone", "stage-rc", "stage-release", "promote-milestone", "promote-rc", "promote-release", "distribute-release", "sync-to-maven-central"]
   - name: "CI Images"
     jobs: ["build-release-ci-images"]

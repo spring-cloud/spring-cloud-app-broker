@@ -65,6 +65,12 @@ configure(allprojects) {
 	apply plugin: "propdeps-eclipse"
 	apply plugin: "io.spring.dependency-management"
 
+	afterEvaluate { subproject ->
+		if (subproject.description == null || subproject.description.isEmpty()) {
+			throw new InvalidUserDataException("A project description is required for publishing to maven central")
+		}
+	}
+
 	apply from: "${rootProject.projectDir}/publish-maven.gradle"
 
 	repositories {

@@ -1,5 +1,10 @@
 ---
 platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: ((docker-hub-organization))/release-ci-image
+    tag: ((release-image-tag))
 inputs:
   - name: git-repo
 outputs:
@@ -8,10 +13,6 @@ caches:
   - path: maven
   - path: gradle
 run:
-  path: bash
-  args:
-    - -ec
-    - |
-      ${PWD}/git-repo/ci/scripts/build-project.sh
+  path: git-repo/ci/scripts/build-project.sh
 params:
   ONLY_SHOW_STANDARD_STREAMS_ON_TEST_FAILURE: true

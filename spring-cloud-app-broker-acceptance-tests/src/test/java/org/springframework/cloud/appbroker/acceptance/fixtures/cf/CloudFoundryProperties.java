@@ -18,31 +18,44 @@ package org.springframework.cloud.appbroker.acceptance.fixtures.cf;
 
 import java.net.URI;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+
 import org.cloudfoundry.reactor.ProxyConfiguration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryProperties.PROPERTY_PREFIX;
 
 @ConfigurationProperties(PROPERTY_PREFIX)
+@Validated
 public class CloudFoundryProperties {
 
 	protected static final String PROPERTY_PREFIX = "spring.cloud.appbroker.acceptancetest.cloudfoundry";
 
+	@NotBlank
 	private String apiHost;
 
+	@Min(1)
 	private Integer apiPort;
 
+	@NotBlank
 	private String defaultOrg;
 
+	@NotBlank
 	private String defaultSpace;
 
+	@NotBlank
 	private String username;
 
+	@NotBlank
 	private String password;
 
+	@NotBlank
 	private String clientId;
 
+	@NotBlank
 	private String clientSecret;
 
 	private String identityZoneSubdomain;

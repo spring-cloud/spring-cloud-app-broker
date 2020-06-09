@@ -49,6 +49,10 @@ dependencies {
 	docs("io.spring.docresources:spring-doc-resources:0.2.1.RELEASE@zip")
 }
 
+javadoc {
+	enabled = false
+}
+
 task prepareAsciidocBuild(type: Sync) {
 	dependsOn configurations.docs
 	// copy doc resources
@@ -84,7 +88,7 @@ asciidoctorPdf {
 
 asciidoctor {
 	dependsOn asciidoctorPdf
-  baseDirFollowsSourceFile()
+  	baseDirFollowsSourceFile()
 	sourceDir = file("$buildDir/asciidoc")
 	sources {
 		include '*.adoc'

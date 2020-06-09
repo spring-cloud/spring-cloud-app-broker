@@ -1,3 +1,4 @@
+import java.util.concurrent.ConcurrentHashMap
 /*
  * Copyright 2002-2020 the original author or authors.
  *
@@ -51,6 +52,9 @@ if (project.hasProperty("springFrameworkVersion")) {
 if (project.hasProperty("reactorVersion")) {
 	ext['reactor-bom.version'] = ext.reactorVersion
 }
+if (!project.hasProperty("onlyShowStandardStreamsOnTestFailure")) {
+	ext.onlyShowStandardStreamsOnTestFailure = false
+}
 
 apply plugin: "io.spring.nohttp"
 
@@ -68,6 +72,59 @@ configure(allprojects) {
 	afterEvaluate { subproject ->
 		if (subproject.description == null || subproject.description.isEmpty()) {
 			throw new InvalidUserDataException("A project description is required for publishing to maven central")
+		}
+
+		tasks.withType(Test).forEach { Test task ->
+			task.with {
+				// enable JUnit 5
+				useJUnitPlatform()
+				scanForTestClasses = true
+				group = "verification"
+
+				testLogging {
+					exceptionFormat = "full"
+					events = ["passed", "skipped", "failed"]
+					showStandardStreams = !project.onlyShowStandardStreamsOnTestFailure
+				}
+
+				if (project.onlyShowStandardStreamsOnTestFailure) {
+					Map<String, StringBuilder> testOutput = new ConcurrentHashMap<>()
+
+					onOutput { TestDescriptor descriptor, TestOutputEvent event ->
+						testOutput.compute(descriptor.displayName, { k, v ->
+							v == null ? new StringBuilder(event.message) : v.append(event.message)
+						})
+					}
+
+					afterTest { TestDescriptor descriptor, TestResult result ->
+						if (result.resultType == TestResult.ResultType.FAILURE && testOutput.containsKey(descriptor.displayName)) {
+							logger.lifecycle("\n\n${testOutput.get(descriptor.displayName)}")
+							testOutput.remove(descriptor.displayName)
+						}
+					}
+				}
+
+				// print failed tests after the execution
+				def failedTests = []
+				afterTest { test, result ->
+					if (result.resultType == TestResult.ResultType.FAILURE) {
+						failedTests << test
+					}
+				}
+
+				// create a summary after the execution
+				afterSuite { desc, result ->
+					if (!desc.parent) {
+						println "\nTest result: ${result.resultType}"
+						println "Test summary: ${result.testCount} tests, " +
+							"${result.successfulTestCount} succeeded, " +
+							"${result.failedTestCount} failed, " +
+							"${result.skippedTestCount} skipped"
+
+						failedTests.each { test -> println "FAILED test: ${test.className} > ${test.name}" }
+					}
+				}
+			}
 		}
 	}
 
@@ -115,42 +172,6 @@ configure(allprojects - [project(":spring-cloud-app-broker-docs")]) {
 		ruleSets = []
 		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdTestRuleSet.xml")
 		source = "src/test/java"
-	}
-
-	test {
-		// enable JUnit 5
-		useJUnitPlatform()
-
-		testLogging {
-			// display all the events
-			events 'PASSED', 'FAILED', 'SKIPPED'
-			// display stdout and stderr
-			showStandardStreams = true
-		}
-
-		// create a summary after the execution
-		afterSuite { desc, result ->
-			if (!desc.parent) {
-				println "\nTest result: ${result.resultType}"
-				println "Test summary: ${result.testCount} tests, " +
-					"${result.successfulTestCount} succeeded, " +
-					"${result.failedTestCount} failed, " +
-					"${result.skippedTestCount} skipped"
-			}
-		}
-
-		// print failed tests after the execution
-		def failedTests = []
-
-		afterTest { test, result ->
-			if (result.resultType == TestResult.ResultType.FAILURE) {
-				failedTests << test
-			}
-		}
-
-		afterSuite {
-			failedTests.each { test -> println "FAILED test: ${test.className} > ${test.name}" }
-		}
 	}
 }
 

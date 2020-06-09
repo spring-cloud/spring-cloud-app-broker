@@ -1,4 +1,4 @@
-:examples-dir: ../../src/test/java/com/example/appbroker/
+:examples-dir: ../../src/main/java/com/example/appbroker/
 [[service-bindings]]
 == Service Bindings
 

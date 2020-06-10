@@ -32,9 +32,6 @@ echo "Version to stage is v$stageVersion"
 echo "Next development version will be v$nextVersion"
 echo
 
-git checkout -b "merge-on-success/$stageVersion"
-echo
-
 echo "Tagging version being staged (v$stageVersion)"
 sed -i "s/version=$snapshotVersion/version=$stageVersion/" gradle.properties
 git add gradle.properties

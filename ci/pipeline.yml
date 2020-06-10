@@ -50,6 +50,7 @@ jobs:
               properties:
                 "zip.type": "docs"
                 "zip.deployed": "false"
+
   - name: run-acceptance-tests
     serial: true
     plan:
@@ -89,9 +90,10 @@ jobs:
         params:
           <<: *artifactory-params
           repo: libs-staging-local
-      - put: git-repo
+      - put: git-repo-staging
         params:
           repository: stage-git-repo
+
   - name: stage-rc
     serial: true
     plan:
@@ -108,9 +110,10 @@ jobs:
         params:
           <<: *artifactory-params
           repo: libs-staging-local
-      - put: git-repo
+      - put: git-repo-staging
         params:
           repository: stage-git-repo
+
   - name: stage-release
     serial: true
     plan:
@@ -127,9 +130,10 @@ jobs:
         params:
           <<: *artifactory-params
           repo: libs-staging-local
-      - put: git-repo
+      - put: git-repo-staging
         params:
           repository: stage-git-repo
+
   - name: promote-milestone
     serial: true
     plan:
@@ -149,6 +153,7 @@ jobs:
           ARTIFACTORY_SERVER: ((artifactory-server))
           ARTIFACTORY_USERNAME: ((artifactory-username))
           ARTIFACTORY_PASSWORD: ((artifactory-password))
+
   - name: promote-rc
     serial: true
     plan:
@@ -168,6 +173,7 @@ jobs:
           ARTIFACTORY_SERVER: ((artifactory-server))
           ARTIFACTORY_USERNAME: ((artifactory-username))
           ARTIFACTORY_PASSWORD: ((artifactory-password))
+
   - name: promote-release
     serial: true
     plan:
@@ -193,6 +199,7 @@ jobs:
           BINTRAY_API_KEY: ((bintray-api-key))
           BINTRAY_PACKAGE: ((bintray-package))
           BINTRAY_DISTRIBUTION_REPO: ((bintray-distribution-repo))
+
   - name: distribute-release
     serial: true
     plan:
@@ -217,6 +224,7 @@ jobs:
           BINTRAY_API_KEY: ((bintray-api-key))
           BINTRAY_PACKAGE: ((bintray-package))
           BINTRAY_DISTRIBUTION_REPO: ((bintray-distribution-repo))
+
   - name: sync-to-maven-central
     serial: true
     plan:
@@ -262,6 +270,13 @@ resources:
       branch: ((branch))
       ignore_paths: ["ci/images/*"]
       fetch_tags: true
+  - name: git-repo-staging
+    type: git
+    source:
+      uri: ((github-repo))
+      username: ((github-username))
+      password: ((github-password))
+      branch: ((github-username))/staging
   - name: ci-images-git-repo
     type: git
     source:
@@ -286,6 +301,7 @@ resources:
     type: slack-notification
     source:
       url: {{scs-slack-webhook}}
+
 groups:
   - name: "Main"
     jobs: ["build", "run-acceptance-tests", "stage-milestone", "stage-rc", "stage-release", "promote-milestone", "promote-rc", "promote-release", "distribute-release", "sync-to-maven-central"]

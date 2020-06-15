@@ -34,6 +34,7 @@ jobs:
         timeout: 1h30m
         file: git-repo/ci/tasks/build-project.yml
         vars:
+          docker-hub-organization: ((docker-hub-organization))
           release-image-tag: ((release-image-tag))
       - put: artifactory-repo
         params: &artifactory-params

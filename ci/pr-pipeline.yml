@@ -27,6 +27,7 @@ jobs:
         input_mapping:
           git-repo: pull-request
         vars:
+          docker-hub-organization: ((docker-hub-organization))
           release-image-tag: ((release-image-tag))
 
   - name: run-acceptance-tests

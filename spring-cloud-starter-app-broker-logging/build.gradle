@@ -27,10 +27,11 @@ dependencies {
 	compile project(":spring-cloud-app-broker-logging")
 }
 
-install {
-	repositories.mavenInstaller {
-		pom.whenConfigured { generatedPom ->
-			generatedPom.packaging = "pom"
-		}
-	}
-}
+// TODO maven publication
+//install {
+//	repositories.mavenInstaller {
+//		pom.whenConfigured { generatedPom ->
+//			generatedPom.packaging = "pom"
+//		}
+//	}
+//}

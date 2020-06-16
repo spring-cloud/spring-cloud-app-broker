@@ -1,4 +1,5 @@
 import java.util.concurrent.ConcurrentHashMap
+
 /*
  * Copyright 2002-2020 the original author or authors.
  *
@@ -15,16 +16,9 @@ import java.util.concurrent.ConcurrentHashMap
  * limitations under the License.
  */
 
-buildscript {
-	repositories {
-		maven { url "https://repo.spring.io/plugins-release" }
-	}
-	dependencies {
-		classpath("io.spring.gradle:propdeps-plugin:0.0.10.RELEASE")
-		classpath("io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE")
-		classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.9.9")
-		classpath("io.spring.nohttp:nohttp-gradle:0.0.4.RELEASE")
-	}
+plugins {
+	id "io.spring.nohttp"
+	id "io.spring.dependency-management"
 }
 
 ext {
@@ -56,94 +50,9 @@ if (!project.hasProperty("onlyShowStandardStreamsOnTestFailure")) {
 	ext.onlyShowStandardStreamsOnTestFailure = false
 }
 
-apply plugin: "io.spring.nohttp"
+description = "Spring Cloud App Broker"
 
-configure(allprojects) {
-	group = "org.springframework.cloud"
-
-	apply plugin: "eclipse"
-	apply plugin: "idea"
-	apply plugin: "jacoco"
-	apply plugin: "propdeps"
-	apply plugin: "propdeps-idea"
-	apply plugin: "propdeps-eclipse"
-	apply plugin: "io.spring.dependency-management"
-
-	afterEvaluate { subproject ->
-		if (subproject.description == null || subproject.description.isEmpty()) {
-			throw new InvalidUserDataException("A project description is required for publishing to maven central")
-		}
-
-		tasks.withType(Test).forEach { Test task ->
-			task.with {
-				// enable JUnit 5
-				useJUnitPlatform()
-				scanForTestClasses = true
-				group = "verification"
-
-				testLogging {
-					exceptionFormat = "full"
-					events = ["passed", "skipped", "failed"]
-					showStandardStreams = !project.onlyShowStandardStreamsOnTestFailure
-				}
-
-				if (project.onlyShowStandardStreamsOnTestFailure) {
-					Map<String, StringBuilder> testOutput = new ConcurrentHashMap<>()
-
-					onOutput { TestDescriptor descriptor, TestOutputEvent event ->
-						testOutput.compute(descriptor.displayName, { k, v ->
-							v == null ? new StringBuilder(event.message) : v.append(event.message)
-						})
-					}
-
-					afterTest { TestDescriptor descriptor, TestResult result ->
-						if (result.resultType == TestResult.ResultType.FAILURE && testOutput.containsKey(descriptor.displayName)) {
-							logger.lifecycle("\n\n${testOutput.get(descriptor.displayName)}")
-							testOutput.remove(descriptor.displayName)
-						}
-					}
-				}
-
-				// print failed tests after the execution
-				def failedTests = []
-				afterTest { test, result ->
-					if (result.resultType == TestResult.ResultType.FAILURE) {
-						failedTests << test
-					}
-				}
-
-				// create a summary after the execution
-				afterSuite { desc, result ->
-					if (!desc.parent) {
-						println "\nTest result: ${result.resultType}"
-						println "Test summary: ${result.testCount} tests, " +
-							"${result.successfulTestCount} succeeded, " +
-							"${result.failedTestCount} failed, " +
-							"${result.skippedTestCount} skipped"
-
-						failedTests.each { test -> println "FAILED test: ${test.className} > ${test.name}" }
-					}
-				}
-			}
-		}
-	}
-
-	apply from: "${rootProject.projectDir}/publish-maven.gradle"
-
-	repositories {
-		mavenCentral()
-		maven { url "https://repo.spring.io/release" }
-		if (!version.endsWith('RELEASE')) {
-			maven { url "https://repo.spring.io/milestone" }
-		}
-		if (version.endsWith('BUILD-SNAPSHOT') || project.hasProperty("springFrameworkVersion") ||
-				project.hasProperty("springBootVersion") || project.hasProperty("reactorVersion")) {
-			maven { url "https://repo.spring.io/snapshot" }
-		}
-	}
-}
-
-configure(allprojects - [project(":spring-cloud-app-broker-docs")]) {
+configure(allprojects - documentationProjects) {
 	apply plugin: "checkstyle"
 	apply plugin: "pmd"
 
@@ -152,40 +61,58 @@ configure(allprojects - [project(":spring-cloud-app-broker-docs")]) {
 		toolVersion = "${checkstyleVersion}"
 		showViolations = true
 	}
-	checkstyleMain {
-		source = "src/main/java"
-	}
-	checkstyleTest {
-		source = "src/test/java"
-	}
+	// TODO configure checkstyle
+//	checkstyleMain {
+//		source = "src/main/java"
+//	}
+//	checkstyleTest {
+//		source = "src/test/java"
+//	}
 
 	pmd {
 		toolVersion = "${pmdVersion}"
 		consoleOutput = true
 	}
-	pmdMain {
-		ruleSets = []
-		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdRuleSet.xml")
-		source = "src/main/java"
-	}
-	pmdTest {
-		ruleSets = []
-		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdTestRuleSet.xml")
-		source = "src/test/java"
-	}
+	// TODO configure PMD
+//	pmdMain {
+//		ruleSets = []
+//		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdRuleSet.xml")
+//		source = "src/main/java"
+//	}
+//	pmdTest {
+//		ruleSets = []
+//		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdTestRuleSet.xml")
+//		source = "src/test/java"
+//	}
 }
 
-subprojects {
-	task allDependencyInsight(type: DependencyInsightReportTask)
-	task dependencyReport(type: DependencyReportTask)
-}
+configure(subprojects - starterProjects) {
+	apply plugin: "java-library"
+	apply plugin: "jacoco"
 
-configure(subprojects - [project(":spring-cloud-starter-app-broker"),
-						 project(":spring-cloud-starter-app-broker-cloudfoundry")]) {
+	repositories {
+		mavenCentral()
+		maven { url "https://repo.spring.io/release" }
+		if (!version.endsWith('RELEASE')) {
+			maven { url "https://repo.spring.io/milestone" }
+		}
+		if (version.endsWith('BUILD-SNAPSHOT') ||
+			project.hasProperty("springFrameworkVersion") ||
+			project.hasProperty("springBootVersion") ||
+			project.hasProperty("reactorVersion")) {
+			maven { url "https://repo.spring.io/snapshot" }
+		}
+	}
+
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8
-	[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
 
+	java {
+		withJavadocJar()
+		withSourcesJar()
+	}
+
+	[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
 	[compileJava, compileTestJava]*.options*.compilerArgs = [
 		"-Xlint:serial",
 		"-Xlint:varargs",
@@ -210,7 +137,7 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 
 	jar {
 		manifest.attributes["Created-By"] =
-				"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
+			"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
 		manifest.attributes["Implementation-Title"] = project.name
 		manifest.attributes["Implementation-Version"] = project.version
 
@@ -225,27 +152,82 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 	javadoc {
 		description = "Generates project-level javadoc for use in -javadoc jar"
 
-		options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+		options.memberLevel = JavadocMemberLevel.PROTECTED
 		options.author = true
 		options.header = project.name
 		options.links(javadocLinks)
 		options.addStringOption('Xdoclint:none', '-quiet')
 	}
 
-	task sourcesJar(type: Jar, dependsOn:classes) {
+	sourcesJar {
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-		archiveClassifier = "sources"
+		archiveClassifier.set "sources"
 		from sourceSets.main.allJava
 	}
 
-	task javadocJar(type: Jar) {
-		archiveClassifier = "javadoc"
+	javadocJar {
+		archiveClassifier.set "javadoc"
 		from javadoc
 	}
 
-	artifacts {
-		archives sourcesJar
-		archives javadocJar
+	// TODO configure maven publication
+	//   https://docs.gradle.org/current/userguide/publishing_setup.html#publishing_overview
+//	artifacts {
+//		archives sourcesJar
+//		archives javadocJar
+//	}
+
+	tasks.withType(Test).forEach { Test task ->
+		task.with {
+			// enable JUnit 5
+			useJUnitPlatform()
+			scanForTestClasses = true
+			group = "verification"
+
+			testLogging {
+				exceptionFormat = "full"
+				events = ["passed", "skipped", "failed"]
+				showStandardStreams = !project.onlyShowStandardStreamsOnTestFailure
+			}
+
+			if (project.onlyShowStandardStreamsOnTestFailure) {
+				Map<String, StringBuilder> testOutput = new ConcurrentHashMap<>()
+
+				onOutput { TestDescriptor descriptor, TestOutputEvent event ->
+					testOutput.compute(descriptor.displayName, { k, v ->
+						v == null ? new StringBuilder(event.message) : v.append(event.message)
+					})
+				}
+
+				afterTest { TestDescriptor descriptor, TestResult result ->
+					if (result.resultType == TestResult.ResultType.FAILURE && testOutput.containsKey(descriptor.displayName)) {
+						logger.lifecycle("\n\n${testOutput.get(descriptor.displayName)}")
+						testOutput.remove(descriptor.displayName)
+					}
+				}
+			}
+
+			// print failed tests after the execution
+			def failedTests = []
+			afterTest { test, result ->
+				if (result.resultType == TestResult.ResultType.FAILURE) {
+					failedTests << test
+				}
+			}
+
+			// create a summary after the execution
+			afterSuite { desc, result ->
+				if (!desc.parent) {
+					println "\nTest result: ${result.resultType}"
+					println "Test summary: ${result.testCount} tests, " +
+						"${result.successfulTestCount} succeeded, " +
+						"${result.failedTestCount} failed, " +
+						"${result.skippedTestCount} skipped"
+
+					failedTests.each { test -> println "FAILED test: ${test.className} > ${test.name}" }
+				}
+			}
+		}
 	}
 
 	configurations {
@@ -254,93 +236,105 @@ configure(subprojects - [project(":spring-cloud-starter-app-broker"),
 	}
 }
 
-configure(rootProject) {
-	description = "Spring Cloud App Broker"
+configure(starterProjects) {
+	apply plugin: 'java-library'
+}
 
-	// don't publish the default jar for the root project
-	configurations.archives.artifacts.clear()
-
-	dependencies {
-		// for integration tests
-	}
-
-	task api(type: Javadoc) {
-		group = "Documentation"
-		description = "Generates aggregated Javadoc API documentation."
-		title = "${rootProject.description} ${version} API"
-		options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
-		options.author = true
-		options.header = rootProject.description
-		options.links(javadocLinks)
-		options.addStringOption('Xdoclint:none', '-quiet')
-
-		source subprojects.collect { project ->
-			project.sourceSets.main.allJava
-		}
-
-		classpath = files(subprojects.collect { project ->
-			project.sourceSets.main.compileClasspath
-		})
-
-		exclude 'org/springframework/cloud/appbroker/integration/**',
-			'org/springframework/cloud/appbroker/acceptance/**'
-		maxMemory = "1024m"
-		destinationDir = new File(buildDir, "api")
-	}
-
-	task docsZip(type: Zip, dependsOn: [':spring-cloud-app-broker-docs:asciidoctor']) {
-		group = "Distribution"
-		archiveClassifier = "docs"
-		description = "Builds -${archiveClassifier} archive containing api and reference " +
-				"for deployment."
-
-		from (api) { into "api" }
-		from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctor')) {
-			into 'reference'
-		}
-    from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctorPdf')) {
-			into 'reference'
+allprojects {
+	afterEvaluate { project ->
+		if (project.description == null || project.description.isEmpty()) {
+			throw new InvalidUserDataException("A project description is required for publishing to maven central")
 		}
 	}
+}
 
-	task distZip(type: Zip, dependsOn: docsZip) {
-		group = "Distribution"
-		archiveClassifier = "dist"
-		description = "Builds -${archiveClassifier} archive, containing all jars and docs, " +
-				"suitable for community download page."
+def getDocumentationProjects() {
+	[project(":spring-cloud-app-broker-docs")] as Set
+}
 
-		def baseDir = "${project.name}-${project.version}"
+def getStarterProjects() {
+	[project(":spring-cloud-starter-app-broker"),
+	 project(":spring-cloud-starter-app-broker-cloudfoundry"),
+	 project(":spring-cloud-starter-app-broker-logging")] as Set
+}
 
-		from(zipTree(docsZip.archivePath)) { into "${baseDir}/docs" }
+def getLibraryProjects() {
+	subprojects - documentationProjects - starterProjects
+}
 
-		def mainSubprojects = subprojects - [project(":spring-cloud-starter-app-broker"),
-				project(":spring-cloud-starter-app-broker-cloudfoundry"),
-				project(":spring-cloud-app-broker-docs"),
-				project(":spring-cloud-app-broker-acceptance-tests"),
-				project(":spring-cloud-app-broker-integration-tests")]
-		mainSubprojects.each { subproject ->
-			into ("${baseDir}/libs") {
-				from subproject.jar
-				if (subproject.tasks.findByPath("sourcesJar")) {
-					from subproject.sourcesJar
-				}
-				if (subproject.tasks.findByPath("javadocJar")) {
-					from subproject.javadocJar
-				}
+task api(type: Javadoc) {
+	group = "Documentation"
+	description = "Generates aggregated Javadoc API documentation."
+	title = "${rootProject.description} ${version} API"
+	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+	options.author = true
+	options.header = rootProject.description
+	options.links(javadocLinks)
+	options.addStringOption('Xdoclint:none', '-quiet')
+
+	source libraryProjects.collect { project ->
+		project.sourceSets.main.allJava
+	}
+
+	classpath = files(libraryProjects.collect { project ->
+		project.sourceSets.main.compileClasspath
+	})
+
+	exclude 'org/springframework/cloud/appbroker/integration/**',
+		'org/springframework/cloud/appbroker/acceptance/**'
+	maxMemory = "1024m"
+	destinationDir = new File(buildDir, "api")
+}
+
+task docsZip(type: Zip, dependsOn: [':spring-cloud-app-broker-docs:asciidoctor']) {
+	group = "Distribution"
+	archiveClassifier.set "docs"
+	description = "Builds -${archiveClassifier} archive containing api and reference " +
+		"for deployment."
+
+	from (api) { into "api" }
+	from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctor')) {
+		into 'reference'
+	}
+	from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctorPdf')) {
+		into 'reference'
+	}
+}
+
+task distZip(type: Zip, dependsOn: docsZip) {
+	group = "Distribution"
+	archiveClassifier.set "dist"
+	description = "Builds -${archiveClassifier} archive, containing all jars and docs, " +
+		"suitable for community download page."
+
+	def baseDir = "${project.name}-${project.version}"
+
+	from(zipTree(docsZip.archiveFileName)) { into "${baseDir}/docs" }
+
+	def mainSubprojects = subprojects - [project(":spring-cloud-starter-app-broker"),
+										 project(":spring-cloud-starter-app-broker-cloudfoundry"),
+										 project(":spring-cloud-app-broker-docs"),
+										 project(":spring-cloud-app-broker-acceptance-tests"),
+										 project(":spring-cloud-app-broker-integration-tests")]
+	mainSubprojects.each { subproject ->
+		into ("${baseDir}/libs") {
+			from subproject.jar
+			if (subproject.tasks.findByPath("sourcesJar")) {
+				from subproject.sourcesJar
+			}
+			if (subproject.tasks.findByPath("javadocJar")) {
+				from subproject.javadocJar
 			}
 		}
-	}
-
-	artifacts {
-		archives docsZip
-		archives distZip
 	}
 }
 
 task codeCoverageReport(type: JacocoReport) {
+	dependsOn libraryProjects*.test
+
 	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 
-	subprojects.each { subproject ->
+	libraryProjects.each { subproject ->
 		if (subproject.name.endsWith("-integration-tests") || subproject.name.endsWith("-acceptance-tests")) {
 			// Work-around for issue with jacoco and multiple-release jar files
 			// (like Log4J 2.10 and above)
@@ -348,7 +342,7 @@ task codeCoverageReport(type: JacocoReport) {
 			getSourceDirectories().from(subproject.sourceSets.main.java)
 			getClassDirectories().from(subproject.sourceSets.main.output.classesDirs)
 		} else {
-			 sourceSets subproject.sourceSets.main
+			sourceSets subproject.sourceSets.main
 		}
 	}
 
@@ -360,10 +354,7 @@ task codeCoverageReport(type: JacocoReport) {
 	}
 }
 
-codeCoverageReport.dependsOn {
-	subprojects*.test
-}
-
 wrapper {
-	gradleVersion = "6.3"
+	gradleVersion = "6.5"
+	distributionType = Wrapper.DistributionType.ALL
 }

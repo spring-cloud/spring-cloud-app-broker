@@ -1,3 +1,11 @@
+pluginManagement {
+	plugins {
+		id "io.spring.dependency-management" version "1.0.9.RELEASE"
+		id "com.jfrog.artifactory" version "4.15.2"
+		id "io.spring.nohttp" version "0.0.5.RELEASE"
+	}
+}
+
 rootProject.name = "spring-cloud-app-broker"
 
 include "spring-cloud-app-broker-deployer"

@@ -23,8 +23,8 @@ dependencyManagement {
 }
 
 dependencies {
-	compile project(":spring-cloud-starter-app-broker")
-	compile project(":spring-cloud-app-broker-logging")
+	implementation project(":spring-cloud-starter-app-broker")
+	implementation project(":spring-cloud-app-broker-logging")
 }
 
 // TODO maven publication

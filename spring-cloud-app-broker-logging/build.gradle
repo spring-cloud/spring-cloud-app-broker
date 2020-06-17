@@ -28,10 +28,10 @@ ext {
 }
 
 dependencies {
-    compile "org.springframework.boot:spring-boot-starter-webflux"
-    compile "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
-    compile "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
-    compile "org.immutables:value:${immutablesVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-webflux"
+    implementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
+    implementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+    implementation "org.immutables:value:${immutablesVersion}"
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude group: 'junit', module: 'junit'

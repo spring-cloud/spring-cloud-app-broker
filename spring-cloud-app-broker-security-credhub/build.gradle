@@ -23,9 +23,9 @@ dependencyManagement {
 }
 
 dependencies {
-	compile project(":spring-cloud-app-broker-core")
-	compile("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
-	compile("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
+	implementation project(":spring-cloud-app-broker-core")
+	implementation("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
+	implementation("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 

@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 plugins {
 	id "io.spring.nohttp"
-	id "io.spring.dependency-management"
+	id "io.spring.dependency-management" apply false
 }
 
 ext {
@@ -51,6 +51,16 @@ if (!project.hasProperty("onlyShowStandardStreamsOnTestFailure")) {
 }
 
 description = "Spring Cloud App Broker"
+
+allprojects {
+	apply plugin: "io.spring.nohttp"
+
+	afterEvaluate { project ->
+		if (project.description == null || project.description.isEmpty()) {
+			throw new InvalidUserDataException("A project description is required for publishing to maven central")
+		}
+	}
+}
 
 configure(allprojects - documentationProjects) {
 	apply plugin: "checkstyle"
@@ -86,9 +96,9 @@ configure(allprojects - documentationProjects) {
 //	}
 }
 
-configure(subprojects - starterProjects) {
-	apply plugin: "java-library"
-	apply plugin: "jacoco"
+configure(codeProjects) {
+	apply plugin: 'java-library'
+	apply plugin: "io.spring.dependency-management"
 
 	repositories {
 		mavenCentral()
@@ -103,6 +113,10 @@ configure(subprojects - starterProjects) {
 			maven { url "https://repo.spring.io/snapshot" }
 		}
 	}
+}
+
+configure(libraryProjects) {
+	apply plugin: "jacoco"
 
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8
@@ -233,23 +247,16 @@ configure(subprojects - starterProjects) {
 	configurations {
 		// exclude JUnit 4 globally, in favor of JUnit 5
 		testImplementation.exclude group: "junit", module: "junit"
-	}
-}
-
-configure(starterProjects) {
-	apply plugin: 'java-library'
-}
-
-allprojects {
-	afterEvaluate { project ->
-		if (project.description == null || project.description.isEmpty()) {
-			throw new InvalidUserDataException("A project description is required for publishing to maven central")
-		}
+		testImplementation.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
 }
 
 def getDocumentationProjects() {
 	[project(":spring-cloud-app-broker-docs")] as Set
+}
+
+def getCodeProjects() {
+	return starterProjects + libraryProjects + documentationProjects
 }
 
 def getStarterProjects() {
@@ -266,7 +273,7 @@ task api(type: Javadoc) {
 	group = "Documentation"
 	description = "Generates aggregated Javadoc API documentation."
 	title = "${rootProject.description} ${version} API"
-	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+	options.memberLevel = JavadocMemberLevel.PROTECTED
 	options.author = true
 	options.header = rootProject.description
 	options.links(javadocLinks)

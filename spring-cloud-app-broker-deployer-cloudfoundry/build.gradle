@@ -24,13 +24,13 @@ dependencyManagement {
 
 dependencies {
 	implementation project(":spring-cloud-app-broker-deployer")
-	implementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
-	implementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
+	implementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+	implementation "org.springframework.boot:spring-boot-starter-validation"
 
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("io.projectreactor:reactor-test")
-	testImplementation("io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}")
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
+	testImplementation "io.projectreactor:reactor-test"
+	testImplementation "io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}"
 }

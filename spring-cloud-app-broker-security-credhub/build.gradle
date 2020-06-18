@@ -24,13 +24,13 @@ dependencyManagement {
 
 dependencies {
 	implementation project(":spring-cloud-app-broker-core")
-	implementation("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
-	implementation("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
+	implementation "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
+	implementation "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"
 
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webflux")
-	testImplementation("io.projectreactor:reactor-test")
-	testImplementation("io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}")
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
+	testImplementation "org.springframework.boot:spring-boot-starter-webflux"
+	testImplementation "io.projectreactor:reactor-test"
+	testImplementation "io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}"
 }

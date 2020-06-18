@@ -16,13 +16,8 @@
 
 description = "Spring Cloud App Broker Deployer Cloud Foundry"
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
-	}
-}
-
 dependencies {
+	implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 	implementation project(":spring-cloud-app-broker-deployer")
 	implementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
 	implementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"

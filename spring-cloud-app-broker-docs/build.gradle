@@ -25,19 +25,14 @@ configurations {
 	docs
 }
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
-	}
-}
-
 dependencies {
+	implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 	implementation project(":spring-cloud-app-broker-core")
 	implementation "org.springframework.boot:spring-boot-starter"
 	implementation "org.springframework.boot:spring-boot-starter-security"
 	implementation "org.springframework.boot:spring-boot-starter-tomcat"
 	implementation "io.projectreactor:reactor-core"
-	implementation "org.springframework.boot:spring-boot-starter-data-r2dbc:2.3.0.RELEASE"
+	implementation "org.springframework.data:spring-data-r2dbc:1.1.1.RELEASE"
 	implementation "io.r2dbc:r2dbc-h2:0.8.0.RELEASE"
 
 	docs "io.spring.docresources:spring-doc-resources:0.2.1.RELEASE@zip"

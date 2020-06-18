@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 plugins {
 	id "io.spring.nohttp"
-	id "io.spring.dependency-management" apply false
 }
 
 ext {
@@ -44,7 +43,6 @@ allprojects {
 
 configure(codeProjects) {
 	apply plugin: 'java-library'
-	apply plugin: "io.spring.dependency-management"
 
 	repositories {
 		mavenCentral()

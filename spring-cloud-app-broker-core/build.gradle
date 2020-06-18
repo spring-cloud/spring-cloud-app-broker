@@ -16,17 +16,12 @@
 
 description = "Spring Cloud App Broker Core"
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework:spring-framework-bom:${springFrameworkVersion}"
-		mavenBom "io.projectreactor:reactor-bom:${reactorVersion}"
-	}
-}
-
 dependencies {
 	api project(":spring-cloud-app-broker-deployer")
 	api "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"
 
+	implementation platform("org.springframework:spring-framework-bom:${springFrameworkVersion}")
+	implementation platform("io.projectreactor:reactor-bom:${reactorVersion}")
 	implementation "org.springframework:spring-core"
 	implementation "org.springframework:spring-context"
 	implementation "io.projectreactor:reactor-core"

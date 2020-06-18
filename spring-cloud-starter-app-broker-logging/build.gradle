@@ -16,12 +16,6 @@
 
 description = "Spring Cloud App Broker Starter for Logging"
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
-	}
-}
-
 dependencies {
 	api project(":spring-cloud-starter-app-broker")
 

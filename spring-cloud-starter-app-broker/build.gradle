@@ -24,8 +24,8 @@ dependencyManagement {
 
 dependencies {
 	api project(":spring-cloud-app-broker-core")
-	implementation project(":spring-cloud-app-broker-autoconfigure")
-	implementation "org.springframework.cloud:spring-cloud-starter-open-service-broker:${openServiceBrokerVersion}"
+	api project(":spring-cloud-app-broker-autoconfigure")
+	api "org.springframework.cloud:spring-cloud-starter-open-service-broker:${openServiceBrokerVersion}"
 }
 
 // TODO maven publication

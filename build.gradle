@@ -22,78 +22,24 @@ plugins {
 }
 
 ext {
-	springBootVersion = project.findProperty("springBootVersion") ?: "2.2.7.RELEASE"
-	springFrameworkVersion = project.findProperty("springFrameworkVersion") ?: "5.2.6.RELEASE"
-	reactorVersion = project.findProperty("reactorVersion") ?: "Dysprosium-SR7"
-	openServiceBrokerVersion = "3.1.1.RELEASE"
-	springCredhubVersion = "2.1.1.RELEASE"
-	cfJavaClientVersion = "4.7.0.RELEASE"
-	blockHoundVersion = "1.0.3.RELEASE"
-	junitPlatformLauncherVersion = "1.6.2"
-	checkstyleVersion = "8.33"
-	pmdVersion = "6.24.0"
-
 	javadocLinks = [
 		"https://docs.oracle.com/javase/8/docs/api/",
-		"https://docs.spring.io/spring/docs/${springFrameworkVersion}/javadoc-api/",
+		"https://docs.spring.io/spring/docs/${springFrameworkVersion}/javadoc-api/"
 	] as String[]
 }
 
-//override managed Spring Boot versions
-if (project.hasProperty("springFrameworkVersion")) {
-	ext['spring-framework.version'] = ext.springFrameworkVersion
-}
-if (project.hasProperty("reactorVersion")) {
-	ext['reactor-bom.version'] = ext.reactorVersion
-}
-if (!project.hasProperty("onlyShowStandardStreamsOnTestFailure")) {
-	ext.onlyShowStandardStreamsOnTestFailure = false
-}
+// override managed Spring Boot versions
+ext['spring-framework.version'] = springFrameworkVersion
+ext['reactor-bom.version'] = reactorVersion
 
 description = "Spring Cloud App Broker"
 
 allprojects {
-	apply plugin: "io.spring.nohttp"
-
 	afterEvaluate { project ->
 		if (project.description == null || project.description.isEmpty()) {
 			throw new InvalidUserDataException("A project description is required for publishing to maven central")
 		}
 	}
-}
-
-configure(allprojects - documentationProjects) {
-	apply plugin: "checkstyle"
-	apply plugin: "pmd"
-
-	checkstyle {
-		configFile = file("${project.rootDir}/src/checkstyle/checkstyle.xml")
-		toolVersion = "${checkstyleVersion}"
-		showViolations = true
-	}
-	// TODO configure checkstyle
-//	checkstyleMain {
-//		source = "src/main/java"
-//	}
-//	checkstyleTest {
-//		source = "src/test/java"
-//	}
-
-	pmd {
-		toolVersion = "${pmdVersion}"
-		consoleOutput = true
-	}
-	// TODO configure PMD
-//	pmdMain {
-//		ruleSets = []
-//		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdRuleSet.xml")
-//		source = "src/main/java"
-//	}
-//	pmdTest {
-//		ruleSets = []
-//		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdTestRuleSet.xml")
-//		source = "src/test/java"
-//	}
 }
 
 configure(codeProjects) {
@@ -113,15 +59,11 @@ configure(codeProjects) {
 			maven { url "https://repo.spring.io/snapshot" }
 		}
 	}
-}
-
-configure(libraryProjects) {
-	apply plugin: "jacoco"
-
-	sourceCompatibility = 1.8
-	targetCompatibility = 1.8
 
 	java {
+		sourceCompatibility = JavaVersion.VERSION_1_8
+		targetCompatibility = JavaVersion.VERSION_1_8
+
 		withJavadocJar()
 		withSourcesJar()
 	}
@@ -148,48 +90,6 @@ configure(libraryProjects) {
 		"-Xlint:-options",
 		"-Werror"
 	]
-
-	jar {
-		manifest.attributes["Created-By"] =
-			"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
-		manifest.attributes["Implementation-Title"] = project.name
-		manifest.attributes["Implementation-Version"] = project.version
-
-		from("${rootProject.projectDir}/src/dist") {
-			include "license.txt"
-			include "notice.txt"
-			into "META-INF"
-			expand(copyright: new Date().format("yyyy"), version: project.version)
-		}
-	}
-
-	javadoc {
-		description = "Generates project-level javadoc for use in -javadoc jar"
-
-		options.memberLevel = JavadocMemberLevel.PROTECTED
-		options.author = true
-		options.header = project.name
-		options.links(javadocLinks)
-		options.addStringOption('Xdoclint:none', '-quiet')
-	}
-
-	sourcesJar {
-		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-		archiveClassifier.set "sources"
-		from sourceSets.main.allJava
-	}
-
-	javadocJar {
-		archiveClassifier.set "javadoc"
-		from javadoc
-	}
-
-	// TODO configure maven publication
-	//   https://docs.gradle.org/current/userguide/publishing_setup.html#publishing_overview
-//	artifacts {
-//		archives sourcesJar
-//		archives javadocJar
-//	}
 
 	tasks.withType(Test).forEach { Test task ->
 		task.with {
@@ -248,6 +148,94 @@ configure(libraryProjects) {
 		// exclude JUnit 4 globally, in favor of JUnit 5
 		testImplementation.exclude group: "junit", module: "junit"
 		testImplementation.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+
+		compileOnly.defaultDependencies { dependencies ->
+			dependencies.add project.dependencies.create("org.immutables:value:${immutablesVersion}")
+		}
+		testCompileOnly.extendsFrom(compileOnly)
+	}
+}
+
+configure(testProjects) {
+	javadoc {
+		enabled = false
+	}
+}
+
+configure(libraryProjects) {
+	jar {
+		manifest.attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
+		manifest.attributes["Implementation-Title"] = project.name
+		manifest.attributes["Implementation-Version"] = project.version
+
+		from("${rootProject.projectDir}/src/dist") {
+			include "license.txt"
+			include "notice.txt"
+			into "META-INF"
+			expand(copyright: new Date().format("yyyy"), version: project.version)
+		}
+	}
+
+	javadoc {
+		description = "Generates project-level javadoc for use in -javadoc jar"
+
+		options.memberLevel = JavadocMemberLevel.PROTECTED
+		options.author = true
+		options.header = project.name
+		options.links(javadocLinks)
+		options.addStringOption('Xdoclint:none', '-quiet')
+	}
+
+	sourcesJar {
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+		archiveClassifier.set "sources"
+		from sourceSets.main.allJava
+	}
+
+	javadocJar {
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+		archiveClassifier.set "javadoc"
+		from javadoc
+	}
+
+	// TODO configure maven publication
+	//   https://docs.gradle.org/current/userguide/publishing_setup.html#publishing_overview
+//	artifacts {
+//		archives sourcesJar
+//		archives javadocJar
+//	}
+}
+
+configure(staticAnalysisProjects) {
+	apply plugin: "checkstyle"
+	apply plugin: "pmd"
+	apply plugin: "jacoco"
+
+	checkstyle {
+		configFile = file("${project.rootDir}/src/checkstyle/checkstyle.xml")
+		toolVersion = "${checkstyleVersion}"
+		showViolations = true
+	}
+	checkstyleMain {
+		source = "src/main/java"
+	}
+	checkstyleTest {
+		source = "src/test/java"
+	}
+
+	pmd {
+		toolVersion = "${pmdVersion}"
+		consoleOutput = true
+	}
+	pmdMain {
+		ruleSets = []
+		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdRuleSet.xml")
+		source = "src/main/java"
+	}
+	pmdTest {
+		ruleSets = []
+		ruleSetFiles = files("${project.rootDir}/src/pmd/pmdTestRuleSet.xml")
+		source = "src/test/java"
 	}
 }
 
@@ -256,7 +244,16 @@ def getDocumentationProjects() {
 }
 
 def getCodeProjects() {
-	return starterProjects + libraryProjects + documentationProjects
+	subprojects
+}
+
+def getStaticAnalysisProjects() {
+	codeProjects - documentationProjects
+}
+
+def getTestProjects() {
+	[project(":spring-cloud-app-broker-integration-tests"),
+	 project(":spring-cloud-app-broker-acceptance-tests")] as Set
 }
 
 def getStarterProjects() {
@@ -266,7 +263,7 @@ def getStarterProjects() {
 }
 
 def getLibraryProjects() {
-	subprojects - documentationProjects - starterProjects
+	codeProjects - documentationProjects - starterProjects - testProjects
 }
 
 task api(type: Javadoc) {
@@ -287,8 +284,6 @@ task api(type: Javadoc) {
 		project.sourceSets.main.compileClasspath
 	})
 
-	exclude 'org/springframework/cloud/appbroker/integration/**',
-		'org/springframework/cloud/appbroker/acceptance/**'
 	maxMemory = "1024m"
 	destinationDir = new File(buildDir, "api")
 }
@@ -318,12 +313,7 @@ task distZip(type: Zip, dependsOn: docsZip) {
 
 	from(zipTree(docsZip.archiveFileName)) { into "${baseDir}/docs" }
 
-	def mainSubprojects = subprojects - [project(":spring-cloud-starter-app-broker"),
-										 project(":spring-cloud-starter-app-broker-cloudfoundry"),
-										 project(":spring-cloud-app-broker-docs"),
-										 project(":spring-cloud-app-broker-acceptance-tests"),
-										 project(":spring-cloud-app-broker-integration-tests")]
-	mainSubprojects.each { subproject ->
+	libraryProjects.each { subproject ->
 		into ("${baseDir}/libs") {
 			from subproject.jar
 			if (subproject.tasks.findByPath("sourcesJar")) {
@@ -337,12 +327,12 @@ task distZip(type: Zip, dependsOn: docsZip) {
 }
 
 task codeCoverageReport(type: JacocoReport) {
-	dependsOn libraryProjects*.test
+	dependsOn staticAnalysisProjects*.test
 
 	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 
-	libraryProjects.each { subproject ->
-		if (subproject.name.endsWith("-integration-tests") || subproject.name.endsWith("-acceptance-tests")) {
+	staticAnalysisProjects.each { subproject ->
+		if (testProjects.contains(subproject)) {
 			// Work-around for issue with jacoco and multiple-release jar files
 			// (like Log4J 2.10 and above)
 			// see https://github.com/jacoco/jacoco/issues/407

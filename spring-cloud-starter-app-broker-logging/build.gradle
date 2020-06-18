@@ -23,7 +23,8 @@ dependencyManagement {
 }
 
 dependencies {
-	implementation project(":spring-cloud-starter-app-broker")
+	api project(":spring-cloud-starter-app-broker")
+
 	implementation project(":spring-cloud-app-broker-logging")
 }
 

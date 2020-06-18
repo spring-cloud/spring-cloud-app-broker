@@ -16,12 +16,6 @@
 
 description = "Spring Cloud App Broker Autoconfiguration"
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
-	}
-}
-
 java {
 	registerFeature("logging") {
 		usingSourceSet(sourceSets.main)
@@ -29,9 +23,10 @@ java {
 }
 
 dependencies {
-	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-	annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor"
+	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+	annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor:${springBootVersion}"
 
+	implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 	implementation project(":spring-cloud-app-broker-core")
 	implementation project(":spring-cloud-app-broker-deployer")
 	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")

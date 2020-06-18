@@ -29,26 +29,26 @@ java {
 }
 
 dependencies {
-	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-	annotationProcessor("org.springframework.boot:spring-boot-autoconfigure-processor")
+	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+	annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor"
 
 	implementation project(":spring-cloud-app-broker-core")
 	implementation project(":spring-cloud-app-broker-deployer")
 	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")
 	implementation project(":spring-cloud-app-broker-security-credhub")
-	implementation("org.springframework.boot:spring-boot-starter")
-	implementation("org.springframework.boot:spring-boot-starter-webflux")
-	implementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
-	implementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
-	implementation("org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}")
+	implementation "org.springframework.boot:spring-boot-starter"
+	implementation "org.springframework.boot:spring-boot-starter-webflux"
+	implementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
+	implementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+	implementation "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
 
 	loggingImplementation project(":spring-cloud-app-broker-logging")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webflux")
-	testImplementation("io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}")
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
+	testImplementation "org.springframework.boot:spring-boot-starter-webflux"
+	testImplementation "io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}"
 
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 compileJava.dependsOn(processResources)

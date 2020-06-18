@@ -23,11 +23,11 @@ dependencyManagement {
 }
 
 dependencies {
-	implementation("org.springframework:spring-core")
-	implementation("io.projectreactor:reactor-core")
+	implementation "org.springframework:spring-core"
+	implementation "io.projectreactor:reactor-core"
 
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}")
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
+	testImplementation "io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}"
 }

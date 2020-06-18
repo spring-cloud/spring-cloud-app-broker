@@ -32,8 +32,6 @@ dependencies {
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.springframework.boot:spring-boot-autoconfigure-processor")
 
-	compileOnly "org.immutables:value:2.8.8"
-
 	implementation project(":spring-cloud-app-broker-core")
 	implementation project(":spring-cloud-app-broker-deployer")
 	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")

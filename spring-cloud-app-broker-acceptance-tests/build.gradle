@@ -29,14 +29,16 @@ dependencies {
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
+	testImplementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
+	testImplementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
 }
 
 // omit the version from the test broker jar file
 jar {
-	archiveVersion = ''
+	archiveVersion.set ''
 }
 bootJar {
-	archiveVersion = ''
+	archiveVersion.set ''
 }
 
 test {

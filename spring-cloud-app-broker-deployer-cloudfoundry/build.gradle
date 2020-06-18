@@ -16,10 +16,6 @@
 
 description = "Spring Cloud App Broker Deployer Cloud Foundry"
 
-ext {
-	immutablesVersion = "2.8.1"
-}
-
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
@@ -31,13 +27,10 @@ dependencies {
 	implementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
 	implementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.immutables:value:${immutablesVersion}")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test") {
-		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-	}
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
 	testImplementation("io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}")
 }

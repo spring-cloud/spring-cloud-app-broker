@@ -16,12 +16,6 @@
 
 description = "Spring Cloud App Broker Core"
 
-ext {
-	junitJupiterVersion = "5.5.2"
-	assertjVersion = "3.13.2"
-	mockitoVersion = "3.1.0"
-}
-
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework:spring-framework-bom:${springFrameworkVersion}"
@@ -30,22 +24,22 @@ dependencyManagement {
 }
 
 dependencies {
-	api("org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}")
+	api project(":spring-cloud-app-broker-deployer")
+	api "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"
 
-	implementation project(":spring-cloud-app-broker-deployer")
-	implementation("org.springframework:spring-core")
-	implementation("org.springframework:spring-context")
-	implementation("io.projectreactor:reactor-core")
-	implementation("org.apache.commons:commons-text:1.8")
+	implementation "org.springframework:spring-core"
+	implementation "org.springframework:spring-context"
+	implementation "io.projectreactor:reactor-core"
+	implementation "org.apache.commons:commons-text:1.8"
 
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}")
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}"
 
-	testImplementation("org.springframework:spring-test")
-	testImplementation("io.projectreactor:reactor-test")
-	testImplementation("io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}")
-	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-	testImplementation("org.assertj:assertj-core:${assertjVersion}")
-	testImplementation("org.mockito:mockito-core:${mockitoVersion}")
-	testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
+	testImplementation "org.springframework:spring-test"
+	testImplementation "io.projectreactor:reactor-test"
+	testImplementation "io.projectreactor.tools:blockhound-junit-platform:${blockHoundVersion}"
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
+	testImplementation "org.assertj:assertj-core:${assertjVersion}"
+	testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+	testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
 }

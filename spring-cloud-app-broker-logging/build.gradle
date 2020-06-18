@@ -22,22 +22,13 @@ dependencyManagement {
     }
 }
 
-ext {
-    immutablesVersion = "2.8.1"
-    awaitilityVersion = "4.0.2"
-}
-
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter-webflux"
     implementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
     implementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
-    implementation "org.immutables:value:${immutablesVersion}"
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude group: 'junit', module: 'junit'
-        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-    }
-    testImplementation(project(":spring-cloud-starter-app-broker-logging"))
+    testImplementation project(":spring-cloud-starter-app-broker-logging")
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "org.awaitility:awaitility:${awaitilityVersion}"
 }

@@ -24,10 +24,11 @@ dependencyManagement {
 
 dependencies {
 	api project(":spring-cloud-starter-app-broker")
+	api "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
+	api "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+
 	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")
 	implementation project(":spring-cloud-app-broker-security-credhub")
-	implementation("org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}")
-	implementation("org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}")
 }
 
 // TODO  maven publication

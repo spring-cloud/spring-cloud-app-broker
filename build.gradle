@@ -34,16 +34,6 @@ ext['reactor-bom.version'] = reactorVersion
 description = "Spring Cloud App Broker"
 
 allprojects {
-	afterEvaluate { project ->
-		if (project.description == null || project.description.isEmpty()) {
-			throw new InvalidUserDataException("A project description is required for publishing to maven central")
-		}
-	}
-}
-
-configure(codeProjects) {
-	apply plugin: 'java-library'
-
 	repositories {
 		mavenCentral()
 		maven { url "https://repo.spring.io/release" }
@@ -57,6 +47,16 @@ configure(codeProjects) {
 			maven { url "https://repo.spring.io/snapshot" }
 		}
 	}
+
+	afterEvaluate { project ->
+		if (project.description == null || project.description.isEmpty()) {
+			throw new InvalidUserDataException("A project description is required for publishing to maven central")
+		}
+	}
+}
+
+configure(codeProjects) {
+	apply plugin: 'java-library'
 
 	java {
 		sourceCompatibility = JavaVersion.VERSION_1_8

@@ -1,5 +1,4 @@
 import java.util.concurrent.ConcurrentHashMap
-
 /*
  * Copyright 2002-2020 the original author or authors.
  *
@@ -18,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 plugins {
 	id "io.spring.nohttp"
+	id 'distribution'
 }
 
 ext {
@@ -321,43 +321,59 @@ task api(type: Javadoc) {
 	destinationDir = new File(buildDir, "api")
 }
 
-task docsZip(type: Zip, dependsOn: [':spring-cloud-app-broker-docs:asciidoctor']) {
-	group = "Distribution"
-	archiveClassifier.set "docs"
-	description = "Builds -${archiveClassifier} archive containing api and reference " +
-		"for deployment."
-
-	from (api) { into "api" }
-	from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctor')) {
-		into 'reference'
-	}
-	from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctorPdf')) {
-		into 'reference'
-	}
-}
-
-task distZip(type: Zip, dependsOn: docsZip) {
-	group = "Distribution"
-	archiveClassifier.set "dist"
-	description = "Builds -${archiveClassifier} archive, containing all jars and docs, " +
-		"suitable for community download page."
-
-	def baseDir = "${project.name}-${project.version}"
-
-	from(zipTree(docsZip.archiveFileName)) { into "${baseDir}/docs" }
-
-	distributedProjects.each { subproject ->
-		into ("${baseDir}/libs") {
-			from subproject.jar
-			if (subproject.tasks.findByPath("sourcesJar")) {
-				from subproject.sourcesJar
+distributions {
+	docs {
+		contents {
+			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+			into('reference') {
+				from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctor'),
+					project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctorPdf'))
 			}
-			if (subproject.tasks.findByPath("javadocJar")) {
-				from subproject.javadocJar
+			into('api') { from api }
+		}
+	}
+
+	main {
+		contents {
+			into('docs') { from docsDistZip }
+			distributedProjects.each { Project subproject ->
+				into ("libs") {
+					from subproject.jar
+					if (subproject.tasks.findByPath("sourcesJar")) {
+						from subproject.sourcesJar
+					}
+					if (subproject.tasks.findByPath("javadocJar")) {
+						from subproject.javadocJar
+					}
+				}
 			}
 		}
 	}
 }
+
+//
+//task distZip(type: Zip, dependsOn: docsZip) {
+//	group = "Distribution"
+//	archiveClassifier.set "dist"
+//	description = "Builds -${archiveClassifier} archive, containing all jars and docs, " +
+//		"suitable for community download page."
+//
+//	def baseDir = "${project.name}-${project.version}"
+//
+//	from(zipTree(docsZip.archiveFileName)) { into "${baseDir}/docs" }
+//
+//	distributedProjects.each { subproject ->
+//		into ("${baseDir}/libs") {
+//			from subproject.jar
+//			if (subproject.tasks.findByPath("sourcesJar")) {
+//				from subproject.sourcesJar
+//			}
+//			if (subproject.tasks.findByPath("javadocJar")) {
+//				from subproject.javadocJar
+//			}
+//		}
+//	}
+//}
 
 task codeCoverageReport(type: JacocoReport) {
 	dependsOn staticAnalysisProjects*.test

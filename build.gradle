@@ -237,31 +237,66 @@ configure(staticAnalysisProjects) {
 	}
 }
 
-def getDocumentationProjects() {
-	[project(":spring-cloud-app-broker-docs")] as Set
-}
+configure(publishedProjects) {
+	apply plugin: 'maven-publish'
 
-def getCodeProjects() {
-	subprojects
-}
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				suppressAllPomMetadataWarnings()
+				from components.java
+				pom {
+					afterEvaluate {
+						name = project.description
+						description = project.description
+					}
+					url = "https://spring.io/projects/spring-cloud-app-broker"
+					organization {
+						name = "Pivotal Software, Inc."
+						url = "https://spring.io"
+					}
+					licenses {
+						license {
+							name = "The Apache Software License, Version 2.0"
+							url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+							distribution = "repo"
+						}
+					}
+					scm {
+						url = "https://github.com/spring-cloud/spring-cloud-app-broker"
+						connection = "scm:git:git://github.com/spring-cloud/spring-cloud-app-broker"
+						developerConnection = "scm:git:git://github.com/spring-cloud/spring-cloud-app-broker"
+					}
+					issueManagement {
+						system = "GitHub"
+						url = "https://github.com/spring-cloud/spring-cloud-app-broker/issues"
+					}
+					developers {
+						developer {
+							id = "sfrederick"
+							name = "Scott Frederick"
+							email = "sfrederick@pivotal.io"
+						}
+						developer {
+							id = "royclarkson"
+							name = "Roy Clarkson"
+							email = "rclarkson@pivotal.io"
+						}
+					}
+				}
 
-def getStaticAnalysisProjects() {
-	codeProjects - documentationProjects
-}
-
-def getTestProjects() {
-	[project(":spring-cloud-app-broker-integration-tests"),
-	 project(":spring-cloud-app-broker-acceptance-tests")] as Set
-}
-
-def getStarterProjects() {
-	[project(":spring-cloud-starter-app-broker"),
-	 project(":spring-cloud-starter-app-broker-cloudfoundry"),
-	 project(":spring-cloud-starter-app-broker-logging")] as Set
-}
-
-def getLibraryProjects() {
-	codeProjects - documentationProjects - starterProjects - testProjects
+				// Published pom will use fully-qualified dependency versions and no BOMs
+				versionMapping {
+					usage('java-api') {
+						fromResolutionOf('runtimeClasspath')
+					}
+					usage('java-runtime') {
+						fromResolutionResult()
+					}
+				}
+			}
+		}
+	}
 }
 
 task api(type: Javadoc) {
@@ -311,7 +346,7 @@ task distZip(type: Zip, dependsOn: docsZip) {
 
 	from(zipTree(docsZip.archiveFileName)) { into "${baseDir}/docs" }
 
-	libraryProjects.each { subproject ->
+	distributedProjects.each { subproject ->
 		into ("${baseDir}/libs") {
 			from subproject.jar
 			if (subproject.tasks.findByPath("sourcesJar")) {
@@ -352,4 +387,39 @@ task codeCoverageReport(type: JacocoReport) {
 wrapper {
 	gradleVersion = "6.5"
 	distributionType = Wrapper.DistributionType.ALL
+}
+
+def getDocumentationProjects() {
+	[project(":spring-cloud-app-broker-docs")] as Set
+}
+
+def getCodeProjects() {
+	subprojects
+}
+
+def getStaticAnalysisProjects() {
+	codeProjects - documentationProjects
+}
+
+def getTestProjects() {
+	[project(":spring-cloud-app-broker-integration-tests"),
+	 project(":spring-cloud-app-broker-acceptance-tests")] as Set
+}
+
+def getStarterProjects() {
+	[project(":spring-cloud-starter-app-broker"),
+	 project(":spring-cloud-starter-app-broker-cloudfoundry"),
+	 project(":spring-cloud-starter-app-broker-logging")] as Set
+}
+
+def getLibraryProjects() {
+	codeProjects - documentationProjects - starterProjects - testProjects
+}
+
+def getPublishedProjects() {
+	libraryProjects + starterProjects
+}
+
+def getDistributedProjects() {
+	libraryProjects + documentationProjects
 }

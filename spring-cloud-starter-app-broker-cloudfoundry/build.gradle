@@ -25,11 +25,3 @@ dependencies {
 	implementation project(":spring-cloud-app-broker-security-credhub")
 }
 
-// TODO  maven publication
-//install {
-//	repositories.mavenInstaller {
-//		pom.whenConfigured { generatedPom ->
-//			generatedPom.packaging = "pom"
-//		}
-//	}
-//}

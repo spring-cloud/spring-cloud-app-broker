@@ -21,12 +21,3 @@ dependencies {
 	api project(":spring-cloud-app-broker-autoconfigure")
 	api "org.springframework.cloud:spring-cloud-starter-open-service-broker:${openServiceBrokerVersion}"
 }
-
-// TODO maven publication
-//install {
-//	repositories.mavenInstaller {
-//		pom.whenConfigured { generatedPom ->
-//			generatedPom.packaging = "pom"
-//		}
-//	}
-//}

@@ -61,9 +61,6 @@ configure(codeProjects) {
 	java {
 		sourceCompatibility = JavaVersion.VERSION_1_8
 		targetCompatibility = JavaVersion.VERSION_1_8
-
-		withJavadocJar()
-		withSourcesJar()
 	}
 
 	[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
@@ -161,6 +158,11 @@ configure(testProjects) {
 }
 
 configure(libraryProjects) {
+	java {
+		withJavadocJar()
+		withSourcesJar()
+	}
+
 	jar {
 		manifest.attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
 		manifest.attributes["Implementation-Title"] = project.name

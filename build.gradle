@@ -322,21 +322,25 @@ task api(type: Javadoc) {
 }
 
 distributions {
+	def documentation = copySpec {
+		into('reference') {
+			from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctor'),
+				project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctorPdf'))
+		}
+		into('api') { from api }
+	}
+
 	docs {
 		contents {
-			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-			into('reference') {
-				from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctor'),
-					project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctorPdf'))
-			}
-			into('api') { from api }
+			duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.INCLUDE
+			with documentation
 		}
 	}
 
 	main {
 		contents {
-			into('docs') { from docsDistZip }
-			distributedProjects.each { Project subproject ->
+			into('docs') { with documentation }
+			libraryProjects.each { Project subproject ->
 				into ("libs") {
 					from subproject.jar
 					if (subproject.tasks.findByPath("sourcesJar")) {
@@ -350,30 +354,6 @@ distributions {
 		}
 	}
 }
-
-//
-//task distZip(type: Zip, dependsOn: docsZip) {
-//	group = "Distribution"
-//	archiveClassifier.set "dist"
-//	description = "Builds -${archiveClassifier} archive, containing all jars and docs, " +
-//		"suitable for community download page."
-//
-//	def baseDir = "${project.name}-${project.version}"
-//
-//	from(zipTree(docsZip.archiveFileName)) { into "${baseDir}/docs" }
-//
-//	distributedProjects.each { subproject ->
-//		into ("${baseDir}/libs") {
-//			from subproject.jar
-//			if (subproject.tasks.findByPath("sourcesJar")) {
-//				from subproject.sourcesJar
-//			}
-//			if (subproject.tasks.findByPath("javadocJar")) {
-//				from subproject.javadocJar
-//			}
-//		}
-//	}
-//}
 
 task codeCoverageReport(type: JacocoReport) {
 	dependsOn staticAnalysisProjects*.test
@@ -434,8 +414,4 @@ def getLibraryProjects() {
 
 def getPublishedProjects() {
 	libraryProjects + starterProjects
-}
-
-def getDistributedProjects() {
-	libraryProjects + documentationProjects
 }

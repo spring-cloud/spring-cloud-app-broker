@@ -17,7 +17,7 @@
 description = "Spring Cloud App Broker Deployer"
 
 dependencies {
-	implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 	implementation "org.springframework:spring-core"
 	implementation "io.projectreactor:reactor-core"
 

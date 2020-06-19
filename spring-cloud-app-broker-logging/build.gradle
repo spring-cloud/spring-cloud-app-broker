@@ -17,7 +17,7 @@
 description = "Spring Cloud App Broker Logging"
 
 dependencies {
-	implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     implementation "org.springframework.boot:spring-boot-starter-webflux"
     implementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
     implementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"

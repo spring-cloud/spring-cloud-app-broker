@@ -245,6 +245,7 @@ configure(publishedProjects) {
 						name = project.description
 						description = project.description
 					}
+					packaging = starterProjects.contains(project) ? "pom" : null
 					url = "https://spring.io/projects/spring-cloud-app-broker"
 					organization {
 						name = "Pivotal Software, Inc."

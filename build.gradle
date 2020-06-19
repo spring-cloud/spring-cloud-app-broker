@@ -195,13 +195,6 @@ configure(libraryProjects) {
 		archiveClassifier.set "javadoc"
 		from javadoc
 	}
-
-	// TODO configure maven publication
-	//   https://docs.gradle.org/current/userguide/publishing_setup.html#publishing_overview
-//	artifacts {
-//		archives sourcesJar
-//		archives javadocJar
-//	}
 }
 
 configure(staticAnalysisProjects) {
@@ -253,7 +246,7 @@ configure(publishedProjects) {
 					url = "https://spring.io/projects/spring-cloud-app-broker"
 					organization {
 						name = "Pivotal Software, Inc."
-						url = "https://spring.io"
+						url = "https://www.spring.io"
 					}
 					licenses {
 						license {
@@ -264,8 +257,8 @@ configure(publishedProjects) {
 					}
 					scm {
 						url = "https://github.com/spring-cloud/spring-cloud-app-broker"
-						connection = "scm:git:git://github.com/spring-cloud/spring-cloud-app-broker"
-						developerConnection = "scm:git:git://github.com/spring-cloud/spring-cloud-app-broker"
+						connection = "scm:git:https://github.com/spring-cloud/spring-cloud-app-broker.git"
+						developerConnection = "scm:git:https://github.com/spring-cloud/spring-cloud-app-broker.git"
 					}
 					issueManagement {
 						system = "GitHub"

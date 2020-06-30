@@ -18,6 +18,5 @@ description = "Spring Cloud App Broker Starter for Logging"
 
 dependencies {
 	api project(":spring-cloud-starter-app-broker")
-
-	implementation project(":spring-cloud-app-broker-logging")
+	api project(":spring-cloud-app-broker-logging")
 }

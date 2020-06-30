@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 plugins {
 	id "io.spring.nohttp"
 	id 'distribution'
+	id 'jacoco'
 }
 
 ext {
@@ -55,7 +56,7 @@ allprojects {
 	}
 }
 
-configure(codeProjects) {
+configure(javaProjects) {
 	apply plugin: 'java-library'
 
 	java {
@@ -390,12 +391,12 @@ def getDocumentationProjects() {
 	[project(":spring-cloud-app-broker-docs")] as Set
 }
 
-def getCodeProjects() {
+def getJavaProjects() {
 	subprojects
 }
 
 def getStaticAnalysisProjects() {
-	codeProjects - documentationProjects
+	javaProjects - documentationProjects
 }
 
 def getTestProjects() {
@@ -410,7 +411,7 @@ def getStarterProjects() {
 }
 
 def getLibraryProjects() {
-	codeProjects - documentationProjects - starterProjects - testProjects
+	javaProjects - documentationProjects - starterProjects - testProjects
 }
 
 def getPublishedProjects() {

@@ -334,8 +334,9 @@ distributions {
 
 	docs {
 		contents {
-			duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.INCLUDE
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 			with documentation
+			into '/'
 		}
 	}
 

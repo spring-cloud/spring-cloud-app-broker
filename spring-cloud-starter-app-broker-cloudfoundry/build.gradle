@@ -18,10 +18,10 @@ description = "Spring Cloud App Broker Starter for Cloud Foundry"
 
 dependencies {
 	api project(":spring-cloud-starter-app-broker")
+	api project(":spring-cloud-app-broker-deployer-cloudfoundry")
 	api "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
 	api "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
 
-	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")
 	implementation project(":spring-cloud-app-broker-security-credhub")
 }
 

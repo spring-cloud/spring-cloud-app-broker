@@ -337,7 +337,7 @@ distributions {
 
 	docs {
 		contents {
-			duplicatesStrategy = DuplicatesStrategy.INCLUDE
+			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			with documentation
 			into '/'
 		}
@@ -345,6 +345,7 @@ distributions {
 
 	main {
 		contents {
+			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 			into('docs') { with documentation }
 			libraryProjects.each { Project subproject ->
 				into ("libs") {
@@ -387,7 +388,7 @@ task codeCoverageReport(type: JacocoReport) {
 }
 
 wrapper {
-	gradleVersion = "6.5"
+	gradleVersion = "6.5.1"
 	distributionType = Wrapper.DistributionType.ALL
 }
 

@@ -59,6 +59,9 @@ allprojects {
 configure(javaProjects) {
 	apply plugin: 'java-library'
 
+	task allDependencyInsight(type: DependencyInsightReportTask)
+	task dependencyReport(type: DependencyReportTask)
+
 	java {
 		sourceCompatibility = JavaVersion.VERSION_1_8
 		targetCompatibility = JavaVersion.VERSION_1_8

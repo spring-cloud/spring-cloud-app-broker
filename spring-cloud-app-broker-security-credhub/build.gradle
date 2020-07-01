@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-description = "Spring Cloud App Broker Deployer Security CredHub"
+description = "Spring Cloud App Broker Security CredHub"
 
 dependencies {
 	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")

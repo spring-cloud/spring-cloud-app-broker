@@ -17,11 +17,11 @@
 description = "Spring Cloud App Broker Deployer Cloud Foundry"
 
 dependencies {
-	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-	implementation project(":spring-cloud-app-broker-deployer")
-	implementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
-	implementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
-	implementation "org.springframework.boot:spring-boot-starter-validation"
+	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api project(":spring-cloud-app-broker-deployer")
+	api "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
+	api "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+	api "org.springframework.boot:spring-boot-starter-validation"
 
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 

@@ -28,10 +28,6 @@ ext {
 	] as String[]
 }
 
-// override managed Spring Boot versions
-ext['spring-framework.version'] = springFrameworkVersion
-ext['reactor-bom.version'] = reactorVersion
-
 description = "Spring Cloud App Broker"
 
 allprojects {

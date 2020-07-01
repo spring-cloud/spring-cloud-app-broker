@@ -21,9 +21,9 @@ plugins {
 description = "Spring Cloud App Broker Acceptance Tests"
 
 dependencies {
-	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-	implementation project(":spring-cloud-starter-app-broker-cloudfoundry")
-	implementation "org.springframework.boot:spring-boot-starter-webflux"
+	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api project(":spring-cloud-starter-app-broker-cloudfoundry")
+	api "org.springframework.boot:spring-boot-starter-webflux"
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "io.projectreactor:reactor-test"

@@ -25,7 +25,7 @@ dependencies {
 	implementation "org.springframework:spring-core"
 	implementation "org.springframework:spring-context"
 	implementation "io.projectreactor:reactor-core"
-	implementation "org.apache.commons:commons-text:1.8"
+	implementation "org.apache.commons:commons-text:${commonsTextVersion}"
 
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}"

@@ -144,10 +144,6 @@ configure(javaProjects) {
 	}
 
 	configurations {
-		// exclude JUnit 4 globally, in favor of JUnit 5
-		testImplementation.exclude group: "junit", module: "junit"
-		testImplementation.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-
 		compileOnly.defaultDependencies { dependencies ->
 			dependencies.add project.dependencies.create("org.immutables:value:${immutablesVersion}")
 		}

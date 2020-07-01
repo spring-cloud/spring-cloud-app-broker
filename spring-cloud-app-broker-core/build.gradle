@@ -20,11 +20,11 @@ dependencies {
 	api project(":spring-cloud-app-broker-deployer")
 	api "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"
 
-	implementation enforcedPlatform("org.springframework:spring-framework-bom:${springFrameworkVersion}")
-	implementation enforcedPlatform("io.projectreactor:reactor-bom:${reactorVersion}")
-	implementation "org.springframework:spring-core"
-	implementation "org.springframework:spring-context"
-	implementation "io.projectreactor:reactor-core"
+	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api "org.springframework:spring-core"
+	api "org.springframework:spring-context"
+	api "io.projectreactor:reactor-core"
+
 	implementation "org.apache.commons:commons-text:${commonsTextVersion}"
 
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"

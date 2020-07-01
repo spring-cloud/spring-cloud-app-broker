@@ -27,16 +27,15 @@ dependencies {
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 	annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor"
 
-	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-	implementation project(":spring-cloud-app-broker-core")
-	implementation project(":spring-cloud-app-broker-deployer")
-	implementation project(":spring-cloud-app-broker-deployer-cloudfoundry")
-	implementation project(":spring-cloud-app-broker-security-credhub")
-	implementation "org.springframework.boot:spring-boot-starter"
-	implementation "org.springframework.boot:spring-boot-starter-webflux"
-	implementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
-	implementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
-	implementation "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
+	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api project(":spring-cloud-app-broker-core")
+	api project(":spring-cloud-app-broker-deployer")
+	api project(":spring-cloud-app-broker-deployer-cloudfoundry")
+	api project(":spring-cloud-app-broker-security-credhub")
+	api "org.springframework.boot:spring-boot-starter"
+	api "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
+	api "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+	api "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
 
 	loggingImplementation project(":spring-cloud-app-broker-logging")
 

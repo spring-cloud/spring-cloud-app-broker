@@ -17,10 +17,10 @@
 description = "Spring Cloud App Broker Security CredHub"
 
 dependencies {
-	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-	implementation project(":spring-cloud-app-broker-core")
-	implementation "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
-	implementation "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"
+	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api project(":spring-cloud-app-broker-core")
+	api "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
+	api "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"
 
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 

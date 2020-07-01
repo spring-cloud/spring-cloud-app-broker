@@ -17,10 +17,10 @@
 description = "Spring Cloud App Broker Logging"
 
 dependencies {
-	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-    implementation "org.springframework.boot:spring-boot-starter-webflux"
-    implementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
-    implementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    api "org.springframework.boot:spring-boot-starter-webflux"
+    api "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
+    api "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
 
     testImplementation project(":spring-cloud-starter-app-broker-logging")
     testImplementation "org.springframework.boot:spring-boot-starter-test"

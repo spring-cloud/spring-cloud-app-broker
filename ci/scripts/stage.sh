@@ -37,7 +37,7 @@ git commit -m "Release v$stageVersion"
 git tag -a "v$stageVersion" -m "Release v$stageVersion"
 echo
 
-./gradlew --no-daemon clean install -Dmaven.repo.local="${repository}"
+./gradlew clean publish -PpublicationRepository="${repository}"
 echo
 
 echo "Setting next development version (v$nextVersion)"

@@ -383,7 +383,6 @@ task codeCoverageReport(type: JacocoReport) {
 
 wrapper {
 	gradleVersion = "6.5.1"
-	distributionType = Wrapper.DistributionType.ALL
 }
 
 def getDocumentationProjects() {

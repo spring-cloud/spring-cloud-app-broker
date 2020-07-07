@@ -44,7 +44,7 @@ while [ $artifacts_published == "false" ] && [ $retry_counter -lt $WAIT_ATTEMPTS
   sleep $WAIT_TIME
 done
 if [[ $artifacts_published == "false" ]]; then
-  echo "Failed to ditribute"
+  echo "Failed to distribute"
   exit 1
 fi
 

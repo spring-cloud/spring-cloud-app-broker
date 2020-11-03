@@ -49,7 +49,7 @@ public final class ByteSizeUtils {
 				" Expected a number with optional 'm' or 'g' suffix", text));
 		}
 		int size = Integer.parseInt(matcher.group("amount"));
-		if (matcher.group("unit").equalsIgnoreCase("g")) {
+		if ("g".equalsIgnoreCase(matcher.group("unit"))) {
 			size *= 1024L;
 		}
 		return size;

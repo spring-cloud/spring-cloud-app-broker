@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.appbroker.state;
 
-import java.util.Calendar;
+import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					.isEqualToIgnoringSeconds(new Date());
 			})
 			.verifyComplete();
 
@@ -53,7 +53,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					.isEqualToIgnoringSeconds(new Date());
 			})
 			.verifyComplete();
 	}
@@ -65,7 +65,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					.isEqualToIgnoringSeconds(new Date());
 			})
 			.verifyComplete();
 
@@ -74,7 +74,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					.isEqualToIgnoringSeconds(new Date());
 			})
 			.verifyComplete();
 
@@ -91,7 +91,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					.isEqualToIgnoringSeconds(new Date());
 			})
 			.verifyComplete();
 
@@ -100,7 +100,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					.isEqualToIgnoringSeconds(new Date());
 			})
 			.verifyComplete();
 
@@ -110,7 +110,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					.isEqualToIgnoringSeconds(new Date());
 			})
 			.verifyComplete();
 
@@ -119,7 +119,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(Calendar.getInstance().getTime());
+					.isEqualToIgnoringSeconds(new Date());
 			})
 			.verifyComplete();
 	}

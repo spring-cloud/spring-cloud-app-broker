@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.appbroker.state;
 
-import java.util.Calendar;
+import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isInSameMinuteWindowAs(Calendar.getInstance().getTime());
+					.isInSameMinuteWindowAs(new Date());
 			})
 			.verifyComplete();
 
@@ -55,7 +55,7 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isInSameMinuteWindowAs(Calendar.getInstance().getTime());
+					.isInSameMinuteWindowAs(new Date());
 			})
 			.verifyComplete();
 	}
@@ -69,7 +69,7 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isInSameMinuteWindowAs(Calendar.getInstance().getTime());
+					.isInSameMinuteWindowAs(new Date());
 			})
 			.verifyComplete();
 
@@ -78,7 +78,7 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isInSameMinuteWindowAs(Calendar.getInstance().getTime());
+					.isInSameMinuteWindowAs(new Date());
 			})
 			.verifyComplete();
 
@@ -96,7 +96,7 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isInSameMinuteWindowAs(Calendar.getInstance().getTime());
+					.isInSameMinuteWindowAs(new Date());
 			})
 			.verifyComplete();
 
@@ -105,7 +105,7 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isInSameMinuteWindowAs(Calendar.getInstance().getTime());
+					.isInSameMinuteWindowAs(new Date());
 			})
 			.verifyComplete();
 
@@ -116,7 +116,7 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isInSameMinuteWindowAs(Calendar.getInstance().getTime());
+					.isInSameMinuteWindowAs(new Date());
 			})
 			.verifyComplete();
 
@@ -125,7 +125,7 @@ class InMemoryServiceInstanceBindingStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isInSameMinuteWindowAs(Calendar.getInstance().getTime());
+					.isInSameMinuteWindowAs(new Date());
 			})
 			.verifyComplete();
 	}

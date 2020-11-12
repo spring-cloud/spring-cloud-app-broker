@@ -23,8 +23,8 @@ main() {
 
 	pushd "$(dirname "$0")/../ci" >/dev/null
 
-	set_pipeline app-broker-1.1.x    pipeline.yml    master
-	set_pipeline app-broker-1.1.x-pr pr-pipeline.yml master
+	set_pipeline app-broker-1.2.x    pipeline.yml    master
+	set_pipeline app-broker-1.2.x-pr pr-pipeline.yml master
 
 	popd >/dev/null
 }

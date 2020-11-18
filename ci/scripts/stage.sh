@@ -10,6 +10,9 @@ echo
 
 pushd stage-git-repo >/dev/null
 
+git config user.name $USER_NAME
+git config user.email $USER_EMAIL
+
 snapshotVersion=$(awk -F '=' '$1 == "version" { print $2 }' gradle.properties)
 if [[ $RELEASE_TYPE == "M" ]]; then
   stageVersion=$(get_next_milestone_release "$snapshotVersion")

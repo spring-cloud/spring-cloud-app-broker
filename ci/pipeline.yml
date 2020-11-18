@@ -233,11 +233,11 @@ resources:
       username: ((github-username))
       password: ((github-password))
       branch: ((github-username))/staging
-      git_config:
-        - name: user.name
-          value: ((git-username))
-        - name: user.email
-          value: ((git-email))
+#      git_config:
+#        - name: user.name
+#          value: ((git-username))
+#        - name: user.email
+#          value: ((git-email))
 
   - name: ci-images-git-repo
     type: git

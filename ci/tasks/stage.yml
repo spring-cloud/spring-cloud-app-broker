@@ -12,6 +12,8 @@ outputs:
   - name: distribution-repository
 params:
   RELEASE_TYPE: ((release-type))
+  USER_NAME: ((git-username))
+  USER_EMAIL: ((git-email))
 caches:
   - path: maven
   - path: gradle

@@ -47,12 +47,12 @@ jobs:
 
 resource_types:
   - name: pull-request
-    type: docker-image
+    type: registry-image
     source:
       repository: teliaoss/github-pr-resource
 
   - name: slack-notification
-    type: docker-image
+    type: registry-image
     source:
       repository: cfcommunity/slack-notification-resource
       tag: latest

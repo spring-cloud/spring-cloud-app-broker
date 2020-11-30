@@ -185,6 +185,10 @@ jobs:
         file: git-repo/ci/tasks/distribute.yml
         vars:
           release-image-tag: ((release-image-tag))
+          bintray-distribution-repo: ((bintray-distribution-repo))
+          bintray-package: ((bintray-package))
+          bintray-repo: ((bintray-repo))
+          bintray-subject: ((bintray-subject))
 
   - name: sync-to-maven-central
     serial: true
@@ -201,6 +205,9 @@ jobs:
         file: git-repo/ci/tasks/sync-to-maven-central.yml
         vars:
           release-image-tag: ((release-image-tag))
+          bintray-package: ((bintray-package))
+          bintray-repo: ((bintray-repo))
+          bintray-subject: ((bintray-subject))
 
 resource_types:
   - name: artifactory-resource
@@ -263,18 +270,24 @@ resources:
       url: ((scs-slack-webhook))
 
 groups:
-  - name: "Main"
+  - name: "build"
     jobs:
       - build
       - run-acceptance-tests
+  - name: "milestone"
+    jobs:
       - stage-milestone
-      - stage-rc
-      - stage-release
       - promote-milestone
+  - name: "rc"
+    jobs:
+      - stage-rc
       - promote-rc
+  - name: "release"
+    jobs:
+      - stage-release
       - promote-release
       - distribute-release
       - sync-to-maven-central
-  - name: "CI Images"
+  - name: "ci-images"
     jobs:
       - build-release-ci-images

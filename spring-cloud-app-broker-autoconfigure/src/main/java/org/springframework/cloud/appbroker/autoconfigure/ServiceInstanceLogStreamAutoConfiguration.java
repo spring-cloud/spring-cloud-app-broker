@@ -59,7 +59,7 @@ public class ServiceInstanceLogStreamAutoConfiguration {
 	@Bean
 	public HandlerMapping logsHandlerMapping(StreamingLogWebSocketHandler webSocketHandler) {
 		Map<String, WebSocketHandler> map = new HashMap<>();
-		map.put("/logs/**/stream", webSocketHandler);
+		map.put("/logs/**", webSocketHandler);
 
 		SimpleUrlHandlerMapping handlerMapping = new SimpleUrlHandlerMapping();
 		handlerMapping.setOrder(1);

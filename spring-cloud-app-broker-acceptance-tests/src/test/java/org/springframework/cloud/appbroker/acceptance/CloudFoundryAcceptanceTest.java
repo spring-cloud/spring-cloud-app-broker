@@ -421,8 +421,8 @@ abstract class CloudFoundryAcceptanceTest {
 					.flatMap(appRoute ->
 						webClient.get()
 							.uri(URI.create(appRoute + "/" + operation + "/" + serviceName + "/" + planName + "/" + serviceInstanceId))
-							.exchange()
-							.flatMap(clientResponse -> clientResponse.toEntity(String.class))
+							.retrieve()
+							.toEntity(String.class)
 							.map(HttpEntity::getBody)));
 	}
 

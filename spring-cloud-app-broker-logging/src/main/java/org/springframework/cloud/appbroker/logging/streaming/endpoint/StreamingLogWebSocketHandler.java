@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.cloudfoundry.dropsonde.events.Envelope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import org.springframework.cloud.appbroker.logging.streaming.events.ServiceInstanceLogEvent;
 import org.springframework.cloud.appbroker.logging.streaming.events.StartServiceInstanceLoggingEvent;
@@ -43,7 +43,7 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 
 	private final ApplicationEventPublisher eventPublisher;
 
-	private final ConcurrentHashMap<String, EmitterProcessor<Envelope>> processors = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, Sinks.One<Envelope>> envelopeSinks = new ConcurrentHashMap<>();
 
 	public StreamingLogWebSocketHandler(ApplicationEventPublisher eventPublisher) {
 		this.eventPublisher = eventPublisher;
@@ -56,14 +56,14 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 			session.getHandshakeInfo().getRemoteAddress(),
 			serviceInstanceId);
 
-		EmitterProcessor<Envelope> processor = processors
-			.computeIfAbsent(serviceInstanceId, s -> EmitterProcessor.create());
+		Sinks.One<Envelope> envelopeSink = envelopeSinks
+			.computeIfAbsent(serviceInstanceId, s -> Sinks.one());
 
 		eventPublisher.publishEvent(new StartServiceInstanceLoggingEvent(this, serviceInstanceId));
 		LOG.info("Published event to start streaming logs for service instance with ID {}", serviceInstanceId);
 
 		return session
-			.send(processor.map(envelope -> session
+			.send(envelopeSink.asMono().map(envelope -> session
 				.binaryMessage(dataBufferFactory -> dataBufferFactory.wrap(Envelope.ADAPTER.encode(envelope)))))
 			.then()
 			.doFinally(signalType -> afterConnectionClosed(session))
@@ -81,10 +81,10 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 			LOG.debug("Received event to broadcast log message for " + event.getServiceInstanceId());
 		}
 
-		EmitterProcessor<Envelope> processor = this.processors.get(event.getServiceInstanceId());
-		if (processor == null) {
+		Sinks.One<Envelope> envelopeSink = this.envelopeSinks.get(event.getServiceInstanceId());
+		if (envelopeSink == null) {
 			if (LOG.isWarnEnabled()) {
-				LOG.warn("No processor found for {}, stopping log streaming", event.getServiceInstanceId());
+				LOG.warn("No sink found for {}, stopping log streaming", event.getServiceInstanceId());
 			}
 
 			eventPublisher.publishEvent(new StopServiceInstanceLoggingEvent(this, event.getServiceInstanceId()));
@@ -96,7 +96,7 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 			LOG.debug("Sending message to client for {}", event.getServiceInstanceId());
 		}
 
-		processor.onNext(event.getEnvelope());
+		envelopeSink.tryEmitValue(event.getEnvelope());
 	}
 
 	private void afterConnectionClosed(WebSocketSession webSocketSession) {
@@ -106,7 +106,7 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 
 		final String serviceInstanceId = getServiceInstanceId(webSocketSession);
 		eventPublisher.publishEvent(new StopServiceInstanceLoggingEvent(this, serviceInstanceId));
-		processors.computeIfPresent(serviceInstanceId, (s, envelopeEmitterProcessor) -> null);
+		envelopeSinks.computeIfPresent(serviceInstanceId, (s, envelopeSink) -> null);
 	}
 
 	private String getServiceInstanceId(WebSocketSession webSocketSession) {

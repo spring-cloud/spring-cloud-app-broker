@@ -43,6 +43,7 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 public class WorkflowServiceInstanceBindingService implements ServiceInstanceBindingService {
@@ -139,7 +140,7 @@ public class WorkflowServiceInstanceBindingService implements ServiceInstanceBin
 
 	private boolean isAppBindingRequest(CreateServiceInstanceBindingRequest request) {
 		return request.getBindResource() != null
-			&& StringUtils.isEmpty(request.getBindResource().getRoute());
+			&& ObjectUtils.isEmpty(request.getBindResource().getRoute());
 	}
 
 	private boolean isRouteBindingRequest(CreateServiceInstanceBindingRequest request) {

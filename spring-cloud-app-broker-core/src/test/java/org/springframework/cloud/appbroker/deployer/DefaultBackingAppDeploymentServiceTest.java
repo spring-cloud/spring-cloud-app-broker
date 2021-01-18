@@ -55,7 +55,6 @@ class DefaultBackingAppDeploymentServiceTest {
 	}
 
 	@Test
-	@SuppressWarnings("UnassignedFluxMonoInstance")
 	void shouldDeployApplications() {
 		doReturn(Mono.just("app1"))
 			.when(deployerClient).deploy(backingApps.get(0), "instance-id");
@@ -75,7 +74,44 @@ class DefaultBackingAppDeploymentServiceTest {
 	}
 
 	@Test
-	@SuppressWarnings("UnassignedFluxMonoInstance")
+	void shouldPrepareApplicationsForUpdate() {
+		doReturn(Mono.just("app1"))
+			.when(deployerClient).preUpdate(backingApps.get(0), "instance-id");
+		doReturn(Mono.just("app2"))
+			.when(deployerClient).preUpdate(backingApps.get(1), "instance-id");
+
+		List<String> expectedValues = new ArrayList<>();
+		expectedValues.add("app1");
+		expectedValues.add("app2");
+
+		StepVerifier.create(backingAppDeploymentService.prepareForUpdate(backingApps, "instance-id"))
+			// update preparations are run in parallel, so the order of completion is not predictable
+			// ensure that both expected signals are sent in any order
+			.expectNextMatches(expectedValues::remove)
+			.expectNextMatches(expectedValues::remove)
+			.verifyComplete();
+	}
+
+	@Test
+	void shouldUpdateApplications() {
+		doReturn(Mono.just("app1"))
+			.when(deployerClient).update(backingApps.get(0), "instance-id");
+		doReturn(Mono.just("app2"))
+			.when(deployerClient).update(backingApps.get(1), "instance-id");
+
+		List<String> expectedValues = new ArrayList<>();
+		expectedValues.add("app1");
+		expectedValues.add("app2");
+
+		StepVerifier.create(backingAppDeploymentService.update(backingApps, "instance-id"))
+			// updates are run in parallel, so the order of completion is not predictable
+			// ensure that both expected signals are sent in any order
+			.expectNextMatches(expectedValues::remove)
+			.expectNextMatches(expectedValues::remove)
+			.verifyComplete();
+	}
+
+	@Test
 	void shouldUndeployApplications() {
 		doReturn(Mono.just("deleted1"))
 			.when(deployerClient).undeploy(backingApps.get(0));

@@ -26,10 +26,6 @@ public class DeployerClient {
 
 	private static final Logger LOG = Loggers.getLogger(DeployerClient.class);
 
-	private static final String BACKINGAPP_LOG_TEMPLATE = "backingApp={}";
-
-	private static final String BACKINGSERVICE_LOG_TEMPLATE = "backingService={}";
-
 	private final AppDeployer appDeployer;
 
 	public DeployerClient(AppDeployer appDeployer) {
@@ -51,45 +47,53 @@ public class DeployerClient {
 				.build())
 			.doOnRequest(l -> {
 				LOG.info("Deploying application. backingAppName={}", backingApplication.getName());
-				LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApplication);
+				debugLog(backingApplication);
 			})
 			.doOnSuccess(response -> {
 				LOG.info("Success deploying application. backingAppName={}", backingApplication.getName());
-				LOG.debug("response={}, backingApp={}", response, backingApplication);
+				debugLog(response, backingApplication);
 			})
 			.doOnError(e -> {
 				LOG.error(String.format("Error deploying application. backingAppName=%s, error=%s",
 					backingApplication.getName(), e.getMessage()), e);
-				LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApplication);
+				debugLog(backingApplication);
 			})
 			.map(DeployApplicationResponse::getName);
 	}
 
+	public Mono<String> preUpdate(BackingApplication backingApplication, String serviceInstanceId) {
+		return appDeployer.preUpdate(getUpdateApplicationRequest(backingApplication, serviceInstanceId))
+			.doOnRequest(l -> {
+				LOG.info("Pre-updating application. backingAppName={}", backingApplication.getName());
+				debugLog(backingApplication);
+			})
+			.doOnSuccess(response -> {
+				LOG.info("Success pre-updating application. backingAppName={}", backingApplication.getName());
+				debugLog(response, backingApplication);
+			})
+			.doOnError(e -> {
+				LOG.error(String.format("Error pre-updating application. backingAppName=%s, error=%s",
+					backingApplication.getName(), e.getMessage()), e);
+				debugLog(backingApplication);
+			})
+			.map(UpdateApplicationResponse::getName);
+	}
+
 	public Mono<String> update(BackingApplication backingApplication, String serviceInstanceId) {
 		return appDeployer
-			.update(UpdateApplicationRequest
-				.builder()
-				.name(backingApplication.getName())
-				.path(backingApplication.getPath())
-				.properties(backingApplication.getProperties())
-				.environment(backingApplication.getEnvironment())
-				.services(backingApplication.getServices().stream()
-					.map(ServicesSpec::getServiceInstanceName)
-					.collect(Collectors.toList()))
-				.serviceInstanceId(serviceInstanceId)
-				.build())
+			.update(getUpdateApplicationRequest(backingApplication, serviceInstanceId))
 			.doOnRequest(l -> {
 				LOG.info("Updating application. backingAppName={}", backingApplication.getName());
-				LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApplication);
+				debugLog(backingApplication);
 			})
 			.doOnSuccess(response -> {
 				LOG.info("Success updating application. backingAppName={}", backingApplication.getName());
-				LOG.debug("response={}, backingApp={}", response, backingApplication);
+				debugLog(response, backingApplication);
 			})
 			.doOnError(e -> {
 				LOG.error(String.format("Error updating application. backingAppName=%s, error=%s",
 					backingApplication.getName(), e.getMessage()), e);
-				LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApplication);
+				debugLog(backingApplication);
 			})
 			.map(UpdateApplicationResponse::getName);
 	}
@@ -103,16 +107,16 @@ public class DeployerClient {
 				.build())
 			.doOnRequest(l -> {
 				LOG.info("Undeploying application. backingAppName={}", backingApplication.getName());
-				LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApplication);
+				debugLog(backingApplication);
 			})
 			.doOnSuccess(response -> {
 				LOG.info("Success undeploying application. backingAppName={}", backingApplication.getName());
-				LOG.debug("response={}, backingApp={}", response, backingApplication);
+				debugLog(response, backingApplication);
 			})
 			.doOnError(e -> {
 				LOG.error(String.format("Error undeploying application. backingAppName=%s, error=%s",
 					backingApplication.getName(), e.getMessage()), e);
-				LOG.debug(BACKINGAPP_LOG_TEMPLATE, backingApplication);
+				debugLog(backingApplication);
 			})
 			.onErrorReturn(UndeployApplicationResponse.builder()
 				.name(backingApplication.getName())
@@ -133,16 +137,16 @@ public class DeployerClient {
 					.build())
 			.doOnRequest(l -> {
 				LOG.info("Creating backing service {}", backingService.getName());
-				LOG.debug(BACKINGSERVICE_LOG_TEMPLATE, backingService);
+				debugLog(backingService);
 			})
 			.doOnSuccess(response -> {
 				LOG.info("Success creating backing service {}", backingService.getName());
-				LOG.debug("response={}, backingService={}", response, backingService);
+				debugLog(response, backingService);
 			})
 			.doOnError(e -> {
 				LOG.error(String.format("Error creating backing service. backingServiceName=%s, error=%s",
 					backingService.getName(), e.getMessage()), e);
-				LOG.debug(BACKINGSERVICE_LOG_TEMPLATE, backingService);
+				debugLog(backingService);
 			})
 			.map(CreateServiceInstanceResponse::getName);
 	}
@@ -159,16 +163,16 @@ public class DeployerClient {
 					.build())
 			.doOnRequest(l -> {
 				LOG.info("Updating backing service {}", backingService.getName());
-				LOG.debug(BACKINGSERVICE_LOG_TEMPLATE, backingService);
+				debugLog(backingService);
 			})
 			.doOnSuccess(response -> {
 				LOG.info("Success updating backing service {}", backingService.getName());
-				LOG.debug("response={}, backingService={}", response, backingService);
+				debugLog(response, backingService);
 			})
 			.doOnError(e -> {
 				LOG.error(String.format("Error updating backing service. backingServiceName=%s, error=%s",
 					backingService.getName(), e.getMessage()), e);
-				LOG.debug(BACKINGSERVICE_LOG_TEMPLATE, backingService);
+				debugLog(backingService);
 			})
 			.map(UpdateServiceInstanceResponse::getName);
 	}
@@ -183,16 +187,16 @@ public class DeployerClient {
 					.build())
 			.doOnRequest(l -> {
 				LOG.info("Deleting backing service {}", backingService.getName());
-				LOG.debug(BACKINGSERVICE_LOG_TEMPLATE, backingService);
+				debugLog(backingService);
 			})
 			.doOnSuccess(response -> {
 				LOG.info("Success deleting backing service {}", backingService.getName());
-				LOG.debug("response={}, backingService={}", response, backingService);
+				debugLog(response, backingService);
 			})
 			.doOnError(e -> {
 				LOG.error(String.format("Error deleting backing service. backingServiceName=%s, error=%s",
 					backingService.getName(), e.getMessage()), e);
-				LOG.debug(BACKINGSERVICE_LOG_TEMPLATE, backingService);
+				debugLog(backingService);
 			})
 			.onErrorReturn(DeleteServiceInstanceResponse.builder()
 				.name(backingService.getServiceInstanceName())
@@ -200,4 +204,34 @@ public class DeployerClient {
 			.map(DeleteServiceInstanceResponse::getName);
 	}
 
+	private static UpdateApplicationRequest getUpdateApplicationRequest(BackingApplication backingApplication,
+		String serviceInstanceId) {
+		return UpdateApplicationRequest
+			.builder()
+			.name(backingApplication.getName())
+			.path(backingApplication.getPath())
+			.properties(backingApplication.getProperties())
+			.environment(backingApplication.getEnvironment())
+			.services(backingApplication.getServices().stream()
+				.map(ServicesSpec::getServiceInstanceName)
+				.collect(Collectors.toList()))
+			.serviceInstanceId(serviceInstanceId)
+			.build();
+	}
+
+	private static void debugLog(BackingApplication backingApplication) {
+		LOG.debug("backingApp={}", backingApplication);
+	}
+
+	private static void debugLog(BackingService backingService) {
+		LOG.debug("backingService={}", backingService);
+	}
+
+	private static void debugLog(Object response, BackingApplication backingApplication) {
+		LOG.debug("response={}, backingApp={}", response, backingApplication);
+	}
+
+	private static void debugLog(Object response, BackingService backingService) {
+		LOG.debug("response={}, backingService={}", response, backingService);
+	}
 }

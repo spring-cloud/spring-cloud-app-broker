@@ -36,6 +36,17 @@ public interface BackingAppDeploymentService {
 	Flux<String> deploy(List<BackingApplication> backingApps, String serviceInstanceId);
 
 	/**
+	 * Performs any steps necessary prior to backing application and backing service updates
+	 *
+	 * @param backingApps a collection of backing applications
+	 * @param serviceInstanceId the service instance ID
+	 * @return a set of strings, where each corresponds to an application. e.g. the application name
+	 */
+	default Flux<String> prepareForUpdate(List<BackingApplication> backingApps, String serviceInstanceId) {
+		return Flux.empty();
+	}
+
+	/**
 	 * Update the backing applications and associate with the service instance
 	 *
 	 * @param backingApps a collection of backing applications

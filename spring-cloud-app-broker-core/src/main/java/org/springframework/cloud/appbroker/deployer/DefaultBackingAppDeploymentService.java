@@ -57,6 +57,27 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 	}
 
 	@Override
+	public Flux<String> prepareForUpdate(List<BackingApplication> backingApps, String serviceInstanceId) {
+		return Flux.fromIterable(backingApps)
+			.parallel()
+			.runOn(Schedulers.parallel())
+			.flatMap(backingApplication -> deployerClient.preUpdate(backingApplication, serviceInstanceId))
+			.sequential()
+			.doOnRequest(l -> {
+				LOG.info("Preparing applications for update");
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			})
+			.doOnComplete(() -> {
+				LOG.info("Finish preparing applications for update");
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			})
+			.doOnError(e -> {
+				LOG.error(String.format("Error preparing applications for update. error=%s", e.getMessage()), e);
+				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
+			});
+	}
+
+	@Override
 	public Flux<String> update(List<BackingApplication> backingApps, String serviceInstanceId) {
 		return Flux.fromIterable(backingApps)
 			.parallel()

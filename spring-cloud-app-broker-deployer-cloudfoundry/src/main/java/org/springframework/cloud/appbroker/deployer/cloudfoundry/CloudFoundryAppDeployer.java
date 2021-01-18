@@ -248,6 +248,19 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	@Override
+	public Mono<UpdateApplicationResponse> preUpdate(UpdateApplicationRequest request) {
+		final String appName = request.getName();
+
+		return get(GetApplicationRequest.builder()
+			.name(appName)
+			.properties(request.getProperties())
+			.build())
+			.map(GetApplicationResponse::getId)
+			.flatMap(applicationId -> updateEnvironment(request, applicationId))
+			.thenReturn(UpdateApplicationResponse.builder().name(appName).build());
+	}
+
+	@Override
 	public Mono<UpdateApplicationResponse> update(UpdateApplicationRequest request) {
 		final String appName = request.getName();
 
@@ -266,20 +279,22 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			})
 			.flatMap(applicationId -> updateEnvironment(request, applicationId))
 			.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
-				upgradeApplication(request, applicationId)))
+				upgradeApplicationIfRequired(request, applicationId)))
 			.flatMap(tuple2 -> {
+				String appId = tuple2.getT1();
 				String packageId = tuple2.getT2();
-				return Mono.zip(Mono.just(tuple2.getT1()), createBuildForPackage(packageId));
+				return Mono.zip(Mono.just(appId), createBuildForPackage(packageId));
 			})
 			.flatMap(tuple2 -> {
+				String appId = tuple2.getT1();
 				String buildId = tuple2.getT2();
-				return Mono.zip(Mono.just(tuple2.getT1()), waitForBuildStaged(buildId));
+				return Mono.zip(Mono.just(appId), waitForBuildStaged(buildId));
 			})
 			.map(tuple2 -> tuple2.mapT2((t2) -> t2.getDroplet().getId()))
 			.flatMap(tuple2 -> {
+				String appId = tuple2.getT1();
 				String dropletId = tuple2.getT2();
-				String applicationId = tuple2.getT1();
-				return createDeployment(dropletId, applicationId);
+				return createDeployment(dropletId, appId);
 			})
 			.map(CreateDeploymentResponse::getId)
 			.flatMap(this::waitForDeploymentDeployed)
@@ -539,7 +554,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 	}
 
-	private Mono<String> upgradeApplication(UpdateApplicationRequest request, String applicationId) {
+	private Mono<String> upgradeApplicationIfRequired(UpdateApplicationRequest request, String applicationId) {
 		if (request.getProperties().containsKey("upgrade")) {
 			return createPackageForApplication(applicationId)
 				.map(CreatePackageResponse::getId)

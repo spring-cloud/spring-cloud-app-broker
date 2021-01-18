@@ -23,6 +23,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
@@ -52,6 +53,7 @@ import static java.util.Collections.singletonMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -147,8 +149,10 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			.expectNext()
 			.verifyComplete();
 
-		verify(appDeploymentService).update(backingApps, request.getServiceInstanceId());
-		verify(servicesProvisionService).updateServiceInstance(backingServices);
+		InOrder updateStepOrder = inOrder(appDeploymentService, servicesProvisionService);
+		updateStepOrder.verify(appDeploymentService).prepareForUpdate(backingApps, request.getServiceInstanceId());
+		updateStepOrder.verify(servicesProvisionService).updateServiceInstance(backingServices);
+		updateStepOrder.verify(appDeploymentService).update(backingApps, request.getServiceInstanceId());
 
 		final String expectedServiceId = "service-instance-id";
 		verify(targetService).addToBackingServices(backingServices, targetSpec, expectedServiceId);
@@ -215,10 +219,6 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 		UpdateServiceInstanceRequest request = buildRequest("unsupported-service", "plan1");
 		UpdateServiceInstanceResponse response = UpdateServiceInstanceResponse.builder().build();
 
-		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
-			request.getServiceDefinition().getName(), request.getPlan().getName()))
-			.willReturn(Mono.empty());
-
 		StepVerifier
 			.create(updateServiceInstanceWorkflow.update(request, response))
 			.verifyComplete();
@@ -227,6 +227,8 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	}
 
 	private void setupMocks(UpdateServiceInstanceRequest request) {
+		given(this.appDeploymentService.prepareForUpdate(eq(backingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Flux.just("app1", "app2"));
 		given(this.appDeploymentService.update(eq(backingApps), eq(request.getServiceInstanceId())))
 			.willReturn(Flux.just("app1", "app2"));
 

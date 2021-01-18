@@ -19,12 +19,14 @@ package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.Metadata;
 import org.cloudfoundry.client.v2.applications.SummaryApplicationRequest;
 import org.cloudfoundry.client.v2.applications.SummaryApplicationResponse;
+import org.cloudfoundry.client.v2.applications.UpdateApplicationResponse;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationRequest;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationResponse;
 import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
@@ -74,6 +76,7 @@ import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRequest
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.UpdateApplicationRequest;
 import org.springframework.cloud.appbroker.deployer.UpdateServiceInstanceRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
@@ -497,6 +500,47 @@ class CloudFoundryAppDeployerTest {
 			.verifyComplete();
 
 		then(operationsApplications).should().pushManifest(argThat(r -> !r.getNoStart()));
+	}
+
+	@Test
+	void preUpdateAppUpdatesApplicationEnvironment() {
+		final String appId = "app-id";
+
+		given(operationsApplications.get(argThat(request -> request.getName().equals(APP_NAME))))
+			.willReturn(Mono.just(ApplicationDetail.builder()
+				.id(appId)
+				.name(APP_NAME)
+				.diskQuota(100)
+				.instances(2)
+				.memoryLimit(100)
+				.requestedState("STARTED")
+				.runningInstances(2)
+				.stack("cflinuxfs3")
+				.build()));
+
+		given(clientApplications.summary(argThat(request -> appId.equals(request.getApplicationId()))))
+			.willReturn(Mono.just(SummaryApplicationResponse.builder()
+				.id(appId)
+				.services(Collections.emptyList())
+				.build()));
+
+		given(clientApplications.update(any(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.class)))
+			.willReturn(Mono.just(UpdateApplicationResponse.builder().build()));
+
+		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
+			.name(APP_NAME)
+			.environment("env-key", "env-value")
+			.build();
+
+		StepVerifier.create(appDeployer.preUpdate(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+
+		Map<String, Object> expectedEnvironment =
+			singletonMap("SPRING_APPLICATION_JSON", "{\"env-key\":\"env-value\"}");
+
+		then(clientApplications).should().update(argThat(applicationUpdateRequest ->
+			applicationUpdateRequest.getEnvironmentJsons().equals(expectedEnvironment)));
 	}
 
 	@Test

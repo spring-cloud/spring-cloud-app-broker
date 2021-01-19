@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,7 +36,7 @@ public class UaaService {
 
 	private final UaaClient uaaClient;
 
-	public UaaService(UaaClient uaaClient) {
+	public UaaService(@Qualifier("clientCredentials") UaaClient uaaClient) {
 		this.uaaClient = uaaClient;
 	}
 
@@ -48,21 +49,19 @@ public class UaaService {
 	}
 
 	public Mono<Void> createClient(String clientId, String clientSecret, String... authorities) {
-		return uaaClient.clients().delete(DeleteClientRequest
-			.builder()
-			.clientId(clientId)
-			.build())
-			.doOnError(error -> LOG.warn("Error deleting client: " + clientId + " with error: " + error))
-			.onErrorResume(e -> Mono.empty())
-			.then(uaaClient.clients().create(CreateClientRequest
-				.builder()
-				.clientId(clientId)
-				.clientSecret(clientSecret)
-				.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
-				.authorities(authorities)
-				.build())
-				.doOnError(error -> LOG.error("Error creating client: " + clientId + " with error: " + error))
-				.onErrorResume(e -> Mono.empty()))
+		return getUaaClient(clientId)
+			.flatMap(response -> uaaClient.clients()
+				.delete(DeleteClientRequest.builder().clientId(clientId).build())
+				.doOnError(error -> LOG.error("Error deleting client: " + clientId + " with error: " + error)))
+			.then(uaaClient.clients()
+				.create(CreateClientRequest
+					.builder()
+					.clientId(clientId)
+					.clientSecret(clientSecret)
+					.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
+					.authorities(authorities)
+					.build())
+				.doOnError(error -> LOG.error("Error creating client: " + clientId + " with error: " + error)))
 			.then();
 	}
 

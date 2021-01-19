@@ -75,7 +75,7 @@ public class CloudFoundryClientConfiguration {
 	protected CloudFoundryOperations cloudFoundryOperations(CloudFoundryProperties properties,
 		CloudFoundryClient client,
 		DopplerClient dopplerClient,
-		UaaClient uaaClient) {
+		@Qualifier("userCredentials") UaaClient uaaClient) {
 		return DefaultCloudFoundryOperations.builder()
 			.cloudFoundryClient(client)
 			.dopplerClient(dopplerClient)
@@ -114,7 +114,18 @@ public class CloudFoundryClientConfiguration {
 	}
 
 	@Bean
-	protected UaaClient uaaClient(ConnectionContext connectionContext,
+	@Qualifier("userCredentials")
+	protected UaaClient userCredentialsUaaClient(ConnectionContext connectionContext,
+		@Qualifier("userCredentials") TokenProvider tokenProvider) {
+		return ReactorUaaClient.builder()
+			.connectionContext(connectionContext)
+			.tokenProvider(tokenProvider)
+			.build();
+	}
+
+	@Bean
+	@Qualifier("clientCredentials")
+	protected UaaClient clientCredentialsUaaClient(ConnectionContext connectionContext,
 		@Qualifier("clientCredentials") TokenProvider tokenProvider) {
 		return ReactorUaaClient.builder()
 			.connectionContext(connectionContext)

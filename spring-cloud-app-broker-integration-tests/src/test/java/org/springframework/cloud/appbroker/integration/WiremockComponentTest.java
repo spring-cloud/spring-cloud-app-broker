@@ -50,7 +50,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 		"spring.cloud.appbroker.deployer.cloudfoundry.password=adminpass",
 		"spring.cloud.appbroker.deployer.cloudfoundry.default-org=test",
 		"spring.cloud.appbroker.deployer.cloudfoundry.default-space=development",
-		"spring.cloud.appbroker.deployer.cloudfoundry.secure=false"
+		"spring.cloud.appbroker.deployer.cloudfoundry.secure=false",
+		"spring.cloud.appbroker.deployer.cloudfoundry.properties.buildpack=example-buildpack"
 	}
 )
 @ActiveProfiles("openservicebroker-catalog")

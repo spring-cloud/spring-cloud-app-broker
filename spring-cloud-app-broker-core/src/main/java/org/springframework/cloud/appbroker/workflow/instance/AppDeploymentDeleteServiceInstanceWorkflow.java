@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import reactor.core.publisher.Flux;
@@ -25,8 +26,10 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
+import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
+import org.springframework.cloud.appbroker.deployer.BackingSpaceManagementService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
@@ -52,21 +55,25 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	private final BackingAppManagementService backingAppManagementService;
 
+	private final BackingServicesProvisionService backingServicesProvisionService;
+
+	private final BackingSpaceManagementService backingSpaceManagementService;
+
 	private final CredentialProviderService credentialProviderService;
 
 	private final TargetService targetService;
-
-	private final BackingServicesProvisionService backingServicesProvisionService;
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
 		BackingAppDeploymentService deploymentService,
 		BackingAppManagementService backingAppManagementService,
 		BackingServicesProvisionService backingServicesProvisionService,
+		BackingSpaceManagementService backingSpaceManagementService,
 		CredentialProviderService credentialProviderService,
 		TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.backingAppManagementService = backingAppManagementService;
+		this.backingSpaceManagementService = backingSpaceManagementService;
 		this.credentialProviderService = credentialProviderService;
 		this.targetService = targetService;
 		this.backingServicesProvisionService = backingServicesProvisionService;
@@ -75,36 +82,47 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	@Override
 	public Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
 		return deleteBackingServices(request)
-			.thenMany(undeployBackingApplications(request))
+			.flatMapMany(Flux::fromIterable)
+			.map(BackingService::getProperties)
+			.concatWith(undeployBackingApplications(request)
+				.flatMapMany(Flux::fromIterable)
+				.map(BackingApplication::getProperties))
+			.filter(properties ->
+				properties != null && properties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY))
+			.map(properties -> properties.get(DeploymentProperties.TARGET_PROPERTY_KEY))
+			.distinct()
+			.collectList()
+			.flatMapMany(backingSpaceManagementService::deleteTargetSpaces)
 			.then();
 	}
 
-	private Flux<String> deleteBackingServices(DeleteServiceInstanceRequest request) {
+	private Mono<List<BackingService>> deleteBackingServices(DeleteServiceInstanceRequest request) {
 		return collectBackingServices(request)
 			.collectList()
-			.flatMapMany(backingServices -> {
+			.delayUntil(backingServices -> {
 				if (!CollectionUtils.isEmpty(backingServices)) {
-					return backingServicesProvisionService.deleteServiceInstance(backingServices);
+					return backingServicesProvisionService.deleteServiceInstance(backingServices)
+						.doOnRequest(l -> {
+							LOG.info("Deleting backing services. serviceDefinitionName={}, planName={}",
+								request.getServiceDefinition().getName(), request.getPlan().getName());
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnComplete(() -> {
+							LOG.info("Finish deleting backing services. serviceDefinitionName={}, planName={}",
+								request.getServiceDefinition().getName(), request.getPlan().getName());
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						})
+						.doOnError(e -> {
+							if (LOG.isErrorEnabled()) {
+								LOG.error(String.format("Error deleting backing services. " +
+										"serviceDefinitionName=%s, planName=%s, error=%s",
+									request.getServiceDefinition().getName(),
+									request.getPlan().getName(), e.getMessage()), e);
+							}
+							LOG.debug(REQUEST_LOG_TEMPLATE, request);
+						});
 				}
 				return Flux.empty();
-			})
-			.doOnRequest(l -> {
-				LOG.info("Deleting backing services. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
-				LOG.debug(REQUEST_LOG_TEMPLATE, request);
-			})
-			.doOnComplete(() -> {
-				LOG.info("Finish deleting backing services. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
-				LOG.debug(REQUEST_LOG_TEMPLATE, request);
-			})
-			.doOnError(e -> {
-				if (LOG.isErrorEnabled()) {
-					LOG.error(String.format("Error deleting backing services. " +
-							"serviceDefinitionName=%s, planName=%s, error=%s", request.getServiceDefinition().getName(),
-						request.getPlan().getName(), e.getMessage()), e);
-				}
-				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			});
 	}
 
@@ -144,7 +162,7 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 				}));
 	}
 
-	private Flux<String> undeployBackingApplications(DeleteServiceInstanceRequest request) {
+	private Mono<List<BackingApplication>> undeployBackingApplications(DeleteServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
 			.flatMap(backingApps ->
 				credentialProviderService.deleteCredentials(backingApps,
@@ -153,25 +171,26 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 				.flatMap(targetSpec -> targetService.addToBackingApplications(backingApps, targetSpec,
 					request.getServiceInstanceId()))
 				.defaultIfEmpty(backingApps))
-			.flatMapMany(deploymentService::undeploy)
-			.doOnRequest(l -> {
-				LOG.info("Undeploying backing applications. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
-				LOG.debug(REQUEST_LOG_TEMPLATE, request);
-			})
-			.doOnComplete(() -> {
-				LOG.info("Finish undeploying backing applications. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
-				LOG.debug(REQUEST_LOG_TEMPLATE, request);
-			})
-			.doOnError(e -> {
-				if (LOG.isErrorEnabled()) {
-					LOG.error(String.format("Error undeploying backing applications. serviceDefinitionName=%s, " +
-							"planName=%s, error=%s", request.getServiceDefinition().getName(), request.getPlan().getName(),
-						e.getMessage()), e);
-				}
-				LOG.debug(REQUEST_LOG_TEMPLATE, request);
-			});
+			.delayUntil(backingApps -> deploymentService.undeploy(backingApps)
+				.doOnRequest(l -> {
+					LOG.info("Undeploying backing applications. serviceDefinitionName={}, planName={}",
+						request.getServiceDefinition().getName(), request.getPlan().getName());
+					LOG.debug(REQUEST_LOG_TEMPLATE, request);
+				})
+				.doOnComplete(() -> {
+					LOG.info("Finish undeploying backing applications. serviceDefinitionName={}, planName={}",
+						request.getServiceDefinition().getName(), request.getPlan().getName());
+					LOG.debug(REQUEST_LOG_TEMPLATE, request);
+				})
+				.doOnError(e -> {
+					if (LOG.isErrorEnabled()) {
+						LOG.error(String.format("Error undeploying backing applications. serviceDefinitionName=%s, " +
+								"planName=%s, error=%s", request.getServiceDefinition().getName(),
+							request.getPlan().getName(),
+							e.getMessage()), e);
+					}
+					LOG.debug(REQUEST_LOG_TEMPLATE, request);
+				}));
 	}
 
 	@Override

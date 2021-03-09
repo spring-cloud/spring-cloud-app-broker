@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithSpacePerServiceInstanceTargetComponentTest.APP_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithSpacePerServiceInstanceTargetComponentTest.BACKING_SERVICE_NAME;
-import static org.springframework.cloud.appbroker.integration.CreateInstanceWithSpacePerServiceInstanceTargetComponentTest.BACKING_SI_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithCustomTargetComponentTest.APP_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithCustomTargetComponentTest.BACKING_SERVICE_NAME;
+import static org.springframework.cloud.appbroker.integration.CreateInstanceWithCustomTargetComponentTest.BACKING_SI_NAME;
 
 @TestPropertySource(properties = {
 	"spring.cloud.appbroker.services[0].service-name=example",
@@ -76,18 +76,18 @@ class CreateInstanceWithCustomTargetComponentTest extends WiremockComponentTest 
 	void pushAppWithServicesInSpace() {
 		String serviceInstanceId = "instance-id";
 		String customSpace = "my-space";
-
-		cloudControllerFixture.stubCreateSpace(customSpace);
-		cloudControllerFixture.stubAssociatePermissions(customSpace);
+		String customSpaceGuid = "my-space-guid";
+		cloudControllerFixture.stubCreateSpace(customSpace, customSpaceGuid);
+		cloudControllerFixture.stubAssociatePermissions(customSpace, customSpaceGuid);
 		cloudControllerFixture.stubPushApp(APP_NAME);
 
 		// given services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
+		cloudControllerFixture.stubServiceExistsInSpace(BACKING_SERVICE_NAME, BACKING_PLAN_NAME, customSpaceGuid);
 
 		// will create and bind the service instance
 		cloudControllerFixture.stubCreateServiceInstance(BACKING_SI_NAME);
 		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, BACKING_SI_NAME);
-		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
+		cloudControllerFixture.stubServiceInstanceExistsInSpace(BACKING_SI_NAME, customSpaceGuid);
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

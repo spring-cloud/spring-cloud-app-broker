@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,11 @@ import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
+import org.springframework.cloud.appbroker.deployer.BackingSpaceManagementService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DefaultBackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.DefaultBackingServicesProvisionService;
+import org.springframework.cloud.appbroker.deployer.DefaultBackingSpaceManagementService;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
 import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderFactory;
@@ -325,6 +327,18 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	/**
+	 * Provide a {@link BackingSpaceManagementService} bean
+	 *
+	 * @param deployerClient the DeployerClient bean
+	 * @return the bean
+	 */
+	@Bean
+	@ConditionalOnMissingBean
+	public BackingSpaceManagementService backingSpaceProvisionService(DeployerClient deployerClient) {
+		return new DefaultBackingSpaceManagementService(deployerClient);
+	}
+
+	/**
 	 * Provide a {@link CreateServiceInstanceWorkflow} bean
 	 *
 	 * @param brokeredServices the BrokeredServices bean
@@ -401,6 +415,7 @@ public class AppBrokerAutoConfiguration {
 		BrokeredServices brokeredServices, BackingAppDeploymentService backingAppDeploymentService,
 		BackingAppManagementService backingAppManagementService,
 		BackingServicesProvisionService backingServicesProvisionService,
+		BackingSpaceManagementService backingSpaceManagementService,
 		CredentialProviderService credentialProviderService, TargetService targetService) {
 
 		return new AppDeploymentDeleteServiceInstanceWorkflow(
@@ -408,6 +423,7 @@ public class AppBrokerAutoConfiguration {
 			backingAppDeploymentService,
 			backingAppManagementService,
 			backingServicesProvisionService,
+			backingSpaceManagementService,
 			credentialProviderService,
 			targetService
 		);

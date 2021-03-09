@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,18 +65,19 @@ class CreateInstanceWithSpacePerServiceInstanceTargetComponentTest extends Wirem
 	@Test
 	void pushAppWithServicesInSpace() {
 		String serviceInstanceId = "instance-id";
+		String backingSpaceGuid = "my-space-guid";
 
-		cloudControllerFixture.stubCreateSpace(serviceInstanceId);
-		cloudControllerFixture.stubAssociatePermissions(serviceInstanceId);
+		cloudControllerFixture.stubCreateSpace(serviceInstanceId, backingSpaceGuid);
+		cloudControllerFixture.stubAssociatePermissions(serviceInstanceId, backingSpaceGuid);
 		cloudControllerFixture.stubPushAppWithHost(APP_NAME, APP_NAME + "-" + serviceInstanceId);
 
 		// given services are available in the marketplace
-		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
+		cloudControllerFixture.stubServiceExistsInSpace(BACKING_SERVICE_NAME, BACKING_PLAN_NAME, backingSpaceGuid);
 
 		// will create and bind the service instance
 		cloudControllerFixture.stubCreateServiceInstance(BACKING_SI_NAME);
 		cloudControllerFixture.stubCreateServiceBinding(APP_NAME, BACKING_SI_NAME);
-		cloudControllerFixture.stubServiceInstanceExists(BACKING_SI_NAME);
+		cloudControllerFixture.stubServiceInstanceExistsInSpace(BACKING_SI_NAME, backingSpaceGuid);
 
 		// when a service instance is created
 		given(brokerFixture.serviceInstanceRequest())

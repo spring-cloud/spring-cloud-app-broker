@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 
 @TestComponent
 public class CloudControllerStubFixture extends WiremockStubFixture {
+
+	private static final String SCENARIO_NAME = "CreateSpace";
+
+	private static final String SPACE_CREATED_STATE = "SpaceCreated";
 
 	private static final String TEST_SPACE_GUID = "TEST-SPACE-GUID";
 
@@ -52,7 +57,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	public void stubCommonCloudControllerRequests() {
 		stubGetPlatformInfo();
 		stubFindTestOrg();
-		stubFindTestSpace();
+		stubFindSpace("development", TEST_SPACE_GUID, STARTED);
 		stubFindDomains();
 	}
 
@@ -82,29 +87,39 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@org-guid", TEST_ORG_GUID)))));
 	}
 
-	private void stubFindTestSpace() {
+	public void stubFindSpace(String spaceName, String spaceGuid, String scenario) {
 		stubFor(get(urlPathEqualTo("/v2/spaces"))
+			.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(scenario)
+			.withQueryParam("q", equalTo("name:" + spaceName))
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("list-spaces",
 					replace("@org-guid", TEST_ORG_GUID),
-					replace("@space-guid", TEST_SPACE_GUID)))));
+					replace("@name", spaceName),
+					replace("@space-guid", spaceGuid)))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID))
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid))
+			.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(scenario)
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("get-space",
 					replace("@name", "test"),
 					replace("@org-guid", TEST_ORG_GUID),
-					replace("@space-guid", TEST_SPACE_GUID)))));
+					replace("@space-guid", spaceGuid)))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/apps"))
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/apps"))
+			.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(scenario)
 			.withQueryParam("page", equalTo("1"))
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("empty-query-results"))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/security_groups"))
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/security_groups"))
+			.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(scenario)
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("get-space-security_groups"))));
@@ -144,15 +159,20 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@org-guid", TEST_ORG_GUID)))));
 	}
 
-	public void stubCreateSpace(final String spaceName) {
+	public void stubCreateSpace(final String spaceName, final String spaceGuid) {
 		stubFor(post(urlPathEqualTo("/v2/spaces"))
+			.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(STARTED)
+				.willSetStateTo(SPACE_CREATED_STATE)
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + spaceName + "')]"))
 			.withRequestBody(matchingJsonPath("$.[?(@.organization_guid == '" + TEST_ORG_GUID + "')]"))
 			.willReturn(ok()
 				.withBody(cc("get-space",
 					replace("@name", spaceName),
-					replace("@space-guid", "CREATED-SPACE-GUID"),
+					replace("@space-guid", spaceGuid),
 					replace("@org-guid", TEST_ORG_GUID)))));
+
+		stubFindSpace(spaceName, spaceGuid, SPACE_CREATED_STATE);
 	}
 
 	public void stubAppDoesNotExist(final String appName) {
@@ -163,26 +183,24 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 				.withBody(cc("empty-query-results"))));
 	}
 
-	public void stubAppExists(final String appName) {
+	public void stubAppExistsInSpace(final String appName, final String spaceGuid) {
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("get-app-STAGED",
 					replace("@name", appName)))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/apps"))
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/apps"))
 			.withQueryParam("q", equalTo("name:" + appName))
 			.withQueryParam("page", equalTo("1"))
-			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("list-space-apps",
 					replace("@name", appName),
 					replace("@guid", appGuid(appName)),
-					replace("@space-guid", TEST_SPACE_GUID),
+					replace("@space-guid", spaceGuid),
 					replace("@stack-guid", stackGuid(appName))))));
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/instances"))
-			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("get-app-instances"))));
 
@@ -196,24 +214,30 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@route-guid", routeGuid(appName))))));
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/stats"))
-			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("get-app-stats",
 					replace("@name", appName)))));
 
 		stubFor(get(urlPathEqualTo("/v2/stacks/" + stackGuid(appName)))
-			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("get-stack",
 					replace("@guid", stackGuid(appName))))));
 	}
 
+	public void stubAppExists(final String appName) {
+		stubAppExistsInSpace(appName, TEST_SPACE_GUID);
+	}
+
 	public void stubAppExistsWithBackingService(final String appName, final String serviceInstanceName,
 		final String serviceName, final String planName) {
-		stubAppExists(appName);
+		stubAppExistsWithBackingService(appName, serviceInstanceName, serviceName, planName, TEST_SPACE_GUID);
+	}
+
+	public void stubAppExistsWithBackingService(final String appName, final String serviceInstanceName,
+		final String serviceName, final String planName, final String spaceGuid) {
+		stubAppExistsInSpace(appName, spaceGuid);
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/summary"))
-			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("get-app-summary-with-backing-service",
 					replace("@name", appName),
@@ -246,6 +270,11 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	public void stubUpdateAppWithHostAndDomain(final String appName) {
 		stubUpdateApp(appName);
 		stubCreateRoute(appName);
+	}
+
+	public void stubUpdateAppWithTarget(final String appName, final String spaceGuid) {
+		stubUpdateApp(appName);
+		stubCreateRouteInSpace(appName, spaceGuid);
 	}
 
 	public void stubUpdateApp(final String appName) {
@@ -425,14 +454,14 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 				.withBody(cc("get-app-instances"))));
 	}
 
-	private void stubCreateRoute(final String appName) {
+	private void stubCreateRouteInSpace(final String appName, final String spaceGuid) {
 		stubFor(get(urlPathEqualTo("/v2/private_domains"))
 			.withQueryParam("page", equalTo("1"))
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("empty-query-results"))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/services"))
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/services"))
 			.withQueryParam("page", equalTo("1"))
 			.willReturn(ok()
 				.withBody(cc("list-space-services")
@@ -449,6 +478,10 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 				.withBody(cc("get-app-summary"))));
 	}
 
+	private void stubCreateRoute(final String appName) {
+		stubCreateRouteInSpace(appName, TEST_SPACE_GUID);
+	}
+
 	public void stubDeleteApp(String appName) {
 		stubFor(delete(urlPathEqualTo("/v2/routes/" + appName + "-ROUTE-GUID"))
 			.willReturn(ok()
@@ -463,19 +496,30 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubServiceInstanceExists(serviceInstanceName, "doNotCare", "doNotCare");
 	}
 
-	public void stubServiceInstanceExists(String serviceInstanceName, String serviceName, String planName) {
-		stubServiceInstanceExists(serviceInstanceGuid(serviceInstanceName), serviceInstanceName, serviceName, planName);
+	public void stubServiceInstanceExistsInSpace(String serviceInstanceName, String spaceGuid) {
+		stubServiceInstanceExistsInSpace(serviceInstanceName, "doNotCare", "doNotCare", spaceGuid);
 	}
 
-	private void stubServiceInstanceExists(String serviceInstanceId, String serviceInstanceName, String serviceName,
-		String planName) {
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/service_instances"))
+	public void stubServiceInstanceExists(String serviceInstanceName, String serviceName, String planName) {
+		stubServiceInstanceExists(serviceInstanceGuid(serviceInstanceName), serviceInstanceName, serviceName,
+			planName, TEST_SPACE_GUID);
+	}
+
+	public void stubServiceInstanceExistsInSpace(String serviceInstanceName, String serviceName, String planName,
+		String spaceGuid) {
+		stubServiceInstanceExists(serviceInstanceGuid(serviceInstanceName), serviceInstanceName, serviceName,
+			planName, spaceGuid);
+	}
+
+	private void stubServiceInstanceExists(String serviceInstanceId, String serviceInstanceName,
+		String serviceName, String planName, String spaceGuid) {
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/service_instances"))
 			.withQueryParam("q", equalTo("name:" + serviceInstanceName))
 			.withQueryParam("page", equalTo("1"))
 			.withQueryParam("return_user_provided_service_instances", equalTo("true"))
 			.willReturn(ok()
 				.withBody(cc("list-space-service_instances",
-					replace("@space-guid", TEST_SPACE_GUID),
+					replace("@space-guid", spaceGuid),
 					replace("@service-guid", serviceGuid(serviceName)),
 					replace("@plan-guid", planGuid(planName)),
 					replace("@name", serviceInstanceName),
@@ -491,13 +535,18 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubGetBackingServiceInstance(String serviceInstanceName, String serviceName, String planName) {
+		stubGetBackingServiceInstanceFromSpace(serviceInstanceName, serviceName, planName, TEST_SPACE_GUID);
+	}
+
+	public void stubGetBackingServiceInstanceFromSpace(String serviceInstanceName, String serviceName,
+		String planName, String spaceGuid) {
 		String serviceInstanceId = serviceInstanceGuid(serviceInstanceName);
-		stubServiceInstanceExists(serviceInstanceId, serviceInstanceName, serviceName, planName);
+		stubServiceInstanceExists(serviceInstanceId, serviceInstanceName, serviceName, planName, spaceGuid);
 		stubGetServiceAndGetPlan(serviceName, planName);
 	}
 
-	public void stubServiceExists(String serviceName, String planName) {
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/services"))
+	public void stubServiceExistsInSpace(String serviceName, String planName, String spaceGuid) {
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/services"))
 			.withQueryParam("q", equalTo("label:" + serviceName))
 			.withQueryParam("page", equalTo("1"))
 			.willReturn(ok()
@@ -514,6 +563,10 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					.replace("@service-guid", serviceGuid(serviceName))
 					.replace("@plan-name", planName)
 					.replace("@plan-guid", planGuid(planName)))));
+	}
+
+	public void stubServiceExists(String serviceName, String planName) {
+		stubServiceExistsInSpace(serviceName, planName, TEST_SPACE_GUID);
 	}
 
 	public void stubCreateServiceInstance(String serviceInstanceName) {
@@ -596,11 +649,11 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 				.withBody(cc("empty-query-results"))));
 	}
 
-	public void stubAssociatePermissions(final String spaceName) {
+	public void stubAssociatePermissions(final String spaceName, final String spaceGuid) {
 		stubFor(get(urlPathEqualTo("/v2/config/feature_flags/set_roles_by_username"))
 			.willReturn(ok()
 				.withBody(cc("get-feature-flag-roles"))));
-		stubSpaceExists(spaceName);
+		stubSpaceExists(spaceName, spaceGuid, SPACE_CREATED_STATE);
 
 		stubFor(put(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/users"))
 			.willReturn(ok()));
@@ -621,13 +674,15 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					.replace("@service-name", serviceName))));
 	}
 
-	private void stubSpaceExists(final String spaceName) {
+	public void stubSpaceExists(final String spaceName, final String spaceGuid, final String scenario) {
 		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/spaces"))
+			.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(scenario)
 			.withQueryParam("q", equalTo("name:" + spaceName))
 			.willReturn(ok()
 				.withBody(cc("list-spaces",
 					replace("@org-guid", TEST_ORG_GUID),
-					replace("@space-guid", TEST_SPACE_GUID),
+					replace("@space-guid", spaceGuid),
 					replace("@name", spaceName)))));
 	}
 
@@ -659,7 +714,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		return planName + "-PLAN-GUID";
 	}
 
-	private static String serviceInstanceGuid(String serviceInstanceName) {
+	public static String serviceInstanceGuid(String serviceInstanceName) {
 		return serviceInstanceName + "-INSTANCE-GUID";
 	}
 

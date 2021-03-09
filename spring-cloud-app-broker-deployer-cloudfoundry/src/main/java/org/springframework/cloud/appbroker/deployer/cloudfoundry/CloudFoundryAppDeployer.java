@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,8 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.CreateServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.CreateServiceInstanceResponse;
+import org.springframework.cloud.appbroker.deployer.DeleteBackingSpaceRequest;
+import org.springframework.cloud.appbroker.deployer.DeleteBackingSpaceResponse;
 import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceResponse;
 import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
@@ -802,8 +804,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		Mono<Void> requestDeleteApplication;
 		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
 			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
-			requestDeleteApplication = deleteApplicationInSpace(appName, space)
-				.then(deleteSpace(space));
+			requestDeleteApplication = deleteApplicationInSpace(appName, space);
 		}
 		else {
 			requestDeleteApplication = deleteApplication(appName);
@@ -840,19 +841,21 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.onErrorResume(e -> Mono.empty());
 	}
 
-	private Mono<Void> deleteSpace(String spaceName) {
+	@Override
+	public Mono<DeleteBackingSpaceResponse> deleteBackingSpace(DeleteBackingSpaceRequest request) {
+		String spaceName = request.getName();
 		return getSpaceId(spaceName)
 			.doOnError(e -> LOG.error(String.format("Unable to get space name. spaceName=%s, " + ERROR_LOG_TEMPLATE,
 				spaceName, e.getMessage()), e))
+			.onErrorResume(e -> Mono.empty())
 			.flatMap(spaceId -> this.client.spaces()
 				.delete(DeleteSpaceRequest.builder()
 					.spaceId(spaceId)
 					.recursive(true)
-					.build())
-				.then())
+					.build()))
 			.doOnError(e -> LOG.error(String.format("Error deleting space. spaceName=%s, " + ERROR_LOG_TEMPLATE,
 				spaceName, e.getMessage()), e))
-			.onErrorResume(e -> Mono.empty());
+			.thenReturn(DeleteBackingSpaceResponse.builder().name(spaceName).build());
 	}
 
 	private Mono<String> getSpaceId(String spaceName) {
@@ -1185,11 +1188,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 		Mono<Void> requestDeleteServiceInstance;
 		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
 			requestDeleteServiceInstance = operationsUtils.getOperations(deploymentProperties)
 				.flatMap(cfOperations -> unbindServiceInstance(serviceInstanceName, cfOperations)
-					.then(deleteServiceInstance(serviceInstanceName, cfOperations, deploymentProperties)))
-				.then(deleteSpace(space));
+					.then(deleteServiceInstance(serviceInstanceName, cfOperations, deploymentProperties)));
 		}
 		else {
 			requestDeleteServiceInstance = unbindServiceInstance(serviceInstanceName, operations)

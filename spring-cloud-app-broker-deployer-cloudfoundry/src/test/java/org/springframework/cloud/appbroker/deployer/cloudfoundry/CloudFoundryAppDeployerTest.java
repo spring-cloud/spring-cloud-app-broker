@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,24 +23,20 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
-import org.cloudfoundry.client.v2.Metadata;
 import org.cloudfoundry.client.v2.applications.SummaryApplicationRequest;
 import org.cloudfoundry.client.v2.applications.SummaryApplicationResponse;
 import org.cloudfoundry.client.v2.applications.UpdateApplicationResponse;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationRequest;
 import org.cloudfoundry.client.v2.organizations.GetOrganizationResponse;
 import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesRequest;
-import org.cloudfoundry.client.v2.organizations.ListOrganizationSpacesResponse;
 import org.cloudfoundry.client.v2.organizations.OrganizationEntity;
 import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceResponse;
 import org.cloudfoundry.client.v2.serviceinstances.ServiceInstanceEntity;
 import org.cloudfoundry.client.v2.serviceinstances.ServiceInstances;
 import org.cloudfoundry.client.v2.spaces.CreateSpaceRequest;
-import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.GetSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.GetSpaceResponse;
 import org.cloudfoundry.client.v2.spaces.SpaceEntity;
-import org.cloudfoundry.client.v2.spaces.SpaceResource;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
@@ -616,59 +612,6 @@ class CloudFoundryAppDeployerTest {
 			.serviceInstanceName("service-instance-name")
 			.applicationName("app2")
 			.build()))
-			.willReturn(Mono.empty());
-
-		given(operationsOrganizations
-			.get(
-				OrganizationInfoRequest
-					.builder()
-					.name("default-org")
-					.build()))
-			.willReturn(Mono.just(
-				OrganizationDetail
-					.builder()
-					.id("default-org-id")
-					.name("default-org")
-					.quota(OrganizationQuota
-						.builder()
-						.id("quota-id")
-						.instanceMemoryLimit(0)
-						.organizationId("default-org-id")
-						.name("quota")
-						.paidServicePlans(false)
-						.totalMemoryLimit(0)
-						.totalRoutes(0)
-						.totalServiceInstances(0)
-						.build())
-					.build()));
-
-		given(clientOrganizations
-			.listSpaces(ListOrganizationSpacesRequest
-				.builder()
-				.name("service-instance-id")
-				.organizationId("default-org-id")
-				.page(1)
-				.build()))
-			.willReturn(Mono.just(ListOrganizationSpacesResponse
-				.builder()
-				.resource(SpaceResource
-					.builder()
-					.entity(SpaceEntity
-						.builder()
-						.name("service-instance-id")
-						.build())
-					.metadata(Metadata
-						.builder()
-						.id("service-instance-space-id")
-						.build())
-					.build())
-				.build()));
-
-		given(clientSpaces
-			.delete(DeleteSpaceRequest
-				.builder()
-				.spaceId("service-instance-space-id")
-				.build()))
 			.willReturn(Mono.empty());
 
 		DeleteServiceInstanceRequest request =

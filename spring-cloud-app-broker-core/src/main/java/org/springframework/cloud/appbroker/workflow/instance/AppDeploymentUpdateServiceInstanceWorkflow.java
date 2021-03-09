@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.cloud.appbroker.workflow.instance;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
+import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
@@ -178,12 +180,22 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
 			request.getServiceDefinition().getName(), request.getPlan().getName())
 			.flatMapMany(Flux::fromIterable)
-			.map(BackingApplication::getServices)
-			.flatMap(Flux::fromIterable)
+			.flatMap(backingApplication -> Flux
+				.fromIterable(backingApplication.getServices())
+				.map(servicesSpec -> {
+					Map<String, String> properties = null;
+					if (backingApplication.getProperties() != null) {
+						String target = backingApplication.getProperties().get(DeploymentProperties.TARGET_PROPERTY_KEY);
+						if (target != null) {
+							properties = Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, target);
+						}
+					}
+					return BackingService.builder()
+						.serviceInstanceName(servicesSpec.getServiceInstanceName())
+						.properties(properties)
+						.build();
+				}))
 			.distinct()
-			.map(servicesSpec -> BackingService.builder()
-				.serviceInstanceName(servicesSpec.getServiceInstanceName())
-				.build())
 			.collectMap(BackingService::getServiceInstanceName, Function.identity());
 	}
 

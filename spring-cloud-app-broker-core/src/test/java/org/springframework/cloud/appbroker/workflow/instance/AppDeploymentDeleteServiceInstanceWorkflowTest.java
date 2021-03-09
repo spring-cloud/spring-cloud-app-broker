@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.appbroker.workflow.instance;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServices;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
+import org.springframework.cloud.appbroker.deployer.BackingSpaceManagementService;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
@@ -48,6 +50,9 @@ import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -65,13 +70,16 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	private BackingAppManagementService backingAppManagementService;
 
 	@Mock
+	private BackingServicesProvisionService backingServicesProvisionService;
+
+	@Mock
+	private BackingSpaceManagementService backingSpaceManagementService;
+
+	@Mock
 	private TargetService targetService;
 
 	@Mock
 	private CredentialProviderService credentialProviderService;
-
-	@Mock
-	private BackingServicesProvisionService backingServicesProvisionService;
 
 	private BackingApplications backingApps;
 
@@ -116,7 +124,7 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				.name("my-service2")
 				.plan("a-plan2")
 				.serviceInstanceName("my-service-instance2")
-				.properties(Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, "my-space2"))
+				.properties(getPropertiesWithSpace("my-space2"))
 				.build())
 			.build();
 
@@ -153,7 +161,9 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			new AppDeploymentDeleteServiceInstanceWorkflow(
 				brokeredServices,
 				backingAppDeploymentService,
-				backingAppManagementService, backingServicesProvisionService,
+				backingAppManagementService,
+				backingServicesProvisionService,
+				backingSpaceManagementService,
 				credentialProviderService,
 				targetService
 			);
@@ -186,13 +196,56 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			return sizeMatch && nameMatch;
 		}))).willReturn(Flux.just("my-service-instance"));
 
+		given(this.backingSpaceManagementService.deleteTargetSpaces(any())).willReturn(Flux.empty());
+
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
-			.expectNext()
-			.expectNext()
 			.verifyComplete();
 
 		verify(this.backingServicesProvisionService, Mockito.times(1)).deleteServiceInstance(any());
+		verify(this.backingSpaceManagementService).deleteTargetSpaces(eq(emptyList()));
+		verifyNoMoreInteractionsWithServices();
+	}
+
+	@Test
+	void deleteBackingSpacesSpecifiedInTargetProperties() {
+		DeleteServiceInstanceRequest request = buildRequest("service1", "plan1");
+		DeleteServiceInstanceResponse response = DeleteServiceInstanceResponse.builder().build();
+		String space1 = "CustomSpace1";
+		String space2 = "CustomSpace2";
+
+		// configured backing services
+		BackingServices servicesWithTarget = BackingServices.builder().backingServices(backingServices).build();
+		servicesWithTarget.get(0).setProperties(getPropertiesWithSpace(space1));
+		given(this.targetService.addToBackingServices(eq(backingServices), eq(targetSpec), eq("service-instance-id")))
+			.willReturn(Mono.just(servicesWithTarget));
+
+		// configured backing apps
+		BackingApplications appsWithTarget = BackingApplications.builder().backingApplications(backingApps).build();
+		appsWithTarget.get(0).setProperties(getPropertiesWithSpace(space2));
+		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
+			.willReturn(Mono.just(appsWithTarget));
+
+		// services bound to deployed apps
+		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
+			request.getServiceDefinition().getName(), request.getPlan().getName()))
+			.willReturn(Mono.just(getExistingBackingAppsWithService("my-service-instance")));
+		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
+			.willReturn(Mono.just(backingApps));
+
+		// delete in action
+		given(this.backingAppDeploymentService.undeploy(eq(appsWithTarget)))
+			.willReturn(Flux.just("undeployed1", "undeployed2"));
+		given(this.backingServicesProvisionService.deleteServiceInstance(any()))
+			.willReturn(Flux.just("my-service-instance"));
+		given(this.backingSpaceManagementService.deleteTargetSpaces(any())).willReturn(Flux.just("space-name"));
+
+		StepVerifier
+			.create(deleteServiceInstanceWorkflow.delete(request, response))
+			.verifyComplete();
+
+		verify(this.backingServicesProvisionService, Mockito.times(1)).deleteServiceInstance(any());
+		verify(this.backingSpaceManagementService).deleteTargetSpaces(Arrays.asList(space1, space2));
 		verifyNoMoreInteractionsWithServices();
 	}
 
@@ -228,6 +281,9 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			return sizeMatch && (nameMatch0 && spaceMatch0 || nameMatch1 && spaceMatch1);
 		}))).willReturn(Flux.just("different-service-instance"));
 
+		given(this.backingSpaceManagementService.deleteTargetSpaces(eq(singletonList("my-space2"))))
+			.willReturn(Flux.just("space-name"));
+
 		StepVerifier.create(deleteServiceInstanceWorkflow.delete(request, response))
 			.expectNext()
 			.expectNext()
@@ -245,6 +301,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
 			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.empty());
+
+		given(this.backingSpaceManagementService.deleteTargetSpaces(any())).willReturn(Flux.empty());
 
 		StepVerifier
 			.create(deleteServiceInstanceWorkflow.delete(request, response))
@@ -273,6 +331,8 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 			return sizeMatch && nameMatch;
 		}))).willReturn(Flux.just("my-service-instance"));
 
+		given(this.backingSpaceManagementService.deleteTargetSpaces(any())).willReturn(Flux.empty());
+
 		StepVerifier.create(deleteServiceInstanceWorkflow.delete(request, response))
 			.expectNext()
 			.expectNext()
@@ -285,8 +345,13 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 	private void verifyNoMoreInteractionsWithServices() {
 		verifyNoMoreInteractions(this.backingServicesProvisionService);
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
+		verifyNoMoreInteractions(this.backingSpaceManagementService);
 		verifyNoMoreInteractions(this.credentialProviderService);
 		verifyNoMoreInteractions(this.targetService);
+	}
+
+	private Map<String, String> getPropertiesWithSpace(String customSpace) {
+		return singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, customSpace);
 	}
 
 	private DeleteServiceInstanceRequest buildRequest(String serviceName, String planName) {

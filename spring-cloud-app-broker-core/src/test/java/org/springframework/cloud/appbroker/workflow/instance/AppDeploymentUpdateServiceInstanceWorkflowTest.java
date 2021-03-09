@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,6 +207,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			.builder()
 			.backingService(BackingService
 				.builder()
+				.properties(singletonMap("target", "customTarget"))
 				.serviceInstanceName("existing-service-instance")
 				.build())
 			.build());
@@ -295,11 +296,15 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 	}
 
 	private BackingApplications getExistingBackingAppsWithService(String serviceInstanceName) {
+		Map<String, String> properties = new HashMap<>();
+		properties.put("target", "customTarget");
+		properties.put("not-important-property", "not-important-value");
 		return BackingApplications
 			.builder()
 			.backingApplication(BackingApplication
 				.builder()
 				.name("app1")
+				.properties(properties)
 				.services(ServicesSpec
 					.builder()
 					.serviceInstanceName(serviceInstanceName)
@@ -308,6 +313,7 @@ class AppDeploymentUpdateServiceInstanceWorkflowTest {
 			.backingApplication(BackingApplication
 				.builder()
 				.name("app2")
+				.properties(properties)
 				.services(ServicesSpec
 					.builder()
 					.serviceInstanceName(serviceInstanceName)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,6 +202,29 @@ public class DeployerClient {
 				.name(backingService.getServiceInstanceName())
 				.build())
 			.map(DeleteServiceInstanceResponse::getName);
+	}
+
+	public Mono<String> deleteSpace(String spaceName) {
+		return appDeployer
+			.deleteBackingSpace(
+				DeleteBackingSpaceRequest
+					.builder()
+					.name(spaceName)
+					.build())
+			.doOnRequest(l -> {
+				LOG.info("Deleting backing space {}", spaceName);
+			})
+			.doOnSuccess(response -> {
+				LOG.info("Success deleting backing space {}", spaceName);
+			})
+			.doOnError(e -> {
+				LOG.error(String.format("Error deleting backing space. backingSpaceName=%s, error=%s",
+					spaceName, e.getMessage()), e);
+			})
+			.onErrorReturn(DeleteBackingSpaceResponse.builder()
+				.name(spaceName)
+				.build())
+			.map(DeleteBackingSpaceResponse::getName);
 	}
 
 	private static UpdateApplicationRequest getUpdateApplicationRequest(BackingApplication backingApplication,

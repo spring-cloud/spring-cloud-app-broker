@@ -64,6 +64,8 @@ import org.cloudfoundry.client.v3.deployments.CreateDeploymentRequest;
 import org.cloudfoundry.client.v3.deployments.CreateDeploymentResponse;
 import org.cloudfoundry.client.v3.deployments.DeploymentRelationships;
 import org.cloudfoundry.client.v3.deployments.DeploymentState;
+import org.cloudfoundry.client.v3.deployments.DeploymentStatusReason;
+import org.cloudfoundry.client.v3.deployments.DeploymentStatusValue;
 import org.cloudfoundry.client.v3.deployments.GetDeploymentRequest;
 import org.cloudfoundry.client.v3.deployments.GetDeploymentResponse;
 import org.cloudfoundry.client.v3.packages.CreatePackageRequest;
@@ -441,7 +443,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.getId();
 	}
 
-	@SuppressWarnings("deprecation")
 	private Mono<GetDeploymentResponse> waitForDeploymentDeployed(String deploymentId) {
 		return this.client
 			.deploymentsV3()
@@ -449,7 +450,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.builder()
 				.deploymentId(deploymentId)
 				.build())
-			.filter(p -> p.getState().equals(DeploymentState.DEPLOYED))
+			.filter(this::deploymentFinished)
 			.repeatWhenEmpty(getExponentialBackOff())
 			.doOnRequest(l -> LOG.debug("Waiting for deployment to complete. deploymentId={}", deploymentId))
 			.doOnSuccess(response -> {
@@ -458,6 +459,16 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			})
 			.doOnError(e -> LOG.error(String.format("Error waiting for deployment to complete. deploymentId=%s, " +
 				ERROR_LOG_TEMPLATE, deploymentId, e.getMessage()), e));
+	}
+
+	@SuppressWarnings("deprecation")
+	private boolean deploymentFinished(GetDeploymentResponse p) {
+		if (p.getState() != null) {
+			return p.getState().equals(DeploymentState.DEPLOYED);
+		}
+
+		return p.getStatus().getValue().equals(DeploymentStatusValue.FINALIZED)
+			&& p.getStatus().getReason().equals(DeploymentStatusReason.DEPLOYED);
 	}
 
 	private Mono<CreateDeploymentResponse> createDeployment(String dropletId, String applicationId) {

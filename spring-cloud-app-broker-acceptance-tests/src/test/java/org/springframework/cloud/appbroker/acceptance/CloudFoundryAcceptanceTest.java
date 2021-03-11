@@ -143,8 +143,8 @@ abstract class CloudFoundryAcceptanceTest {
 	@BeforeEach
 	void setUp(TestInfo testInfo, BrokerProperties brokerProperties) {
 		List<String> appBrokerProperties = getAppBrokerProperties(brokerProperties);
-		blockingSubscribe(initializeBroker(appBrokerProperties));
 		blockingSubscribe(initializeUser());
+		blockingSubscribe(initializeBroker(appBrokerProperties));
 	}
 
 	void setUpForBrokerUpdate(BrokerProperties brokerProperties) {
@@ -219,10 +219,7 @@ abstract class CloudFoundryAcceptanceTest {
 			.flatMap(orgId -> cloudFoundryService
 				.getOrCreateSpace(userCloudFoundryService.getOrgName(), userCloudFoundryService.getSpaceName())
 				.map(SpaceSummary::getId)
-				.flatMap(spaceId -> uaaService.createClient(
-						USER_CLIENT_ID,
-						USER_CLIENT_SECRET,
-						USER_CLIENT_AUTHORITIES)
+				.flatMap(spaceId -> uaaService.createClient(USER_CLIENT_ID, USER_CLIENT_SECRET, USER_CLIENT_AUTHORITIES)
 					.then(cloudFoundryService
 						.associateClientWithOrgAndSpace(USER_CLIENT_ID, orgId, spaceId))));
 	}

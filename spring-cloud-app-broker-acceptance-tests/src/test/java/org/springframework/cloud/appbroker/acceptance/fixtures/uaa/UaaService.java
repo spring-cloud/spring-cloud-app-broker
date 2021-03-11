@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.acceptance.fixtures.uaa;
 
+import java.util.Arrays;
+
 import org.cloudfoundry.uaa.UaaClient;
 import org.cloudfoundry.uaa.clients.CreateClientRequest;
 import org.cloudfoundry.uaa.clients.DeleteClientRequest;
@@ -49,11 +51,22 @@ public class UaaService {
 	}
 
 	public Mono<Void> createClient(String clientId, String clientSecret, String... authorities) {
+		final String clientNotFound = "CLIENT_NOT_FOUND";
 		return getUaaClient(clientId)
+			.defaultIfEmpty(GetClientResponse.builder()
+				.clientId(clientNotFound)
+				.authorities(clientNotFound)
+				.build())
+			.filter(response -> authoritiesChanged(response, authorities))
+			.delayUntil(response -> {
+				if (!clientNotFound.equals(response.getClientId())) {
+					return uaaClient.clients()
+						.delete(DeleteClientRequest.builder().clientId(clientId).build())
+						.doOnError(error -> LOG.error("Error deleting client: " + clientId + " with error: " + error));
+				}
+				return Mono.empty();
+			})
 			.flatMap(response -> uaaClient.clients()
-				.delete(DeleteClientRequest.builder().clientId(clientId).build())
-				.doOnError(error -> LOG.error("Error deleting client: " + clientId + " with error: " + error)))
-			.then(uaaClient.clients()
 				.create(CreateClientRequest
 					.builder()
 					.clientId(clientId)
@@ -63,6 +76,11 @@ public class UaaService {
 					.build())
 				.doOnError(error -> LOG.error("Error creating client: " + clientId + " with error: " + error)))
 			.then();
+	}
+
+	private boolean authoritiesChanged(GetClientResponse response, String... authorities) {
+		return !response.getAuthorities().containsAll(Arrays.asList(authorities)) ||
+			response.getAuthorities().size() != authorities.length;
 	}
 
 }

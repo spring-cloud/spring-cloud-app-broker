@@ -11,3 +11,4 @@ RUN mkdir -p /opt/openjdk && \
     curl -L https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u192-b12/OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz | tar xz --strip-components=2
 
 ADD https://raw.githubusercontent.com/spring-io/concourse-java-scripts/v0.0.3/concourse-java.sh /opt/
+ADD https://repo.spring.io/libs-release/io/spring/concourse/releasescripts/concourse-release-scripts/0.3.2/concourse-release-scripts-0.3.2.jar /opt/

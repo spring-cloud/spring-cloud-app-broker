@@ -251,9 +251,9 @@ resources:
   - name: release-ci-image
     type: docker-image
     source:
-      repository: ((docker-hub-organization))/release-ci-image
-      username: ((docker-hub-username))
-      password: ((docker-hub-password))
+      repository: ((corporate-harbor-registry))/((docker-hub-organization))/release-ci-image
+      username: ((corporate-harbor-robot-account.username))
+      password: ((corporate-harbor-robot-account.password))
       tag: ((release-image-tag))
 
   - name: artifactory-repo

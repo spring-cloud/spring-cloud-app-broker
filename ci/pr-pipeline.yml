@@ -6,14 +6,14 @@ aliases:
       icon_emoji: ":concourse:"
       username: concourse
       channel: ((ab-slack-success-channel))
-      text: "$BUILD_PIPELINE_NAME pipeline has succeeded with build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME>!"
+      text: "$BUILD_PIPELINE_NAME pipeline has succeeded with build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME>!"
   - &slack-failure-notification
     put: alert
     params:
       icon_emoji: ":animal-1252:"
       username: concourse
       channel: ((ab-slack-failure-channel))
-      text: <!here> Build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
+      text: <!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
 
 jobs:
   - name: build
@@ -27,7 +27,7 @@ jobs:
         input_mapping:
           git-repo: pull-request
         vars:
-          docker-hub-organization: ((docker-hub-organization))
+          docker-hub-organization: ((dockerhub-organization))
           release-image-tag: ((release-image-tag))
 
   - name: run-acceptance-tests
@@ -54,7 +54,7 @@ resource_types:
   - name: slack-notification
     type: registry-image
     source:
-      repository: cfcommunity/slack-notification-resource
+      repository: ((dockerhub-mirror-registry))/cfcommunity/slack-notification-resource
       tag: latest
 
 resources:

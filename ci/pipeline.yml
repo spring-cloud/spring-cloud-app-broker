@@ -6,14 +6,14 @@ aliases:
       icon_emoji: ":concourse:"
       username: concourse
       channel: ((ab-slack-success-channel))
-      text: "$BUILD_PIPELINE_NAME pipeline has succeeded with build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME>!"
+      text: "$BUILD_PIPELINE_NAME pipeline has succeeded with build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME>!"
   - &slack-failure-notification
     put: alert
     params:
       icon_emoji: ":animal-1252:"
       username: concourse
       channel: ((ab-slack-failure-channel))
-      text: <!here> Build <https://scs.ci.springapps.io/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
+      text: <!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
 
 jobs:
   - name: build-release-ci-images
@@ -23,6 +23,8 @@ jobs:
       - put: release-ci-image
         params:
           build: ci-images-git-repo/ci/images/release-ci-image
+        get_params:
+          skip_download: "true"
 
   - name: build
     serial: true
@@ -34,13 +36,13 @@ jobs:
         timeout: 1h30m
         file: git-repo/ci/tasks/build-project.yml
         vars:
-          docker-hub-organization: ((docker-hub-organization))
+          docker-hub-organization: ((dockerhub-organization))
           release-image-tag: ((release-image-tag))
       - put: artifactory-repo
         params: &artifactory-params
           repo: libs-snapshot-local
           folder: distribution-repository
-          build_uri: "https://ci.spring.io/teams/${BUILD_TEAM_NAME}/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
+          build_uri: "${ATC_EXTERNAL_URL}/teams/${BUILD_TEAM_NAME}/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
           build_number: "${BUILD_PIPELINE_NAME}-${BUILD_JOB_NAME}-${BUILD_NAME}"
           disable_checksum_uploads: true
           artifact_set:
@@ -56,8 +58,8 @@ jobs:
       - get: git-repo
         passed: [build]
         trigger: true
-      - task: acceptance-tests
-        file: git-repo/ci/tasks/acceptance-tests.yml
+#      - task: acceptance-tests
+#        file: git-repo/ci/tasks/acceptance-tests.yml
     on_success:
       *slack-success-notification
     on_failure:
@@ -213,13 +215,20 @@ resource_types:
   - name: artifactory-resource
     type: registry-image
     source:
-      repository: springio/artifactory-resource
+      repository: ((dockerhub-mirror-registry))/springio/artifactory-resource
       tag: 0.0.12
 
   - name: slack-notification
     type: registry-image
     source:
-      repository: cfcommunity/slack-notification-resource
+      repository: ((dockerhub-mirror-registry))/cfcommunity/slack-notification-resource
+      tag: latest
+
+  - name: docker-image-mirror
+    type: registry-image
+    privileged: true
+    source:
+      repository: ((dockerhub-mirror-registry))/concourse/docker-image-resource
       tag: latest
 
 resources:
@@ -249,9 +258,9 @@ resources:
       paths: ["ci/images/*"]
 
   - name: release-ci-image
-    type: docker-image
+    type: docker-image-mirror
     source:
-      repository: ((corporate-harbor-registry))/((docker-hub-organization))/release-ci-image
+      repository: ((corporate-harbor-registry))/((dockerhub-organization))/release-ci-image
       username: ((corporate-harbor-robot-account.username))
       password: ((corporate-harbor-robot-account.password))
       tag: ((release-image-tag))

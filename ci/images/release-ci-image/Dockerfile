@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20181018
+FROM harbor-repo.vmware.com/dockerhub-proxy-cache/library/ubuntu:bionic
 
 RUN apt-get update
 RUN apt-get install --no-install-recommends -y ca-certificates net-tools git curl jq
@@ -12,3 +12,7 @@ RUN mkdir -p /opt/openjdk && \
 
 ADD https://raw.githubusercontent.com/spring-io/concourse-java-scripts/v0.0.3/concourse-java.sh /opt/
 ADD https://repo.spring.io/libs-release/io/spring/concourse/releasescripts/concourse-release-scripts/0.3.2/concourse-release-scripts-0.3.2.jar /opt/
+
+RUN cd /usr/local/bin && curl -L https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/2.9.0/credhub-linux-2.9.0.tgz | tar xz
+RUN curl -L https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.40/bbl-v8.4.40_linux_x86-64 --output /usr/local/bin/bbl && \
+    chmod +x /usr/local/bin/bbl

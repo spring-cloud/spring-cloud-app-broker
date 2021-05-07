@@ -55,13 +55,24 @@ jobs:
   - name: run-acceptance-tests
     serial: true
     plan:
-      - get: git-repo
-        passed: [build]
-        trigger: true
-#      - task: acceptance-tests
-#        file: git-repo/ci/tasks/acceptance-tests.yml
+      - in_parallel:
+        - get: git-repo
+          passed: [build]
+          trigger: true
+        - put: toolsmith-env
+          inputs: []
+          params:
+            action: claim
+      - task: acceptance-tests
+        file: git-repo/ci/tasks/acceptance-tests.yml
     on_success:
-      *slack-success-notification
+      in_parallel:
+        - *slack-success-notification
+        - put: toolsmith-env
+          params:
+            action: unclaim
+            env_file: toolsmith-env/metadata
+          inputs: [toolsmith-env]
     on_failure:
       *slack-failure-notification
 
@@ -224,12 +235,10 @@ resource_types:
       repository: ((dockerhub-mirror-registry))/cfcommunity/slack-notification-resource
       tag: latest
 
-  - name: docker-image-mirror
+  - name: pcf-pool
     type: registry-image
-    privileged: true
     source:
-      repository: ((dockerhub-mirror-registry))/concourse/docker-image-resource
-      tag: latest
+      repository: ((dockerhub-mirror-registry))/cftoolsmiths/toolsmiths-envs-resource
 
 resources:
   - name: git-repo
@@ -258,7 +267,7 @@ resources:
       paths: ["ci/images/*"]
 
   - name: release-ci-image
-    type: docker-image-mirror
+    type: docker-image
     source:
       repository: ((corporate-harbor-registry))/((dockerhub-organization))/release-ci-image
       username: ((corporate-harbor-robot-account.username))
@@ -277,6 +286,14 @@ resources:
     type: slack-notification
     source:
       url: ((scs-slack-webhook))
+
+  - name: toolsmith-env
+    type: pcf-pool
+    icon: pool
+    source:
+      api_token: ((toolsmith-api-token))
+      hostname: environments.toolsmiths.cf-app.com
+      pool_name: cf-deployment
 
 groups:
   - name: "build"

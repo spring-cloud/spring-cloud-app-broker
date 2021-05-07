@@ -3,19 +3,15 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: openjdk
-    tag: 8
+    repository: ((corporate-harbor-registry))/((dockerhub-organization))/release-ci-image
+    tag: ((release-image-tag))
 inputs:
   - name: git-repo
+  - name: toolsmith-env
 run:
   path: git-repo/ci/scripts/acceptance-tests.sh
 params:
-  API_HOST: ((acceptance-test-api-host))
-  API_PORT: ((acceptance-test-api-port))
-  USERNAME: ((acceptance-test-username))
-  PASSWORD: ((acceptance-test-password))
-  CLIENT_ID: ((acceptance-test-client-id))
-  CLIENT_SECRET: ((acceptance-test-client-secret))
+  TOOLSMITH_ENV_INPUT: toolsmith-env
   DEFAULT_ORG: ((acceptance-test-default-org))
   DEFAULT_SPACE: ((acceptance-test-default-space))
   SKIP_SSL_VALIDATION: ((acceptance-test-skip-ssl-validation))

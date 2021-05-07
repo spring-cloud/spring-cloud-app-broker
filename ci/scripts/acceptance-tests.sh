@@ -21,15 +21,22 @@ discover_environment() {
 
   eval "$(bbl print-env --metadata-file "$TOOLSMITH_ENV_INPUT/metadata")"
 
-  credhub login \
-    --client-name="$(jq -r .bosh.credhub_client < "$TOOLSMITH_ENV_INPUT/metadata")" \
-    --client-secret="$(jq -r .bosh.credhub_secret < "$TOOLSMITH_ENV_INPUT/metadata")" \
-    --server="$(jq -r .bosh.credhub_server < "$TOOLSMITH_ENV_INPUT/metadata")" \
-    --ca-cert="$(jq -r .bosh.credhub_ca_cert < "$TOOLSMITH_ENV_INPUT/metadata")"
-
   API_HOST="$(jq -r .cf.api_url < "$TOOLSMITH_ENV_INPUT/metadata")"
   PASSWORD="$(credhub get -n "/bosh-${env_name}/cf/cf_admin_password" -q)"
   CLIENT_SECRET="$(credhub get -n "/bosh-${env_name}/cf/uaa_admin_client_secret" -q)"
+}
+
+prepare_environment() {
+  local test_instances_org
+  test_instances_org="$DEFAULT_ORG-instances"
+
+  cf login -a "$API_HOST" -u "$USERNAME" -p "$PASSWORD" -o system --skip-ssl-validation "$SKIP_SSL_VALIDATION"
+
+  cf create-org "$DEFAULT_ORG"
+  cf create-space "$DEFAULT_SPACE" -o "$DEFAULT_ORG"
+
+  cf create-org "$test_instances_org"
+  cf create-space "$DEFAULT_SPACE" -o "$test_instances_org"
 }
 
 run_tests() {
@@ -53,6 +60,8 @@ main() {
 
   echo "Running tests against $API_HOST"
   echo
+
+  prepare_environment
 
   pushd "git-repo" > /dev/null
     run_tests

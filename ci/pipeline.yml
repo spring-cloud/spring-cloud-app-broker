@@ -65,6 +65,8 @@ jobs:
             action: claim
       - task: acceptance-tests
         file: git-repo/ci/tasks/acceptance-tests.yml
+        vars:
+          release-image-tag: ((release-image-tag))
     on_success:
       in_parallel:
         - *slack-success-notification

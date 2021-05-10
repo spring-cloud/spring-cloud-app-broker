@@ -87,12 +87,12 @@ cf routes
 cf target -o system -s system
 
 cf delete-org -f ${TEST_INSTANCES_ORG}
-cf create-org ${TEST_INSTANCES_ORG} -q runaway
+cf create-org ${TEST_INSTANCES_ORG}
 cf target -o ${TEST_INSTANCES_ORG}
 cf create-space ${TEST_SPACE}
 
 cf delete-org -f ${TEST_ORG}
-cf create-org ${TEST_ORG} -q runaway
+cf create-org ${TEST_ORG}
 cf target -o ${TEST_ORG}
 cf create-space ${TEST_SPACE}
 
@@ -100,3 +100,5 @@ cf target -o ${TEST_ORG} -s ${TEST_SPACE}
 
 cf delete-service-broker test-broker-create-instance-space-per-si -f
 cf delete-service-broker test-broker-create-instance-with-services -f
+cf delete-service-broker test-broker-update-with-new-services -f
+cf delete-service-broker test-broker-update-with-new-services-and-target -f

@@ -33,15 +33,26 @@ jobs:
   - name: run-acceptance-tests
     serial: true
     plan:
-      - get: pull-request
-        passed: [build]
-        trigger: true
+      - in_parallel:
+        - get: pull-request
+          passed: [build]
+          trigger: true
+        - put: toolsmith-env
+          inputs: [ ]
+          params:
+            action: claim
       - task: acceptance-tests
         file: pull-request/ci/tasks/acceptance-tests.yml
         input_mapping:
           git-repo: pull-request
     on_success:
-      *slack-success-notification
+      in_parallel:
+      - *slack-success-notification
+      - put: toolsmith-env
+        params:
+          action: unclaim
+          env_file: toolsmith-env/metadata
+        inputs: [ toolsmith-env ]
     on_failure:
       *slack-failure-notification        
 
@@ -49,13 +60,18 @@ resource_types:
   - name: pull-request
     type: registry-image
     source:
-      repository: teliaoss/github-pr-resource
+      repository: ((dockerhub-mirror-registry))/teliaoss/github-pr-resource
 
   - name: slack-notification
     type: registry-image
     source:
       repository: ((dockerhub-mirror-registry))/cfcommunity/slack-notification-resource
       tag: latest
+
+  - name: pcf-pool
+    type: registry-image
+    source:
+      repository: ((dockerhub-mirror-registry))/cftoolsmiths/toolsmiths-envs-resource
 
 resources:
   - name: pull-request
@@ -71,3 +87,10 @@ resources:
     source:
       url: ((scs-slack-webhook))
 
+  - name: toolsmith-env
+    type: pcf-pool
+    icon: pool
+    source:
+      api_token: ((toolsmith-api-token))
+      hostname: environments.toolsmiths.cf-app.com
+      pool_name: cf-deployment

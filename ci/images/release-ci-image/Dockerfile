@@ -21,3 +21,6 @@ RUN cd /usr/local/bin && curl -L https://github.com/cloudfoundry-incubator/credh
 
 RUN curl -L https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.40/bbl-v8.4.40_linux_x86-64 --output /usr/local/bin/bbl && \
     chmod +x /usr/local/bin/bbl
+
+RUN curl -L https://github.com/cloudfoundry/bosh-cli/releases/download/v6.4.3/bosh-cli-6.4.3-linux-amd64 --output /usr/local/bin/bosh && \
+    chmod +x /usr/local/bin/bosh

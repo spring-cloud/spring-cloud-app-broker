@@ -151,6 +151,7 @@ class CloudFoundryAppDeployerTest {
 	@BeforeEach
 	void setUp() {
 		deploymentProperties = new CloudFoundryDeploymentProperties();
+
 		CloudFoundryTargetProperties targetProperties = new CloudFoundryTargetProperties();
 		targetProperties.setDefaultOrg("default-org");
 		targetProperties.setDefaultSpace("default-space");
@@ -190,6 +191,7 @@ class CloudFoundryAppDeployerTest {
 		ApplicationManifest expectedManifest = baseManifestWithSpringAppJson()
 			.name(APP_NAME)
 			.path(new File(APP_PATH).toPath())
+			.buildpacks("") // Empty list means to discover the buildpack
 			.build();
 
 		then(operationsApplications).should().pushManifest(argThat(matchesManifest(expectedManifest)));
@@ -433,6 +435,7 @@ class CloudFoundryAppDeployerTest {
 			"\"ENV_VAR_2\":\"value2\",\"ENV_VAR_1\":\"value1\"")
 			.name(APP_NAME)
 			.path(new File(APP_PATH).toPath())
+			.buildpacks("")
 			.environmentVariable("JAVA_OPTS", "-Xms512m -Xmx1024m")
 			.build();
 
@@ -459,6 +462,7 @@ class CloudFoundryAppDeployerTest {
 		ApplicationManifest expectedManifest = baseManifest()
 			.name(APP_NAME)
 			.path(new File(APP_PATH).toPath())
+			.buildpack("")
 			.environmentVariable("JAVA_OPTS", "-Xms512m -Xmx1024m")
 			.environmentVariable("spring.cloud.appbroker.service-instance-id", SERVICE_INSTANCE_ID)
 			.environmentVariable("ENV_VAR_1", "value1")

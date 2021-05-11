@@ -44,6 +44,8 @@ public class CloudFoundryClientConfiguration {
 
 	/**
 	 * The broker client secret
+	 * Please note that acceptance tests setup would not recreate the client if client id or authorities doesn't change.
+	 * Manual environment clean up is needed on existing test environments if secret changes are necessary.
 	 */
 	public static final String APP_BROKER_CLIENT_SECRET = "app-broker-client-secret";
 
@@ -61,6 +63,8 @@ public class CloudFoundryClientConfiguration {
 
 	/**
 	 * The user client secret
+	 * Please note that acceptance tests setup would not recreate the client if client id or authorities doesn't change.
+	 * Manual environment clean up is needed on existing test environments if secret changes are necessary.
 	 */
 	public static final String USER_CLIENT_SECRET = "app-broker-user-client-secret";
 

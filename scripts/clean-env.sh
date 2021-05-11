@@ -102,3 +102,8 @@ cf delete-service-broker test-broker-create-instance-space-per-si -f
 cf delete-service-broker test-broker-create-instance-with-services -f
 cf delete-service-broker test-broker-update-with-new-services -f
 cf delete-service-broker test-broker-update-with-new-services-and-target -f
+cf delete-service-broker test-broker-update-instance -f
+cf delete-service-broker test-broker-update-instance-domain -f
+cf delete-service-broker test-broker-update-instance-with-services -f
+cf delete-service-broker test-broker-update-instance-with-target -f
+cf delete-service-broker test-broker-upgrade -f

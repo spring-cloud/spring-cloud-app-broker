@@ -74,6 +74,7 @@ public class UaaService {
 					.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
 					.authorities(authorities)
 					.build())
+				.onErrorResume(e -> e.getMessage().contains("Client already exists: " + clientId), e -> Mono.empty())
 				.doOnError(error -> LOG.error("Error creating client: " + clientId + " with error: " + error)))
 			.then();
 	}

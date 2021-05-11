@@ -61,7 +61,7 @@ public class UaaService {
 			.delayUntil(response -> {
 				if (!clientNotFound.equals(response.getClientId())) {
 					return uaaClient.clients()
-				.delete(DeleteClientRequest.builder().clientId(clientId).build())
+						.delete(DeleteClientRequest.builder().clientId(clientId).build())
 						.doOnError(error -> LOG.error("Error deleting client: " + clientId + " with error: " + error));
 				}
 				return Mono.empty();
@@ -74,6 +74,7 @@ public class UaaService {
 					.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
 					.authorities(authorities)
 					.build())
+				.onErrorResume(e -> e.getMessage().contains("Client already exists: " + clientId), e -> Mono.empty())
 				.doOnError(error -> LOG.error("Error creating client: " + clientId + " with error: " + error)))
 			.then();
 	}

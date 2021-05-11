@@ -27,7 +27,6 @@ jobs:
         input_mapping:
           git-repo: pull-request
         vars:
-          docker-hub-organization: ((dockerhub-organization))
           release-image-tag: ((release-image-tag))
 
   - name: run-acceptance-tests
@@ -45,6 +44,8 @@ jobs:
         file: pull-request/ci/tasks/acceptance-tests.yml
         input_mapping:
           git-repo: pull-request
+        vars:
+          release-image-tag: ((release-image-tag))
     on_success:
       in_parallel:
       - *slack-success-notification

@@ -27,7 +27,7 @@ jobs:
         input_mapping:
           git-repo: pull-request
         vars:
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
 
   - name: run-acceptance-tests
     serial: true
@@ -45,7 +45,7 @@ jobs:
         input_mapping:
           git-repo: pull-request
         vars:
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
     on_success:
       in_parallel:
       - *slack-success-notification

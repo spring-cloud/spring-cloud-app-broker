@@ -16,13 +16,13 @@ aliases:
       text: <!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
 
 jobs:
-  - name: build-release-ci-images
+  - name: build-ci-images
     plan:
       - get: ci-images-git-repo
         trigger: true
-      - put: release-ci-image
+      - put: app-broker-ci-image
         params:
-          build: ci-images-git-repo/ci/images/release-ci-image
+          build: ci-images-git-repo/ci/images/app-broker-ci
         get_params:
           skip_download: "true"
 
@@ -36,7 +36,7 @@ jobs:
         timeout: 1h30m
         file: git-repo/ci/tasks/build-project.yml
         vars:
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
       - put: artifactory-repo
         params: &artifactory-params
           repo: libs-snapshot-local
@@ -65,7 +65,7 @@ jobs:
       - task: acceptance-tests
         file: git-repo/ci/tasks/acceptance-tests.yml
         vars:
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
     on_success:
       in_parallel:
         - *slack-success-notification
@@ -87,7 +87,7 @@ jobs:
         file: git-repo/ci/tasks/stage.yml
         vars:
           release-type: M
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -106,7 +106,7 @@ jobs:
         file: git-repo/ci/tasks/stage.yml
         vars:
           release-type: RC
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -125,7 +125,7 @@ jobs:
         file: git-repo/ci/tasks/stage.yml
         vars:
           release-type: RELEASE
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -148,7 +148,7 @@ jobs:
         file: git-repo/ci/tasks/promote.yml
         vars:
           release-type: M
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
 
   - name: promote-rc
     serial: true
@@ -165,7 +165,7 @@ jobs:
         file: git-repo/ci/tasks/promote.yml
         vars:
           release-type: RC
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
 
   - name: promote-release
     serial: true
@@ -182,7 +182,7 @@ jobs:
         file: git-repo/ci/tasks/promote.yml
         vars:
           release-type: RELEASE
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
 
   - name: distribute-release
     serial: true
@@ -198,7 +198,7 @@ jobs:
       - task: distribute
         file: git-repo/ci/tasks/distribute.yml
         vars:
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
           bintray-distribution-repo: ((bintray-distribution-repo))
           bintray-package: ((bintray-package))
           bintray-repo: ((bintray-repo))
@@ -218,7 +218,7 @@ jobs:
       - task: sync-to-maven-central
         file: git-repo/ci/tasks/sync-to-maven-central.yml
         vars:
-          release-image-tag: ((release-image-tag))
+          ci-image-tag: ((ci-image-tag))
           bintray-package: ((bintray-package))
           bintray-repo: ((bintray-repo))
           bintray-subject: ((bintray-subject))
@@ -267,13 +267,13 @@ resources:
       branch: ((branch))
       paths: ["ci/images/*"]
 
-  - name: release-ci-image
+  - name: app-broker-ci-image
     type: docker-image
     source:
-      repository: ((corporate-harbor-registry))/((dockerhub-organization))/release-ci-image
+      repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
       username: ((corporate-harbor-robot-account.username))
       password: ((corporate-harbor-robot-account.password))
-      tag: ((release-image-tag))
+      tag: ((ci-image-tag))
 
   - name: artifactory-repo
     type: artifactory-resource
@@ -317,4 +317,4 @@ groups:
       - sync-to-maven-central
   - name: "ci-images"
     jobs:
-      - build-release-ci-images
+      - build-ci-images

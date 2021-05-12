@@ -3,11 +3,11 @@
 set -euo pipefail
 
 set_pipeline() {
-	local pipeline_name pipeline_definition branch release_image_tag
+	local pipeline_name pipeline_definition branch ci_image_tag
 	pipeline_name="${1:?pipeline name must be provided}"
 	pipeline_definition="${2:?pipeline definition file must be provided}"
 	branch="${3:?branch must be provided}"
-	release_image_tag="${4:-$branch}"
+	ci_image_tag="${4:-$branch}"
 
 	echo "Setting $pipeline_name pipeline..."
 	fly --target app-broker set-pipeline \
@@ -15,7 +15,7 @@ set_pipeline() {
 		--config "$pipeline_definition" \
 		--load-vars-from config-concourse.yml \
 		--var "branch=$branch" \
-		--var "release-image-tag=$release_image_tag"
+		--var "ci-image-tag=$ci_image_tag"
 }
 
 main() {

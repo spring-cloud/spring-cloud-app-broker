@@ -133,7 +133,8 @@ public final class UserCloudFoundryService {
 			UnknownCloudFoundryException unknownCloudFoundryException = (UnknownCloudFoundryException) error;
 			logMessage = String.format("Error %s %s: %s %s", operation, serviceInstanceName,
 				unknownCloudFoundryException.getMessage(), unknownCloudFoundryException.getPayload());
-		} else {
+		}
+		else {
 			logMessage = String.format("Error %s %s: %s", operation, serviceInstanceName, error);
 		}
 		LOG.error(logMessage, error);

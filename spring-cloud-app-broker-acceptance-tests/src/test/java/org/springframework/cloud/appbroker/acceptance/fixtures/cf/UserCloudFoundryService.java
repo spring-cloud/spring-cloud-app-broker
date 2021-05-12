@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.acceptance.fixtures.cf;
 
 import java.util.Map;
 
+import org.cloudfoundry.UnknownCloudFoundryException;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
@@ -86,11 +87,9 @@ public final class UserCloudFoundryService {
 				.build())
 				.doOnSuccess(v -> LOG.info("Success deleting service instance. serviceInstanceName={}",
 					serviceInstanceName))
-				.doOnError(e -> LOG.error(String.format("Error deleting service instance. serviceInstanceName=%s, " +
-					"error=%s", serviceInstanceName, e.getMessage()), e))
+				.doOnError(error -> logError("deleting service instance", serviceInstanceName, error))
 				.onErrorResume(e -> Mono.empty()))
-			.doOnError(e -> LOG.warn(String.format("Error getting service instance. serviceInstanceName=%s, " +
-				"error=%s", serviceInstanceName, e.getMessage()), e))
+			.doOnError(error -> logError("getting service instance", serviceInstanceName, error))
 			.onErrorResume(e -> Mono.empty());
 	}
 
@@ -106,8 +105,7 @@ public final class UserCloudFoundryService {
 			.build())
 			.doOnSuccess(item -> LOG.info("Success creating service instance. serviceInstanceName={}",
 				serviceInstanceName))
-			.doOnError(e -> LOG.error(String.format("Error creating service instance. serviceInstanceName=%s, " +
-				"error=%s", serviceInstanceName, e.getMessage()), e));
+			.doOnError(error -> logError("creating service instance", serviceInstanceName, error));
 	}
 
 	public Mono<Void> updateServiceInstance(String serviceInstanceName, Map<String, Object> parameters) {
@@ -117,7 +115,7 @@ public final class UserCloudFoundryService {
 				.parameters(parameters)
 				.build())
 			.doOnSuccess(item -> LOG.info("Updated service instance " + serviceInstanceName))
-			.doOnError(error -> LOG.error("Error updating service instance " + serviceInstanceName + ": " + error));
+			.doOnError(error -> logError("updating service instance", serviceInstanceName, error));
 	}
 
 	public Mono<ServiceInstance> getServiceInstance(String serviceInstanceName) {
@@ -126,6 +124,18 @@ public final class UserCloudFoundryService {
 				.name(serviceInstanceName)
 				.build())
 			.doOnSuccess(item -> LOG.info("Got service instance " + serviceInstanceName))
-			.doOnError(error -> LOG.error("Error getting service instance " + serviceInstanceName + ": " + error));
+			.doOnError(error -> logError("getting service instance", serviceInstanceName, error));
+	}
+
+	private static void logError(String operation, String serviceInstanceName, Throwable error) {
+		String logMessage;
+		if (error instanceof UnknownCloudFoundryException) {
+			UnknownCloudFoundryException unknownCloudFoundryException = (UnknownCloudFoundryException) error;
+			logMessage = String.format("Error %s %s: %s %s", operation, serviceInstanceName,
+				unknownCloudFoundryException.getMessage(), unknownCloudFoundryException.getPayload());
+		} else {
+			logMessage = String.format("Error %s %s: %s", operation, serviceInstanceName, error);
+		}
+		LOG.error(logMessage, error);
 	}
 }

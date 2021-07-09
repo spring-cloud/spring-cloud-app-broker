@@ -21,12 +21,12 @@
 
 	<!-- Suppressions -->
 	<module name="SuppressionFilter">
-		<property name="file" value="src/checkstyle/checkstyle-suppressions.xml"/>
+		<property name="file" value="${config_loc}/checkstyle-suppressions.xml"/>
 	</module>
 
 	<!-- License Header -->
 	<module name="Header">
-		<property name="headerFile" value="src/checkstyle/license.header"/>
+		<property name="headerFile" value="${config_loc}/license.header"/>
 		<property name="ignoreLines" value="2, 8"/>
 	</module>
 

@@ -23,9 +23,13 @@ plugins {
 }
 
 ext {
+	javaApi = "https://docs.oracle.com/javase/8/docs/api/"
+	if (JavaVersion.current() >= JavaVersion.VERSION_11) {
+		javaApi = "https://docs.oracle.com/en/java/javase/11/docs/api"
+	}
 	javadocLinks = [
-		"https://docs.oracle.com/javase/8/docs/api/",
-		"https://docs.spring.io/spring/docs/${springFrameworkVersion}/javadoc-api/"
+		javaApi,
+		"https://docs.spring.io/spring-framework/docs/${springFrameworkVersion}/javadoc-api/"
 	] as String[]
 }
 
@@ -199,7 +203,7 @@ configure(staticAnalysisProjects) {
 	apply plugin: "jacoco"
 
 	checkstyle {
-		configFile = file("${project.rootDir}/src/checkstyle/checkstyle.xml")
+		configDirectory = rootProject.file("src/checkstyle")
 		toolVersion = "${checkstyleVersion}"
 		showViolations = true
 	}

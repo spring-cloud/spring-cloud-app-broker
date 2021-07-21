@@ -44,12 +44,8 @@ jobs:
           build_uri: "${ATC_EXTERNAL_URL}/teams/${BUILD_TEAM_NAME}/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}"
           build_number: "${BUILD_PIPELINE_NAME}-${BUILD_JOB_NAME}-${BUILD_NAME}"
           disable_checksum_uploads: true
-          artifact_set:
-            - include:
-                - "/**/spring-cloud-app-broker-*-docs.zip"
-              properties:
-                "zip.type": "docs"
-                "zip.deployed": "false"
+    on_failure:
+      *slack-failure-notification
 
   - name: run-acceptance-tests
     serial: true
@@ -81,7 +77,6 @@ jobs:
     serial: true
     plan:
       - get: git-repo
-        trigger: false
         passed: [run-acceptance-tests]
       - task: stage
         file: git-repo/ci/tasks/stage.yml
@@ -100,7 +95,6 @@ jobs:
     serial: true
     plan:
       - get: git-repo
-        trigger: false
         passed: [run-acceptance-tests]
       - task: stage
         file: git-repo/ci/tasks/stage.yml
@@ -119,7 +113,6 @@ jobs:
     serial: true
     plan:
       - get: git-repo
-        trigger: false
         passed: [run-acceptance-tests]
       - task: stage
         file: git-repo/ci/tasks/stage.yml
@@ -138,9 +131,7 @@ jobs:
     serial: true
     plan:
       - get: git-repo
-        trigger: false
       - get: artifactory-repo
-        trigger: false
         passed: [stage-milestone]
         params:
           save_build_info: true
@@ -155,9 +146,7 @@ jobs:
     plan:
       - in_parallel:
         - get: git-repo
-          trigger: false
         - get: artifactory-repo
-          trigger: false
           passed: [stage-rc]
           params:
             save_build_info: true
@@ -172,9 +161,7 @@ jobs:
     plan:
       - in_parallel:
         - get: git-repo
-          trigger: false
         - get: artifactory-repo
-          trigger: false
           passed: [stage-release]
           params:
             save_build_info: true
@@ -184,51 +171,26 @@ jobs:
           release-type: RELEASE
           ci-image-tag: ((ci-image-tag))
 
-  - name: distribute-release
-    serial: true
-    plan:
-      - in_parallel:
-        - get: git-repo
-          trigger: false
-        - get: artifactory-repo
-          trigger: false
-          passed: [promote-release]
-          params:
-            save_build_info: true
-      - task: distribute
-        file: git-repo/ci/tasks/distribute.yml
-        vars:
-          ci-image-tag: ((ci-image-tag))
-          bintray-distribution-repo: ((bintray-distribution-repo))
-          bintray-package: ((bintray-package))
-          bintray-repo: ((bintray-repo))
-          bintray-subject: ((bintray-subject))
-
   - name: sync-to-maven-central
     serial: true
     plan:
       - in_parallel:
         - get: git-repo
-          trigger: false
         - get: artifactory-repo
-          trigger: false
-          passed: [distribute-release]
+          passed: [promote-release]
           params:
             save_build_info: true
       - task: sync-to-maven-central
         file: git-repo/ci/tasks/sync-to-maven-central.yml
         vars:
           ci-image-tag: ((ci-image-tag))
-          bintray-package: ((bintray-package))
-          bintray-repo: ((bintray-repo))
-          bintray-subject: ((bintray-subject))
 
 resource_types:
   - name: artifactory-resource
     type: registry-image
     source:
       repository: ((dockerhub-mirror-registry))/springio/artifactory-resource
-      tag: 0.0.12
+      tag: 0.0.14
 
   - name: slack-notification
     type: registry-image
@@ -313,7 +275,6 @@ groups:
     jobs:
       - stage-release
       - promote-release
-      - distribute-release
       - sync-to-maven-central
   - name: "ci-images"
     jobs:

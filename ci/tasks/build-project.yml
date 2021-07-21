@@ -4,6 +4,8 @@ image_resource:
   type: registry-image
   source:
     repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
+    username: ((corporate-harbor-robot-account.username))
+    password: ((corporate-harbor-robot-account.password))
     tag: ((ci-image-tag))
 inputs:
   - name: git-repo
@@ -15,5 +17,5 @@ caches:
 run:
   path: git-repo/ci/scripts/build-project.sh
 params:
-  ONLY_SHOW_STANDARD_STREAMS_ON_TEST_FAILURE: true
-  SKIP_TESTS: false
+  ARTIFACTORY_USERNAME: ((artifactory-username))
+  ARTIFACTORY_PASSWORD: ((artifactory-password))

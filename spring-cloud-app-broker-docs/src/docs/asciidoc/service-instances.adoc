@@ -135,6 +135,10 @@ The following table lists properties that can be set for all or for specific app
 |`java-opts`
 |
 |
+
+|`use-spring-application-json`
+| Decide to write environment variables into SPRING_APPLICATION_JSON or write them as raw environment variables
+| `true`
 |===
 
 ===== Environment Configuration

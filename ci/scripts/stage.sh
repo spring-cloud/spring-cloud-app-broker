@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 
 # shellcheck source=scripts/common.sh
 source "$(dirname "$0")/common.sh"
@@ -9,6 +9,9 @@ git clone git-repo stage-git-repo
 echo
 
 pushd stage-git-repo >/dev/null
+
+git config user.name $USER_NAME
+git config user.email $USER_EMAIL
 
 snapshotVersion=$(awk -F '=' '$1 == "version" { print $2 }' gradle.properties)
 if [[ $RELEASE_TYPE == "M" ]]; then

@@ -3,18 +3,17 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: ((docker-hub-organization))/release-ci-image
-    tag: ((release-image-tag))
+    repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
+    username: ((corporate-harbor-robot-account.username))
+    password: ((corporate-harbor-robot-account.password))
+    tag: ((ci-image-tag))
 inputs:
   - name: git-repo
   - name: artifactory-repo
 params:
-  BINTRAY_REPO: ((bintray-repo))
-  BINTRAY_SUBJECT: ((bintray-subject))
-  BINTRAY_USERNAME: ((bintray-username))
-  BINTRAY_API_KEY: ((bintray-api-key))
-  BINTRAY_PACKAGE: ((bintray-package))
-  SONATYPE_USER_TOKEN: ((sonatype-user-token))
-  SONATYPE_PASSWORD_TOKEN: ((sonatype-password-token))
+  SONATYPE_URL: ((sonatype-url))
+  SONATYPE_USERNAME: ((sonatype-user-token))
+  SONATYPE_PASSWORD: ((sonatype-user-token-password))
+  SONATYPE_STAGING_PROFILE_ID: ((sonatype-staging-profile-id))
 run:
   path: git-repo/ci/scripts/sync-to-maven-central.sh

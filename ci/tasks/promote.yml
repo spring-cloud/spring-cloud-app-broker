@@ -3,8 +3,10 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: ((docker-hub-organization))/release-ci-image
-    tag: ((release-image-tag))
+    repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
+    username: ((corporate-harbor-robot-account.username))
+    password: ((corporate-harbor-robot-account.password))
+    tag: ((ci-image-tag))
 inputs:
   - name: git-repo
   - name: artifactory-repo

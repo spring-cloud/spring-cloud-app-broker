@@ -30,6 +30,8 @@ jobs:
     serial: true
     public: true
     plan:
+      - get: nightly
+        trigger: true
       - get: git-repo
         trigger: true
       - task: build-project
@@ -51,6 +53,9 @@ jobs:
     serial: true
     plan:
       - in_parallel:
+        - get: nightly
+          passed: [build]
+          trigger: true
         - get: git-repo
           passed: [build]
           trigger: true
@@ -204,6 +209,20 @@ resource_types:
       repository: ((dockerhub-mirror-registry))/cftoolsmiths/toolsmiths-envs-resource
 
 resources:
+  - name: nightly
+    type: time
+    icon: calendar-clock
+    source:
+      start: 12:00 AM
+      stop: 1:00 AM
+      days:
+        - Monday
+        - Tuesday
+        - Wednesday
+        - Thursday
+        - Friday
+      location: America/New_York
+
   - name: git-repo
     type: git
     source:
@@ -278,4 +297,16 @@ groups:
       - sync-to-maven-central
   - name: "ci-images"
     jobs:
+      - build-ci-images
+  - name: "all"
+    jobs:
+      - build
+      - run-acceptance-tests
+      - stage-milestone
+      - promote-milestone
+      - stage-rc
+      - promote-rc
+      - stage-release
+      - promote-release
+      - sync-to-maven-central
       - build-ci-images

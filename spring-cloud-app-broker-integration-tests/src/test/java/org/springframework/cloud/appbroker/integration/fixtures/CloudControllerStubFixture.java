@@ -236,6 +236,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubUpdateAppWithUpgrade(final String appName) {
+		stubGetV3App(appName);
 		stubUpdateEnvironment(appName);
 		stubCreatePackage(appName);
 		stubCreateBuild(appName);
@@ -248,10 +249,20 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubUpdateApp(final String appName) {
+		stubGetV3App(appName);
 		stubUpdateEnvironment(appName);
 		stubGetPackage(appName);
 		stubCreateBuild(appName);
 		stubCreateDeployment(appName);
+	}
+
+	private void stubGetV3App(String appName) {
+		stubFor(get(urlPathEqualTo("/v3/apps/" + appGuid(appName)))
+			.willReturn(ok()
+				.withBody(cc("get-v3-app-STARTED",
+					replace("@name", appName),
+					replace("@guid",  appGuid(appName))
+				))));
 	}
 
 	private void stubAppAfterCreation(String appName, String host) {

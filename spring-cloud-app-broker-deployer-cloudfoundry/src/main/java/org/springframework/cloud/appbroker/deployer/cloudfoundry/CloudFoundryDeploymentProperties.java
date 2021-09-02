@@ -114,7 +114,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	/**
 	 * The buildpack to use for deploying the application.
 	 */
-	private String buildpack;
+	private String buildpack = "";
 
 	/**
 	 * The type of health check to perform on deployed application, if not overridden per-app.  Defaults to PORT

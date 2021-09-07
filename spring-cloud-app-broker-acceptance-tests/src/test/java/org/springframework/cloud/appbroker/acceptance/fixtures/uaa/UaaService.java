@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.appbroker.acceptance.fixtures.uaa;
 
+import java.util.Arrays;
+
 import org.cloudfoundry.uaa.UaaClient;
 import org.cloudfoundry.uaa.clients.CreateClientRequest;
 import org.cloudfoundry.uaa.clients.DeleteClientRequest;
@@ -48,22 +50,37 @@ public class UaaService {
 	}
 
 	public Mono<Void> createClient(String clientId, String clientSecret, String... authorities) {
-		return uaaClient.clients().delete(DeleteClientRequest
-			.builder()
-			.clientId(clientId)
-			.build())
-			.doOnError(error -> LOG.warn("Error deleting client: " + clientId + " with error: " + error))
-			.onErrorResume(e -> Mono.empty())
-			.then(uaaClient.clients().create(CreateClientRequest
-				.builder()
-				.clientId(clientId)
-				.clientSecret(clientSecret)
-				.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
-				.authorities(authorities)
+		final String clientNotFound = "CLIENT_NOT_FOUND";
+		return getUaaClient(clientId)
+			.defaultIfEmpty(GetClientResponse.builder()
+				.clientId(clientNotFound)
+				.authorities(clientNotFound)
 				.build())
-				.doOnError(error -> LOG.error("Error creating client: " + clientId + " with error: " + error))
-				.onErrorResume(e -> Mono.empty()))
+			.filter(response -> authoritiesChanged(response, authorities))
+			.delayUntil(response -> {
+				if (!clientNotFound.equals(response.getClientId())) {
+					return uaaClient.clients()
+						.delete(DeleteClientRequest.builder().clientId(clientId).build())
+						.doOnError(error -> LOG.error("Error deleting client: " + clientId + " with error: " + error));
+				}
+				return Mono.empty();
+			})
+			.flatMap(response -> uaaClient.clients()
+				.create(CreateClientRequest
+					.builder()
+					.clientId(clientId)
+					.clientSecret(clientSecret)
+					.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
+					.authorities(authorities)
+					.build())
+				.onErrorResume(e -> e.getMessage().contains("Client already exists: " + clientId), e -> Mono.empty())
+				.doOnError(error -> LOG.error("Error creating client: " + clientId + " with error: " + error)))
 			.then();
+	}
+
+	private boolean authoritiesChanged(GetClientResponse response, String... authorities) {
+		return !response.getAuthorities().containsAll(Arrays.asList(authorities)) ||
+			response.getAuthorities().size() != authorities.length;
 	}
 
 }

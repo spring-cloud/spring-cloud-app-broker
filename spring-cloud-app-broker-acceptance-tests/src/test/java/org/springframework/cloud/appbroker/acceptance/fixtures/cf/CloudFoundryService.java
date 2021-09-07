@@ -176,10 +176,13 @@ public class CloudFoundryService {
 	}
 
 	public Mono<Void> deleteApp(String appName) {
-		return cloudFoundryOperations.applications().delete(DeleteApplicationRequest.builder()
-			.name(appName)
-			.deleteRoutes(true)
-			.build())
+		return cloudFoundryOperations.applications().list()
+			.filter(app -> appName.equals(app.getName()))
+			.singleOrEmpty()
+			.flatMap(app -> cloudFoundryOperations.applications().delete(DeleteApplicationRequest.builder()
+				.name(appName)
+				.deleteRoutes(true)
+				.build()))
 			.doOnSuccess(item -> LOG.info("Success deleting app. appName={}", appName))
 			.doOnError(e -> LOG.warn(String.format("Error deleting app. appName=%s, error=%s", appName,
 				e.getMessage()), e))
@@ -187,9 +190,12 @@ public class CloudFoundryService {
 	}
 
 	public Mono<Void> deleteServiceBroker(String brokerName) {
-		return cloudFoundryOperations.serviceAdmin().delete(DeleteServiceBrokerRequest.builder()
-			.name(brokerName)
-			.build())
+		return cloudFoundryOperations.serviceAdmin().list()
+			.filter(serviceBroker -> brokerName.equals(serviceBroker.getName()))
+			.singleOrEmpty()
+			.flatMap(serviceBroker -> cloudFoundryOperations.serviceAdmin()
+				.delete(DeleteServiceBrokerRequest.builder().name(brokerName).build())
+			)
 			.doOnSuccess(item -> LOG.info("Success deleting service broker. brokerName={}", brokerName))
 			.doOnError(e -> LOG.warn(String.format("Error deleting service broker. brokerName=%s, error=%s ",
 				brokerName, e.getMessage()), e))

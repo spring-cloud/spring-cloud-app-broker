@@ -18,7 +18,6 @@ package org.springframework.cloud.appbroker.logging.streaming;
 
 import java.io.IOException;
 import java.net.URI;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -121,8 +120,7 @@ class ServiceInstanceLogStreamingTest {
 	void shouldPublishWebSocketEndpoint() {
 		Disposable subscription = connectToLogsStreamEndpoint();
 
-		await().atMost(Duration.ofSeconds(1))
-			.untilAsserted(() -> assertThat(actualEnvelope).hasValue(expectedEnvelope));
+		await().untilAsserted(() -> assertThat(actualEnvelope).hasValue(expectedEnvelope));
 
 		subscription.dispose();
 	}
@@ -131,13 +129,11 @@ class ServiceInstanceLogStreamingTest {
 	void shouldPublishEventOnDisconnect() {
 		Disposable subscription = connectToLogsStreamEndpoint();
 
-		await().atMost(Duration.ofSeconds(1))
-			.untilAsserted(() -> assertThat(actualEnvelope.get()).isNotNull());
+		await().untilAsserted(() -> assertThat(actualEnvelope.get()).isNotNull());
 
 		subscription.dispose();
 
-		await().atMost(Duration.ofSeconds(1))
-			.untilAsserted(() -> assertThat(LogStreamingTestApp.isReceivedStopEvent()).isTrue());
+		await().untilAsserted(() -> assertThat(LogStreamingTestApp.isReceivedStopEvent()).isTrue());
 	}
 
 	@Test
@@ -149,8 +145,7 @@ class ServiceInstanceLogStreamingTest {
 		subscription.dispose();
 
 		applicationEventPublisher.publishEvent(new ServiceInstanceLogEvent(this, serviceInstanceId, expectedEnvelope));
-		await().atMost(Duration.ofSeconds(1))
-			.untilAsserted(() -> assertThat(LogStreamingTestApp.getReceivedStopEventServiceInstanceId()).isEqualTo(serviceInstanceId));
+		await().untilAsserted(() -> assertThat(LogStreamingTestApp.getReceivedStopEventServiceInstanceId()).isEqualTo(serviceInstanceId));
 	}
 
 	private Disposable connectToLogsStreamEndpoint() {

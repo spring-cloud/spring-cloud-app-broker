@@ -15,7 +15,7 @@ RUN mkdir -p /opt/openjdk && \
     curl -L https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_linux_hotspot_8u292b10.tar.gz | tar xz --strip-components=1
 
 ADD https://raw.githubusercontent.com/spring-io/concourse-java-scripts/v0.0.4/concourse-java.sh /opt/
-ADD https://repo.spring.io/libs-release/io/spring/concourse/releasescripts/concourse-release-scripts/0.3.3/concourse-release-scripts-0.3.3.jar /opt/
+ADD https://repo.spring.io/libs-snapshot/io/spring/concourse/releasescripts/concourse-release-scripts/0.3.4-SNAPSHOT/concourse-release-scripts-0.3.4-SNAPSHOT.jar /opt/
 
 RUN cd /usr/local/bin && curl -L https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/2.9.0/credhub-linux-2.9.0.tgz | tar xz
 

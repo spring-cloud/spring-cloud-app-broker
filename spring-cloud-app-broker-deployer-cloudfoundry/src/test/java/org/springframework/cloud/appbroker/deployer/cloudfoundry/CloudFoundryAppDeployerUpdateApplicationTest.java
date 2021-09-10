@@ -48,6 +48,8 @@ import org.cloudfoundry.client.v3.builds.Droplet;
 import org.cloudfoundry.client.v3.builds.GetBuildResponse;
 import org.cloudfoundry.client.v3.deployments.CreateDeploymentResponse;
 import org.cloudfoundry.client.v3.deployments.DeploymentState;
+import org.cloudfoundry.client.v3.deployments.DeploymentStatusReason;
+import org.cloudfoundry.client.v3.deployments.DeploymentStatusValue;
 import org.cloudfoundry.client.v3.deployments.DeploymentsV3;
 import org.cloudfoundry.client.v3.deployments.GetDeploymentResponse;
 import org.cloudfoundry.client.v3.packages.BitsData;
@@ -252,6 +254,8 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 		given(deploymentsV3.get(any()))
 			.willReturn(Mono.just(GetDeploymentResponse.builder()
 				.state(DeploymentState.DEPLOYED)
+				.status(org.cloudfoundry.client.v3.deployments.Status.builder().value(DeploymentStatusValue.FINALIZED).reason(
+					DeploymentStatusReason.DEPLOYED).build())
 				.createdAt("DATETIME")
 				.id("deployment-id")
 				.build()));
@@ -259,6 +263,30 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 
 	@Test
 	void updateApp() {
+		given(applicationsV2.update(any()))
+			.willReturn(Mono.just(UpdateApplicationResponse.builder()
+				.build()));
+
+		UpdateApplicationRequest request = UpdateApplicationRequest.builder()
+			.name(APP_NAME)
+			.path(APP_PATH)
+			.build();
+
+		StepVerifier.create(appDeployer.update(request))
+			.assertNext(response -> assertThat(response.getName()).isEqualTo(APP_NAME))
+			.verifyComplete();
+	}
+
+	@Test
+	void updateAppWhenDeploymentObjectHasNotState() {
+		given(deploymentsV3.get(any()))
+			.willReturn(Mono.just(GetDeploymentResponse.builder()
+				.status(org.cloudfoundry.client.v3.deployments.Status.builder().value(DeploymentStatusValue.FINALIZED).reason(
+					DeploymentStatusReason.DEPLOYED).build())
+				.createdAt("DATETIME")
+				.id("deployment-id")
+				.build()));
+
 		given(applicationsV2.update(any()))
 			.willReturn(Mono.just(UpdateApplicationResponse.builder()
 				.build()));

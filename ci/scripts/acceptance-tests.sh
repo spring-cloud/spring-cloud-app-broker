@@ -34,8 +34,14 @@ prepare_cf_deployment() {
 
   cat << EOF > ops.yml
 - type: replace
-  path: /instance_groups/name=diego-cell/instances
-  value: 3
+  path: /instance_groups/name=diego-cell/vm_type
+  value: large
+- type: replace
+  path: /instance_groups/name=router/vm_type
+  value: large
+- type: replace
+  path: /instance_groups/name=api/vm_type
+  value: large
 EOF
 
   bosh --non-interactive --deployment cf deploy --ops-file ops.yml manifest.yml

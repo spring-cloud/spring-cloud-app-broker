@@ -27,7 +27,7 @@ buildscript {
 		openServiceBrokerVersion = "3.3.0"
 		pmdVersion = "6.29.0"
 		springBootVersion = "2.4.3"
-		springCredhubVersion = "2.1.1.RELEASE"
+		springCredhubVersion = "2.2.0-SNAPSHOT"
 		springFrameworkVersion = "5.3.4"
 		wiremockVersion = "2.27.2"
 	}

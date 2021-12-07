@@ -4,6 +4,7 @@ set -euo pipefail
 
 readonly FLY_TARGET="app-broker"
 readonly GITHUB_REPO="https://github.com/spring-cloud/spring-cloud-app-broker"
+readonly BRANCH=1.3.x
 
 set_pipeline() {
 	local pipeline_name pipeline_definition branch ci_image_tag
@@ -27,8 +28,8 @@ main() {
 
 	pushd "$(dirname "$0")/../ci" >/dev/null
 
-	set_pipeline app-broker-1.3.x    pipeline.yml    main
-	set_pipeline app-broker-1.3.x-pr pr-pipeline.yml main
+	set_pipeline "app-broker-$BRANCH"    pipeline.yml    "$BRANCH"
+	set_pipeline "app-broker-$BRANCH-pr" pr-pipeline.yml "$BRANCH"
 
 	popd >/dev/null
 }

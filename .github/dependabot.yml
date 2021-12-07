@@ -5,6 +5,16 @@ updates:
     target-branch: "main"
     schedule:
       interval: weekly
+    milestone: 14
+    labels:
+      - dependencies
+
+  - package-ecosystem: gradle
+    directory: "/"
+    target-branch: "1.3.x"
+    schedule:
+      interval: weekly
+    milestone: 22
     labels:
       - dependencies
 
@@ -13,12 +23,14 @@ updates:
     target-branch: "1.2.x"
     schedule:
       interval: weekly
+    milestone: 23
     labels:
       - dependencies
 
   - package-ecosystem: gradle
     directory: "/"
     target-branch: "1.1.x"
+    milestone: 24
     schedule:
       interval: weekly
     labels:

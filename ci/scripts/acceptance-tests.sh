@@ -86,10 +86,7 @@ main() {
 
   prepare_cf_deployment
   prepare_cf
-
-  pushd "git-repo" >/dev/null
   run_tests
-  popd >/dev/null
 }
 
 main

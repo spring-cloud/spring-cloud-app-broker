@@ -26,8 +26,6 @@ jobs:
         file: pull-request/ci/tasks/build-project.yml
         input_mapping:
           git-repo: pull-request
-        vars:
-          ci-image-tag: ((ci-image-tag))
 
   - name: run-acceptance-tests
     serial: true
@@ -44,8 +42,6 @@ jobs:
         file: pull-request/ci/tasks/acceptance-tests.yml
         input_mapping:
           git-repo: pull-request
-        vars:
-          ci-image-tag: ((ci-image-tag))
     on_success:
       in_parallel:
       - *slack-success-notification

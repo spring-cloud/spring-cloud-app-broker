@@ -24,11 +24,11 @@ buildscript {
 		checkstyleVersion = "8.37"
 		commonsTextVersion = "1.8"
 		immutablesVersion = "2.8.8"
-		openServiceBrokerVersion = "3.3.0"
+		openServiceBrokerVersion = "3.4.0-M2"
 		pmdVersion = "6.29.0"
-		springBootVersion = "2.4.3"
-		springCredhubVersion = "2.1.1.RELEASE"
-		springFrameworkVersion = "5.3.4"
+		springBootVersion = "2.6.1"
+		springCredhubVersion = "2.2.0"
+		springFrameworkVersion = "5.3.13"
 		wiremockVersion = "2.27.2"
 	}
 }

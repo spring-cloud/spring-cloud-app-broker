@@ -6,7 +6,7 @@ image_resource:
     repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
     username: ((corporate-harbor-robot-account.username))
     password: ((corporate-harbor-robot-account.password))
-    tag: ((ci-image-tag))
+    tag: ((branch))
 inputs:
   - name: git-repo
 outputs:
@@ -15,7 +15,8 @@ caches:
   - path: maven
   - path: gradle
 run:
-  path: git-repo/ci/scripts/build-project.sh
+  path: ci/scripts/build-project.sh
+  dir: git-repo
 params:
   ARTIFACTORY_USERNAME: ((artifactory-username))
   ARTIFACTORY_PASSWORD: ((artifactory-password))

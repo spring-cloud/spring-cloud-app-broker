@@ -26,7 +26,8 @@ jobs:
         file: pull-request/ci/tasks/build-project.yml
         input_mapping:
           git-repo: pull-request
-
+        vars:
+          branch: ((branch))
   - name: run-acceptance-tests
     serial: true
     plan:
@@ -40,6 +41,8 @@ jobs:
             action: claim
       - task: acceptance-tests
         file: pull-request/ci/tasks/acceptance-tests.yml
+        vars:
+          branch: ((branch))
         input_mapping:
           git-repo: pull-request
     on_success:

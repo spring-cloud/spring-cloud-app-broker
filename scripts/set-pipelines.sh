@@ -7,11 +7,10 @@ readonly VERSION=1.4.x
 readonly BRANCH=main
 
 set_pipeline() {
-	local pipeline_name pipeline_definition branch ci_image_tag
+	local pipeline_name pipeline_definition branch
 	pipeline_name="${1:?pipeline name must be provided}"
 	pipeline_definition="${2:?pipeline definition file must be provided}"
 	branch="${3:?branch must be provided}"
-	ci_image_tag="${4:-$branch}"
 
 	echo "Setting $pipeline_name pipeline..."
 	fly --target "$FLY_TARGET" set-pipeline \

@@ -37,6 +37,8 @@ jobs:
       - task: build-project
         timeout: 1h30m
         file: git-repo/ci/tasks/build-project.yml
+        vars:
+          branch: ((branch))
       - put: artifactory-repo
         params: &artifactory-params
           signing_key: ((signing-key))
@@ -65,6 +67,8 @@ jobs:
             action: claim
       - task: acceptance-tests
         file: git-repo/ci/tasks/acceptance-tests.yml
+        vars:
+          branch: ((branch))
     on_success:
       in_parallel:
         - *slack-success-notification
@@ -85,6 +89,7 @@ jobs:
         file: git-repo/ci/tasks/stage.yml
         vars:
           release-type: M
+          branch: ((branch))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -102,6 +107,7 @@ jobs:
         file: git-repo/ci/tasks/stage.yml
         vars:
           release-type: RC
+          branch: ((branch))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -119,6 +125,7 @@ jobs:
         file: git-repo/ci/tasks/stage.yml
         vars:
           release-type: RELEASE
+          branch: ((branch))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -139,6 +146,7 @@ jobs:
         file: git-repo/ci/tasks/promote.yml
         vars:
           release-type: M
+          branch: ((branch))
 
   - name: promote-rc
     serial: true
@@ -153,6 +161,7 @@ jobs:
         file: git-repo/ci/tasks/promote.yml
         vars:
           release-type: RC
+          branch: ((branch))
 
   - name: promote-release
     serial: true
@@ -167,6 +176,7 @@ jobs:
         file: git-repo/ci/tasks/promote.yml
         vars:
           release-type: RELEASE
+          branch: ((branch))
 
   - name: sync-to-maven-central
     serial: true
@@ -179,6 +189,8 @@ jobs:
             save_build_info: true
       - task: sync-to-maven-central
         file: git-repo/ci/tasks/sync-to-maven-central.yml
+        vars:
+          branch: ((branch))
 
 resource_types:
   - name: artifactory-resource

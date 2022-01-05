@@ -37,8 +37,6 @@ jobs:
       - task: build-project
         timeout: 1h30m
         file: git-repo/ci/tasks/build-project.yml
-        vars:
-          ci-image-tag: ((ci-image-tag))
       - put: artifactory-repo
         params: &artifactory-params
           signing_key: ((signing-key))
@@ -67,8 +65,6 @@ jobs:
             action: claim
       - task: acceptance-tests
         file: git-repo/ci/tasks/acceptance-tests.yml
-        vars:
-          ci-image-tag: ((ci-image-tag))
     on_success:
       in_parallel:
         - *slack-success-notification
@@ -89,7 +85,6 @@ jobs:
         file: git-repo/ci/tasks/stage.yml
         vars:
           release-type: M
-          ci-image-tag: ((ci-image-tag))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -107,7 +102,6 @@ jobs:
         file: git-repo/ci/tasks/stage.yml
         vars:
           release-type: RC
-          ci-image-tag: ((ci-image-tag))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -125,7 +119,6 @@ jobs:
         file: git-repo/ci/tasks/stage.yml
         vars:
           release-type: RELEASE
-          ci-image-tag: ((ci-image-tag))
       - put: artifactory-repo
         params:
           <<: *artifactory-params
@@ -146,7 +139,6 @@ jobs:
         file: git-repo/ci/tasks/promote.yml
         vars:
           release-type: M
-          ci-image-tag: ((ci-image-tag))
 
   - name: promote-rc
     serial: true
@@ -161,7 +153,6 @@ jobs:
         file: git-repo/ci/tasks/promote.yml
         vars:
           release-type: RC
-          ci-image-tag: ((ci-image-tag))
 
   - name: promote-release
     serial: true
@@ -176,7 +167,6 @@ jobs:
         file: git-repo/ci/tasks/promote.yml
         vars:
           release-type: RELEASE
-          ci-image-tag: ((ci-image-tag))
 
   - name: sync-to-maven-central
     serial: true
@@ -189,8 +179,6 @@ jobs:
             save_build_info: true
       - task: sync-to-maven-central
         file: git-repo/ci/tasks/sync-to-maven-central.yml
-        vars:
-          ci-image-tag: ((ci-image-tag))
 
 resource_types:
   - name: artifactory-resource
@@ -256,7 +244,7 @@ resources:
       repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
       username: ((corporate-harbor-robot-account.username))
       password: ((corporate-harbor-robot-account.password))
-      tag: ((ci-image-tag))
+      tag: ((branch))
 
   - name: artifactory-repo
     type: artifactory-resource

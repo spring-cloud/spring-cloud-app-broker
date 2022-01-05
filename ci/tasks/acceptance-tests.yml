@@ -6,14 +6,15 @@ image_resource:
     repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
     username: ((corporate-harbor-robot-account.username))
     password: ((corporate-harbor-robot-account.password))
-    tag: ((ci-image-tag))
+    tag: ((branch))
 inputs:
   - name: git-repo
   - name: toolsmith-env
 run:
-  path: git-repo/ci/scripts/acceptance-tests.sh
+  path: ci/scripts/acceptance-tests.sh
+  dir: git-repo
 params:
-  TOOLSMITH_ENV_INPUT: toolsmith-env
+  TOOLSMITH_ENV_INPUT: ../toolsmith-env
   DEFAULT_ORG: ((acceptance-test-default-org))
   DEFAULT_SPACE: ((acceptance-test-default-space))
   SKIP_SSL_VALIDATION: ((acceptance-test-skip-ssl-validation))

@@ -15,7 +15,7 @@
  */
 
 plugins {
-	id 'org.asciidoctor.jvm.pdf' version '3.1.0'
+	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
 	id 'org.asciidoctor.jvm.convert' version '3.1.0'
 }
 
@@ -35,7 +35,7 @@ dependencies {
 	implementation "io.projectreactor:reactor-core"
 	implementation "io.r2dbc:r2dbc-h2:0.8.0.RELEASE"
 
-	docs "io.spring.docresources:spring-doc-resources:0.2.1.RELEASE@zip"
+	docs "io.spring.docresources:spring-doc-resources:0.2.5@zip"
 }
 
 javadoc {

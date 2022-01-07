@@ -35,7 +35,7 @@ dependencies {
 	implementation "io.r2dbc:r2dbc-h2:0.8.4.RELEASE"
 	implementation "org.springframework.data:spring-data-r2dbc:1.1.9.RELEASE"
 
-	docs "io.spring.docresources:spring-doc-resources:0.2.1.RELEASE@zip"
+	docs "io.spring.docresources:spring-doc-resources:0.2.5@zip"
 }
 
 javadoc {

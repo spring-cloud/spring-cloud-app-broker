@@ -34,7 +34,7 @@ buildscript {
 }
 
 plugins {
-	id "io.spring.nohttp" version "0.0.5.RELEASE"
+	id "io.spring.nohttp" version "0.0.10"
 	id 'distribution'
 	id 'jacoco'
 }

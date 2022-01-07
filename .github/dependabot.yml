@@ -17,6 +17,11 @@ updates:
     milestone: 22
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "org.springframework.boot"
+        versions: [ "2.5.x", "2.6.x", "2.7.x" ]
+      - dependency-name: "spring-cloud-starter-open-service-broker"
+        versions: [ "3.4.x", "3.5.x", "3.6.x", "3.7.x" ]
 
   - package-ecosystem: gradle
     directory: "/"
@@ -26,12 +31,8 @@ updates:
     milestone: 23
     labels:
       - dependencies
-
-  - package-ecosystem: gradle
-    directory: "/"
-    target-branch: "1.1.x"
-    schedule:
-      interval: weekly
-    milestone: 24
-    labels:
-      - dependencies
+    ignore:
+      - dependency-name: "org.springframework.boot"
+        versions: [ "2.4.x", "2.5.x", "2.6.x", "2.7.x" ]
+      - dependency-name: "spring-cloud-starter-open-service-broker"
+        versions: [ "3.4.x", "3.5.x", "3.6.x", "3.7.x" ]

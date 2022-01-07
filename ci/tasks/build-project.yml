@@ -18,5 +18,4 @@ run:
   path: ci/scripts/build-project.sh
   dir: git-repo
 params:
-  ARTIFACTORY_USERNAME: ((artifactory-username))
-  ARTIFACTORY_PASSWORD: ((artifactory-password))
+  DISTRIBUTION_REPOSITORY_OUTPUT: ../distribution-repository

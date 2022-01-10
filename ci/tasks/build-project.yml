@@ -15,7 +15,7 @@ caches:
   - path: maven
   - path: gradle
 run:
-  path: ci/scripts/build-project.sh
-  dir: git-repo
+  path: git-repo/ci/scripts/build-project.sh
 params:
-  DISTRIBUTION_REPOSITORY_OUTPUT: ../distribution-repository
+  ARTIFACTORY_USERNAME: ((artifactory-username))
+  ARTIFACTORY_PASSWORD: ((artifactory-password))

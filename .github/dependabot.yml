@@ -8,6 +8,11 @@ updates:
     milestone: 14
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "org.springframework.boot"
+        versions: [ "2.6.x", "2.7.x" ]
+      - dependency-name: "spring-cloud-starter-open-service-broker"
+        versions: [ "3.5.x", "3.6.x" ]
 
   - package-ecosystem: gradle
     directory: "/"
@@ -21,7 +26,9 @@ updates:
       - dependency-name: "org.springframework.boot"
         versions: [ "2.5.x", "2.6.x", "2.7.x" ]
       - dependency-name: "spring-cloud-starter-open-service-broker"
-        versions: [ "3.4.x", "3.5.x", "3.6.x", "3.7.x" ]
+        versions: [ "3.4.x", "3.5.x", "3.6.x" ]
+      - dependency-name: "spring-credhub-starter"
+        versions: [ "2.2.x", "2.3.x", "3.4.x" ]
 
   - package-ecosystem: gradle
     directory: "/"
@@ -35,4 +42,6 @@ updates:
       - dependency-name: "org.springframework.boot"
         versions: [ "2.4.x", "2.5.x", "2.6.x", "2.7.x" ]
       - dependency-name: "spring-cloud-starter-open-service-broker"
-        versions: [ "3.4.x", "3.5.x", "3.6.x", "3.7.x" ]
+        versions: [ "3.4.x", "3.5.x", "3.6.x" ]
+      - dependency-name: "spring-credhub-starter"
+        versions: [ "2.2.x", "2.3.x", "3.4.x" ]

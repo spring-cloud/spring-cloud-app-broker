@@ -33,7 +33,7 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter-security"
 	implementation "org.springframework.boot:spring-boot-starter-tomcat"
 	implementation "io.projectreactor:reactor-core"
-	implementation "io.r2dbc:r2dbc-h2:0.8.0.RELEASE"
+	implementation "io.r2dbc:r2dbc-h2:0.8.4.RELEASE"
 
 	docs "io.spring.docresources:spring-doc-resources:0.2.5@zip"
 }

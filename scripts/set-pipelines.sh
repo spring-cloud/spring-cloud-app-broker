@@ -4,7 +4,7 @@ set -euo pipefail
 
 readonly FLY_TARGET="app-broker"
 readonly VERSION=1.4.x
-readonly BRANCH=main
+readonly BRANCH=1.4.x
 
 set_pipeline() {
 	local pipeline_name pipeline_definition branch

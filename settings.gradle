@@ -1,3 +1,14 @@
+pluginManagement {
+	plugins {
+		id 'org.springframework.boot' version "2.6.2"
+	}
+	repositories {
+		mavenCentral()
+		maven { url "https://repo.spring.io/release" }
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+}
+
 rootProject.name = "spring-cloud-app-broker"
 
 include "spring-cloud-app-broker-deployer"

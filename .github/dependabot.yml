@@ -8,6 +8,15 @@ updates:
     milestone: 14
     labels:
       - dependencies
+
+  - package-ecosystem: gradle
+    directory: "/"
+    target-branch: "1.4.x"
+    schedule:
+      interval: weekly
+    milestone: 14
+    labels:
+      - dependencies
     ignore:
       - dependency-name: "org.springframework.boot"
         versions: [ "2.6.x", "2.7.x" ]

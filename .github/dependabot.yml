@@ -5,7 +5,7 @@ updates:
     target-branch: "main"
     schedule:
       interval: weekly
-    milestone: 14
+    milestone: 25
     labels:
       - dependencies
 
@@ -18,7 +18,7 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "org.springframework.boot"
+      - dependency-name: "spring-boot"
         versions: [ "2.6.x", "2.7.x" ]
       - dependency-name: "spring-cloud-starter-open-service-broker"
         versions: [ "3.5.x", "3.6.x" ]
@@ -32,7 +32,7 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "org.springframework.boot"
+      - dependency-name: "spring-boot"
         versions: [ "2.5.x", "2.6.x", "2.7.x" ]
       - dependency-name: "spring-cloud-starter-open-service-broker"
         versions: [ "3.4.x", "3.5.x", "3.6.x" ]
@@ -48,7 +48,7 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "org.springframework.boot"
+      - dependency-name: "spring-boot"
         versions: [ "2.4.x", "2.5.x", "2.6.x", "2.7.x" ]
       - dependency-name: "spring-cloud-starter-open-service-broker"
         versions: [ "3.4.x", "3.5.x", "3.6.x" ]

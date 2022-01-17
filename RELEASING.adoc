@@ -1,0 +1,326 @@
+== Releasing
+
+=== Releasing a new version
+
+The release process for a new version is highly automated.
+However, we decided to separate each step to have a manual recovery for each critical point before we reach maven central.
+
+First, we need to go to the release group in the desired version pipelines:  `/pipelines/app-broker-1.4.x?group=release`.
+
+Second, execute `stage-release`. The output should be something similar to:
+----
+> Task :spring-cloud-app-broker-docs:asciidoctor
+Converting /tmp/build/ac5d84bf/stage-git-repo/spring-cloud-app-broker-docs/build/asciidoc/advertising-services.adoc
+Converting /tmp/build/ac5d84bf/stage-git-repo/spring-cloud-app-broker-docs/build/asciidoc/deployment-platforms.adoc
+Converting /tmp/build/ac5d84bf/stage-git-repo/spring-cloud-app-broker-docs/build/asciidoc/getting-started.adoc
+Converting /tmp/build/ac5d84bf/stage-git-repo/spring-cloud-app-broker-docs/build/asciidoc/index.adoc
+Converting /tmp/build/ac5d84bf/stage-git-repo/spring-cloud-app-broker-docs/build/asciidoc/introduction.adoc
+Converting /tmp/build/ac5d84bf/stage-git-repo/spring-cloud-app-broker-docs/build/asciidoc/service-bindings.adoc
+Converting /tmp/build/ac5d84bf/stage-git-repo/spring-cloud-app-broker-docs/build/asciidoc/service-instances.adoc
+
+BUILD SUCCESSFUL in 1m 54s
+81 actionable tasks: 68 executed, 13 up-to-date
+12l25h
+Setting next development version (v1.4.1-SNAPSHOT)
+[main 2a2e5a1] Next development version (v1.4.1-SNAPSHOT)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+DONE
+----
+
+After this job finishes, we should see how a new staging artifact was uploaded to https://repo.spring.io
+
+----
+Downloading build app-broker-1.4.x-stage-release-1 artifacts from https://repo.spring.io using 1 thread(s)
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-core/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
+----
+
+We can go and manually verify that it contains the right values.
+
+Once we are happy with the staged release, we can go and promote that build to be released by manually executing the `promote-release` job.
+
+The task output should be something similar to:
+----
+2022-01-14 11:39:48.189  INFO 21 --- [           main] i.s.c.releasescripts.Application         : Starting Application using Java 1.8.0_292 on 738a81e4-eac7-4325-5041-b3e5d0985818 with PID 21 (/opt/concourse-release-scripts-0.3.4-SNAPSHOT.jar started by root in /tmp/build/aa87dc4e)
+2022-01-14 11:39:48.195 DEBUG 21 --- [           main] i.s.c.releasescripts.Application         : Running with Spring Boot v2.5.4, Spring v5.3.9
+2022-01-14 11:39:48.195  INFO 21 --- [           main] i.s.c.releasescripts.Application         : No active profile set, falling back to default profiles: default
+2022-01-14 11:39:49.399  INFO 21 --- [           main] i.s.c.releasescripts.Application         : Started Application in 2.012 seconds (JVM running for 2.747)
+2022-01-14 11:39:49.401 DEBUG 21 --- [           main] i.s.c.r.command.CommandProcessor         : Running command processor
+2022-01-14 11:39:49.402 DEBUG 21 --- [           main] i.s.c.r.command.CommandProcessor         : Found command io.spring.concourse.releasescripts.command.PromoteCommand
+2022-01-14 11:39:49.402 DEBUG 21 --- [           main] i.s.c.r.command.PromoteCommand           : Running 'promote' command
+2022-01-14 11:39:49.495  INFO 21 --- [           main] i.s.c.r.artifactory.ArtifactoryService   : Promoting spring-cloud-app-broker/app-broker-1.4.x-stage-release-1 to libs-release-local
+2022-01-14 11:39:55.938 DEBUG 21 --- [           main] i.s.c.r.artifactory.ArtifactoryService   : Promotion complete
+Promotion complete
+----
+
+Now, we should be able to find the commits bumping the versions, that we should manually merge in order to maintain a linear history https://github.com/spring-cloud/spring-cloud-app-broker/commit/e24b81505b79b59b1cff0206d8166227a7353400
+
+Once we are happy with the promotion, we need to synchronize our new version with maven central.
+For that, we just need to manually execute the `sync-to-maven-central` step.
+
+The output should be:
+----
+selected worker: worker-sc2-02-vc21-10.187.150.98-MdpcZzUp4
+2022-01-14 11:45:54.709  INFO 17 --- [           main] i.s.c.releasescripts.Application         : Starting Application using Java 1.8.0_292 on 647424b8-782d-4a45-436b-d894fc61253d with PID 17 (/opt/concourse-release-scripts-0.3.4-SNAPSHOT.jar started by root in /tmp/build/4c247b34)
+2022-01-14 11:45:54.715 DEBUG 17 --- [           main] i.s.c.releasescripts.Application         : Running with Spring Boot v2.5.4, Spring v5.3.9
+2022-01-14 11:45:54.715  INFO 17 --- [           main] i.s.c.releasescripts.Application         : No active profile set, falling back to default profiles: default
+2022-01-14 11:45:55.778  INFO 17 --- [           main] i.s.c.releasescripts.Application         : Started Application in 1.884 seconds (JVM running for 2.562)
+2022-01-14 11:45:55.780 DEBUG 17 --- [           main] i.s.c.r.command.CommandProcessor         : Running command processor
+2022-01-14 11:45:55.781 DEBUG 17 --- [           main] i.s.c.r.command.CommandProcessor         : Found command io.spring.concourse.releasescripts.command.PublishToCentralCommand
+2022-01-14 11:45:55.782 DEBUG 17 --- [           main] i.s.c.r.command.PublishToCentralCommand  : Loading build-info from /tmp/build/4c247b34/artifactory-repo/build-info.json
+2022-01-14 11:45:56.587 DEBUG 17 --- [           main] i.s.c.r.sonatype.SonatypeService         : Artifact not yet published: MarkerArtifact{org.springframework.cloud:spring-cloud-app-broker-autoconfigure:1.4.0}
+2022-01-14 11:45:56.587  INFO 17 --- [           main] i.s.c.r.sonatype.SonatypeService         : Creating staging repository
+2022-01-14 11:46:01.547  INFO 17 --- [           main] i.s.c.r.sonatype.SonatypeService         : Staging repository orgspringframework-1796 created. Deploying 160 artifacts
+2022-01-14 11:46:01.668  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0-sources.jar.md5
+2022-01-14 11:46:01.747  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.jar.sha1
+2022-01-14 11:46:01.826  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0-sources.jar.asc
+2022-01-14 11:46:01.880  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.pom.sha1
+2022-01-14 11:46:01.888  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.pom
+2022-01-14 11:46:01.895  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0-sources.jar.sha1
+2022-01-14 11:46:01.897  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0-sources.jar
+2022-01-14 11:46:01.904  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.jar.md5
+2022-01-14 11:46:01.905  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.module
+2022-01-14 11:46:01.907  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.pom.md5
+2022-01-14 11:46:01.961  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.module.md5
+2022-01-14 11:46:01.965  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.jar
+2022-01-14 11:46:01.968  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.module.sha1
+2022-01-14 11:46:01.979  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.jar.asc
+2022-01-14 11:46:01.979  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0-javadoc.jar.asc
+2022-01-14 11:46:01.982  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.module.asc
+2022-01-14 11:46:01.989  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0.pom.asc
+2022-01-14 11:46:02.043  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0-javadoc.jar.md5
+2022-01-14 11:46:02.047  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0-javadoc.jar.asc
+2022-01-14 11:46:02.047  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0-javadoc.jar.sha1
+2022-01-14 11:46:02.062  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0-javadoc.jar.md5
+2022-01-14 11:46:02.069  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0-javadoc.jar.sha1
+2022-01-14 11:46:02.106  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0/spring-cloud-app-broker-security-credhub-1.4.0-javadoc.jar
+2022-01-14 11:46:02.124  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.jar.md5
+2022-01-14 11:46:02.134  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.module.asc
+2022-01-14 11:46:02.135  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.jar.sha1
+2022-01-14 11:46:02.149  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.module
+2022-01-14 11:46:02.151  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.module.md5
+2022-01-14 11:46:02.188  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.module.sha1
+2022-01-14 11:46:02.217  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0-sources.jar.sha1
+2022-01-14 11:46:02.220  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0-sources.jar.md5
+2022-01-14 11:46:02.221  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.jar
+2022-01-14 11:46:02.231  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.pom.asc
+2022-01-14 11:46:02.232  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.jar.asc
+2022-01-14 11:46:02.269  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.pom
+2022-01-14 11:46:02.281  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0-javadoc.jar
+2022-01-14 11:46:02.287  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0-sources.jar
+2022-01-14 11:46:02.298  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.pom.md5
+2022-01-14 11:46:02.301  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0.pom.sha1
+2022-01-14 11:46:02.301  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer/1.4.0/spring-cloud-app-broker-deployer-1.4.0-sources.jar.asc
+2022-01-14 11:46:02.316  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.pom.asc
+2022-01-14 11:46:02.319  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.module.asc
+2022-01-14 11:46:02.396  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.module.sha1
+2022-01-14 11:46:02.396  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.jar.asc
+2022-01-14 11:46:02.398  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.jar
+2022-01-14 11:46:02.398  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.jar.sha1
+2022-01-14 11:46:02.398  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.module
+2022-01-14 11:46:02.398  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.module.md5
+2022-01-14 11:46:02.400  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.jar.md5
+2022-01-14 11:46:02.401  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.pom
+2022-01-14 11:46:02.478  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0-sources.jar.sha1
+2022-01-14 11:46:02.485  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.pom.sha1
+2022-01-14 11:46:02.488  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0-sources.jar
+2022-01-14 11:46:02.494  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0-javadoc.jar
+2022-01-14 11:46:02.495  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-logging/1.4.0/spring-cloud-starter-app-broker-logging-1.4.0.pom.md5
+2022-01-14 11:46:02.497  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0-sources.jar.md5
+2022-01-14 11:46:02.498  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0-javadoc.jar.md5
+2022-01-14 11:46:02.558  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0-javadoc.jar.asc
+2022-01-14 11:46:02.571  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.jar
+2022-01-14 11:46:02.572  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.pom.asc
+2022-01-14 11:46:02.584  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.jar.asc
+2022-01-14 11:46:02.584  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.module.asc
+2022-01-14 11:46:02.585  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.jar.sha1
+2022-01-14 11:46:02.586  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.jar.md5
+2022-01-14 11:46:02.638  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.pom
+2022-01-14 11:46:02.646  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0-javadoc.jar.sha1
+2022-01-14 11:46:02.652  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.pom.md5
+2022-01-14 11:46:02.654  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.pom.sha1
+2022-01-14 11:46:02.669  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.module
+2022-01-14 11:46:02.671  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.module.md5
+2022-01-14 11:46:02.676  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0-sources.jar.asc
+2022-01-14 11:46:02.677  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-deployer-cloudfoundry/1.4.0/spring-cloud-app-broker-deployer-cloudfoundry-1.4.0.module.sha1
+2022-01-14 11:46:02.716  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker/1.4.0/spring-cloud-app-broker-1.4.0.pom.asc
+2022-01-14 11:46:02.732  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker/1.4.0/spring-cloud-app-broker-1.4.0.pom.md5
+2022-01-14 11:46:02.736  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker/1.4.0/spring-cloud-app-broker-1.4.0.pom.sha1
+2022-01-14 11:46:02.737  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker/1.4.0/spring-cloud-app-broker-1.4.0.pom
+2022-01-14 11:46:02.749  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.pom
+2022-01-14 11:46:02.763  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.pom.sha1
+2022-01-14 11:46:02.764  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.pom.md5
+2022-01-14 11:46:02.767  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.jar.asc
+2022-01-14 11:46:02.796  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.jar
+2022-01-14 11:46:02.814  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.jar.md5
+2022-01-14 11:46:02.829  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.jar.sha1
+2022-01-14 11:46:02.830  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.module
+2022-01-14 11:46:02.834  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.module.md5
+2022-01-14 11:46:02.848  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.module.sha1
+2022-01-14 11:46:02.850  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.pom.asc
+2022-01-14 11:46:02.856  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker-cloudfoundry/1.4.0/spring-cloud-starter-app-broker-cloudfoundry-1.4.0.module.asc
+2022-01-14 11:46:02.876  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.pom
+2022-01-14 11:46:02.894  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.pom.md5
+2022-01-14 11:46:02.908  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.pom.sha1
+2022-01-14 11:46:02.911  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0-javadoc.jar.md5
+2022-01-14 11:46:02.929  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0-javadoc.jar.sha1
+2022-01-14 11:46:02.936  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.jar.md5
+2022-01-14 11:46:02.955  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.jar.sha1
+2022-01-14 11:46:02.981  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.module.asc
+2022-01-14 11:46:02.992  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0-sources.jar.asc
+2022-01-14 11:46:03.010  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0-sources.jar.md5
+2022-01-14 11:46:03.017  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0-sources.jar.sha1
+2022-01-14 11:46:03.033  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.pom.asc
+2022-01-14 11:46:03.061  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0-javadoc.jar.asc
+2022-01-14 11:46:03.069  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.jar.asc
+2022-01-14 11:46:03.112  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.module.md5
+2022-01-14 11:46:03.113  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.module.sha1
+2022-01-14 11:46:03.113  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.module
+2022-01-14 11:46:03.132  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0-sources.jar
+2022-01-14 11:46:03.143  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0-javadoc.jar.asc
+2022-01-14 11:46:03.148  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.jar.asc
+2022-01-14 11:46:03.152  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0.jar
+2022-01-14 11:46:03.194  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.module.asc
+2022-01-14 11:46:03.194  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.pom.asc
+2022-01-14 11:46:03.195  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.pom
+2022-01-14 11:46:03.209  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-core/1.4.0/spring-cloud-app-broker-core-1.4.0-javadoc.jar
+2022-01-14 11:46:03.217  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.pom.md5
+2022-01-14 11:46:03.225  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.pom.sha1
+2022-01-14 11:46:03.232  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0-sources.jar.md5
+2022-01-14 11:46:03.273  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0-sources.jar.sha1
+2022-01-14 11:46:03.278  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0-javadoc.jar.md5
+2022-01-14 11:46:03.278  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0-javadoc.jar
+2022-01-14 11:46:03.290  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0-javadoc.jar.sha1
+2022-01-14 11:46:03.296  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0-sources.jar.asc
+2022-01-14 11:46:03.299  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0-sources.jar
+2022-01-14 11:46:03.315  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.jar
+2022-01-14 11:46:03.315  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.jar.md5
+2022-01-14 11:46:03.351  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.jar.sha1
+2022-01-14 11:46:03.358  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.module.md5
+2022-01-14 11:46:03.361  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.module
+2022-01-14 11:46:03.370  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-logging/1.4.0/spring-cloud-app-broker-logging-1.4.0.module.sha1
+2022-01-14 11:46:03.377  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0-sources.jar.md5
+2022-01-14 11:46:03.387  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0-sources.jar
+2022-01-14 11:46:03.394  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0-sources.jar.sha1
+2022-01-14 11:46:03.396  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.pom
+2022-01-14 11:46:03.432  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.pom.md5
+2022-01-14 11:46:03.442  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.pom.sha1
+2022-01-14 11:46:03.442  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.module
+2022-01-14 11:46:03.452  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.module.md5
+2022-01-14 11:46:03.456  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.module.sha1
+2022-01-14 11:46:03.466  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0-sources.jar.asc
+2022-01-14 11:46:03.473  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.jar.asc
+2022-01-14 11:46:03.481  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.pom.asc
+2022-01-14 11:46:03.525  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0-javadoc.jar.md5
+2022-01-14 11:46:03.526  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0-javadoc.jar.sha1
+2022-01-14 11:46:03.534  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.module.asc
+2022-01-14 11:46:03.535  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.jar
+2022-01-14 11:46:03.545  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.jar.md5
+2022-01-14 11:46:03.552  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0.jar.sha1
+2022-01-14 11:46:03.560  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0-javadoc.jar.asc
+2022-01-14 11:46:03.580  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-app-broker-autoconfigure/1.4.0/spring-cloud-app-broker-autoconfigure-1.4.0-javadoc.jar
+2022-01-14 11:46:03.606  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.module
+2022-01-14 11:46:03.608  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.module.md5
+2022-01-14 11:46:03.614  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.module.sha1
+2022-01-14 11:46:03.616  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.pom.asc
+2022-01-14 11:46:03.622  INFO 17 --- [pool-1-thread-6] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.module.asc
+2022-01-14 11:46:03.634  INFO 17 --- [pool-1-thread-1] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.pom
+2022-01-14 11:46:03.640  INFO 17 --- [pool-1-thread-7] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.pom.md5
+2022-01-14 11:46:03.659  INFO 17 --- [pool-1-thread-4] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.pom.sha1
+2022-01-14 11:46:03.686  INFO 17 --- [pool-1-thread-8] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.jar
+2022-01-14 11:46:03.688  INFO 17 --- [pool-1-thread-3] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.jar.md5
+2022-01-14 11:46:03.695  INFO 17 --- [pool-1-thread-5] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.jar.sha1
+2022-01-14 11:46:03.698  INFO 17 --- [pool-1-thread-2] i.s.c.r.sonatype.SonatypeService         : Deployed org/springframework/cloud/spring-cloud-starter-app-broker/1.4.0/spring-cloud-starter-app-broker-1.4.0.jar.asc
+2022-01-14 11:46:03.699  INFO 17 --- [           main] i.s.c.r.sonatype.SonatypeService         : Deploy complete. Closing staging repository
+2022-01-14 11:46:03.803  INFO 17 --- [           main] i.s.c.r.sonatype.SonatypeService         : Close requested. Awaiting result
+2022-01-14 11:46:49.673  INFO 17 --- [           main] i.s.c.r.sonatype.SonatypeService         : Staging repository closed
+2022-01-14 11:46:49.763  INFO 17 --- [           main] i.s.c.r.sonatype.SonatypeService         : Staging repository released
+Sync complete
+----
+
+After that step succeeded, we can go and create a new release in GitHub adding the newly created tag and writing the release notes: https://github.com/spring-cloud/spring-cloud-app-broker/releases
+
+For the new version we need to create the new version branch, but before we need to update the pipeline version: https://github.com/spring-cloud/spring-cloud-app-broker/blob/6ce4b6e931d1fecb95935dee7fa856a89dbb84d8/scripts/set-pipelines.sh#L7
+
+Then, update the version in `gradle.properties`, update dependabot, the pipeline, and document the new versions that will be used: https://github.com/spring-cloud/spring-cloud-app-broker/commit/7303c938c9eb956dc567130bc5083181f39c0a3b

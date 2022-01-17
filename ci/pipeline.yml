@@ -38,7 +38,7 @@ jobs:
         timeout: 1h30m
         file: git-repo/ci/tasks/build-project.yml
         vars:
-          branch: ((branch))
+          ci-image-tag: ((ci-image-tag))
       - put: artifactory-repo
         params: &artifactory-params
           signing_key: ((signing-key))

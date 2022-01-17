@@ -27,7 +27,7 @@ jobs:
         input_mapping:
           git-repo: pull-request
         vars:
-          branch: ((branch))
+          ci-image-tag: ((ci-image-tag))
   - name: run-acceptance-tests
     serial: true
     plan:
@@ -42,7 +42,7 @@ jobs:
       - task: acceptance-tests
         file: pull-request/ci/tasks/acceptance-tests.yml
         vars:
-          branch: ((branch))
+          ci-image-tag: ((ci-image-tag))
         input_mapping:
           git-repo: pull-request
     on_success:

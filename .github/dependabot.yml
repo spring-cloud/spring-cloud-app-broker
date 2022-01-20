@@ -18,39 +18,7 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "spring-boot"
+      - dependency-name: "boot-spring-boot-dependencies"
         versions: [ "2.6.x", "2.7.x" ]
       - dependency-name: "spring-cloud-starter-open-service-broker"
         versions: [ "3.5.x", "3.6.x" ]
-
-  - package-ecosystem: gradle
-    directory: "/"
-    target-branch: "1.3.x"
-    schedule:
-      interval: weekly
-    milestone: 22
-    labels:
-      - dependencies
-    ignore:
-      - dependency-name: "spring-boot"
-        versions: [ "2.5.x", "2.6.x", "2.7.x" ]
-      - dependency-name: "spring-cloud-starter-open-service-broker"
-        versions: [ "3.4.x", "3.5.x", "3.6.x" ]
-      - dependency-name: "spring-credhub-starter"
-        versions: [ "2.2.x", "2.3.x", "3.4.x" ]
-
-  - package-ecosystem: gradle
-    directory: "/"
-    target-branch: "1.2.x"
-    schedule:
-      interval: weekly
-    milestone: 23
-    labels:
-      - dependencies
-    ignore:
-      - dependency-name: "spring-boot"
-        versions: [ "2.4.x", "2.5.x", "2.6.x", "2.7.x" ]
-      - dependency-name: "spring-cloud-starter-open-service-broker"
-        versions: [ "3.4.x", "3.5.x", "3.6.x" ]
-      - dependency-name: "spring-credhub-starter"
-        versions: [ "2.2.x", "2.3.x", "3.4.x" ]

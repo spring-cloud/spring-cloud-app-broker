@@ -5,9 +5,23 @@ updates:
     target-branch: "main"
     schedule:
       interval: weekly
+    milestone: 27
+    labels:
+      - dependencies
+
+  - package-ecosystem: gradle
+    directory: "/"
+    target-branch: "1.5.x"
+    schedule:
+      interval: weekly
     milestone: 25
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "boot-spring-boot-dependencies"
+        versions: [ "2.7.x" ]
+      - dependency-name: "spring-cloud-starter-open-service-broker"
+        versions: [ "3.6.x" ]
 
   - package-ecosystem: gradle
     directory: "/"

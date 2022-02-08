@@ -3,7 +3,7 @@
 set -euo pipefail
 
 readonly FLY_TARGET="app-broker"
-readonly VERSION=1.5.x
+readonly VERSION=1.6.x
 readonly BRANCH=main
 readonly CI_IMAGE_TAG=main
 

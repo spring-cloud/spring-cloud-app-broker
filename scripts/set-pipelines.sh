@@ -4,7 +4,7 @@ set -euo pipefail
 
 readonly FLY_TARGET="app-broker"
 readonly VERSION=1.5.x
-readonly BRANCH=main
+readonly BRANCH=1.5.x
 readonly CI_IMAGE_TAG=main
 
 set_pipeline() {

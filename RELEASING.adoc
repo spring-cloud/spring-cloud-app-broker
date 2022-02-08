@@ -116,7 +116,7 @@ Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1
 Downloading org/springframework/cloud/spring-cloud-app-broker-security-credhub/1.4.0 from libs-staging-local
 ----
 
-We can go and manually verify that it contains the right values.
+We can go and manually verify that it contains the right values by, for example, downloading the `.pom` file in https://repo.spring.io/ui/builds/spring-cloud-app-broker?buildRepo=artifactory-build-info
 
 Once we are happy with the staged release, we can go and promote that build to be released by manually executing the `promote-release` job.
 
@@ -134,7 +134,12 @@ The task output should be something similar to:
 Promotion complete
 ----
 
-Now, we should be able to find the commits bumping the versions, that we should manually merge in order to maintain a linear history https://github.com/spring-cloud/spring-cloud-app-broker/commit/e24b81505b79b59b1cff0206d8166227a7353400
+We can check that it worked in https://repo.spring.io/ui/artifactSearchResults?name=spring-cloud-app-broker&type=artifacts
+
+Now, we should be able to find the commits bumping the versions, that we should manually merge in order to maintain a linear history https://github.com/spring-cloud/spring-cloud-app-broker/commits/spring-builds/staging
+
+It can be done by creating a Pull Request to rebase the two commits from: https://github.com/spring-cloud/spring-cloud-app-broker/compare/spring-builds/staging?expand=1
+
 
 Once we are happy with the promotion, we need to synchronize our new version with maven central.
 For that, we just need to manually execute the `sync-to-maven-central` step.
@@ -324,3 +329,58 @@ After that step succeeded, we can go and create a new release in GitHub adding t
 For the new version we need to create the new version branch, but before we need to update the pipeline version: https://github.com/spring-cloud/spring-cloud-app-broker/blob/6ce4b6e931d1fecb95935dee7fa856a89dbb84d8/scripts/set-pipelines.sh#L7
 
 Then, update the version in `gradle.properties`, update dependabot, the pipeline, and document the new versions that will be used: https://github.com/spring-cloud/spring-cloud-app-broker/commit/7303c938c9eb956dc567130bc5083181f39c0a3b
+
+Also, we should update the version in the spring.io admin page: https://spring.io/admin/projects/spring-cloud-app-broker/info
+
+=== When something goes wrong
+
+==== Tag already exists
+
+Sometimes, when we had to re-run the task because, for example, repo.spring.io was down. This error will appear:
+----
+jobs/stage-release task: stage
+Current version is v1.5.0-SNAPSHOT
+Version to stage is v1.5.0
+Next development version will be v1.5.1-SNAPSHOT
+
+Tagging version being staged (v1.5.0)
+[main 3912934] Release v1.5.0
+1 file changed, 1 insertion(+), 1 deletion(-)
+fatal: tag 'v1.5.0' already exists
+----
+
+To fix it, we just need to delete the tag that gets automatically created by this task
+
+[source, bash]
+----
+git push --delete origin v1.5.0
+----
+
+
+==== Failed to push some refs
+
+After staging the release, if the https://github.com/spring-cloud/spring-cloud-app-broker/tree/spring-builds/staging[staging branch] was not properly rebase into `main`, the `put:git-repo-staging` may fail with this error:
+
+----
+jobs/stage-release put:git-repo-staging
+To https://github.com/spring-cloud/spring-cloud-app-broker
+* [new tag]         v1.5.0 -> v1.5.0
+ ! [rejected]        HEAD -> ((redacted))/staging (fetch first)
+error: failed to push some refs to 'https://github.com/spring-cloud/spring-cloud-app-broker'
+hint: Updates were rejected because the remote contains work that you do
+hint: not have locally. This is usually caused by another repository pushing
+hint: to the same ref. You may want to first integrate the remote changes
+hint: (e.g., 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+----
+
+To fix it, we need to manually rebase `main` into the `spring-builds/staging` branch:
+
+[source,bash]
+----
+git checkout spring-builds/staging
+
+git pull origin main --rebase
+
+git push origin spring-builds/staging --force-with-lease
+----

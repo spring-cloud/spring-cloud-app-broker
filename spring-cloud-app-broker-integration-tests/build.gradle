@@ -15,7 +15,7 @@
  */
 
 plugins {
-	id 'org.springframework.boot' version "2.5.12"
+	id 'org.springframework.boot' version "2.5.13"
 }
 
 description = "Spring Cloud App Broker Integration Tests"

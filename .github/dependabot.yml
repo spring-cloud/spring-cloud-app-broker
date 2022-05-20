@@ -4,7 +4,7 @@ updates:
     directory: "/"
     target-branch: "main"
     schedule:
-      interval: weekly
+      interval: daily
     milestone: 27
     labels:
       - dependencies
@@ -13,7 +13,7 @@ updates:
     directory: "/"
     target-branch: "1.5.x"
     schedule:
-      interval: weekly
+      interval: daily
     milestone: 25
     labels:
       - dependencies
@@ -27,7 +27,7 @@ updates:
     directory: "/"
     target-branch: "1.4.x"
     schedule:
-      interval: weekly
+      interval: daily
     milestone: 14
     labels:
       - dependencies

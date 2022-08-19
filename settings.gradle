@@ -1,6 +1,6 @@
 pluginManagement {
 	plugins {
-		id 'org.springframework.boot' version "2.6.10"
+		id 'org.springframework.boot' version "2.6.11"
 	}
 	repositories {
 		mavenCentral()

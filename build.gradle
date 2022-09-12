@@ -28,7 +28,7 @@ buildscript {
 		pmdVersion = "6.29.0"
 		springBootVersion = "2.6.11"
 		springCredhubVersion = "2.2.0"
-		springFrameworkVersion = "5.3.18"
+		springFrameworkVersion = "5.3.22"
 		wiremockVersion = "2.27.2"
 	}
 }

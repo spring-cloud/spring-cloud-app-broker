@@ -22,7 +22,7 @@ buildscript {
 		blockHoundVersion = "1.0.6.RELEASE"
 		cfJavaClientVersion = "5.9.0.RELEASE"
 		checkstyleVersion = "8.37"
-		commonsTextVersion = "1.9"
+		commonsTextVersion = "1.10.0"
 		immutablesVersion = "2.9.2"
 		openServiceBrokerVersion = "3.5.2"
 		pmdVersion = "6.29.0"

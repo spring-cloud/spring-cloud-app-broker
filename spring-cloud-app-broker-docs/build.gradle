@@ -26,7 +26,7 @@ configurations {
 }
 
 dependencies {
-	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 	implementation project(":spring-cloud-app-broker-core")
 	implementation "org.springframework.boot:spring-boot-starter"
 	implementation "org.springframework.boot:spring-boot-starter-data-r2dbc"

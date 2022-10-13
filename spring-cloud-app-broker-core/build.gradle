@@ -20,7 +20,7 @@ dependencies {
 	api project(":spring-cloud-app-broker-deployer")
 	api "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"
 
-	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 	api "org.springframework:spring-core"
 	api "org.springframework:spring-context"
 	api "io.projectreactor:reactor-core"

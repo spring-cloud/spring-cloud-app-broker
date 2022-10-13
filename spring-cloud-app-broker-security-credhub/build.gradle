@@ -17,7 +17,7 @@
 description = "Spring Cloud App Broker Security CredHub"
 
 dependencies {
-	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 	api project(":spring-cloud-app-broker-core")
 	api "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
 	api "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"

@@ -17,7 +17,7 @@
 description = "Spring Cloud App Broker Deployer Cloud Foundry"
 
 dependencies {
-	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 	api project(":spring-cloud-app-broker-deployer")
 	api "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
 	api "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"

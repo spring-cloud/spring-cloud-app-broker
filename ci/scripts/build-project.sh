@@ -15,7 +15,7 @@ else
 fi
 
 pushd git-repo >/dev/null
-./gradlew --parallel clean "$build_task" publish \
+./gradlew clean "$build_task" publish \
 	-PonlyShowStandardStreamsOnTestFailure="${ONLY_SHOW_STANDARD_STREAMS_ON_TEST_FAILURE}" \
 	-PpublicationRepository="${repository}"
 popd >/dev/null

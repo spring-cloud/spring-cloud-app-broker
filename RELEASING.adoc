@@ -5,6 +5,8 @@
 The release process for a new version is highly automated.
 However, we decided to separate each step to have a manual recovery for each critical point before we reach maven central.
 
+IMPORTANT: This process can't be parallelized, meaning that only one version can be released at a time.
+
 First, we need to go to the release group in the desired version pipelines:  `/pipelines/app-broker-1.4.x?group=release`.
 
 Second, execute `stage-release`. The output should be something similar to:
@@ -359,7 +361,11 @@ git push --delete origin v1.5.0
 
 ==== Failed to push some refs
 
-After staging the release, if the https://github.com/spring-cloud/spring-cloud-app-broker/tree/spring-builds/staging[staging branch] was not properly rebase into `main`, the `put:git-repo-staging` may fail with this error:
+After staging the release, the https://github.com/spring-cloud/spring-cloud-app-broker/tree/spring-builds/staging[staging branch] can be in a bad state because of different reasons.
+
+== Because of unrebased branch
+
+If the branch was not properly rebased into `main`, the `put:git-repo-staging` may fail with this error:
 
 ----
 jobs/stage-release put:git-repo-staging
@@ -383,4 +389,30 @@ git checkout spring-builds/staging
 git pull origin main --rebase
 
 git push origin spring-builds/staging --force-with-lease
+----
+
+== Because of the wrong values
+
+Similarly, if the staging step had to be re-run more than once it will contain the bump version commits leaving us with a similar error:
+
+----
+selected worker: worker-sc-prd-vc072-10.161.187.220-D3ZTWAIpJ
+streaming volume artifactory-repo from worker-sc2-05-vc39-10.212.22.113-BNASa9h0r
+To https://github.com/spring-cloud/spring-cloud-app-broker
+* [new tag]         v1.5.3 -> v1.5.3
+ ! [rejected]        HEAD -> ((redacted))/staging (fetch first)
+error: failed to push some refs to 'https://github.com/spring-cloud/spring-cloud-app-broker'
+hint: Updates were rejected because the remote contains work that you do
+hint: not have locally. This is usually caused by another repository pushing
+hint: to the same ref. You may want to first integrate the remote changes
+hint: (e.g., 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+----
+
+The easier way to fix the problem is to delete the branch:
+[source,bash]
+----
+git branch -d spring-builds/staging
+
+git push -d origin spring-builds/staging
 ----

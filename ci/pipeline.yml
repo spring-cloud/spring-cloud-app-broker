@@ -50,6 +50,8 @@ jobs:
           disable_checksum_uploads: true
     on_failure:
       *slack-failure-notification
+    on_error:
+      *slack-failure-notification
 
   - name: run-acceptance-tests
     serial: true
@@ -78,6 +80,8 @@ jobs:
             env_file: toolsmith-env/metadata
           inputs: [toolsmith-env]
     on_failure:
+      *slack-failure-notification
+    on_error:
       *slack-failure-notification
 
   - name: stage-milestone

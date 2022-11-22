@@ -209,6 +209,7 @@ resource_types:
     type: registry-image
     source:
       repository: ((dockerhub-mirror-registry))/cftoolsmiths/toolsmiths-envs-resource
+      tag: latest
 
 resources:
   - name: nightly

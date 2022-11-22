@@ -61,6 +61,7 @@ resource_types:
     type: registry-image
     source:
       repository: ((dockerhub-mirror-registry))/teliaoss/github-pr-resource
+      tag: latest
 
   - name: slack-notification
     type: registry-image
@@ -72,6 +73,7 @@ resource_types:
     type: registry-image
     source:
       repository: ((dockerhub-mirror-registry))/cftoolsmiths/toolsmiths-envs-resource
+      tag: latest
 
 resources:
   - name: pull-request

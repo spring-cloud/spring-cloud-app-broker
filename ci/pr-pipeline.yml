@@ -54,7 +54,9 @@ jobs:
           env_file: toolsmith-env/metadata
         inputs: [ toolsmith-env ]
     on_failure:
-      *slack-failure-notification        
+      *slack-failure-notification
+    on_error:
+      *slack-failure-notification
 
 resource_types:
   - name: pull-request

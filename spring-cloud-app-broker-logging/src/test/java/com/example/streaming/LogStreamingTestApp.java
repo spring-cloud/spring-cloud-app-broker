@@ -34,10 +34,10 @@ import org.springframework.context.event.EventListener;
 })
 public class LogStreamingTestApp {
 
-	static final String APP_ID = UUID.randomUUID().toString();
+	private static final String APP_ID = UUID.randomUUID().toString();
 
-	static boolean receivedStopEvent;
-	static String receivedStopEventServiceInstanceId;
+	private static boolean receivedStopEvent;
+	private static String receivedStopEventServiceInstanceId;
 
 	public static String getAppId() {
 		return APP_ID;

@@ -1,0 +1,16 @@
+name: Java 17 baseline build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        java: [ '17' ]
+    uses: ./.github/workflows/gradle-build.yml
+    with:
+      java-version: ${{ matrix.java }}

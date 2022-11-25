@@ -50,10 +50,14 @@ EOF
 }
 
 prepare_cf() {
-  local test_instances_org
-  test_instances_org="$DEFAULT_ORG-instances"
+  local -r test_instances_org="$DEFAULT_ORG-instances"
 
-  cf login -a "$API_HOST" -u "$USERNAME" -p "$PASSWORD" -o system --skip-ssl-validation "$SKIP_SSL_VALIDATION"
+  local skip_ssl_validation=""
+  if [ "$SKIP_SSL_VALIDATION" = "true" ]; then
+    skip_ssl_validation="--skip-ssl-validation"
+  fi
+
+  cf login -a "$API_HOST" -u "$USERNAME" -p "$PASSWORD" -o system "$skip_ssl_validation"
 
   cf create-org "$DEFAULT_ORG"
   cf create-space "$DEFAULT_SPACE" -o "$DEFAULT_ORG"

@@ -18,32 +18,25 @@ import java.util.concurrent.ConcurrentHashMap
 
 buildscript {
 	ext {
-		awaitilityVersion = "4.2.0"
 		blockHoundVersion = "1.0.6.RELEASE"
 		cfJavaClientVersion = "5.9.0.RELEASE"
-		checkstyleVersion = "8.37"
 		commonsTextVersion = "1.10.0"
 		immutablesVersion = "2.9.2"
-		openServiceBrokerVersion = "3.5.3"
-		pmdVersion = "6.29.0"
-		springBootVersion = "2.7.5"
-		springCredhubVersion = "2.3.0"
-		springFrameworkVersion = "5.3.22"
-		wiremockVersion = "2.27.2"
+		openServiceBrokerVersion = "4.0.0-SNAPSHOT"
+		springCredhubVersion = "3.0.0-SNAPSHOT"
+		springFrameworkVersion = "6.0.0"
+		wiremockVersion = "2.35.0"
 	}
 }
 
 plugins {
-	id "io.spring.nohttp" version "0.0.10"
+	id "io.spring.nohttp"
 	id 'distribution'
 	id 'jacoco'
 }
 
 ext {
-	javaApi = "https://docs.oracle.com/javase/8/docs/api/"
-	if (JavaVersion.current() >= JavaVersion.VERSION_11) {
-		javaApi = "https://docs.oracle.com/en/java/javase/11/docs/api"
-	}
+	javaApi = "https://docs.oracle.com/javase/17/docs/api/"
 	javadocLinks = [
 		javaApi,
 		"https://docs.spring.io/spring-framework/docs/${springFrameworkVersion}/javadoc-api/"
@@ -53,17 +46,6 @@ ext {
 description = "Spring Cloud App Broker"
 
 allprojects {
-	repositories {
-		mavenCentral()
-		maven { url "https://repo.spring.io/release" }
-		if (version =~ /((-M|-RC)[0-9]+|-SNAPSHOT)$/) {
-			maven { url "https://repo.spring.io/milestone" }
-		}
-		if (version.endsWith('-SNAPSHOT')) {
-			maven { url "https://repo.spring.io/snapshot" }
-		}
-	}
-
 	afterEvaluate { project ->
 		if (project.description == null || project.description.isEmpty()) {
 			throw new InvalidUserDataException("A project description is required for publishing to maven central")
@@ -78,8 +60,9 @@ configure(javaProjects) {
 	task dependencyReport(type: DependencyReportTask)
 
 	java {
-		sourceCompatibility = JavaVersion.VERSION_1_8
-		targetCompatibility = JavaVersion.VERSION_1_8
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(17)
+		}
 	}
 
 	[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
@@ -111,6 +94,11 @@ configure(javaProjects) {
 			useJUnitPlatform()
 			scanForTestClasses = true
 			group = "verification"
+
+			// add jvm arg to resolve BlockHound issues, see https://github.com/reactor/BlockHound/issues/33
+			jvmArgs += [
+				"-XX:+AllowRedefinitionToAddDeleteMethods"
+			]
 
 			testLogging {
 				exceptionFormat = "full"
@@ -221,7 +209,6 @@ configure(staticAnalysisProjects) {
 
 	checkstyle {
 		configDirectory = rootProject.file("src/checkstyle")
-		toolVersion = "${checkstyleVersion}"
 		showViolations = true
 	}
 	checkstyleMain {
@@ -232,7 +219,6 @@ configure(staticAnalysisProjects) {
 	}
 
 	pmd {
-		toolVersion = "${pmdVersion}"
 		consoleOutput = true
 	}
 	pmdMain {
@@ -343,7 +329,7 @@ task api(type: Javadoc) {
 }
 
 distributions {
-	def documentation = copySpec {
+	def documentation = project.copySpec {
 		into('reference') {
 			from(project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctor'),
 				project.tasks.findByPath(':spring-cloud-app-broker-docs:asciidoctorPdf'))
@@ -406,15 +392,15 @@ task codeCoverageReport(type: JacocoReport) {
 	}
 
 	reports {
-		xml.enabled true
+		xml.required = true
 		xml.destination new File("${buildDir}/reports/jacoco/report.xml")
-		html.enabled false
-		csv.enabled false
+		html.required = false
+		csv.required = false
 	}
 }
 
 wrapper {
-	gradleVersion = "7.5.1"
+	gradleVersion = "7.6"
 }
 
 nohttp {

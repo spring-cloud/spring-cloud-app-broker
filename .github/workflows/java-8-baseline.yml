@@ -1,0 +1,16 @@
+name: Java 8 baseline build
+
+on:
+  push:
+    branches: [ 1.6.x, 1.5.x, 1.4.x ]
+  pull_request:
+    branches: [ 1.6.x, 1.5.x, 1.4.x ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        java: [ '8', '11', '17' ]
+    uses: ./.github/workflows/gradle-build.yml
+    with:
+      java-version: ${{ matrix.java }}

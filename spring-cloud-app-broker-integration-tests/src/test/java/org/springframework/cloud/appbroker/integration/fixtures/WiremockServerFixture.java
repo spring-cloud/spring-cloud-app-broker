@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.appbroker.integration.fixtures;
 
+import jakarta.annotation.PostConstruct;
+
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;

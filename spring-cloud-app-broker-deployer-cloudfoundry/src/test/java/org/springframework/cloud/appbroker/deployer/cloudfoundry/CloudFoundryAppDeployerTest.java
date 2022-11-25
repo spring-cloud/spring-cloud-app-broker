@@ -506,7 +506,7 @@ class CloudFoundryAppDeployerTest {
 	void preUpdateAppUpdatesApplicationEnvironment() {
 		final String appId = "app-id";
 
-		given(operationsApplications.get(argThat(request -> request.getName().equals(APP_NAME))))
+		given(operationsApplications.get(argThat(request -> APP_NAME.equals(request.getName()))))
 			.willReturn(Mono.just(ApplicationDetail.builder()
 				.id(appId)
 				.name(APP_NAME)

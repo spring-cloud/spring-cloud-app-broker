@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
 plugins {
-	id 'org.asciidoctor.jvm.pdf' version '3.3.2'
-	id 'org.asciidoctor.jvm.convert' version '3.3.2'
+	id 'org.springframework.boot' apply false
+	id 'org.asciidoctor.jvm.pdf'
+	id 'org.asciidoctor.jvm.convert'
 }
 
 description = "Spring Cloud App Broker Documentation"
@@ -26,7 +29,7 @@ configurations {
 }
 
 dependencies {
-	implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	implementation platform(SpringBootPlugin.BOM_COORDINATES)
 	implementation project(":spring-cloud-app-broker-core")
 	implementation "org.springframework.boot:spring-boot-starter"
 	implementation "org.springframework.boot:spring-boot-starter-data-r2dbc"

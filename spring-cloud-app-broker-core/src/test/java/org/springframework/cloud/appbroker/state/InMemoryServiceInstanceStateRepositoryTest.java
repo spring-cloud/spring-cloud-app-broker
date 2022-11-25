@@ -64,8 +64,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 			.assertNext(serviceInstanceState -> {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
-				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(new Date());
+				assertThat(serviceInstanceState.getLastUpdated()).isInSameMinuteWindowAs(new Date());
 			})
 			.verifyComplete();
 

@@ -73,7 +73,7 @@ class UpdateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].name=PropertyMapping",
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[1].args.include=count"
 	})
-	public void deployAppsOnUpdateService() {
+	void deployAppsOnUpdateService() {
 		// given a service instance is created
 		createServiceInstance(SI_NAME);
 

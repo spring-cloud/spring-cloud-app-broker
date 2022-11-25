@@ -76,6 +76,10 @@ public class CloudFoundryService {
 
 	private static final String DEPLOYER_PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry.";
 
+	private static final String JBP_CONFIG_OPEN_JDK_JRE_ENV_VAR_NAME = "JBP_CONFIG_OPEN_JDK_JRE";
+
+	private static final String JBP_CONFIG_OPEN_JDK_JRE_17 = "{ jre: { version: 17.+ } }";
+
 	private static final int EXPECTED_PROPERTY_PARTS = 2;
 
 	private final CloudFoundryClient cloudFoundryClient;
@@ -445,6 +449,7 @@ public class CloudFoundryService {
 
 	private Map<String, String> appBrokerDeployerEnvironmentVariables(String brokerClientId) {
 		Map<String, String> deployerVariables = new HashMap<>();
+		deployerVariables.put(JBP_CONFIG_OPEN_JDK_JRE_ENV_VAR_NAME, JBP_CONFIG_OPEN_JDK_JRE_17);
 		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "api-host",
 			cloudFoundryProperties.getApiHost());
 		deployerVariables.put(DEPLOYER_PROPERTY_PREFIX + "api-port",

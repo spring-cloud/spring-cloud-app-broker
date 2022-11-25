@@ -434,7 +434,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 			.verifyComplete();
 
 		then(applicationsV2).should().summary(SummaryApplicationRequest.builder().applicationId(APP_ID).build());
-		then(applicationsV2).should().update(argThat(arg -> arg.getApplicationId().equals(APP_ID)));
+		then(applicationsV2).should().update(argThat(arg -> APP_ID.equals(arg.getApplicationId())));
 		then(operationsServices).shouldHaveNoMoreInteractions();
 		then(applicationsV2).shouldHaveNoMoreInteractions();
 	}
@@ -465,7 +465,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 		then(operationsServices).should()
 			.bind(BindServiceInstanceRequest.builder().serviceInstanceName("service-2").applicationName(APP_NAME)
 				.build());
-		then(applicationsV2).should().update(argThat(arg -> arg.getApplicationId().equals(APP_ID)));
+		then(applicationsV2).should().update(argThat(arg -> APP_ID.equals(arg.getApplicationId())));
 
 		then(operationsServices).shouldHaveNoMoreInteractions();
 		then(applicationsV2).shouldHaveNoMoreInteractions();

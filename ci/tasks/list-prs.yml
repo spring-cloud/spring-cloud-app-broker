@@ -1,0 +1,27 @@
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
+    tag: ((ci-image-tag))
+    username: ((corporate-harbor-robot-account.username))
+    password: ((corporate-harbor-robot-account.password))
+
+inputs:
+  - name: git-repo
+
+outputs:
+  - name: prs
+
+run:
+  path: bash
+  dir: git-repo
+  args:
+    - -c
+    - |
+      gh pr list --state open --search "review:approved"
+      gh pr list --state open --search "review:approved" --json number,baseRefName,headRefOid,author > ../prs/prs.json
+
+params:
+  GH_TOKEN: ((app-broker-pr-github-pull-requests-access-token))

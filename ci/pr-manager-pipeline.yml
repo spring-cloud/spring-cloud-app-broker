@@ -1,0 +1,64 @@
+jobs:
+  - name: manage-pr-pipelines
+    plan:
+      - in_parallel:
+          - get: pipeline-definition
+            trigger: true
+          - get: pr
+            trigger: true
+            version: every
+      - task: list-prs
+        file: pipeline-definition/ci/tasks/list-prs.yml
+        input_mapping:
+          git-repo: pipeline-definition
+        vars:
+          ci-image-tag: ((ci-image-tag))
+      - load_var: prs
+        file: prs/prs.json
+      - across:
+          - var: pr
+            values: ((.:prs))
+            max_in_flight: all
+        in_parallel:
+          - set_pipeline: ((pipeline-name))
+            file: pipeline-definition/ci/pr-pipeline.yml
+            var_files:
+              - pipeline-definition/ci/config-concourse.yml
+            vars:
+              ci-image-tag: ((.:pr.baseRefName))
+              pr:
+                number: ((.:pr.number))
+                commit: ((.:pr.headRefOid))
+                base-branch: ((.:pr.baseRefName))
+            instance_vars:
+              pr: ((.:pr.number))
+              branch: ((.:pr.baseRefName))
+              author: ((.:pr.author.login))
+
+resource_types:
+  - name: pull-request
+    type: registry-image
+    source:
+      repository: ((dockerhub-mirror-registry))/teliaoss/github-pr-resource
+      tag: v0.23.0
+
+resources:
+  - name: pipeline-definition
+    type: git
+    icon: github
+    source:
+      uri: ((github-repo))
+      username: ((github-token))
+      password: ((github-password))
+      branch: main
+      paths:
+        - ci/pr-pipeline.yml
+        - ci/config-concourse.yml
+
+  - name: pr
+    type: pull-request
+    icon: github
+    source:
+      repository: ((app-broker-pr-github-pull-requests-repo))
+      access_token: ((app-broker-pr-github-pull-requests-access-token))
+      required_review_approvals: 1

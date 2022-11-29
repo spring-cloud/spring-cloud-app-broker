@@ -6,14 +6,15 @@ aliases:
       icon_emoji: ":concourse:"
       username: concourse
       channel: ((ab-slack-success-channel))
-      text: "$BUILD_PIPELINE_NAME pipeline has succeeded with build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME>!"
+      text: "`$BUILD_PIPELINE_NAME` pipeline has succeeded with build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME>!"
+
   - &slack-failure-notification
     put: alert
     params:
       icon_emoji: ":animal-1252:"
       username: concourse
       channel: ((ab-slack-failure-channel))
-      text: <!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
+      text: "<!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job `$BUILD_JOB_NAME` in the `$BUILD_PIPELINE_NAME` pipeline has failed!"
 
 jobs:
   - name: build
@@ -28,17 +29,18 @@ jobs:
           git-repo: pull-request
         vars:
           ci-image-tag: ((ci-image-tag))
+
   - name: run-acceptance-tests
     serial: true
     plan:
       - in_parallel:
-        - get: pull-request
-          passed: [build]
-          trigger: true
-        - put: toolsmith-env
-          inputs: [ ]
-          params:
-            action: claim
+          - get: pull-request
+            passed: [build]
+            trigger: true
+          - put: toolsmith-env
+            inputs: []
+            params:
+              action: claim
       - task: acceptance-tests
         file: pull-request/ci/tasks/acceptance-tests.yml
         vars:
@@ -47,16 +49,14 @@ jobs:
           git-repo: pull-request
     on_success:
       in_parallel:
-      - *slack-success-notification
-      - put: toolsmith-env
-        params:
-          action: unclaim
-          env_file: toolsmith-env/metadata
-        inputs: [ toolsmith-env ]
-    on_failure:
-      *slack-failure-notification
-    on_error:
-      *slack-failure-notification
+        - *slack-success-notification
+        - put: toolsmith-env
+          params:
+            action: unclaim
+            env_file: toolsmith-env/metadata
+          inputs: [ toolsmith-env ]
+    on_failure: *slack-failure-notification
+    on_error: *slack-failure-notification
 
 resource_types:
   - name: pull-request
@@ -80,11 +80,14 @@ resource_types:
 resources:
   - name: pull-request
     type: pull-request
-    check_every: 10s
+    version:
+      pr: ((pr.number))
+      commit: ((pr.commit))
     source:
       repository: ((app-broker-pr-github-pull-requests-repo))
       access_token: ((app-broker-pr-github-pull-requests-access-token))
-      base_branch: ((branch))
+      base_branch: ((pr.base-branch))
+      required_review_approvals: 1
 
   - name: alert
     type: slack-notification

@@ -3,35 +3,78 @@
 set -euo pipefail
 
 readonly FLY_TARGET="app-broker"
-readonly VERSION=1.6.x
-readonly BRANCH=main
-readonly CI_IMAGE_TAG=main
+readonly PIPELINE_NAME_SUFFIX="${PIPELINE_NAME_SUFFIX:-""}"
+readonly PIPELINE_TYPE=${1:-""}
 
-set_pipeline() {
-	local pipeline_name pipeline_definition branch ci_image_tag
-	pipeline_name="${1:?pipeline name must be provided}"
-	pipeline_definition="${2:?pipeline definition file must be provided}"
-	branch="${3:?branch must be provided}"
-	ci_image_tag="${4:?ci_image_tag must be provided}"
+[[ "$PIPELINE_NAME_SUFFIX" ]] && DISABLE_SLACK_ALERTING="true" || DISABLE_SLACK_ALERTING="false"
 
-	echo "Setting $pipeline_name pipeline..."
-	fly --target "$FLY_TARGET" set-pipeline \
-		--pipeline "$pipeline_name" \
-		--config "$pipeline_definition" \
+set_branch_pipeline() {
+  local -r pipeline_name="app-broker${PIPELINE_NAME_SUFFIX:+"-$PIPELINE_NAME_SUFFIX"}"
+  local -r branches=("main" "1.6.x" "1.5.x" "1.4.x")
+
+	for branch in "${branches[@]}"; do
+  	echo "Setting $pipeline_name $branch pipeline..."
+
+    fly --target "$FLY_TARGET" set-pipeline \
+      --pipeline "$pipeline_name" \
+      --config pipeline.yml \
+      --load-vars-from config-concourse.yml \
+      --instance-var "branch=$branch" \
+      --var "ci-image-tag=$branch" \
+      --var "disable-slack-alerting=$DISABLE_SLACK_ALERTING" \`
+  done
+}
+
+set_pr_manager_pipeline() {
+	local -r pipeline_name="app-broker-pull-requests${PIPELINE_NAME_SUFFIX:+"-$PIPELINE_NAME_SUFFIX"}"
+
+	echo "Setting PR manager pipeline..."
+
+	fly --target "$FLY_TARGET" set-pipeline --pipeline "$pipeline_name" \
+		--config pr-manager-pipeline.yml \
 		--load-vars-from config-concourse.yml \
-		--var "branch=$branch" \
-		--var "ci-image-tag=$ci_image_tag"
+		--var ci-image-tag="main" \
+		--var pipeline-name="$pipeline_name"
+}
+
+set_pr_pipeline() {
+	local -r pr_number="${1:?first argument must be the PR number}"
+	local -r pipeline_name="app-broker-pr-$pr_number${PIPELINE_NAME_SUFFIX:+"-$PIPELINE_NAME_SUFFIX"}"
+
+	echo "Setting PR pipeline for PR $pr_number..."
+
+	local -r pr_info="$(gh pr view "$pr_number" --json baseRefName,headRefOid)"
+
+	fly --target "$FLY_TARGET" set-pipeline --pipeline "$pipeline_name" \
+		--config pr-pipeline.yml \
+		--load-vars-from config-concourse.yml \
+		--var ci-image-tag="pr-test" \
+		--var pipeline-name="$pipeline_name" \
+		--var pr.number="$pr_number" \
+		--var pr.base-branch="$(jq -r '.baseRefName' <<< "$pr_info")" \
+		--var pr.commit="$(jq -r '.headRefOid' <<< "$pr_info")"
 }
 
 main() {
-	fly -t app-broker sync
-
 	pushd "$(dirname "$0")/../ci" >/dev/null
 
-	set_pipeline "app-broker-$VERSION"    pipeline.yml    "$BRANCH" "$CI_IMAGE_TAG"
-	set_pipeline "app-broker-$VERSION-pr" pr-pipeline.yml "$BRANCH" "$CI_IMAGE_TAG"
+	case "${PIPELINE_TYPE#--}" in
+		"branch")
+			set_branch_pipeline
+			;;
+		"pr-manager")
+			set_pr_manager_pipeline
+			;;
+		"pr")
+			set_pr_pipeline "$2"
+			;;
+		*)
+			set_branch_pipeline
+			set_pr_manager_pipeline
+			;;
+	esac
 
 	popd >/dev/null
 }
 
-main
+main "$@"

@@ -1,12 +1,25 @@
 FROM harbor-repo.vmware.com/dockerhub-proxy-cache/library/ubuntu:bionic
 
-RUN apt-get update && apt-get install --no-install-recommends -y ca-certificates net-tools git curl jq gnupg
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    ca-certificates \
+    curl \
+    git \
+    gnupg \
+    jq \
+    net-tools
 
-RUN curl -L https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add -
-RUN echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-RUN apt-get update && apt-get install cf-cli
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -L 'https://cli.github.com/packages/githubcli-archive-keyring.gpg' | gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg
+RUN curl -L 'https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key' | gpg --dearmor -o /etc/apt/keyrings/cloudfoundry-cli-keyring.gpg
 
-RUN rm -rf /var/lib/apt/lists/*
+RUN echo "deb [signed-by=/etc/apt/keyrings/cloudfoundry-cli-keyring.gpg] https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list
+
+RUN apt-get update &&  \
+    apt-get -qy --no-install-recommends install \
+		cf-cli \
+		gh && \
+    apt-get clean
 
 ENV JAVA_HOME /opt/openjdk
 ENV PATH $JAVA_HOME/bin:$PATH

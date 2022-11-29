@@ -6,25 +6,47 @@ aliases:
       icon_emoji: ":concourse:"
       username: concourse
       channel: ((ab-slack-success-channel))
-      text: "$BUILD_PIPELINE_NAME pipeline has succeeded with build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME>!"
+      text: "`$BUILD_PIPELINE_NAME ((branch))` pipeline has succeeded with build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME>!"
   - &slack-failure-notification
     put: alert
     params:
       icon_emoji: ":animal-1252:"
       username: concourse
       channel: ((ab-slack-failure-channel))
-      text: <!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job $BUILD_JOB_NAME in the $BUILD_PIPELINE_NAME pipeline has failed!
+      text: "<!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job `$BUILD_JOB_NAME` in the `$BUILD_PIPELINE_NAME ((branch))` pipeline has failed!"
 
 jobs:
   - name: build-ci-images
     plan:
       - get: ci-images-git-repo
         trigger: true
-      - put: app-broker-ci-image
+      - task: build-image
+        privileged: true
+        tags: [ btrfs ]
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: ((dockerhub-mirror-registry))/concourse/oci-build-task
+              tag: 0.10.0
+          inputs:
+            - name: source
+          outputs:
+            - name: image
+          run:
+            path: build
+        input_mapping:
+          source: ci-images-git-repo
         params:
-          build: ci-images-git-repo/ci/images/app-broker-ci
+          CONTEXT: source/ci/images/app-broker-ci
+      - put: app-broker-ci-image
+        inputs: detect
+        params:
+          image: image/image.tar
         get_params:
-          skip_download: "true"
+          skip_download: true
+    on_failure: *slack-failure-notification
 
   - name: build
     serial: true
@@ -57,16 +79,16 @@ jobs:
     serial: true
     plan:
       - in_parallel:
-        - get: nightly
-          passed: [build]
-          trigger: true
-        - get: git-repo
-          passed: [build]
-          trigger: true
-        - put: toolsmith-env
-          inputs: []
-          params:
-            action: claim
+          - get: nightly
+            passed: [build]
+            trigger: true
+          - get: git-repo
+            passed: [build]
+            trigger: true
+          - put: toolsmith-env
+            inputs: []
+            params:
+              action: claim
       - task: acceptance-tests
         file: git-repo/ci/tasks/acceptance-tests.yml
         vars:
@@ -156,11 +178,11 @@ jobs:
     serial: true
     plan:
       - in_parallel:
-        - get: git-repo
-        - get: artifactory-repo
-          passed: [stage-rc]
-          params:
-            save_build_info: true
+          - get: git-repo
+          - get: artifactory-repo
+            passed: [stage-rc]
+            params:
+              save_build_info: true
       - task: promote
         file: git-repo/ci/tasks/promote.yml
         vars:
@@ -171,11 +193,11 @@ jobs:
     serial: true
     plan:
       - in_parallel:
-        - get: git-repo
-        - get: artifactory-repo
-          passed: [stage-release]
-          params:
-            save_build_info: true
+          - get: git-repo
+          - get: artifactory-repo
+            passed: [stage-release]
+            params:
+              save_build_info: true
       - task: promote
         file: git-repo/ci/tasks/promote.yml
         vars:
@@ -186,11 +208,11 @@ jobs:
     serial: true
     plan:
       - in_parallel:
-        - get: git-repo
-        - get: artifactory-repo
-          passed: [promote-release]
-          params:
-            save_build_info: true
+          - get: git-repo
+          - get: artifactory-repo
+            passed: [promote-release]
+            params:
+              save_build_info: true
       - task: sync-to-maven-central
         file: git-repo/ci/tasks/sync-to-maven-central.yml
         vars:
@@ -229,6 +251,7 @@ resources:
         - Thursday
         - Friday
       location: America/New_York
+      initial_version: true
 
   - name: git-repo
     type: git
@@ -256,7 +279,7 @@ resources:
       paths: ["ci/images/*"]
 
   - name: app-broker-ci-image
-    type: docker-image
+    type: registry-image
     source:
       repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
       username: ((corporate-harbor-robot-account.username))

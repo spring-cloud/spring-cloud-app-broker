@@ -5,9 +5,27 @@ updates:
     target-branch: "main"
     schedule:
       interval: daily
+    milestone: 26
+    labels:
+      - dependencies
+
+  - package-ecosystem: gradle
+    directory: "/"
+    target-branch: "1.6.x"
+    schedule:
+      interval: daily
     milestone: 27
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "org.springframework.boot:*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "spring-cloud-starter-open-service-broker"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
 
   - package-ecosystem: gradle
     directory: "/"
@@ -18,10 +36,14 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "boot-spring-boot-dependencies"
-        versions: [ "2.7.x" ]
+      - dependency-name: "org.springframework.boot:*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
       - dependency-name: "spring-cloud-starter-open-service-broker"
-        versions: [ "3.6.x" ]
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
 
   - package-ecosystem: gradle
     directory: "/"
@@ -32,7 +54,11 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "boot-spring-boot-dependencies"
-        versions: [ "2.6.x", "2.7.x" ]
+      - dependency-name: "org.springframework.boot:*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
       - dependency-name: "spring-cloud-starter-open-service-broker"
-        versions: [ "3.5.x", "3.6.x" ]
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"

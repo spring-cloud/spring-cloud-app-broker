@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 buildscript {
 	ext {
-		blockHoundVersion = "1.0.6.RELEASE"
+		blockHoundVersion = "1.0.7.RELEASE"
 		cfJavaClientVersion = "5.9.0.RELEASE"
 		commonsTextVersion = "1.10.0"
 		immutablesVersion = "2.9.3"

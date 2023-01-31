@@ -730,6 +730,10 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 		if (getDockerImage(appResource) == null) {
 			manifest.buildpack(buildpack(deploymentProperties));
+			String buildpacks = buildpacks(deploymentProperties);
+			if (StringUtils.hasText(buildpacks)) {
+				manifest.buildpacks(Arrays.asList(buildpacks.split(",")));
+			}
 		}
 		else {
 			manifest.docker(Docker.builder().image(getDockerImage(appResource)).build());
@@ -1035,6 +1039,11 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private String buildpack(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY))
 			.orElse(this.defaultDeploymentProperties.getBuildpack());
+	}
+
+	private String buildpacks(Map<String, String> properties) {
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.BUILDPACKS_PROPERTY_KEY))
+			.orElse(this.defaultDeploymentProperties.getBuildpacks());
 	}
 
 	private String javaOpts(Map<String, String> properties) {

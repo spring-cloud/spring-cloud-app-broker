@@ -85,7 +85,11 @@ The following table lists properties that can be set for all or for specific app
 |
 
 |`buildpack`
-|The buildpack to use for deploying the application.
+|The single buildpack to use for deploying the application.
+|
+
+|`buildpacks`
+|Comma separated list of buildpacks to use for deploying the application.
 |
 
 |`domain`

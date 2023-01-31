@@ -207,7 +207,7 @@ class CloudFoundryAppDeployerTest {
 			.property(DeploymentProperties.DISK_PROPERTY_KEY, "3G")
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY, "http")
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY, "/healthcheck")
-			.property(CloudFoundryDeploymentProperties.BUILDPACK_PROPERTY_KEY, "buildpack")
+			.property(CloudFoundryDeploymentProperties.BUILDPACKS_PROPERTY_KEY, "buildpack1,buildpack2")
 			.property(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY, "domain1,domain2")
 			.property(DeploymentProperties.HOST_PROPERTY_KEY, "host")
 			.property(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY, "true")
@@ -225,7 +225,7 @@ class CloudFoundryAppDeployerTest {
 			.disk(3072)
 			.healthCheckType(ApplicationHealthCheck.HTTP)
 			.healthCheckHttpEndpoint("/healthcheck")
-			.buildpack("buildpack")
+			.buildpacks("buildpack1", "buildpack2")
 			.domains("domain2", "domain1") // domains is a list so order matters
 			.host("host")
 			.noRoute(true)

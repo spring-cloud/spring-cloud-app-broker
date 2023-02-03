@@ -23,7 +23,7 @@ buildscript {
 		commonsTextVersion = "1.10.0"
 		immutablesVersion = "2.9.3"
 		openServiceBrokerVersion = "4.0.0-M1"
-		springCredhubVersion = "3.0.0-RC1"
+		springCredhubVersion = "3.0.0"
 		springFrameworkVersion = "6.0.0"
 		wiremockVersion = "2.35.0"
 	}

@@ -767,6 +767,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 						})
 						.doOnError(e -> LOG.error(String.format("Error creating space. spaceName=%s, " +
 							ERROR_LOG_TEMPLATE, spaceName, e.getMessage()), e))
+						.onErrorResume(e -> Mono.empty())
 						.map(response -> response.getMetadata().getId())
 						.flatMap(spaceId -> addSpaceDeveloperRoleForCurrentUser(orgName, spaceName, spaceId)
 							.thenReturn(spaceId)))));

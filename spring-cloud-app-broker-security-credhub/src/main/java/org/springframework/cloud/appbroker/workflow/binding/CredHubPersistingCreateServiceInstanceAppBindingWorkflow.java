@@ -118,7 +118,7 @@ public class CredHubPersistingCreateServiceInstanceAppBindingWorkflow extends Cr
 		CreateServiceInstanceAppBindingResponse response, CredentialName credentialName) {
 		return CreateServiceInstanceAppBindingResponse.builder()
 			.async(response.isAsync())
-			.bindingExisted(response.isBindingExisted())
+			.bindingStatus(response.getBindingStatus())
 			.credentials(CREDHUB_REF_KEY, credentialName.getName())
 			.operation(response.getOperation())
 			.syslogDrainUrl(response.getSyslogDrainUrl())

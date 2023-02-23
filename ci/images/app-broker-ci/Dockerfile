@@ -1,5 +1,11 @@
 FROM harbor-repo.vmware.com/dockerhub-proxy-cache/library/ubuntu:bionic
 
+ARG BBL_CLI_VERSION=8.4.110
+ARG BOSH_CLI_VERSION=7.0.1
+ARG CONCOURSE_JAVA_SCRIPTS_VERSION=0.0.4
+ARG CONCOURSE_RELEASE_SCRIPTS_VERSION=0.3.4
+ARG CREDHUB_CLI_VERSION=2.9.8
+
 RUN apt-get update && apt-get install --no-install-recommends -y \
     ca-certificates \
     curl \
@@ -27,13 +33,13 @@ RUN mkdir -p /opt/openjdk && \
     cd /opt/openjdk && \
     curl -L https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_linux_hotspot_8u292b10.tar.gz | tar xz --strip-components=1
 
-ADD https://raw.githubusercontent.com/spring-io/concourse-java-scripts/v0.0.4/concourse-java.sh /opt/
-ADD https://repo.spring.io/libs-snapshot/io/spring/concourse/releasescripts/concourse-release-scripts/0.3.4-SNAPSHOT/concourse-release-scripts-0.3.4-SNAPSHOT.jar /opt/
+ADD "https://raw.githubusercontent.com/spring-io/concourse-java-scripts/v$CONCOURSE_JAVA_SCRIPTS_VERSION/concourse-java.sh" /opt/
+ADD "https://repo.spring.io/libs-snapshot/io/spring/concourse/releasescripts/concourse-release-scripts/$CONCOURSE_RELEASE_SCRIPTS_VERSION/concourse-release-scripts-$CONCOURSE_RELEASE_SCRIPTS_VERSION.jar" /opt/
 
-RUN cd /usr/local/bin && curl -L https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/2.9.0/credhub-linux-2.9.0.tgz | tar xz
+RUN cd /usr/local/bin && curl -L "https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/$CREDHUB_CLI_VERSION/credhub-linux-$CREDHUB_CLI_VERSION.tgz" | tar xz
 
-RUN curl -L https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.43/bbl-v8.4.43_linux_x86-64 --output /usr/local/bin/bbl && \
+RUN curl -L "https://github.com/cloudfoundry/bosh-bootloader/releases/download/v$BBL_CLI_VERSION/bbl-v${BBL_CLI_VERSION}_linux_x86-64" --output /usr/local/bin/bbl && \
     chmod +x /usr/local/bin/bbl
 
-RUN curl -L https://github.com/cloudfoundry/bosh-cli/releases/download/v6.4.4/bosh-cli-6.4.4-linux-amd64 --output /usr/local/bin/bosh && \
+RUN curl -L "https://github.com/cloudfoundry/bosh-cli/releases/download/v$BOSH_CLI_VERSION/bosh-cli-$BOSH_CLI_VERSION-linux-amd64" --output /usr/local/bin/bosh && \
     chmod +x /usr/local/bin/bosh

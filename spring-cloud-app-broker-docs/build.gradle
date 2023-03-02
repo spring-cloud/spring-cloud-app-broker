@@ -37,7 +37,7 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter-tomcat"
 	implementation "io.projectreactor:reactor-core"
 	implementation "io.r2dbc:r2dbc-h2:1.0.0.RELEASE"
-  asciidoctorExtensions "io.spring.asciidoctor.backends:spring-asciidoctor-backends:0.0.4"
+  asciidoctorExtensions "io.spring.asciidoctor.backends:spring-asciidoctor-backends:0.0.5"
 }
 
 javadoc {

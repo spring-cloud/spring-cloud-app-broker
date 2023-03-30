@@ -24,7 +24,7 @@ buildscript {
 		checkstyleVersion = "8.37"
 		commonsTextVersion = "1.10.0"
 		immutablesVersion = "2.9.3"
-		openServiceBrokerVersion = "3.5.3"
+		openServiceBrokerVersion = "3.5.4"
 		pmdVersion = "6.29.0"
 		springBootVersion = "2.6.13"
 		springCredhubVersion = "2.2.0"

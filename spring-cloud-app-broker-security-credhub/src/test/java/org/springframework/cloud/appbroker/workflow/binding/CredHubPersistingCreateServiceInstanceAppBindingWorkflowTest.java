@@ -30,7 +30,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.servicebroker.model.binding.BindResource;
-import org.springframework.cloud.servicebroker.model.binding.BindingStatus;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
@@ -82,7 +81,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 
 		CreateServiceInstanceAppBindingResponseBuilder responseBuilder = CreateServiceInstanceAppBindingResponse
 			.builder()
-			.bindingStatus(BindingStatus.EXISTS_WITH_IDENTICAL_PARAMETERS)
+			.bindingExisted(true)
 			.syslogDrainUrl("https://logs.example.local")
 			.volumeMounts(VolumeMount.builder().build())
 			.volumeMounts(VolumeMount.builder().build())
@@ -96,7 +95,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 			.assertNext(createServiceInstanceAppBindingResponseBuilder -> {
 				CreateServiceInstanceAppBindingResponse response = createServiceInstanceAppBindingResponseBuilder
 					.build();
-				assertThat(response.getBindingStatus()).isEqualTo(BindingStatus.EXISTS_WITH_IDENTICAL_PARAMETERS);
+				assertThat(response.isBindingExisted()).isEqualTo(true);
 				assertThat(response.getCredentials()).hasSize(0);
 				assertThat(response.getSyslogDrainUrl()).isEqualTo("https://logs.example.local");
 				assertThat(response.getVolumeMounts()).hasSize(4);
@@ -135,7 +134,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 
 		CreateServiceInstanceAppBindingResponseBuilder responseBuilder = CreateServiceInstanceAppBindingResponse
 			.builder()
-			.bindingStatus(BindingStatus.EXISTS_WITH_IDENTICAL_PARAMETERS)
+			.bindingExisted(true)
 			.credentials("credential1", "value1")
 			.credentials("credential2", 2)
 			.credentials("credential3", true)
@@ -164,7 +163,7 @@ class CredHubPersistingCreateServiceInstanceAppBindingWorkflowTest {
 			.assertNext(createServiceInstanceAppBindingResponseBuilder -> {
 				CreateServiceInstanceAppBindingResponse response = createServiceInstanceAppBindingResponseBuilder
 					.build();
-				assertThat(response.getBindingStatus()).isEqualTo(BindingStatus.EXISTS_WITH_IDENTICAL_PARAMETERS);
+				assertThat(response.isBindingExisted()).isEqualTo(true);
 				assertThat(response.getCredentials()).hasSize(1);
 				assertThat(response.getCredentials().get("credhub-ref")).isEqualTo(credentialName.getName());
 				assertThat(response.getSyslogDrainUrl()).isEqualTo("https://logs.example.local");

@@ -1,6 +1,0 @@
-{
-	"path" : "/some-path/*",
-	"operations" : [ "read", "write" ],
-	"actor" : "uaa-user:106f52e2-5d01-4675-8d7a-c05ff9a2c081",
-	"uuid" : "6e9a275a-6a4b-4634-9e97-b838fd0aa2c7"
-}

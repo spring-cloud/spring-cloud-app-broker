@@ -37,7 +37,6 @@ import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionServ
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.TargetSpec;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
@@ -67,9 +66,6 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 
 	@Mock
 	private BackingServicesParametersTransformationService servicesParametersTransformationService;
-
-	@Mock
-	private CredentialProviderService credentialProviderService;
 
 	@Mock
 	private TargetService targetService;
@@ -130,7 +126,6 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			servicesProvisionService,
 			appsParametersTransformationService,
 			servicesParametersTransformationService,
-			credentialProviderService,
 			targetService);
 	}
 
@@ -211,9 +206,6 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 			.transformParameters(eq(backingServices), eq(request.getParameters())))
 			.willReturn(Mono.just(backingServices));
 
-		given(this.credentialProviderService.addCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
-
 		given(this.targetService
 			.addToBackingApplications(eq(backingApps), eq(targetSpec), eq(request.getServiceInstanceId())))
 			.willReturn(Mono.just(backingApps));
@@ -227,7 +219,6 @@ class AppDeploymentCreateServiceInstanceWorkflowTest {
 		verifyNoMoreInteractions(this.servicesProvisionService);
 		verifyNoMoreInteractions(this.appsParametersTransformationService);
 		verifyNoMoreInteractions(this.servicesParametersTransformationService);
-		verifyNoMoreInteractions(this.credentialProviderService);
 		verifyNoMoreInteractions(this.targetService);
 	}
 

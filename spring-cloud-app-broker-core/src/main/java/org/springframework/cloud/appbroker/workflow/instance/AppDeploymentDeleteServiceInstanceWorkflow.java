@@ -32,7 +32,6 @@ import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionServ
 import org.springframework.cloud.appbroker.deployer.BackingSpaceManagementService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
@@ -59,8 +58,6 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	private final BackingSpaceManagementService backingSpaceManagementService;
 
-	private final CredentialProviderService credentialProviderService;
-
 	private final TargetService targetService;
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
@@ -68,13 +65,11 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 		BackingAppManagementService backingAppManagementService,
 		BackingServicesProvisionService backingServicesProvisionService,
 		BackingSpaceManagementService backingSpaceManagementService,
-		CredentialProviderService credentialProviderService,
 		TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.backingAppManagementService = backingAppManagementService;
 		this.backingSpaceManagementService = backingSpaceManagementService;
-		this.credentialProviderService = credentialProviderService;
 		this.targetService = targetService;
 		this.backingServicesProvisionService = backingServicesProvisionService;
 	}
@@ -164,9 +159,6 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	private Mono<List<BackingApplication>> undeployBackingApplications(DeleteServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingApps ->
-				credentialProviderService.deleteCredentials(backingApps,
-					request.getServiceInstanceId()))
 			.flatMap(backingApps -> getTargetForService(request.getServiceDefinition(), request.getPlan())
 				.flatMap(targetSpec -> targetService.addToBackingApplications(backingApps, targetSpec,
 					request.getServiceInstanceId()))

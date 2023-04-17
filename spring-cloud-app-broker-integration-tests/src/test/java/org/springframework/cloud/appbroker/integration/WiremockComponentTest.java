@@ -27,7 +27,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.CredHubStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.OpenServiceBrokerApiFixture;
-import org.springframework.cloud.appbroker.integration.fixtures.TestBindingCredentialsProviderFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.UaaStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.WiremockServerFixture;
 import org.springframework.test.context.ActiveProfiles;
@@ -40,9 +39,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 		WiremockServerFixture.class,
 		OpenServiceBrokerApiFixture.class,
 		CloudControllerStubFixture.class,
+<<<<<<< Updated upstream
 		UaaStubFixture.class,
 		CredHubStubFixture.class,
 		TestBindingCredentialsProviderFixture.class},
+=======
+		UaaStubFixture.class},
+>>>>>>> Stashed changes
 	properties = {
 		"spring.cloud.appbroker.deployer.cloudfoundry.api-host=localhost",
 		"spring.cloud.appbroker.deployer.cloudfoundry.api-port=8080",

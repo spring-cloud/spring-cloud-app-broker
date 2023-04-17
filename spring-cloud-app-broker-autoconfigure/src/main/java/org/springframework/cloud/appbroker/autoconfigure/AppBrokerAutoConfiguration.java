@@ -37,12 +37,6 @@ import org.springframework.cloud.appbroker.deployer.DefaultBackingAppDeploymentS
 import org.springframework.cloud.appbroker.deployer.DefaultBackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.DefaultBackingSpaceManagementService;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderFactory;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
-import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
-import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory;
-import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
@@ -56,7 +50,6 @@ import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.manager.AppManager;
 import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
 import org.springframework.cloud.appbroker.manager.ManagementClient;
-import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceRouteBindingWorkflow;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceWorkflow;
@@ -236,54 +229,6 @@ public class AppBrokerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link SimpleCredentialGenerator} bean
-	 *
-	 * @return the bean
-	 */
-	@ConditionalOnMissingBean(CredentialGenerator.class)
-	@Bean
-	public SimpleCredentialGenerator simpleCredentialGenerator() {
-		return new SimpleCredentialGenerator();
-	}
-
-	/**
-	 * Provide a {@link SpringSecurityBasicAuthCredentialProviderFactory} bean
-	 *
-	 * @param credentialGenerator the CredentialGenerator bean
-	 * @return the bean
-	 */
-	@Bean
-	public SpringSecurityBasicAuthCredentialProviderFactory springSecurityBasicAuthCredentialProvider(
-		CredentialGenerator credentialGenerator) {
-		return new SpringSecurityBasicAuthCredentialProviderFactory(credentialGenerator);
-	}
-
-	/**
-	 * Provide a {@link SpringSecurityOAuth2CredentialProviderFactory} bean
-	 *
-	 * @param credentialGenerator the CredentialGenerator bean
-	 * @param oAuth2Client the OAuth2Client bean
-	 * @return the bean
-	 */
-	@Bean
-	public SpringSecurityOAuth2CredentialProviderFactory springSecurityOAuth2CredentialProvider(
-		CredentialGenerator credentialGenerator,
-		OAuth2Client oAuth2Client) {
-		return new SpringSecurityOAuth2CredentialProviderFactory(credentialGenerator, oAuth2Client);
-	}
-
-	/**
-	 * Provide a {@link CredentialProviderService} bean
-	 *
-	 * @param providers a collection of credential providers
-	 * @return the bean
-	 */
-	@Bean
-	public CredentialProviderService credentialProviderService(List<CredentialProviderFactory<?>> providers) {
-		return new CredentialProviderService(providers);
-	}
-
-	/**
 	 * Provide a {@link SpacePerServiceInstance} bean
 	 *
 	 * @return the bean
@@ -345,7 +290,6 @@ public class AppBrokerAutoConfiguration {
 	 * @param backingAppDeploymentService the BackingAppDeploymentService bean
 	 * @param appsParametersTransformationService the BackingApplicationsParametersTransformationService bean
 	 * @param servicesParametersTransformationService the BackingServicesParametersTransformationService bean
-	 * @param credentialProviderService the CredentialProviderService bean
 	 * @param targetService the TargetService bean
 	 * @param backingServicesProvisionService the BackingServicesProvisionService bean
 	 * @return the bean
@@ -355,15 +299,13 @@ public class AppBrokerAutoConfiguration {
 		BrokeredServices brokeredServices, BackingAppDeploymentService backingAppDeploymentService,
 		BackingApplicationsParametersTransformationService appsParametersTransformationService,
 		BackingServicesParametersTransformationService servicesParametersTransformationService,
-		CredentialProviderService credentialProviderService, TargetService targetService,
-		BackingServicesProvisionService backingServicesProvisionService) {
+		TargetService targetService, BackingServicesProvisionService backingServicesProvisionService) {
 		return new AppDeploymentCreateServiceInstanceWorkflow(
 			brokeredServices,
 			backingAppDeploymentService,
 			backingServicesProvisionService,
 			appsParametersTransformationService,
 			servicesParametersTransformationService,
-			credentialProviderService,
 			targetService);
 	}
 
@@ -406,7 +348,6 @@ public class AppBrokerAutoConfiguration {
 	 * @param backingAppDeploymentService the BackingAppDeploymentService bean
 	 * @param backingAppManagementService the BackingAppManagementService bean
 	 * @param backingServicesProvisionService the BackingServicesProvisionService bean
-	 * @param credentialProviderService the CredentialProviderService bean
 	 * @param targetService the TargetService bean
 	 * @return the bean
 	 */
@@ -416,7 +357,7 @@ public class AppBrokerAutoConfiguration {
 		BackingAppManagementService backingAppManagementService,
 		BackingServicesProvisionService backingServicesProvisionService,
 		BackingSpaceManagementService backingSpaceManagementService,
-		CredentialProviderService credentialProviderService, TargetService targetService) {
+		TargetService targetService) {
 
 		return new AppDeploymentDeleteServiceInstanceWorkflow(
 			brokeredServices,
@@ -424,7 +365,6 @@ public class AppBrokerAutoConfiguration {
 			backingAppManagementService,
 			backingServicesProvisionService,
 			backingSpaceManagementService,
-			credentialProviderService,
 			targetService
 		);
 	}

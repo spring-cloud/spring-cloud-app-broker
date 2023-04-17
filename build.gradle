@@ -426,8 +426,7 @@ def getTestProjects() {
 
 def getStarterProjects() {
 	[project(":spring-cloud-starter-app-broker"),
-	 project(":spring-cloud-starter-app-broker-cloudfoundry"),
-	 project(":spring-cloud-starter-app-broker-logging")] as Set
+	 project(":spring-cloud-starter-app-broker-cloudfoundry")] as Set
 }
 
 def getLibraryProjects() {

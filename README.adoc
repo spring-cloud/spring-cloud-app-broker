@@ -19,6 +19,15 @@ Join us in our gitter channel: https://gitter.im/spring-cloud-app-broker/communi
 
 === Compatibility
 
+==== 2.1.x
+
+* https://projects.spring.io/spring-framework/[Spring Framework] 6.0.x
+* https://projects.spring.io/spring-boot/[Spring Boot] 3.1.x
+* https://github.com/cloudfoundry/cf-java-client/[Cloud Foundry Java Client] 5.x
+* https://github.com/reactor/[Reactor] 2022.0.0
+* https://spring.io/projects/spring-cloud-open-service-broker/[Spring Cloud Open Service Broker] 4.1.x
+* https://github.com/openservicebrokerapi/servicebroker/tree/v2.16/[Open Service Broker API] 2.16
+
 ==== 2.0.x
 
 * https://projects.spring.io/spring-framework/[Spring Framework] 6.0.x

@@ -5,9 +5,27 @@ updates:
     target-branch: "main"
     schedule:
       interval: daily
+    milestone: 29
+    labels:
+      - dependencies
+
+  - package-ecosystem: gradle
+    directory: "/"
+    target-branch: "2.0.x"
+    schedule:
+      interval: daily
     milestone: 26
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "org.springframework.boot:*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "spring-cloud-starter-open-service-broker"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
 
   - package-ecosystem: gradle
     directory: "/"

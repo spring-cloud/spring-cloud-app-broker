@@ -50,8 +50,6 @@ public class WiremockServerFixture {
 
 	private WireMockServer ccUaaWiremockServer;
 
-	private WireMockServer credHubWiremockServer;
-
 	@PostConstruct
 	public void startWiremock() {
 		ccUaaWiremockServer = new WireMockServer(wireMockConfig()
@@ -59,28 +57,20 @@ public class WiremockServerFixture {
 			.usingFilesUnderClasspath("recordings"));
 		ccUaaWiremockServer.start();
 
-		credHubWiremockServer = new WireMockServer(wireMockConfig()
-			.port(8888)
-			.usingFilesUnderClasspath("recordings"));
-		credHubWiremockServer.start();
-
 		uaaFixture.stubCommonUaaRequests();
 		cloudFoundryFixture.stubCommonCloudControllerRequests();
 	}
 
 	public void stopWiremock() {
 		ccUaaWiremockServer.stop();
-		credHubWiremockServer.stop();
 	}
 
 	public void resetWiremock() {
 		ccUaaWiremockServer.resetAll();
-		credHubWiremockServer.resetAll();
 	}
 
 	public void verifyAllRequiredStubsUsed() {
 		verifyStubs(ccUaaWiremockServer);
-		verifyStubs(credHubWiremockServer);
 	}
 
 	private void verifyStubs(WireMockServer wireMockServer) {

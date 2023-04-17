@@ -33,6 +33,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UpdateInstanceWithNewServiceAcceptanceTest extends CloudFoundryAcceptanceTest {
@@ -140,7 +141,7 @@ class UpdateInstanceWithNewServiceAcceptanceTest extends CloudFoundryAcceptanceT
 		assertThat(newBackingServiceInstance.getApplications()).contains(APP_NAME);
 
 		// and the old backing service is deleted
-		assertThat(listServiceInstances()).doesNotContain(OLD_BACKING_SI_NAME);
+		await().untilAsserted(() -> assertThat(listServiceInstances()).doesNotContain(OLD_BACKING_SI_NAME));
 
 		// then the service instance is deleted
 		deleteServiceInstance(SI_NAME);

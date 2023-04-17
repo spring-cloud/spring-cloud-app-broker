@@ -31,6 +31,7 @@ dependencies {
 	testImplementation "io.projectreactor:reactor-test"
 	testImplementation "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
 	testImplementation "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+	testImplementation "org.awaitility:awaitility"
 }
 
 // omit the version from the test broker jar file

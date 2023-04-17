@@ -41,7 +41,6 @@ import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.ServicesSpec;
 import org.springframework.cloud.appbroker.deployer.TargetSpec;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;
@@ -77,9 +76,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 
 	@Mock
 	private TargetService targetService;
-
-	@Mock
-	private CredentialProviderService credentialProviderService;
 
 	private BackingApplications backingApps;
 
@@ -164,7 +160,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 				backingAppManagementService,
 				backingServicesProvisionService,
 				backingSpaceManagementService,
-				credentialProviderService,
 				targetService
 			);
 	}
@@ -185,8 +180,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
 			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.just(getExistingBackingAppsWithService("my-service-instance")));
-		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
 		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
 
@@ -230,8 +223,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
 			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.just(getExistingBackingAppsWithService("my-service-instance")));
-		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
 
 		// delete in action
 		given(this.backingAppDeploymentService.undeploy(eq(appsWithTarget)))
@@ -265,8 +256,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		given(this.backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
 			request.getServiceDefinition().getName(), request.getPlan().getName()))
 			.willReturn(Mono.just(getExistingBackingAppsWithService("different-service-instance")));
-		given(this.credentialProviderService.deleteCredentials(eq(backingApps), eq(request.getServiceInstanceId())))
-			.willReturn(Mono.just(backingApps));
 		given(this.targetService.addToBackingApplications(eq(backingApps), eq(targetSpec), eq("service-instance-id")))
 			.willReturn(Mono.just(backingApps));
 
@@ -346,7 +335,6 @@ class AppDeploymentDeleteServiceInstanceWorkflowTest {
 		verifyNoMoreInteractions(this.backingServicesProvisionService);
 		verifyNoMoreInteractions(this.backingAppDeploymentService);
 		verifyNoMoreInteractions(this.backingSpaceManagementService);
-		verifyNoMoreInteractions(this.credentialProviderService);
 		verifyNoMoreInteractions(this.targetService);
 	}
 

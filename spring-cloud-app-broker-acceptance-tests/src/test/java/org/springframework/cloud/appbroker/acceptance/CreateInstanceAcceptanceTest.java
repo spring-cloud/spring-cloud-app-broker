@@ -66,13 +66,6 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].properties.memory=2G",
 		"spring.cloud.appbroker.services[0].apps[0].properties.count=2",
 
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].name=SpringSecurityBasicAuth",
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.length=14",
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-uppercase-alpha=true",
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-lowercase-alpha=true",
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-numeric=false",
-		"spring.cloud.appbroker.services[0].apps[0].credential-providers[0].args.include-special=false",
-
 		"spring.cloud.appbroker.services[0].apps[1].name=" + APP_CREATE_2,
 		"spring.cloud.appbroker.services[0].apps[1].path=" + BACKING_APP_PATH
 	})
@@ -95,7 +88,6 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		// and has the environment variables
 		DocumentContext json = getSpringAppJson(APP_CREATE_1);
 		assertEnvironmentVariablesSet(json);
-		assertBasicAuthCredentialsProvided(json);
 
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);
@@ -111,13 +103,6 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 	private void assertEnvironmentVariablesSet(DocumentContext json) {
 		assertThat(json.read("$.ENV_VAR_1").toString()).isEqualTo("value1");
 		assertThat(json.read("$.ENV_VAR_2").toString()).isEqualTo("value2");
-	}
-
-	private void assertBasicAuthCredentialsProvided(DocumentContext json) {
-		assertThat(json.read("$.['spring.security.user.name']").toString())
-			.matches("[a-zA-Z]{14}");
-		assertThat(json.read("$.['spring.security.user.password']").toString())
-			.matches("[a-zA-Z]{14}");
 	}
 
 }

@@ -46,8 +46,6 @@ public class BackingApplication {
 
 	private List<ParametersTransformerSpec> parametersTransformers;
 
-	private List<CredentialProviderSpec> credentialProviders;
-
 	private BackingApplication() {
 	}
 
@@ -60,21 +58,18 @@ public class BackingApplication {
 	 * @param environment the environment variables
 	 * @param services the services required by the application
 	 * @param parametersTransformers the parameter transformers
-	 * @param credentialProviders the credential providers
 	 */
 	public BackingApplication(String name, String path,
 		Map<String, String> properties,
 		Map<String, Object> environment,
 		List<ServicesSpec> services,
-		List<ParametersTransformerSpec> parametersTransformers,
-		List<CredentialProviderSpec> credentialProviders) {
+		List<ParametersTransformerSpec> parametersTransformers) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
 		this.environment = environment;
 		this.services = services;
 		this.parametersTransformers = parametersTransformers;
-		this.credentialProviders = credentialProviders;
 	}
 
 	public String getName() {
@@ -145,14 +140,6 @@ public class BackingApplication {
 		this.parametersTransformers = parametersTransformers;
 	}
 
-	public List<CredentialProviderSpec> getCredentialProviders() {
-		return credentialProviders;
-	}
-
-	public void setCredentialProviders(List<CredentialProviderSpec> credentialProviders) {
-		this.credentialProviders = credentialProviders;
-	}
-
 	/**
 	 * Create a builder that provides a fluent API for constructing a {@literal BackingApplication}.
 	 *
@@ -176,13 +163,12 @@ public class BackingApplication {
 			Objects.equals(properties, that.properties) &&
 			Objects.equals(environment, that.environment) &&
 			Objects.equals(services, that.services) &&
-			Objects.equals(parametersTransformers, that.parametersTransformers) &&
-			Objects.equals(credentialProviders, that.credentialProviders);
+			Objects.equals(parametersTransformers, that.parametersTransformers);
 	}
 
 	@Override
 	public final int hashCode() {
-		return Objects.hash(name, path, properties, environment, services, parametersTransformers, credentialProviders);
+		return Objects.hash(name, path, properties, environment, services, parametersTransformers);
 	}
 
 	@Override
@@ -194,7 +180,6 @@ public class BackingApplication {
 			", environment=" + sanitizeEnvironment(environment) +
 			", services=" + services +
 			", parametersTransformers=" + parametersTransformers +
-			", credentialProviders=" + credentialProviders +
 			'}';
 	}
 
@@ -226,8 +211,6 @@ public class BackingApplication {
 
 		private final List<ParametersTransformerSpec> parameterTransformers = new ArrayList<>();
 
-		private final List<CredentialProviderSpec> credentialProviders = new ArrayList<>();
-
 		private BackingApplicationBuilder() {
 		}
 
@@ -252,13 +235,6 @@ public class BackingApplication {
 			if (!CollectionUtils.isEmpty(backingApplication.getParametersTransformers())) {
 				this.parameterTransformers(backingApplication.getParametersTransformers().stream()
 					.map(spec -> ParametersTransformerSpec.builder()
-						.spec(spec)
-						.build())
-					.collect(Collectors.toList()));
-			}
-			if (!CollectionUtils.isEmpty(backingApplication.getCredentialProviders())) {
-				this.credentialProviders(backingApplication.getCredentialProviders().stream()
-					.map(spec -> CredentialProviderSpec.builder()
 						.spec(spec)
 						.build())
 					.collect(Collectors.toList()));
@@ -395,39 +371,12 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Credential providers for the application
-		 *
-		 * @param credentialProviders the credential providers
-		 * @return the builder
-		 */
-		public BackingApplicationBuilder credentialProviders(List<CredentialProviderSpec> credentialProviders) {
-			if (!CollectionUtils.isEmpty(credentialProviders)) {
-				this.credentialProviders.addAll(credentialProviders);
-			}
-			return this;
-		}
-
-		/**
-		 * Credential providers for the backing application
-		 *
-		 * @param credentialProviders the credential providers
-		 * @return the builder
-		 */
-		public BackingApplicationBuilder credentialProviders(CredentialProviderSpec... credentialProviders) {
-			if (credentialProviders != null) {
-				this.credentialProviders(Arrays.asList(credentialProviders));
-			}
-			return this;
-		}
-
-		/**
 		 * Construct a {@link BackingApplication} from the provided values.
 		 *
 		 * @return the newly constructed {@literal BackingApplication}
 		 */
 		public BackingApplication build() {
-			return new BackingApplication(name, path, properties, environment, services, parameterTransformers,
-				credentialProviders);
+			return new BackingApplication(name, path, properties, environment, services, parameterTransformers);
 		}
 
 	}

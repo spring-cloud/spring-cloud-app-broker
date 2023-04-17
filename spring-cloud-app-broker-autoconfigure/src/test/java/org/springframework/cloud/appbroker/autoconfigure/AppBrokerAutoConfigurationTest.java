@@ -30,11 +30,6 @@ import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionServ
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialGenerator;
-import org.springframework.cloud.appbroker.extensions.credentials.CredentialProviderService;
-import org.springframework.cloud.appbroker.extensions.credentials.SimpleCredentialGenerator;
-import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityBasicAuthCredentialProviderFactory;
-import org.springframework.cloud.appbroker.extensions.credentials.SpringSecurityOAuth2CredentialProviderFactory;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
@@ -245,10 +240,6 @@ class AppBrokerAutoConfigurationTest {
 		assertThat(context).hasSingleBean(BackingServicesParametersTransformationService.class);
 		assertThat(context).hasSingleBean(ParameterMappingParametersTransformerFactory.class);
 
-		assertThat(context).hasSingleBean(CredentialProviderService.class);
-		assertThat(context).hasSingleBean(SpringSecurityBasicAuthCredentialProviderFactory.class);
-		assertThat(context).hasSingleBean(SpringSecurityOAuth2CredentialProviderFactory.class);
-
 		assertThat(context).hasSingleBean(TargetService.class);
 
 		assertThat(context).hasSingleBean(SpacePerServiceInstance.class);
@@ -261,11 +252,6 @@ class AppBrokerAutoConfigurationTest {
 		assertThat(context).doesNotHaveBean(CreateServiceInstanceAppBindingWorkflow.class);
 		assertThat(context).doesNotHaveBean(CreateServiceInstanceRouteBindingWorkflow.class);
 		assertThat(context).doesNotHaveBean(DeleteServiceInstanceBindingWorkflow.class);
-
-		assertThat(context)
-			.hasSingleBean(CredentialGenerator.class)
-			.getBean(CredentialGenerator.class)
-			.isExactlyInstanceOf(SimpleCredentialGenerator.class);
 	}
 
 	private void assertPropertiesLoaded(AssertableApplicationContext context) {

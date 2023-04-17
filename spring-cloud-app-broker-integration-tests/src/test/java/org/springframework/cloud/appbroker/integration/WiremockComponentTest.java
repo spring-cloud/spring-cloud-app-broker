@@ -25,7 +25,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.integration.fixtures.CloudControllerStubFixture;
-import org.springframework.cloud.appbroker.integration.fixtures.CredHubStubFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.OpenServiceBrokerApiFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.TestBindingCredentialsProviderFixture;
 import org.springframework.cloud.appbroker.integration.fixtures.UaaStubFixture;
@@ -41,7 +40,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 		OpenServiceBrokerApiFixture.class,
 		CloudControllerStubFixture.class,
 		UaaStubFixture.class,
-		CredHubStubFixture.class,
 		TestBindingCredentialsProviderFixture.class},
 	properties = {
 		"spring.cloud.appbroker.deployer.cloudfoundry.api-host=localhost",

@@ -31,11 +31,9 @@ dependencies {
 	api project(":spring-cloud-app-broker-core")
 	api project(":spring-cloud-app-broker-deployer")
 	api project(":spring-cloud-app-broker-deployer-cloudfoundry")
-	api project(":spring-cloud-app-broker-security-credhub")
 	api "org.springframework.boot:spring-boot-starter"
 	api "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
 	api "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
-	api "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "org.springframework.boot:spring-boot-starter-webflux"

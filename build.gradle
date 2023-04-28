@@ -418,6 +418,7 @@ wrapper {
 }
 
 nohttp {
+	source.exclude "**/build/**"
 	source.exclude "**/gradle/**"
 }
 

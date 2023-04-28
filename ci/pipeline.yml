@@ -18,6 +18,8 @@ aliases:
 jobs:
   - name: build-ci-images
     plan:
+      - get: weekly
+        trigger: true
       - get: ci-images-git-repo
         trigger: true
       - task: build-image
@@ -250,6 +252,17 @@ resources:
         - Wednesday
         - Thursday
         - Friday
+      location: America/New_York
+      initial_version: true
+
+  - name: weekly
+    type: time
+    icon: calendar-clock
+    source:
+      start: 12:00 AM
+      stop: 1:00 AM
+      days:
+        - Monday
       location: America/New_York
       initial_version: true
 

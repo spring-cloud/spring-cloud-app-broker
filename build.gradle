@@ -26,7 +26,7 @@ buildscript {
 		immutablesVersion = "2.9.3"
 		openServiceBrokerVersion = "3.6.1"
 		pmdVersion = "6.29.0"
-		springBootVersion = "2.7.11"
+		springBootVersion = "2.7.12"
 		springCredhubVersion = "2.3.0"
 		springFrameworkVersion = "5.3.22"
 		wiremockVersion = "2.27.2"

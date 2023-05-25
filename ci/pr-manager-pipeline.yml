@@ -61,4 +61,5 @@ resources:
     source:
       repository: ((app-broker-pr-github-pull-requests-repo))
       access_token: ((app-broker-pr-github-pull-requests-access-token))
+      disable_forks: true
       required_review_approvals: 1

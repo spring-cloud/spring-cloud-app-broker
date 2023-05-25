@@ -87,6 +87,7 @@ resources:
       repository: ((app-broker-pr-github-pull-requests-repo))
       access_token: ((app-broker-pr-github-pull-requests-access-token))
       base_branch: ((pr.base-branch))
+      disable_forks: true
       required_review_approvals: 1
 
   - name: alert

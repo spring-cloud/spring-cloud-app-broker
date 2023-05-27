@@ -5,6 +5,8 @@ updates:
     target-branch: "main"
     schedule:
       interval: weekly
+    commit-message:
+      prefix: "(1.4.x)"
     milestone: 14
     labels:
       - dependencies

@@ -5,6 +5,8 @@ updates:
     target-branch: "main"
     schedule:
       interval: weekly
+    commit-message:
+      prefix: "(1.5.x)"
     milestone: 25
     labels:
       - dependencies

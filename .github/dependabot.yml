@@ -16,6 +16,8 @@ updates:
     target-branch: "2.0.x"
     schedule:
       interval: daily
+    commit-message:
+      prefix: "(2.0.x)"
     milestone: 26
     labels:
       - dependencies
@@ -34,6 +36,8 @@ updates:
     target-branch: "1.6.x"
     schedule:
       interval: daily
+    commit-message:
+      prefix: "(1.5.x)"
     milestone: 27
     labels:
       - dependencies
@@ -52,6 +56,8 @@ updates:
     target-branch: "1.5.x"
     schedule:
       interval: daily
+    commit-message:
+      prefix: "(1.5.x)"
     milestone: 25
     labels:
       - dependencies
@@ -70,6 +76,8 @@ updates:
     target-branch: "1.4.x"
     schedule:
       interval: daily
+    commit-message:
+      prefix: "(1.4.x)"
     milestone: 14
     labels:
       - dependencies

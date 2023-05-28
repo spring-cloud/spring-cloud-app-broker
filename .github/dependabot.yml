@@ -37,7 +37,7 @@ updates:
     schedule:
       interval: daily
     commit-message:
-      prefix: "(1.5.x)"
+      prefix: "(1.6.x)"
     milestone: 27
     labels:
       - dependencies

@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
+plugins {
+	id 'org.springframework.boot' apply false
+}
+
 description = "Spring Cloud App Broker Security CredHub"
 
 dependencies {
-	api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api platform(SpringBootPlugin.BOM_COORDINATES)
 	api project(":spring-cloud-app-broker-core")
 	api "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
 	api "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"

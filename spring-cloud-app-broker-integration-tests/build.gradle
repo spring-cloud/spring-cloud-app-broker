@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
-	id 'org.springframework.boot' version "2.5.14"
+	id 'org.springframework.boot'
 }
 
 description = "Spring Cloud App Broker Integration Tests"
 
 dependencies {
-	implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	implementation enforcedPlatform(platform(SpringBootPlugin.BOM_COORDINATES))
 	implementation project(":spring-cloud-starter-app-broker-cloudfoundry")
 	implementation "org.springframework.boot:spring-boot-starter-webflux"
 

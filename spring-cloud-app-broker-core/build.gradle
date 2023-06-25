@@ -26,7 +26,7 @@ dependencies {
 	api project(":spring-cloud-app-broker-deployer")
 	api "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"
 
-	api enforcedPlatform(platform(SpringBootPlugin.BOM_COORDINATES))
+	api platform(SpringBootPlugin.BOM_COORDINATES)
 	api "org.springframework:spring-core"
 	api "org.springframework:spring-context"
 	api "io.projectreactor:reactor-core"

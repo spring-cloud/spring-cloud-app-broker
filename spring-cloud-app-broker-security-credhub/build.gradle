@@ -23,7 +23,7 @@ plugins {
 description = "Spring Cloud App Broker Security CredHub"
 
 dependencies {
-	api enforcedPlatform(platform(SpringBootPlugin.BOM_COORDINATES))
+	api platform(SpringBootPlugin.BOM_COORDINATES)
 	api project(":spring-cloud-app-broker-core")
 	api "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
 	api "org.springframework.cloud:spring-cloud-open-service-broker-core:${openServiceBrokerVersion}"

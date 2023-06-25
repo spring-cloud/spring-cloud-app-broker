@@ -29,11 +29,11 @@ java {
 }
 
 dependencies {
-	annotationProcessor enforcedPlatform(platform(SpringBootPlugin.BOM_COORDINATES))
+	annotationProcessor platform(SpringBootPlugin.BOM_COORDINATES)
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 	annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor"
 
-	api enforcedPlatform(platform(SpringBootPlugin.BOM_COORDINATES))
+	api platform(SpringBootPlugin.BOM_COORDINATES)
 	api project(":spring-cloud-app-broker-core")
 	api project(":spring-cloud-app-broker-deployer")
 	api project(":spring-cloud-app-broker-deployer-cloudfoundry")

@@ -22,7 +22,7 @@ plugins {
 description = "Spring Cloud App Broker Integration Tests"
 
 dependencies {
-	implementation enforcedPlatform(platform(SpringBootPlugin.BOM_COORDINATES))
+	implementation platform(SpringBootPlugin.BOM_COORDINATES)
 	implementation project(":spring-cloud-starter-app-broker-cloudfoundry")
 	implementation "org.springframework.boot:spring-boot-starter-webflux"
 

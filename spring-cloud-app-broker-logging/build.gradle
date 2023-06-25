@@ -23,7 +23,7 @@ plugins {
 description = "Spring Cloud App Broker Logging"
 
 dependencies {
-	api enforcedPlatform(platform(SpringBootPlugin.BOM_COORDINATES))
+	api platform(SpringBootPlugin.BOM_COORDINATES)
     api "org.springframework.boot:spring-boot-starter-webflux"
     api "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
     api "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"

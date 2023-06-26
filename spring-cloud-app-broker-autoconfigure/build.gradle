@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
+plugins {
+	id 'org.springframework.boot' apply false
+}
+
 description = "Spring Cloud App Broker Autoconfiguration"
 
 java {
@@ -23,11 +29,11 @@ java {
 }
 
 dependencies {
-	annotationProcessor enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	annotationProcessor platform(SpringBootPlugin.BOM_COORDINATES)
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 	annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor"
 
-	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api platform(SpringBootPlugin.BOM_COORDINATES)
 	api project(":spring-cloud-app-broker-core")
 	api project(":spring-cloud-app-broker-deployer")
 	api project(":spring-cloud-app-broker-deployer-cloudfoundry")

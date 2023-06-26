@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
 plugins {
-	id 'org.springframework.boot' version "2.5.14"
+	id 'org.springframework.boot'
 }
 
 description = "Spring Cloud App Broker Acceptance Tests"
 
 dependencies {
-	api enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	api platform(SpringBootPlugin.BOM_COORDINATES)
 	api project(":spring-cloud-starter-app-broker-cloudfoundry")
 	api "org.springframework.boot:spring-boot-starter-webflux"
 

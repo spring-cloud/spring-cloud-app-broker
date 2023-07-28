@@ -88,6 +88,19 @@ configure(javaProjects) {
 		"-Werror"
 	]
 
+	configurations.configureEach {
+		dependencies {
+			constraints {
+				implementation("com.squareup.okio:okio") {
+					version {
+						strictly '[3.4.0,3.5)'
+						because 'patch CVE-2023-3635'
+					}
+				}
+			}
+		}
+	}
+
 	tasks.withType(Test).forEach { Test task ->
 		task.with {
 			// enable JUnit 5

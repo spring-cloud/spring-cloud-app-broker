@@ -29,7 +29,7 @@ buildscript {
 		springBootVersion = "2.6.13"
 		springCredhubVersion = "2.2.0"
 		springFrameworkVersion = "5.3.22"
-		wiremockVersion = "2.27.2"
+		wiremockVersion = "2.35.0"
 	}
 }
 

@@ -29,7 +29,7 @@ dependencies {
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "io.rest-assured:rest-assured"
-	testImplementation "com.github.tomakehurst:wiremock-jre8-standalone:${wiremockVersion}"
+	testImplementation "org.wiremock:wiremock-standalone:${wiremockVersion}"
 }
 
 test {

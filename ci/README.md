@@ -39,7 +39,7 @@ The original pipeline was decomposed into different jobs so that we could recove
 The pipeline can be run using the following script:
 
 ```$bash
-$ ./ci/scripts/set-pipeline.sh
+$ ./scripts/set-pipelines.sh
 ```
 
 ### Release commands

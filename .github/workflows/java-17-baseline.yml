@@ -2,9 +2,9 @@ name: Java 17 baseline build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ 2.0.x, main ]
   pull_request:
-    branches: [ main ]
+    branches: [ 2.0.x, main ]
 
 jobs:
   build:

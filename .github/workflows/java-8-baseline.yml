@@ -2,9 +2,9 @@ name: Java 8 baseline build
 
 on:
   push:
-    branches: [ 1.6.x, 1.5.x, 1.4.x ]
+    branches: [ 1.6.x, 1.5.x ]
   pull_request:
-    branches: [ 1.6.x, 1.5.x, 1.4.x ]
+    branches: [ 1.6.x, 1.5.x ]
 
 jobs:
   build:

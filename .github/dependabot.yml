@@ -50,6 +50,10 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      - dependency-name: "com.github.tomakehurst:wiremock-jre8-standalone"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
 
   - package-ecosystem: gradle
     directory: "/"
@@ -70,3 +74,7 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      - dependency-name: "com.github.tomakehurst:wiremock-jre8-standalone"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"

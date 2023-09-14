@@ -345,6 +345,13 @@ abstract class CloudFoundryAcceptanceTest {
 			.blockOptional();
 	}
 
+	protected Optional<ApplicationDetail> getApplicationDetail(String appName) {
+		return cloudFoundryService
+			.getApplication(appName)
+			.filter(applicationSummary -> appName.equals(applicationSummary.getName()))
+			.blockOptional();
+	}
+
 	protected Optional<ApplicationSummary> getApplicationSummary(String appName, String space) {
 		return cloudFoundryService.getApplication(appName, space).blockOptional();
 	}

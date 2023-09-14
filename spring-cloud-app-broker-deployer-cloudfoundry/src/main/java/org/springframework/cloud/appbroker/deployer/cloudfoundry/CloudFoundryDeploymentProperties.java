@@ -91,6 +91,11 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	protected static final String BUILDPACKS_PROPERTY_KEY = "buildpacks";
 
 	/**
+	 * Key for storing the stack deployment property
+	 */
+	protected static final String STACK_PROPERTY_KEY = "stack";
+
+	/**
 	 * Key for storing JAVA_OPTS deployment property
 	 */
 	protected static final String JAVA_OPTS_PROPERTY_KEY = "javaOpts";
@@ -125,6 +130,11 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	 * The buildpacks to use for deploying the application.
 	 */
 	private String buildpacks = "";
+
+	/**
+	 * The stack to use for deploying the application.
+	 */
+	private String stack;
 
 	/**
 	 * The type of health check to perform on deployed application, if not overridden per-app.  Defaults to PORT
@@ -192,6 +202,14 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 
 	public void setBuildpacks(String buildpacks) {
 		this.buildpacks = buildpacks;
+	}
+
+	public String getStack() {
+		return stack;
+	}
+
+	public void setStack(String stack) {
+		this.stack = stack;
 	}
 
 	public boolean isEnableRandomAppNamePrefix() {

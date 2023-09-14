@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.acceptance;
 import java.util.Optional;
 
 import com.jayway.jsonpath.DocumentContext;
+import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +64,7 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=value2",
+		"spring.cloud.appbroker.services[0].apps[0].properties.stack=cflinuxfs3",
 		"spring.cloud.appbroker.services[0].apps[0].properties.memory=2G",
 		"spring.cloud.appbroker.services[0].apps[0].properties.count=2",
 
@@ -84,6 +86,19 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		Optional<ApplicationSummary> backingApplication2 = getApplicationSummary(APP_CREATE_2);
 		assertThat(backingApplication2).hasValueSatisfying(app ->
 			assertThat(app.getRunningInstances()).isEqualTo(1));
+
+
+		// and stack is updated when specified
+		Optional<ApplicationDetail> application1Detail = getApplicationDetail(APP_CREATE_1);
+		assertThat(application1Detail).hasValueSatisfying(app -> {
+			assertThat(app.getStack()).isEqualTo("cflinuxfs3");
+		});
+
+		// and stack is not updated when not specified
+		Optional<ApplicationDetail> application2Detail = getApplicationDetail(APP_CREATE_1);
+		assertThat(application2Detail).hasValueSatisfying(app -> {
+			assertThat(app.getStack()).isEqualTo("cflinuxfs4");
+		});
 
 		// and has the environment variables
 		DocumentContext json = getSpringAppJson(APP_CREATE_1);

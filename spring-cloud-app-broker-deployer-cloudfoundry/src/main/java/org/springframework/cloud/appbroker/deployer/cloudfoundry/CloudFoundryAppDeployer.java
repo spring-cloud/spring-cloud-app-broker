@@ -706,6 +706,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.services(request.getServices())
 			.instances(instances(deploymentProperties))
 			.memory(memory(deploymentProperties))
+			.stack(stack(deploymentProperties))
 			.disk(diskQuota(deploymentProperties))
 			.healthCheckType(healthCheck(deploymentProperties))
 			.healthCheckHttpEndpoint(healthCheckEndpoint(deploymentProperties))
@@ -1045,6 +1046,11 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private String buildpacks(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.BUILDPACKS_PROPERTY_KEY))
 			.orElse(this.defaultDeploymentProperties.getBuildpacks());
+	}
+
+	private String stack(Map<String, String> properties) {
+		return Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.STACK_PROPERTY_KEY))
+			.orElse(this.defaultDeploymentProperties.getStack());
 	}
 
 	private String javaOpts(Map<String, String> properties) {

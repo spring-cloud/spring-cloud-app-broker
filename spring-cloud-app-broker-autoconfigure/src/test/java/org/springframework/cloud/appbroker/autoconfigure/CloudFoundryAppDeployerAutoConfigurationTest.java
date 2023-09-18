@@ -56,6 +56,7 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				"spring.cloud.appbroker.deployer.cloudfoundry.properties.memory=2G",
 				"spring.cloud.appbroker.deployer.cloudfoundry.properties.count=3",
 				"spring.cloud.appbroker.deployer.cloudfoundry.properties.buildpack=example-buildpack",
+				"spring.cloud.appbroker.deployer.cloudfoundry.properties.stack=customstack",
 				"spring.cloud.appbroker.deployer.cloudfoundry.properties.domain=example.local"
 			)
 			.run((context) -> {
@@ -74,6 +75,7 @@ class CloudFoundryAppDeployerAutoConfigurationTest {
 				assertThat(deploymentProperties.getMemory()).isEqualTo("2G");
 				assertThat(deploymentProperties.getCount()).isEqualTo(3);
 				assertThat(deploymentProperties.getBuildpack()).isEqualTo("example-buildpack");
+				assertThat(deploymentProperties.getStack()).isEqualTo("customstack");
 				assertThat(deploymentProperties.getDomain()).isEqualTo("example.local");
 
 				assertThat(context).hasSingleBean(AppDeployer.class);

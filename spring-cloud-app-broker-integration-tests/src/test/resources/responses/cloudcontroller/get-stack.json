@@ -6,7 +6,7 @@
 		"updated_at": "2018-03-28T22:15:03Z"
 	},
 	"entity": {
-		"name": "cflinuxfs2",
+		"name": "cflinuxfs4",
 		"description": "Cloud Foundry Linux-based filesystem"
 	}
 }

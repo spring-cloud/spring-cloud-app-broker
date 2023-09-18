@@ -208,6 +208,7 @@ class CloudFoundryAppDeployerTest {
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_PROPERTY_KEY, "http")
 			.property(CloudFoundryDeploymentProperties.HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY, "/healthcheck")
 			.property(CloudFoundryDeploymentProperties.BUILDPACKS_PROPERTY_KEY, "buildpack1,buildpack2")
+			.property(CloudFoundryDeploymentProperties.STACK_PROPERTY_KEY, "customstack")
 			.property(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY, "domain1,domain2")
 			.property(DeploymentProperties.HOST_PROPERTY_KEY, "host")
 			.property(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY, "true")
@@ -226,6 +227,7 @@ class CloudFoundryAppDeployerTest {
 			.healthCheckType(ApplicationHealthCheck.HTTP)
 			.healthCheckHttpEndpoint("/healthcheck")
 			.buildpacks("buildpack1", "buildpack2")
+			.stack("customstack")
 			.domains("domain2", "domain1") // domains is a list so order matters
 			.host("host")
 			.noRoute(true)
@@ -295,6 +297,7 @@ class CloudFoundryAppDeployerTest {
 			.property(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY, "domain2")
 			.property(DeploymentProperties.HOST_PROPERTY_KEY, "host2")
 			.property(CloudFoundryDeploymentProperties.NO_ROUTE_PROPERTY, "true")
+			.property(CloudFoundryDeploymentProperties.STACK_PROPERTY_KEY, "customstack")
 			.build();
 
 		StepVerifier.create(appDeployer.deploy(request))
@@ -312,6 +315,7 @@ class CloudFoundryAppDeployerTest {
 			.buildpack("buildpack2")
 			.domains("domain2", "domain1")
 			.host("host2")
+			.stack("customstack")
 			.noRoute(true)
 			.build();
 

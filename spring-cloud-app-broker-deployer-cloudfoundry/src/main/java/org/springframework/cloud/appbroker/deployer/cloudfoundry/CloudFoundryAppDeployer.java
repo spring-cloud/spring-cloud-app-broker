@@ -51,6 +51,9 @@ import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperRequest;
 import org.cloudfoundry.client.v2.spaces.CreateSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.DeleteSpaceRequest;
 import org.cloudfoundry.client.v2.spaces.SpaceEntity;
+import org.cloudfoundry.client.v3.BuildpackData;
+import org.cloudfoundry.client.v3.Lifecycle;
+import org.cloudfoundry.client.v3.LifecycleType;
 import org.cloudfoundry.client.v3.Relationship;
 import org.cloudfoundry.client.v3.ToOneRelationship;
 import org.cloudfoundry.client.v3.applications.ListApplicationPackagesRequest;
@@ -260,7 +263,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.properties(request.getProperties())
 			.build())
 			.map(GetApplicationResponse::getId)
-			.flatMap(applicationId -> updateEnvironment(request, applicationId))
+			.flatMap(applicationId -> updateApplication(request, applicationId))
 			.thenReturn(UpdateApplicationResponse.builder().name(appName).build());
 	}
 
@@ -281,7 +284,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 					return associateHostName(applicationId, request.getProperties());
 				}
 			})
-			.flatMap(applicationId -> updateEnvironment(request, applicationId))
+			.flatMap(applicationId -> updateApplication(request, applicationId))
 			.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
 				upgradeApplicationIfRequired(request, applicationId)))
 			.flatMap(tuple2 -> {
@@ -580,11 +583,46 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return getPackageForApplication(applicationId);
 	}
 
-	private Mono<String> updateEnvironment(UpdateApplicationRequest request, String applicationId) {
-		final Map<String, Object> environmentVariables =
-			getApplicationEnvironment(request.getProperties(), request.getEnvironment(),
-				request.getServiceInstanceId());
-		return updateApplicationEnvironment(applicationId, environmentVariables, request.getProperties())
+	private Mono<String> updateApplication(UpdateApplicationRequest request, String applicationId) {
+		final Map<String, Object> environmentVariables = getApplicationEnvironment(request.getProperties(),
+			request.getEnvironment(), request.getServiceInstanceId());
+		Map<String, String> properties = request.getProperties();
+
+		return updateStackIfPresent(request, applicationId)
+			.then(this.client.applicationsV2()
+				.update(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.builder()
+					.applicationId(applicationId)
+					.instances(instances(properties))
+					.diskQuota(diskQuota(properties))
+					.memory(memory(properties))
+					.putAllEnvironmentJsons(environmentVariables)
+					.build())
+				.doOnRequest(l -> LOG.debug("Updating environment. applicationId={}", applicationId))
+				.doOnSuccess(response -> {
+					LOG.info("Success updating environment. applicationId={}", applicationId);
+					LOG.debug(RESPONSE_LOG_TEMPLATE, response);
+				})
+				.doOnError(e -> LOG.error(String.format("Error updating environment. applicationId=%s, " +
+					ERROR_LOG_TEMPLATE, applicationId, e.getMessage()), e)))
+			.thenReturn(applicationId);
+	}
+
+	private Mono<String> updateStackIfPresent(UpdateApplicationRequest request, String applicationId) {
+		if (!request.getProperties().containsKey("upgrade") ||
+			!StringUtils.hasText(this.defaultDeploymentProperties.getStack())) {
+			return Mono.just(applicationId);
+		}
+		String stackName = this.defaultDeploymentProperties.getStack();
+		return this.client.applicationsV3().
+			update(org.cloudfoundry.client.v3.applications.UpdateApplicationRequest.builder()
+				.applicationId(applicationId)
+				.lifecycle(Lifecycle.builder()
+					.type(LifecycleType.BUILDPACK)
+					.data(BuildpackData.builder()
+						.stack(stackName)
+						.build())
+					.build())
+				.build())
 			.thenReturn(applicationId);
 	}
 
@@ -639,27 +677,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			})
 			.doOnError(e -> LOG.error(String.format("Error creating package. applicationId=%s, " + ERROR_LOG_TEMPLATE,
 				applicationId, e.getMessage()), e));
-	}
-
-	private Mono<org.cloudfoundry.client.v2.applications.UpdateApplicationResponse> updateApplicationEnvironment(
-		String applicationId, Map<String, Object> environmentVariables, Map<String, String> properties) {
-		return this.client
-			.applicationsV2()
-			.update(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest
-				.builder()
-				.applicationId(applicationId)
-				.instances(instances(properties))
-				.diskQuota(diskQuota(properties))
-				.memory(memory(properties))
-				.putAllEnvironmentJsons(environmentVariables)
-				.build())
-			.doOnRequest(l -> LOG.debug("Updating environment. applicationId={}", applicationId))
-			.doOnSuccess(response -> {
-				LOG.info("Success updating environment. applicationId={}", applicationId);
-				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
-			})
-			.doOnError(e -> LOG.error(String.format("Error updating environment. applicationId=%s, " +
-				ERROR_LOG_TEMPLATE, applicationId, e.getMessage()), e));
 	}
 
 	private Function<Flux<Long>, Publisher<?>> getExponentialBackOff() {

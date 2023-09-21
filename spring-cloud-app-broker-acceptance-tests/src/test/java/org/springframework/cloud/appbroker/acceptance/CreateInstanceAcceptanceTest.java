@@ -64,12 +64,13 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_1=value1",
 		"spring.cloud.appbroker.services[0].apps[0].environment.ENV_VAR_2=value2",
-		"spring.cloud.appbroker.services[0].apps[0].properties.stack=cflinuxfs3",
 		"spring.cloud.appbroker.services[0].apps[0].properties.memory=2G",
 		"spring.cloud.appbroker.services[0].apps[0].properties.count=2",
 
 		"spring.cloud.appbroker.services[0].apps[1].name=" + APP_CREATE_2,
-		"spring.cloud.appbroker.services[0].apps[1].path=" + BACKING_APP_PATH
+		"spring.cloud.appbroker.services[0].apps[1].path=" + BACKING_APP_PATH,
+
+		"spring.cloud.appbroker.deployer.cloudfoundry.properties.stack=cflinuxfs3"
 	})
 	void deployAppsOnCreateService() {
 		// when a service instance is created
@@ -92,12 +93,6 @@ class CreateInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		Optional<ApplicationDetail> application1Detail = getApplicationDetail(APP_CREATE_1);
 		assertThat(application1Detail).hasValueSatisfying(app -> {
 			assertThat(app.getStack()).isEqualTo("cflinuxfs3");
-		});
-
-		// and stack is not updated when not specified
-		Optional<ApplicationDetail> application2Detail = getApplicationDetail(APP_CREATE_1);
-		assertThat(application2Detail).hasValueSatisfying(app -> {
-			assertThat(app.getStack()).isEqualTo("cflinuxfs4");
 		});
 
 		// and has the environment variables

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import com.jayway.jsonpath.DocumentContext;
+import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,7 +79,9 @@ class UpgradeInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 		"spring.cloud.appbroker.services[0].apps[0].path=" + BACKING_APP_PATH,
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=old-config1",
-		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=old-config2"
+		"spring.cloud.appbroker.services[0].apps[0].environment.parameter2=old-config2",
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=PropertyMapping",
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=upgrade"
 	})
 	void createsServiceInstance() {
 		// when a service instance is created
@@ -107,16 +110,14 @@ class UpgradeInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_NAME,
 		"spring.cloud.appbroker.services[0].apps[0].path=" + BACKING_APP_PATH,
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter1=new-config1",
-		"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=new-config3"
+		"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=new-config3",
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=PropertyMapping",
+		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=upgrade",
+		"spring.cloud.appbroker.deployer.cloudfoundry.properties.stack=cflinuxfs3"
 	})
 	void upgradesTheServiceInstanceWithNewBackingServiceAndEnvironmentVariables() {
 		// when the service instance is updated with a new service
 		updateServiceInstance(SI_NAME, Collections.singletonMap("upgrade", true));
-
-		// then the backing application was updated with zero downtime
-		healthListener.stop();
-		assertThat(healthListener.getFailures()).isEqualTo(0);
-		assertThat(healthListener.getSuccesses()).isGreaterThan(0);
 
 		// then a backing application is re-deployed
 		Optional<ApplicationSummary> updatedBackingApplication = getApplicationSummary(APP_NAME);
@@ -128,6 +129,17 @@ class UpgradeInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		assertThat(json.read("$.parameter1").toString()).isEqualTo("new-config1");
 		assertThat(json.read("$.parameter3").toString()).isEqualTo("new-config3");
 		assertThat(json.jsonString()).doesNotContain("parameter2");
+
+		// and stack is updated when specified
+		Optional<ApplicationDetail> application1Detail = getApplicationDetail(APP_NAME);
+		assertThat(application1Detail).hasValueSatisfying(app -> {
+			assertThat(app.getStack()).isEqualTo("cflinuxfs3");
+		});
+
+		// then the backing application was updated with zero downtime
+		healthListener.stop();
+		assertThat(healthListener.getFailures()).isEqualTo(0);
+		assertThat(healthListener.getSuccesses()).isGreaterThan(0);
 
 		// when the service instance is deleted
 		deleteServiceInstance(SI_NAME);

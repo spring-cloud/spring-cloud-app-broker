@@ -38,6 +38,7 @@ import org.cloudfoundry.client.v3.BuildpackData;
 import org.cloudfoundry.client.v3.Lifecycle;
 import org.cloudfoundry.client.v3.LifecycleType;
 import org.cloudfoundry.client.v3.Relationship;
+import org.cloudfoundry.client.v3.applications.ApplicationState;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
 import org.cloudfoundry.client.v3.applications.ListApplicationPackagesResponse;
 import org.cloudfoundry.client.v3.builds.BuildState;
@@ -223,6 +224,14 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 				.resource(createPackage("2019-07-05T12:37:47Z", "package-id-2"))
 				.resource(createPackage("2019-07-06T10:37:47Z", "package-id-3"))
 				.resource(createPackage("2019-07-06T11:37:47Z", "package-id-4"))
+				.build()));
+		given(applicationsV3.update(any()))
+			.willReturn(Mono.just(org.cloudfoundry.client.v3.applications.UpdateApplicationResponse.builder()
+				.createdAt("2019-07-06T11:37:47Z")
+				.id("id")
+				.lifecycle(createLifecycle())
+				.name("app")
+				.state(ApplicationState.STARTED)
 				.build()));
 
 		given(builds.create(any()))

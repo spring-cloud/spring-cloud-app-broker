@@ -183,12 +183,6 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 				.withBody(cc("empty-query-results"))));
 	}
 
-	public void stubListStacks() {
-		stubFor(get(urlPathEqualTo("/v2/stacks"))
-			.willReturn(ok()
-				.withBody(cc("list-stacks"))));
-	}
-
 	public void stubAppExistsInSpace(final String appName, final String spaceGuid) {
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
 			.withMetadata(optionalStubMapping())

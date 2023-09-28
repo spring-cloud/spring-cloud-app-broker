@@ -43,6 +43,26 @@ The following table lists properties that can be set for all or for deployments:
 |Description
 |Default
 
+|`api-polling-timeout`
+|The timeout for polled async CF API calls, in seconds.
+|300
+
+|`buildpack`
+|The buildpack to use for deploying the application.
+|
+
+|`buildpacks`
+|The list of buildpacks to use for deploying the application.
+|
+
+|`domain`
+|The domain to use when mapping routes for applications.
+|
+
+|`domains`
+|The list of domain to use when mapping routes for applications.
+|
+
 |`health-check`
 |The type of health check to perform on deployed application, if not overridden per-app.
 |PORT
@@ -55,9 +75,17 @@ The following table lists properties that can be set for all or for deployments:
 |The timeout value for health checks in seconds.
 |120
 
-|`api-polling-timeout`
-|The timeout for polled async CF API calls, in seconds.
-|300
+|`javaOpts`
+|The javaOpts to use for deploying the application.
+|
+
+|`memory`
+|The memory to use for deploying the application.
+|
+
+|`no-route`
+|If the application does not need a route
+|false
 
 |`route-path`
 |The route-path to use for deploying the application.
@@ -67,36 +95,8 @@ The following table lists properties that can be set for all or for deployments:
 |The routes to use for deploying the application.
 |
 
-|`no-route`
-|If the application does not need a route
-|false
-
-|`domain`
-|The domain to use when mapping routes for applications.
-|
-
-|`domains`
-|The list of domain to use when mapping routes for applications.
-|
-
-|`buildpack`
-|The buildpack to use for deploying the application.
-|
-
-|`buildpacks`
-|The list of buildpacks to use for deploying the application.
-|
-
 |`stack`
 |The stack to use for deploying the application.
-|
-
-|`javaOpts`
-|The javaOpts to use for deploying the application.
-|
-
-|`memory`
-|The memory to use for deploying the application.
 |
 
 |===

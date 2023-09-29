@@ -98,10 +98,12 @@ jobs:
           - get: git-repo
             passed: [build]
             trigger: true
-          - put: toolsmith-env
-            inputs: []
+          - put: cf-environment
             params:
-              action: claim
+              action: create
+              duration: 6h
+              resource: cf-environment
+            timeout: 6h
       - task: acceptance-tests
         file: git-repo/ci/tasks/acceptance-tests.yml
         vars:
@@ -109,11 +111,11 @@ jobs:
     on_success:
       in_parallel:
         - *slack-success-notification
-        - put: toolsmith-env
+        - put: cf-environment
           params:
-            action: unclaim
-            env_file: toolsmith-env/metadata
-          inputs: [toolsmith-env]
+            action: release
+            resource: cf-environment
+
     on_failure:
       *slack-failure-notification
     on_error:
@@ -244,11 +246,11 @@ resource_types:
       repository: ((dockerhub-mirror-registry))/cfcommunity/slack-notification-resource
       tag: latest
 
-  - name: pcf-pool
+  - name: shepherd
     type: registry-image
     source:
-      repository: ((dockerhub-mirror-registry))/cftoolsmiths/toolsmiths-envs-resource
-      tag: latest
+      repository: ((shepherd-image-repository))/shepherd-268822/shepherd2/concourse-resource
+      tag: v1
 
 resources:
   - name: nightly
@@ -323,13 +325,17 @@ resources:
     source:
       url: ((scs-slack-webhook))
 
-  - name: toolsmith-env
-    type: pcf-pool
-    icon: pool
+  - name: cf-environment
+    type: shepherd
     source:
-      api_token: ((toolsmith-api-token))
-      hostname: environments.toolsmiths.cf-app.com
-      pool_name: cf-deployment
+      url: https://v2.shepherd.run
+      service-account-key: ((shepherd-service-account-key))
+      lease:
+        namespace: spring-cloud-app-broker
+        pool:
+          namespace: official
+          name: cfd
+      compatibility-mode: environments-app
 
 groups:
   - name: "build"

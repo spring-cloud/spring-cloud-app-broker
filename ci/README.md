@@ -1,4 +1,4 @@
-#App Broker CI Pipeline
+# App Broker CI Pipeline
 
 ## Running the acceptance tests on Cloud Foundry locally
 
@@ -36,7 +36,7 @@ The original pipeline was decomposed into different jobs so that we could recove
 
 ### Fly
 
-The pipeline can be run using the following script:
+The pipeline can be run using the following script from the `main` branch:
 
 ```$bash
 $ ./ci/scripts/set-pipeline.sh

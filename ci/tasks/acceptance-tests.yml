@@ -9,13 +9,9 @@ image_resource:
     tag: ((ci-image-tag))
 inputs:
   - name: git-repo
-  - name: toolsmith-env
+  - name: cf-environment
 run:
   path: ci/scripts/acceptance-tests.sh
   dir: git-repo
 params:
-  TOOLSMITH_ENV_INPUT: ../toolsmith-env
-  DEFAULT_ORG: ((acceptance-test-default-org))
-  DEFAULT_SPACE: ((acceptance-test-default-space))
-  SKIP_SSL_VALIDATION: ((acceptance-test-skip-ssl-validation))
-  ONLY_SHOW_STANDARD_STREAMS_ON_TEST_FAILURE: true
+  METADATA_FILE: ../cf-environment/metadata

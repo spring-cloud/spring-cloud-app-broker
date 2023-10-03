@@ -31,7 +31,6 @@ RUN apt-get update && \
     apt-get clean
 
 ADD "https://raw.githubusercontent.com/spring-io/concourse-java-scripts/v$CONCOURSE_JAVA_SCRIPTS_VERSION/concourse-java.sh" /opt/
-ADD "https://repo.spring.io/ui/native/snapshot/io/spring/concourse/releasescripts/concourse-release-scripts/$CONCOURSE_RELEASE_SCRIPTS_VERSION/concourse-release-scripts-$CONCOURSE_RELEASE_SCRIPTS_VERSION.jar" /opt/
 
 RUN cd /usr/local/bin && curl -L "https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/$CREDHUB_CLI_VERSION/credhub-linux-$CREDHUB_CLI_VERSION.tgz" | tar xz
 

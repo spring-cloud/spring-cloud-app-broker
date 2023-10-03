@@ -1,15 +1,25 @@
 [*]
-charset=utf-8
-end_of_line=lf
-insert_final_newline=true
-indent_style=tab
-indent_size=4
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = tab
+indent_size = 4
 
-[*.{yml,yaml,sh}]
-indent_style=space
-indent_size=2
+[{spec,*.yml,*.yaml,Kilnfile,Kilnfile.lock}]
+indent_style = space
+indent_size = 2
+ij_yaml_keep_indents_on_empty_lines = false
+ij_yaml_keep_line_breaks = true
+
+[*.sh]
+indent_size = 2
+indent_style = space
+
+[{.asciidoctorconfig,*.ad,*.adoc,*.asciidoc}]
+ij_asciidoc_formatting_enabled = true
+ij_asciidoc_one_sentence_per_line = true
 
 [*.java]
 ij_java_class_count_to_use_import_on_demand = 100
-ij_java_imports_layout = jakarta.**,|,java.**,|,*,|,org.springframework.**,|,$*
+ij_java_imports_layout = jakarta.**, |, java.**, |, *, |, org.springframework.**, |, $*
 ij_java_names_count_to_use_import_on_demand = 100

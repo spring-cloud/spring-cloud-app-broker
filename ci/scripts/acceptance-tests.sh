@@ -53,7 +53,22 @@ EOF
 prepare_cf() {
   local -r test_instances_org="$DEFAULT_ORG-instances"
 
-  cf login -a "$CF_API_HOST" -u "$CF_USERNAME" -p "$CF_PASSWORD" -o system --skip-ssl-validation
+  local api_available="false"
+  local max_attempts=5
+  local attempts=1
+  local sleep_seconds=30
+  while [ "$api_available" == "false" ] && [ $attempts -le $max_attempts ]; do
+    echo "Attempting to log in ($attempts/$max_attempts)"
+    cf login -a "$CF_API_HOST" -u "$CF_USERNAME" -p "$CF_PASSWORD" -o system --skip-ssl-validation
+
+    if [ $? ]; then
+      api_available="true"
+    else
+      echo "API not ready yet; sleeping for ${sleep_seconds}s..."
+      attempts=$((attempts + 1))
+      sleep ${sleep_seconds}
+    fi
+  done
 
   cf create-org "$DEFAULT_ORG"
   cf create-space "$DEFAULT_SPACE" -o "$DEFAULT_ORG"

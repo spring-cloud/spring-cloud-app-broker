@@ -10,7 +10,7 @@ readonly PIPELINE_TYPE=${1:-""}
 
 set_branch_pipeline() {
   local -r pipeline_name="app-broker${PIPELINE_NAME_SUFFIX:+"-$PIPELINE_NAME_SUFFIX"}"
-  local -r branches=("main" "2.0.x" "1.6.x" "1.5.x")
+  local -r branches=("main" "2.1.x" "2.0.x" "1.6.x" "1.5.x")
 
 	for branch in "${branches[@]}"; do
   	echo "Setting $pipeline_name $branch pipeline..."

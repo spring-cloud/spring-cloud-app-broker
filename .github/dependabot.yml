@@ -6,10 +6,30 @@ updates:
     schedule:
       interval: daily
     commit-message:
+      prefix: "(2.2.x)"
+    milestone: 30
+    labels:
+      - dependencies
+
+  - package-ecosystem: gradle
+    directory: "/"
+    target-branch: "2.1.x"
+    schedule:
+      interval: daily
+    commit-message:
       prefix: "(2.1.x)"
     milestone: 29
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "org.springframework.boot:*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "spring-cloud-starter-open-service-broker"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
 
   - package-ecosystem: gradle
     directory: "/"

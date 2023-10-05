@@ -22,7 +22,7 @@ buildscript {
 		cfJavaClientVersion = "5.10.0.RELEASE"
 		commonsTextVersion = "1.10.0"
 		immutablesVersion = "2.9.3"
-		openServiceBrokerVersion = "4.1.0-SNAPSHOT"
+		openServiceBrokerVersion = "4.1.0-RC1"
 		springFrameworkVersion = "6.0.0"
 		wiremockVersion = "3.2.0"
 	}

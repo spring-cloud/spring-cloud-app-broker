@@ -23,7 +23,7 @@ buildscript {
 		cfJavaClientVersion = "5.10.0.RELEASE"
 		checkstyleVersion = "8.37"
 		commonsTextVersion = "1.10.0"
-		immutablesVersion = "2.9.3"
+		immutablesVersion = "2.10.0"
 		openServiceBrokerVersion = "3.5.4"
 		pmdVersion = "6.29.0"
 		springCredhubVersion = "2.2.0"

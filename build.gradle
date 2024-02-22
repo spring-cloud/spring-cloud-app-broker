@@ -20,7 +20,7 @@ buildscript {
 	ext {
 		awaitilityVersion = "4.2.0"
 		blockHoundVersion = "1.0.8.RELEASE"
-		cfJavaClientVersion = "5.10.0.RELEASE"
+		cfJavaClientVersion = "5.11.1.RELEASE"
 		checkstyleVersion = "8.37"
 		commonsTextVersion = "1.11.0"
 		immutablesVersion = "2.10.0"

@@ -519,7 +519,7 @@ class CloudFoundryAppDeployerTest {
 				.memoryLimit(100)
 				.requestedState("STARTED")
 				.runningInstances(2)
-				.stack("cflinuxfs3")
+				.stack("cflinuxfs4")
 				.build()));
 
 		given(clientApplications.summary(argThat(request -> appId.equals(request.getApplicationId()))))

@@ -23,6 +23,7 @@ import org.cloudfoundry.operations.services.ServiceInstance;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 class CreateInstanceWithServiceInstanceGuidSuffixTargetAcceptanceTest extends CloudFoundryAcceptanceTest {
 
@@ -90,7 +91,7 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetAcceptanceTest extends Cl
 		deleteServiceInstance(SI_NAME);
 
 		// and the backing service is deleted
-		assertThat(listServiceInstances()).doesNotContain(expectedServiceInstanceName);
+		await().untilAsserted(() -> assertThat(listServiceInstances()).doesNotContain(expectedServiceInstanceName));
 	}
 
 }

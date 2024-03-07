@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTest {
 
@@ -115,7 +116,7 @@ class UpdateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 		deleteServiceInstance(SI_NAME);
 
 		// and the backing service is deleted
-		assertThat(listServiceInstances()).doesNotContain(BACKING_SI_NAME);
+		await().untilAsserted(() -> assertThat(listServiceInstances()).doesNotContain(BACKING_SI_NAME));
 	}
 
 }

@@ -10,6 +10,15 @@ updates:
     milestone: 30
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "org.springframework.boot"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "spring-cloud-starter-open-service-broker"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
 
   - package-ecosystem: gradle
     directory: "/"
@@ -22,7 +31,7 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "org.springframework.boot:*"
+      - dependency-name: "org.springframework.boot"
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
@@ -42,7 +51,7 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "org.springframework.boot:*"
+      - dependency-name: "org.springframework.boot"
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
@@ -62,7 +71,7 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "org.springframework.boot:*"
+      - dependency-name: "org.springframework.boot"
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
@@ -86,7 +95,7 @@ updates:
     labels:
       - dependencies
     ignore:
-      - dependency-name: "org.springframework.boot:*"
+      - dependency-name: "org.springframework.boot"
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"

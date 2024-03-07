@@ -113,7 +113,7 @@ class UpgradeInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		"spring.cloud.appbroker.services[0].apps[0].environment.parameter3=new-config3",
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].name=PropertyMapping",
 		"spring.cloud.appbroker.services[0].apps[0].parameters-transformers[0].args.include=upgrade",
-		"spring.cloud.appbroker.deployer.cloudfoundry.properties.stack=cflinuxfs3"
+		"spring.cloud.appbroker.deployer.cloudfoundry.properties.stack=cflinuxfs4"
 	})
 	void upgradesTheServiceInstanceWithNewBackingServiceAndEnvironmentVariables() {
 		// when the service instance is updated with a new service
@@ -133,7 +133,7 @@ class UpgradeInstanceAcceptanceTest extends CloudFoundryAcceptanceTest {
 		// and stack is updated when specified
 		Optional<ApplicationDetail> application1Detail = getApplicationDetail(APP_NAME);
 		assertThat(application1Detail).hasValueSatisfying(app -> {
-			assertThat(app.getStack()).isEqualTo("cflinuxfs3");
+			assertThat(app.getStack()).isEqualTo("cflinuxfs4");
 		});
 
 		// then the backing application was updated with zero downtime

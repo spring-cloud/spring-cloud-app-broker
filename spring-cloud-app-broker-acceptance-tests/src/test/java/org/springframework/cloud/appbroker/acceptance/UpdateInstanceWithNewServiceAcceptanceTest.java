@@ -147,7 +147,7 @@ class UpdateInstanceWithNewServiceAcceptanceTest extends CloudFoundryAcceptanceT
 		deleteServiceInstance(SI_NAME);
 
 		// and the backing service is deleted
-		assertThat(listServiceInstances()).doesNotContain(NEW_BACKING_SI_NAME);
+		await().untilAsserted(() -> assertThat(listServiceInstances()).doesNotContain(NEW_BACKING_SI_NAME));
 	}
 
 	@Override

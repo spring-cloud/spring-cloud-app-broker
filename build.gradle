@@ -21,7 +21,7 @@ buildscript {
 		blockHoundVersion = "1.0.8.RELEASE"
 		cfJavaClientVersion = "5.10.0.RELEASE"
 		commonsTextVersion = "1.10.0"
-		immutablesVersion = "2.10.0"
+		immutablesVersion = "2.10.1"
 		openServiceBrokerVersion = "4.1.0"
 		springFrameworkVersion = "6.0.0"
 		wiremockVersion = "3.3.1"

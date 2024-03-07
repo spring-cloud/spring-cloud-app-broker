@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 class CreateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTest {
 
@@ -91,8 +92,8 @@ class CreateInstanceWithServicesAcceptanceTest extends CloudFoundryAcceptanceTes
 		deleteServiceInstance(SI_NAME);
 
 		// and the backing services are deleted
-		assertThat(listServiceInstances()).doesNotContain(BACKING_SI_1_NAME);
-		assertThat(listServiceInstances()).doesNotContain(BACKING_SI_2_NAME);
+		await().untilAsserted(() -> assertThat(listServiceInstances()).doesNotContain(BACKING_SI_1_NAME));
+		await().untilAsserted(() -> assertThat(listServiceInstances()).doesNotContain(BACKING_SI_2_NAME));
 
 		// TODO: another story to only remove the instances with service definition specified (https://github.com/spring-cloud/spring-cloud-app-broker/issues/316)
 //		// service without specification has no applications bound to it

@@ -22,8 +22,7 @@ buildscript {
 		cfJavaClientVersion = "5.10.0.RELEASE"
 		commonsTextVersion = "1.11.0"
 		immutablesVersion = "2.10.1"
-		openServiceBrokerVersion = "4.1.0"
-		springFrameworkVersion = "6.0.0"
+		openServiceBrokerVersion = "4.2.0-SNAPSHOT"
 		wiremockVersion = "3.4.2"
 	}
 }
@@ -32,14 +31,6 @@ plugins {
 	id "io.spring.nohttp"
 	id 'distribution'
 	id 'jacoco'
-}
-
-ext {
-	javaApi = "https://docs.oracle.com/en/java/javase/17/docs/api/"
-	javadocLinks = [
-		javaApi,
-		"https://docs.spring.io/spring-framework/docs/${springFrameworkVersion}/javadoc-api/"
-	] as String[]
 }
 
 description = "Spring Cloud App Broker"
@@ -184,7 +175,6 @@ configure(libraryProjects) {
 		options.memberLevel = JavadocMemberLevel.PROTECTED
 		options.author = true
 		options.header = project.name
-		options.links(javadocLinks)
 		options.addStringOption('Xdoclint:none', '-quiet')
 	}
 
@@ -312,7 +302,6 @@ task api(type: Javadoc) {
 	options.memberLevel = JavadocMemberLevel.PROTECTED
 	options.author = true
 	options.header = rootProject.description
-	options.links(javadocLinks)
 	options.addStringOption('Xdoclint:none', '-quiet')
 
 	source libraryProjects.collect { project ->

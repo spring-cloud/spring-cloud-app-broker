@@ -2,7 +2,7 @@ version: 2
 updates:
   - package-ecosystem: gradle
     directory: "/"
-    target-branch: "main"
+    target-branch: "2.2.x"
     schedule:
       interval: daily
     commit-message:

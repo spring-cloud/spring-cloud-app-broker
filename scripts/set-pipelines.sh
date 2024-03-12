@@ -10,7 +10,7 @@ readonly PIPELINE_TYPE=${1:-""}
 
 set_branch_pipeline() {
   local -r pipeline_name="app-broker${PIPELINE_NAME_SUFFIX:+"-$PIPELINE_NAME_SUFFIX"}"
-  local -r branches=("main" "2.1.x" "2.0.x" "1.6.x" "1.5.x")
+  local -r branches=("2.2.x" "2.1.x" "2.0.x" "1.6.x" "1.5.x")
 
 	for branch in "${branches[@]}"; do
   	echo "Setting $pipeline_name $branch pipeline..."
@@ -33,7 +33,7 @@ set_pr_manager_pipeline() {
 	fly --target "$FLY_TARGET" set-pipeline --pipeline "$pipeline_name" \
 		--config pr-manager-pipeline.yml \
 		--load-vars-from config-concourse.yml \
-		--var ci-image-tag="main" \
+		--var ci-image-tag="2.2.x" \
 		--var pipeline-name="$pipeline_name"
 }
 

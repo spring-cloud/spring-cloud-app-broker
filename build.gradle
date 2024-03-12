@@ -55,6 +55,7 @@ configure(javaProjects) {
 		}
 	}
 
+	[compileJava, compileTestJava]*.options.compilerArgs.add("-parameters")
 	[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
 	[compileJava, compileTestJava]*.options*.compilerArgs = [
 		"-Xlint:serial",

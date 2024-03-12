@@ -137,7 +137,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	 * @return the bean
 	 */
 	@Bean
-	public ReactorCloudFoundryClient cloudFoundryClient(ConnectionContext connectionContext,
+	public ReactorCloudFoundryClient cloudFoundryClient(@ConnectionContextQualifier ConnectionContext connectionContext,
 		@TokenQualifier TokenProvider tokenProvider) {
 		return ReactorCloudFoundryClient.builder()
 			.connectionContext(connectionContext)
@@ -184,6 +184,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	 * @return the bean
 	 */
 	@Bean
+	@ConnectionContextQualifier
 	public DefaultConnectionContext connectionContext(CloudFoundryTargetProperties properties) {
 		return DefaultConnectionContext.builder()
 			.apiHost(properties.getApiHost())
@@ -201,7 +202,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	 * @return the bean
 	 */
 	@Bean
-	public ReactorDopplerClient dopplerClient(ConnectionContext connectionContext,
+	public ReactorDopplerClient dopplerClient(@ConnectionContextQualifier ConnectionContext connectionContext,
 		@TokenQualifier TokenProvider tokenProvider) {
 		return ReactorDopplerClient.builder()
 			.connectionContext(connectionContext)
@@ -256,7 +257,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	 */
 	@UaaClientQualifier
 	@Bean
-	public ReactorUaaClient uaaClient(ConnectionContext connectionContext,
+	public ReactorUaaClient uaaClient(@ConnectionContextQualifier ConnectionContext connectionContext,
 		@TokenQualifier TokenProvider tokenProvider) {
 		return ReactorUaaClient.builder()
 			.connectionContext(connectionContext)
@@ -279,6 +280,15 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	public @interface UaaClientQualifier {
 
 		String value() default "appBrokerUaaClientQualifier";
+
+	}
+
+	@Qualifier
+	@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface ConnectionContextQualifier {
+
+		String value() default "appBrokerConnectionContextQualifier";
 
 	}
 

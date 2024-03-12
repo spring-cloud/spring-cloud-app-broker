@@ -27,13 +27,15 @@ set_branch_pipeline() {
 
 set_pr_manager_pipeline() {
 	local -r pipeline_name="app-broker-pull-requests${PIPELINE_NAME_SUFFIX:+"-$PIPELINE_NAME_SUFFIX"}"
+	local -r branch="2.2.x"
 
 	echo "Setting PR manager pipeline..."
 
 	fly --target "$FLY_TARGET" set-pipeline --pipeline "$pipeline_name" \
 		--config pr-manager-pipeline.yml \
 		--load-vars-from config-concourse.yml \
-		--var ci-image-tag="2.2.x" \
+		--var ci-image-tag="$branch" \
+		--var "branch=$branch" \
 		--var pipeline-name="$pipeline_name"
 }
 

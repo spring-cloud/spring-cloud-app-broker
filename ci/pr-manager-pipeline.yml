@@ -50,7 +50,7 @@ resources:
       uri: ((github-repo))
       username: ((github-token))
       password: ((github-password))
-      branch: main
+      branch: ((branch))
       paths:
         - ci/pr-pipeline.yml
         - ci/config-concourse.yml

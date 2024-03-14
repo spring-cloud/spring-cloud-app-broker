@@ -25,7 +25,6 @@ import org.springframework.cloud.servicebroker.model.instance.OperationState;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
-import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -80,8 +79,10 @@ class UpdateInstanceWithNewServiceAndTargetComponentTest extends WiremockCompone
 		final String backingSpaceGuid = "instance-id-space-guid";
 		final String serviceInstanceId = "instance-id";
 
-		cloudControllerFixture.stubFindSpace(serviceInstanceId, backingSpaceGuid, STARTED);
-		cloudControllerFixture.stubSpaceExists(serviceInstanceId, backingSpaceGuid, STARTED);
+		cloudControllerFixture.stubFindTestOrg();
+		cloudControllerFixture.stubFindSpace(serviceInstanceId, backingSpaceGuid);
+		cloudControllerFixture.stubFindSpaceV3(serviceInstanceId, backingSpaceGuid);
+		cloudControllerFixture.stubSpaceExists(serviceInstanceId, backingSpaceGuid);
 		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SI_NAME,
 			BACKING_SERVICE_NAME, BACKING_PLAN_NAME, backingSpaceGuid);
 		cloudControllerFixture.stubUpdateAppWithTarget(APP_NAME, backingSpaceGuid);

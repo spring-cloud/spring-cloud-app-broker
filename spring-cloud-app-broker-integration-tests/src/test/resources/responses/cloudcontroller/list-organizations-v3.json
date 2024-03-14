@@ -1,0 +1,48 @@
+{
+	"pagination": {
+		"total_results": 1,
+		"total_pages": 1,
+		"first": {
+			"href": "https://api.example.org/v3/organizations?page=1&per_page=50"
+		},
+		"last": {
+			"href": "https://api.example.org/v3/organizations?page=1&per_page=50"
+		},
+		"next": null,
+		"previous": null
+	},
+	"resources": [
+		{
+			"guid": "TEST-ORG-GUID",
+			"created_at": "2017-02-01T01:33:58Z",
+			"updated_at": "2017-02-01T01:33:58Z",
+			"name": "org1",
+			"suspended": false,
+			"relationships": {
+				"quota": {
+					"data": {
+						"guid": "@org-guid"
+					}
+				}
+			},
+			"links": {
+				"self": {
+					"href": "https://api.example.org/v3/organizations/TEST-ORG-GUID"
+				},
+				"domains": {
+					"href": "https://api.example.org/v3/organizations/TEST-ORG-GUID/domains"
+				},
+				"default_domain": {
+					"href": "https://api.example.org/v3/organizations/TEST-ORG-GUID/domains/default"
+				},
+				"quota": {
+					"href": "https://api.example.org/v3/organization_quotas/@org-guid"
+				}
+			},
+			"metadata": {
+				"labels": {},
+				"annotations": {}
+			}
+		}
+	]
+}

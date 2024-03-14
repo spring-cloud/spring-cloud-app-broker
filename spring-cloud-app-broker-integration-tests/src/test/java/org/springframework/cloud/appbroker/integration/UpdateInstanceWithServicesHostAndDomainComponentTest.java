@@ -53,6 +53,8 @@ class UpdateInstanceWithServicesHostAndDomainComponentTest extends WiremockCompo
 
 	@Test
 	void updateAppWithHostAndDomain() {
+		cloudControllerFixture.stubFindTestOrg();
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppExists(APP_NAME);
 		cloudControllerFixture.stubUpdateAppWithHostAndDomain(APP_NAME);
 

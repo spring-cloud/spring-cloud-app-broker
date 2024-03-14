@@ -57,7 +57,9 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	public void stubCommonCloudControllerRequests() {
 		stubGetPlatformInfo();
 		stubFindTestOrg();
+		stubFindTestOrgV3();
 		stubFindSpace("development", TEST_SPACE_GUID, STARTED);
+		stubFindSpaceV3("development", TEST_SPACE_GUID, STARTED);
 		stubFindDomains();
 	}
 
@@ -84,6 +86,20 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("get-organization",
+					replace("@org-guid", TEST_ORG_GUID)))));
+	}
+
+	private void stubFindTestOrgV3() {
+		stubFor(get(urlPathEqualTo("/v3/organizations"))
+			.withMetadata(optionalStubMapping())
+			.willReturn(ok()
+				.withBody(cc("list-organizations-v3",
+					replace("@org-guid", TEST_ORG_GUID)))));
+
+		stubFor(get(urlPathEqualTo("/v3/organizations/" + TEST_ORG_GUID))
+			.withMetadata(optionalStubMapping())
+			.willReturn(ok()
+				.withBody(cc("get-organization-v3",
 					replace("@org-guid", TEST_ORG_GUID)))));
 	}
 
@@ -120,6 +136,44 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/security_groups"))
 			.inScenario(SCENARIO_NAME)
 				.whenScenarioStateIs(scenario)
+			.withMetadata(optionalStubMapping())
+			.willReturn(ok()
+				.withBody(cc("get-space-security_groups"))));
+	}
+
+	public void stubFindSpaceV3(String spaceName, String spaceGuid, String scenario) {
+		stubFor(get(urlPathEqualTo("/v3/spaces"))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs(scenario)
+			.withQueryParam("names", equalTo(spaceName))
+			.withMetadata(optionalStubMapping())
+			.willReturn(ok()
+				.withBody(cc("list-spaces-v3",
+					replace("@org-guid", TEST_ORG_GUID),
+					replace("@name", spaceName),
+					replace("@space-guid", spaceGuid)))));
+
+		stubFor(get(urlPathEqualTo("/v3/spaces/" + spaceGuid))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs(scenario)
+			.withMetadata(optionalStubMapping())
+			.willReturn(ok()
+				.withBody(cc("get-space-v3",
+					replace("@name", "test"),
+					replace("@org-guid", TEST_ORG_GUID),
+					replace("@space-guid", spaceGuid)))));
+
+		stubFor(get(urlPathEqualTo("/v3/spaces/" + spaceGuid + "/apps"))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs(scenario)
+			.withQueryParam("page", equalTo("1"))
+			.withMetadata(optionalStubMapping())
+			.willReturn(ok()
+				.withBody(cc("empty-query-results"))));
+
+		stubFor(get(urlPathEqualTo("/v3/spaces/" + spaceGuid + "/security_groups"))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs(scenario)
 			.withMetadata(optionalStubMapping())
 			.willReturn(ok()
 				.withBody(cc("get-space-security_groups"))));
@@ -173,6 +227,22 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 					replace("@org-guid", TEST_ORG_GUID)))));
 
 		stubFindSpace(spaceName, spaceGuid, SPACE_CREATED_STATE);
+	}
+
+	public void stubCreateSpaceV3(final String spaceName, final String spaceGuid) {
+		stubFor(post(urlPathEqualTo("/v3/spaces"))
+			.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(STARTED)
+				.willSetStateTo(SPACE_CREATED_STATE)
+			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + spaceName + "')]"))
+			.withRequestBody(matchingJsonPath("$.[?(@.organization_guid == '" + TEST_ORG_GUID + "')]"))
+			.willReturn(ok()
+				.withBody(cc("get-space-v3",
+					replace("@name", spaceName),
+					replace("@space-guid", spaceGuid),
+					replace("@org-guid", TEST_ORG_GUID)))));
+
+		stubFindSpaceV3(spaceName, spaceGuid, SPACE_CREATED_STATE);
 	}
 
 	public void stubAppDoesNotExist(final String appName) {

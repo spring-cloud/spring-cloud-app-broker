@@ -58,6 +58,7 @@ class CreateInstanceComponentTest extends WiremockComponentTest {
 
 	@Test
 	void pushAppsWhenTheyDoNotExist() {
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
 		cloudControllerFixture.stubPushApp(APP_NAME_1,
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ " +

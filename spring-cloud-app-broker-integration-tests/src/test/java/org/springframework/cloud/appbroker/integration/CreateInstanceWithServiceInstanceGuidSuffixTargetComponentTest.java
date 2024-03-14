@@ -68,6 +68,7 @@ class CreateInstanceWithServiceInstanceGuidSuffixTargetComponentTest extends Wir
 		String applicationName = APP_NAME + "-" + serviceInstanceId;
 		String backingServiceInstanceName = BACKING_SI_NAME + "-" + serviceInstanceId;
 
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppDoesNotExist(applicationName);
 		cloudControllerFixture.stubPushApp(applicationName);
 

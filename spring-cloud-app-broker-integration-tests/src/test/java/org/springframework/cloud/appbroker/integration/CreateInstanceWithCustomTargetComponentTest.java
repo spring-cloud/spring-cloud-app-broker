@@ -77,8 +77,11 @@ class CreateInstanceWithCustomTargetComponentTest extends WiremockComponentTest 
 		String serviceInstanceId = "instance-id";
 		String customSpace = "my-space";
 		String customSpaceGuid = "my-space-guid";
+
+		cloudControllerFixture.stubFindTestOrg();
+		cloudControllerFixture.stubFindSpaceV3(customSpace, customSpaceGuid);
 		cloudControllerFixture.stubCreateSpace(customSpace, customSpaceGuid);
-		cloudControllerFixture.stubAssociatePermissions(customSpace, customSpaceGuid);
+		cloudControllerFixture.stubAssociatePermissions();
 		cloudControllerFixture.stubPushApp(APP_NAME);
 
 		// given services are available in the marketplace

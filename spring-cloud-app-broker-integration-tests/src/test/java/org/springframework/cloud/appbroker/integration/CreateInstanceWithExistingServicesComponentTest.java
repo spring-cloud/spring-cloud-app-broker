@@ -57,6 +57,7 @@ class CreateInstanceWithExistingServicesComponentTest extends WiremockComponentT
 
 	@Test
 	void pushAppWithServicesWhenServicesExist() {
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME);
 

@@ -66,6 +66,7 @@ class CreateInstanceWithServicesParametersComponentTest extends WiremockComponen
 
 	@Test
 	void pushAppWithBackingServicesParameters() {
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME);
 

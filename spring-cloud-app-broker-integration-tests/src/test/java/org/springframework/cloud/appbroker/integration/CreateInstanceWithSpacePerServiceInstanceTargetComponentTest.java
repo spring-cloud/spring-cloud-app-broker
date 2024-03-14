@@ -67,8 +67,10 @@ class CreateInstanceWithSpacePerServiceInstanceTargetComponentTest extends Wirem
 		String serviceInstanceId = "instance-id";
 		String backingSpaceGuid = "my-space-guid";
 
+		cloudControllerFixture.stubFindTestOrg();
+		cloudControllerFixture.stubFindSpaceV3(serviceInstanceId, backingSpaceGuid);
 		cloudControllerFixture.stubCreateSpace(serviceInstanceId, backingSpaceGuid);
-		cloudControllerFixture.stubAssociatePermissions(serviceInstanceId, backingSpaceGuid);
+		cloudControllerFixture.stubAssociatePermissions();
 		cloudControllerFixture.stubPushAppWithHost(APP_NAME, APP_NAME + "-" + serviceInstanceId);
 
 		// given services are available in the marketplace

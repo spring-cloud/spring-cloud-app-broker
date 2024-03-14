@@ -57,7 +57,7 @@ class CreateInstanceWithOnlyABackingServiceComponentTest extends WiremockCompone
 
 	@Test
 	void createsServicesWhenOnlyBackingServiceIsRequested() {
-
+		cloudControllerFixture.stubFindSpaceV3();
 		// given services are available in the marketplace
 		cloudControllerFixture.stubServiceExists(BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 

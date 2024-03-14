@@ -68,6 +68,7 @@ class UpdateInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void updateAppWithServices() {
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SERVICE_INSTANCE_NAME,
 			BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 		cloudControllerFixture.stubUpdateApp(APP_NAME);

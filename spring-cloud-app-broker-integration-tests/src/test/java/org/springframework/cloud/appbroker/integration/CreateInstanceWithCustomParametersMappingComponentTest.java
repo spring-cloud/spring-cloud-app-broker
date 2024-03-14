@@ -71,6 +71,7 @@ class CreateInstanceWithCustomParametersMappingComponentTest extends WiremockCom
 
 	@Test
 	void pushAppWithParametersTransformedUsingCustomTransformer() {
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME,
 			matchingJsonPath(

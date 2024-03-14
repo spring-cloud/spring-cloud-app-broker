@@ -89,6 +89,7 @@ class DeleteInstanceWithServicesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void deleteServicesWhenTheyDoNotExist() {
+		cloudControllerFixture.stubFindSpaceV3();
 		// when the service instance is deleted
 		given(brokerFixture.serviceInstanceRequest())
 			.when()

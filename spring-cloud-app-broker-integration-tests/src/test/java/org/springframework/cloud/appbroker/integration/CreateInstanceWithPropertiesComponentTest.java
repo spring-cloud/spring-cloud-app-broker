@@ -57,6 +57,7 @@ class CreateInstanceWithPropertiesComponentTest extends WiremockComponentTest {
 
 	@Test
 	void pushAppWithProperties() {
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubPushApp(APP_NAME,
 			matchingJsonPath("$.[?(@.memory == '2048')]"),

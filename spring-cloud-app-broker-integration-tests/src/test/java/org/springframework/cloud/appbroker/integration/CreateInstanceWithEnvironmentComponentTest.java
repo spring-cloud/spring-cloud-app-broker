@@ -60,6 +60,7 @@ class CreateInstanceWithEnvironmentComponentTest extends WiremockComponentTest {
 
 	@Test
 	void pushAppWithEnvironmentVariables() {
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME_1);
 		cloudControllerFixture.stubPushApp(APP_NAME_1,
 			matchingJsonPath("$.environment_json[?(@.SPRING_APPLICATION_JSON =~ /.*ENV_VAR_1.*:.*value1.*/)]"),

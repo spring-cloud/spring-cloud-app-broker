@@ -54,6 +54,7 @@ class UpdateInstanceComponentTest extends WiremockComponentTest {
 
 	@Test
 	void updateAppsWhenTheyExist() {
+		cloudControllerFixture.stubFindSpaceV3();
 		cloudControllerFixture.stubAppExists(APP_NAME_1);
 		cloudControllerFixture.stubUpdateApp(APP_NAME_1);
 		cloudControllerFixture.stubAppExists(APP_NAME_2);

@@ -69,6 +69,8 @@ class DeleteInstanceWithAppsAndServicesComponentTest extends WiremockComponentTe
 
 	@Test
 	void deleteAppsAndServicesWhenTheyExist() {
+		cloudControllerFixture.stubFindSpaceV3();
+		cloudControllerFixture.stubFindSpace();
 		cloudControllerFixture.stubAppExistsWithBackingService(APP_NAME, BACKING_SI_NAME,
 			BACKING_SERVICE_NAME, BACKING_PLAN_NAME);
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
@@ -101,6 +103,7 @@ class DeleteInstanceWithAppsAndServicesComponentTest extends WiremockComponentTe
 
 	@Test
 	void deleteAppsWhenTheyExistAndServicesWhenTheyDoNotExist() {
+		cloudControllerFixture.stubFindSpace();
 		cloudControllerFixture.stubAppExists(APP_NAME);
 		cloudControllerFixture.stubServiceBindingDoesNotExist(APP_NAME);
 		cloudControllerFixture.stubDeleteApp(APP_NAME);
@@ -126,6 +129,7 @@ class DeleteInstanceWithAppsAndServicesComponentTest extends WiremockComponentTe
 
 	@Test
 	void deleteAppsAndServicesWhenTheyDoNotExist() {
+		cloudControllerFixture.stubFindSpace();
 		cloudControllerFixture.stubAppDoesNotExist(APP_NAME);
 
 		// when the service instance is deleted

@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap
 buildscript {
 	ext {
 		awaitilityVersion = "4.2.1"
-		blockHoundVersion = "1.0.8.RELEASE"
+		blockHoundVersion = "1.0.9.RELEASE"
 		cfJavaClientVersion = "5.10.0.RELEASE"
 		checkstyleVersion = "8.37"
 		commonsTextVersion = "1.11.0"

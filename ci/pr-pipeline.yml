@@ -16,12 +16,104 @@ aliases:
       channel: ((ab-slack-failure-channel))
       text: "<!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job `$BUILD_JOB_NAME` in the `$BUILD_PIPELINE_NAME` pipeline has failed!"
 
+  - pull-request-status-updates:
+      - &pull-request-pending
+        put: update-status
+        resource: pull-request
+        get_params: { skip_download: true }
+        inputs: detect
+        params: &pull-request-pending-context
+          path: scg
+          status: pending
+          base_context: ((pipeline-name))
+
+      - &pull-request-success
+        put: update-status
+        resource: pull-request
+        get_params: { skip_download: true }
+        inputs: detect
+        params: &pull-request-success-context
+          path: scg
+          status: success
+          base_context: ((pipeline-name))
+
+      - &pull-request-failure
+        put: update-status
+        resource: pull-request
+        get_params: { skip_download: true }
+        inputs: detect
+        params: &pull-request-failure-context
+          path: scg
+          status: failure
+          base_context: ((pipeline-name))
+
+      - &pull-request-error
+        put: update-status
+        resource: pull-request
+        get_params: { skip_download: true }
+        inputs: detect
+        params: &pull-request-error-context
+          path: scg
+          status: error
+          base_context: ((pipeline-name))
+
+  - build:
+      - &mark-build-pending
+        <<: *pull-request-pending
+        params:
+          context: build
+          <<: *pull-request-pending-context
+
+      - &mark-build-successful
+        <<: *pull-request-success
+        params:
+          context: build
+          <<: *pull-request-success-context
+
+      - &mark-build-errored
+        <<: *pull-request-error
+        params:
+          context: build
+          <<: *pull-request-error-context
+
+      - &mark-build-failed
+        <<: *pull-request-failure
+        params:
+          context: build
+          <<: *pull-request-failure-context
+
+  - acceptance-tests:
+      - &mark-acceptance-test-jobs-checks-pending
+        <<: *pull-request-pending
+        params:
+          context: acceptance-tests
+          <<: *pull-request-pending-context
+
+      - &mark-acceptance-tests-successful
+        <<: *pull-request-success
+        params:
+          context: acceptance-tests
+          <<: *pull-request-success-context
+
+      - &mark-acceptance-tests-errored
+        <<: *pull-request-error
+        params:
+          context: acceptance-tests
+          <<: *pull-request-error-context
+
+      - &mark-acceptance-tests-failed
+        <<: *pull-request-failure
+        params:
+          context: acceptance-tests
+          <<: *pull-request-failure-context
+
 jobs:
   - name: build
     plan:
       - get: pull-request
         trigger: true
         version: every
+      - *mark-build-pending
       - task: build-project
         timeout: 1h30m
         file: pull-request/ci/tasks/build-project.yml
@@ -29,6 +121,10 @@ jobs:
           git-repo: pull-request
         vars:
           ci-image-tag: ((ci-image-tag))
+    on_success: *mark-build-successful
+    on_failure: *mark-build-failed
+    on_abort: *mark-build-errored
+    on_error: *mark-build-errored
 
   - name: run-acceptance-tests
     serial: true
@@ -43,6 +139,7 @@ jobs:
               duration: 6h
               resource: cf-environment
             timeout: 6h
+      - *mark-acceptance-test-jobs-checks-pending
       - task: acceptance-tests
         file: pull-request/ci/tasks/acceptance-tests.yml
         vars:
@@ -52,12 +149,20 @@ jobs:
     on_success:
       in_parallel:
         - *slack-success-notification
+        - *mark-acceptance-tests-successful
         - put: cf-environment
           params:
             action: release
             resource: cf-environment
-    on_failure: *slack-failure-notification
-    on_error: *slack-failure-notification
+    on_failure:
+      in_parallel:
+        - *slack-failure-notification
+        - *mark-acceptance-tests-failed
+    on_error:
+      in_parallel:
+        - *slack-failure-notification
+        - *mark-acceptance-tests-errored
+    on_abort: *mark-acceptance-tests-errored
 
 resource_types:
   - name: pull-request

@@ -3,10 +3,10 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
+    repository: ((app-broker-dev-docker-registry))/ci/app-broker-ci
+    username: ((broadcom-jfrog-artifactory-robot-account.username))
+    password: ((broadcom-jfrog-artifactory-robot-account.password))
     tag: ((ci-image-tag))
-    username: ((corporate-harbor-robot-account.username))
-    password: ((corporate-harbor-robot-account.password))
 
 inputs:
   - name: git-repo

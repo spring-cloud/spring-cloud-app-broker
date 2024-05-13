@@ -1,4 +1,4 @@
-#App Broker CI Pipeline
+# App Broker CI Pipeline
 
 ## Running the acceptance tests on Cloud Foundry locally
 
@@ -36,7 +36,7 @@ The original pipeline was decomposed into different jobs so that we could recove
 
 ### Fly
 
-The pipeline can be run using the following script:
+The pipeline can be set using the following script on the most recent branch of the repository:
 
 ```$bash
 $ ./scripts/set-pipelines.sh
@@ -49,22 +49,22 @@ If you don't want to click, you can trigger each job using the CLI:
 To release a milestone:
 
 ```$bash
-$ fly -t scs trigger-job -j release-test/stage-milestone
-$ fly -t scs trigger-job -j release-test/promote-milestone
+$ fly -t app-broker trigger-job -j release-test/stage-milestone
+$ fly -t app-broker trigger-job -j release-test/promote-milestone
 ```
 
 To release an RC:
 
 ```$bash
-$ fly -t scs trigger-job -j release-test/stage-rc
-$ fly -t scs trigger-job -j release-test/promote-rc
+$ fly -t app-broker trigger-job -j release-test/stage-rc
+$ fly -t app-broker trigger-job -j release-test/promote-rc
 ```
 
 To release a GA:
 
 ```$bash
-$ fly -t scs trigger-job -j release-test/stage-release
-$ fly -t scs trigger-job -j release-test/promote-release
-$ fly -t scs trigger-job -j release-test/distribute-release
-$ fly -t scs trigger-job -j release-test/sync-to-maven-central
+$ fly -t app-broker trigger-job -j release-test/stage-release
+$ fly -t app-broker trigger-job -j release-test/promote-release
+$ fly -t app-broker trigger-job -j release-test/distribute-release
+$ fly -t app-broker trigger-job -j release-test/sync-to-maven-central
 ```

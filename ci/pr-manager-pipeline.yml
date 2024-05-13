@@ -39,7 +39,9 @@ resource_types:
   - name: pull-request
     type: registry-image
     source:
-      repository: ((dockerhub-mirror-registry))/teliaoss/github-pr-resource
+      repository: ((app-broker-virtual-docker-registry))/teliaoss/github-pr-resource
+      username: ((broadcom-jfrog-artifactory-robot-account.username))
+      password: ((broadcom-jfrog-artifactory-robot-account.password))
       tag: v0.23.0
 
 resources:

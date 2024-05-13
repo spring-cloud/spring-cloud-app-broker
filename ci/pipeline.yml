@@ -22,31 +22,26 @@ jobs:
         trigger: true
       - get: ci-images-git-repo
         trigger: true
+      - task: generate-docker-credentials
+        file: ci-images-git-repo/ci/tasks/generate-docker-credentials.yml
+        input_mapping:
+          git-repo: ci-images-git-repo
+        vars:
+          registry: ((app-broker-dev-docker-registry))
+          registry-username: ((broadcom-jfrog-artifactory-robot-account.username))
+          registry-password: ((broadcom-jfrog-artifactory-robot-account.password))
       - task: build-image
         privileged: true
-        config:
-          platform: linux
-          image_resource:
-            type: registry-image
-            source:
-              repository: ((dockerhub-mirror-registry))/concourse/oci-build-task
-              tag: 0.10.0
-          inputs:
-            - name: source
-          outputs:
-            - name: image
-          run:
-            path: build
+        file: ci-images-git-repo/ci/tasks/build-oci-image.yml
         input_mapping:
-          source: ci-images-git-repo
+          git-repo: ci-images-git-repo
         params:
-          CONTEXT: source/ci/images/app-broker-ci
+          CONTEXT: git-repo/ci/images/app-broker-ci
       - put: app-broker-ci-image
         inputs: detect
         params:
           image: image/image.tar
-        get_params:
-          skip_download: true
+        no_get: true
     on_failure: *slack-failure-notification
 
   - name: build
@@ -231,13 +226,17 @@ resource_types:
   - name: artifactory-resource
     type: registry-image
     source:
-      repository: ((dockerhub-mirror-registry))/springio/artifactory-resource
+      repository: ((app-broker-virtual-docker-registry))/springio/artifactory-resource
+      username: ((broadcom-jfrog-artifactory-robot-account.username))
+      password: ((broadcom-jfrog-artifactory-robot-account.password))
       tag: 0.0.14
 
   - name: slack-notification
     type: registry-image
     source:
-      repository: ((dockerhub-mirror-registry))/cfcommunity/slack-notification-resource
+      repository: ((app-broker-virtual-docker-registry))/cfcommunity/slack-notification-resource
+      username: ((broadcom-jfrog-artifactory-robot-account.username))
+      password: ((broadcom-jfrog-artifactory-robot-account.password))
       tag: latest
 
   - name: shepherd
@@ -296,14 +295,18 @@ resources:
     source:
       uri: ((github-repo))
       branch: ((branch))
-      paths: ["ci/images/*"]
+      paths:
+        - ci/images/*
+        - ci/scripts/generate-docker-credentials.sh
+        - ci/tasks/build-oci-image.yml
+        - ci/tasks/generate-docker-credentials.yml
 
   - name: app-broker-ci-image
     type: registry-image
     source:
-      repository: ((corporate-harbor-registry))/((dockerhub-organization))/app-broker-ci
-      username: ((corporate-harbor-robot-account.username))
-      password: ((corporate-harbor-robot-account.password))
+      repository: ((app-broker-dev-docker-registry))/ci/app-broker-ci
+      username: ((broadcom-jfrog-artifactory-robot-account.username))
+      password: ((broadcom-jfrog-artifactory-robot-account.password))
       tag: ((ci-image-tag))
 
   - name: artifactory-repo

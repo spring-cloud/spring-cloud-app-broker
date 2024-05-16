@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-readonly FLY_TARGET="app-broker"
+readonly FLY_TARGET="${FLY_TARGET:-"app-broker"}"
 readonly PIPELINE_NAME_SUFFIX="${PIPELINE_NAME_SUFFIX:-""}"
 readonly PIPELINE_TYPE=${1:-""}
 

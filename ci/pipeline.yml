@@ -24,7 +24,6 @@ jobs:
         trigger: true
       - task: build-image
         privileged: true
-        tags: [ btrfs ]
         config:
           platform: linux
           image_resource:

@@ -22,6 +22,12 @@ plugins {
 
 description = "Spring Cloud App Broker Autoconfiguration"
 
+java {
+	registerFeature("logging") {
+		usingSourceSet(sourceSets.main)
+	}
+}
+
 dependencies {
 	annotationProcessor platform(SpringBootPlugin.BOM_COORDINATES)
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
@@ -34,6 +40,8 @@ dependencies {
 	api "org.springframework.boot:spring-boot-starter"
 	api "org.cloudfoundry:cloudfoundry-client-reactor:${cfJavaClientVersion}"
 	api "org.cloudfoundry:cloudfoundry-operations:${cfJavaClientVersion}"
+
+	loggingImplementation project(":spring-cloud-app-broker-logging")
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "org.springframework.boot:spring-boot-starter-webflux"

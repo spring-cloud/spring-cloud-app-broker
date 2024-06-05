@@ -1,16 +1,9 @@
 pluginManagement {
-	resolutionStrategy {
-		eachPlugin {
-			if (requested.id.namespace?.startsWith('org.asciidoctor.jvm')) {
-				useVersion("4.0.1")
-			}
-		}
-	}
 	plugins {
 		id "io.spring.nohttp" version "0.0.11"
 		id 'org.springframework.boot' version "3.3.1"
-		id 'org.asciidoctor.jvm.pdf'
-		id 'org.asciidoctor.jvm.convert'
+		id 'org.asciidoctor.jvm.pdf' version '4.0.2'
+		id 'org.asciidoctor.jvm.convert' version '4.0.2'
 	}
 	repositories {
 		gradlePluginPortal()
@@ -38,5 +31,7 @@ include "spring-cloud-app-broker-core"
 include "spring-cloud-app-broker-autoconfigure"
 include "spring-cloud-app-broker-integration-tests"
 include "spring-cloud-app-broker-acceptance-tests"
+include "spring-cloud-app-broker-logging"
 include "spring-cloud-starter-app-broker"
 include "spring-cloud-starter-app-broker-cloudfoundry"
+include "spring-cloud-starter-app-broker-logging"

@@ -1,2 +1,4 @@
 org.springframework.cloud.appbroker.autoconfigure.AppBrokerAutoConfiguration
 org.springframework.cloud.appbroker.autoconfigure.CloudFoundryAppDeployerAutoConfiguration
+org.springframework.cloud.appbroker.autoconfigure.ServiceInstanceRecentLogsAutoConfiguration
+org.springframework.cloud.appbroker.autoconfigure.ServiceInstanceLogStreamAutoConfiguration

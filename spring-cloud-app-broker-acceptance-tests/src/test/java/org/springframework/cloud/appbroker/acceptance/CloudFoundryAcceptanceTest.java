@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,14 @@
 
 package org.springframework.cloud.appbroker.acceptance;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,6 +34,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
@@ -64,6 +75,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryClientConfiguration;
+import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryProperties;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryService;
 import org.springframework.cloud.appbroker.acceptance.fixtures.cf.UserCloudFoundryService;
 import org.springframework.cloud.appbroker.acceptance.fixtures.uaa.UaaService;
@@ -91,6 +103,7 @@ import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFo
 @ExtendWith(SpringExtension.class)
 @ExtendWith(BrokerPropertiesParameterResolver.class)
 @EnableConfigurationProperties(AcceptanceTestProperties.class)
+@SuppressWarnings("PMD.GodClass")
 abstract class CloudFoundryAcceptanceTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CloudFoundryAcceptanceTest.class);
@@ -114,10 +127,15 @@ abstract class CloudFoundryAcceptanceTest {
 	protected UserCloudFoundryService userCloudFoundryService;
 
 	@Autowired
+	private CloudFoundryProperties cloudFoundryProperties;
+
+	@Autowired
 	private UaaService uaaService;
 
 	@Autowired
 	private AcceptanceTestProperties acceptanceTestProperties;
+
+	private String cfHome;
 
 	private final WebClient webClient = getSslIgnoringWebClient();
 
@@ -144,6 +162,7 @@ abstract class CloudFoundryAcceptanceTest {
 		List<String> appBrokerProperties = getAppBrokerProperties(brokerProperties);
 		blockingSubscribe(initializeUser());
 		blockingSubscribe(initializeBroker(appBrokerProperties));
+		prepareCLI();
 	}
 
 	void setUpForBrokerUpdate(BrokerProperties brokerProperties) {
@@ -157,6 +176,8 @@ abstract class CloudFoundryAcceptanceTest {
 			"spring.cloud.openservicebroker.catalog.services[0].name=" + appServiceName(),
 			"spring.cloud.openservicebroker.catalog.services[0].description=A service that deploys a backing app",
 			"spring.cloud.openservicebroker.catalog.services[0].bindable=true",
+			"spring.cloud.openservicebroker.catalog.services[0].metadata.properties.serviceInstanceLogsEndpoint=" +
+				getServiceInstanceLogsEndpoint(),
 			"spring.cloud.openservicebroker.catalog.services[0].plans[0].id=" + PLAN_ID,
 			"spring.cloud.openservicebroker.catalog.services[0].plans[0].name=standard",
 			"spring.cloud.openservicebroker.catalog.services[0].plans[0].bindable=true",
@@ -177,6 +198,10 @@ abstract class CloudFoundryAcceptanceTest {
 		appBrokerProperties.addAll(Arrays.asList(openServiceBrokerProperties));
 		appBrokerProperties.addAll(brokerProperties.getProperties());
 		return appBrokerProperties;
+	}
+
+	private String getServiceInstanceLogsEndpoint() {
+		return "https://" + testBrokerAppName() + "." + cloudFoundryProperties.getApiHost().substring(4) + "/logs/";
 	}
 
 	@BeforeEach
@@ -332,7 +357,7 @@ abstract class CloudFoundryAcceptanceTest {
 			.block();
 	}
 
-	private Mono<ServiceInstance> getServiceInstanceMono(String serviceInstanceName) {
+	Mono<ServiceInstance> getServiceInstanceMono(String serviceInstanceName) {
 		return userCloudFoundryService.getServiceInstance(serviceInstanceName);
 	}
 
@@ -423,7 +448,8 @@ abstract class CloudFoundryAcceptanceTest {
 					.getApplicationRoute(testBrokerAppName())
 					.flatMap(appRoute ->
 						webClient.get()
-							.uri(URI.create(appRoute + "/" + operation + "/" + serviceName + "/" + planName + "/" + serviceInstanceId))
+							.uri(URI.create(
+								appRoute + "/" + operation + "/" + serviceName + "/" + planName + "/" + serviceInstanceId))
 							.retrieve()
 							.toEntity(String.class)
 							.map(HttpEntity::getBody)));
@@ -451,11 +477,87 @@ abstract class CloudFoundryAcceptanceTest {
 
 	protected Mono<List<ApplicationDetail>> getApplications(String app1, String app2) {
 		return Flux.merge(cloudFoundryService.getApplication(app1),
-			cloudFoundryService.getApplication(app2))
+				cloudFoundryService.getApplication(app2))
 			.parallel()
 			.runOn(Schedulers.parallel())
 			.sequential()
 			.collectList();
+	}
+
+	private void prepareCLI() {
+		try {
+			cfHome = Files.createTempDirectory("app-broker-acceptance-tests").toString();
+
+			callCLICommand(List.of("cf", "login", "-a",
+				cloudFoundryProperties.getApiHost(),
+				"--skip-ssl-validation", "-u",
+				cloudFoundryProperties.getUsername(),
+				"-p",
+				cloudFoundryProperties.getPassword(),
+				"-o", "test-instances"))
+				.block(Duration.ofSeconds(60));
+			callCLICommand(List.of("cf", "install-plugin", "-f", "-r", "Cf-Community", "Service Instance Logging"))
+				.block(Duration.ofSeconds(60));
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Mono<String> callCLICommand(List<String> command) {
+		return Mono.fromCallable(() -> {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Executing command: {}", command);
+			}
+			ProcessBuilder processBuilder = new ProcessBuilder(command);
+			processBuilder.environment().put("CF_HOME", cfHome);
+			processBuilder.redirectErrorStream(true);
+			Process process = processBuilder.start();
+
+			return processOutput(process);
+		}).subscribeOn(Schedulers.boundedElastic());
+	}
+
+	private static String processOutput(Process process) throws InterruptedException, ExecutionException {
+		StringBuffer outputBuilder = new StringBuffer();
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<Void> future = appendLines(executor, process, outputBuilder);
+		try {
+			future.get(30, TimeUnit.SECONDS);
+		}
+		catch (TimeoutException e) {
+			LOG.info("Process reading timed out after 30 seconds");
+		}
+		finally {
+			future.cancel(true);
+			executor.shutdownNow();
+			process.destroyForcibly();
+			try {
+				process.waitFor(5, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				LOG.warn("Interrupted while waiting for process to terminate", e);
+			}
+		}
+		return outputBuilder.toString();
+	}
+
+	private static Future<Void> appendLines(ExecutorService executor, Process process, StringBuffer outputBuilder) {
+		return executor.submit(() -> {
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				String line = "";
+				while (line != null) {
+					line = reader.readLine();
+					if (line != null) {
+						outputBuilder.append(line).append('\n');
+						if (LOG.isDebugEnabled()) {
+							LOG.debug("Read line: {}", line);
+						}
+					}
+				}
+			}
+			return null;
+		});
 	}
 
 }

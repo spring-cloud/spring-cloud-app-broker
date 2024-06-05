@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,9 @@ public class CloudFoundryService {
 
 	private final CloudFoundryProperties cloudFoundryProperties;
 
-	public CloudFoundryService(CloudFoundryClient cloudFoundryClient, CloudFoundryOperations cloudFoundryOperations,
+	public CloudFoundryService(
+		CloudFoundryClient cloudFoundryClient,
+		CloudFoundryOperations cloudFoundryOperations,
 		CloudFoundryProperties cloudFoundryProperties) {
 		this.cloudFoundryClient = cloudFoundryClient;
 		this.cloudFoundryOperations = cloudFoundryOperations;
@@ -304,7 +306,7 @@ public class CloudFoundryService {
 	public Mono<List<String>> getSpaces() {
 		return cloudFoundryOperations.spaces().list()
 			.doOnComplete(() -> LOG.info("Success listing spaces"))
-			.doOnError(e -> LOG.error(String.format("Error listing spaces. error=%s" + e.getMessage()), e))
+			.doOnError(e -> LOG.error(String.format("Error listing spaces. error={}" + e.getMessage()), e))
 			.map(SpaceSummary::getName)
 			.collectList();
 	}

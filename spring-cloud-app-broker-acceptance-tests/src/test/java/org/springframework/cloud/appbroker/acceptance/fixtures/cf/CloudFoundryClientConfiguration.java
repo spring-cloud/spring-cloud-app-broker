@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.doppler.DopplerClient;
+import org.cloudfoundry.logcache.v1.LogCacheClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.ConnectionContext;
@@ -27,6 +28,7 @@ import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
+import org.cloudfoundry.reactor.logcache.v1.ReactorLogCacheClient;
 import org.cloudfoundry.reactor.tokenprovider.ClientCredentialsGrantTokenProvider;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
@@ -112,6 +114,15 @@ public class CloudFoundryClientConfiguration {
 	protected DopplerClient dopplerClient(ConnectionContext connectionContext,
 		@Qualifier("userCredentials") TokenProvider tokenProvider) {
 		return ReactorDopplerClient.builder()
+			.connectionContext(connectionContext)
+			.tokenProvider(tokenProvider)
+			.build();
+	}
+
+	@Bean
+	protected LogCacheClient logCacheClient(ConnectionContext connectionContext,
+		@Qualifier("userCredentials") TokenProvider tokenProvider) {
+		return ReactorLogCacheClient.builder()
 			.connectionContext(connectionContext)
 			.tokenProvider(tokenProvider)
 			.build();

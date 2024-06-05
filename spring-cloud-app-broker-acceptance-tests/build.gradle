@@ -25,6 +25,7 @@ description = "Spring Cloud App Broker Acceptance Tests"
 dependencies {
 	api platform(SpringBootPlugin.BOM_COORDINATES)
 	api project(":spring-cloud-starter-app-broker-cloudfoundry")
+	api project(":spring-cloud-starter-app-broker-logging")
 	api "org.springframework.boot:spring-boot-starter-webflux"
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"

@@ -356,9 +356,7 @@ distributions {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			artifact docsDistZip {
-				classifier 'docs'
-			}
+			artifact source:docsDistZip, classifier: 'docs'
 		}
 	}
 }

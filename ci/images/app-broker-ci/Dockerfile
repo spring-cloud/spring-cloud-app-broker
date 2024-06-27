@@ -1,4 +1,4 @@
-FROM harbor-repo.vmware.com/dockerhub-proxy-cache/library/ubuntu:jammy
+FROM spring-app-broker-docker-virtual.usw1.packages.broadcom.com/ubuntu:jammy
 
 ARG BBL_CLI_VERSION=8.4.110
 ARG BOSH_CLI_VERSION=7.0.1
@@ -39,3 +39,8 @@ RUN curl -L "https://github.com/cloudfoundry/bosh-bootloader/releases/download/v
 
 RUN curl -L "https://github.com/cloudfoundry/bosh-cli/releases/download/v$BOSH_CLI_VERSION/bosh-cli-$BOSH_CLI_VERSION-linux-amd64" --output /usr/local/bin/bosh && \
     chmod +x /usr/local/bin/bosh
+
+RUN mkdir cf-cli && \
+	wget -q -O - 'https://packages.cloudfoundry.org/stable?release=linux64-binary&version=v7&source=github' \
+	| tar -zx --no-same-owner -C 'cf-cli' && \
+	mv cf-cli/cf* /usr/local/bin/

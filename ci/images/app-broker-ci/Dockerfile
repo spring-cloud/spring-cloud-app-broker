@@ -1,4 +1,4 @@
-FROM harbor-repo.vmware.com/dockerhub-proxy-cache/library/ubuntu:jammy
+FROM spring-app-broker-docker-virtual.usw1.packages.broadcom.com/ubuntu:jammy
 
 ARG BBL_CLI_VERSION=8.4.110
 ARG BOSH_CLI_VERSION=7.0.1

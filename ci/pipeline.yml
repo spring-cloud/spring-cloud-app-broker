@@ -27,7 +27,7 @@ jobs:
         input_mapping:
           git-repo: ci-images-git-repo
         vars:
-          registry: ((app-broker-dev-docker-registry))
+          registry: ((app-broker-virtual-docker-registry))
           registry-username: ((broadcom-jfrog-artifactory-robot-account.username))
           registry-password: ((broadcom-jfrog-artifactory-robot-account.password))
       - task: build-image

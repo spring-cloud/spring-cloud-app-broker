@@ -44,7 +44,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(new Date());
+					.isCloseTo(new Date(), 1000L);
 			})
 			.verifyComplete();
 
@@ -53,7 +53,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(new Date());
+					.isCloseTo(new Date(), 1000L);
 			})
 			.verifyComplete();
 	}
@@ -73,7 +73,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(new Date());
+					.isCloseTo(new Date(), 1000L);
 			})
 			.verifyComplete();
 
@@ -90,7 +90,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(new Date());
+					.isCloseTo(new Date(), 1000L);
 			})
 			.verifyComplete();
 
@@ -99,7 +99,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.IN_PROGRESS);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(new Date());
+					.isCloseTo(new Date(), 1000L);
 			})
 			.verifyComplete();
 
@@ -109,7 +109,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(new Date());
+					.isCloseTo(new Date(), 1000L);
 			})
 			.verifyComplete();
 
@@ -118,7 +118,7 @@ class InMemoryServiceInstanceStateRepositoryTest {
 				assertThat(serviceInstanceState.getOperationState()).isEqualTo(OperationState.SUCCEEDED);
 				assertThat(serviceInstanceState.getDescription()).isEqualTo("bar");
 				assertThat(serviceInstanceState.getLastUpdated())
-					.isEqualToIgnoringSeconds(new Date());
+					.isCloseTo(new Date(), 1000L);
 			})
 			.verifyComplete();
 	}

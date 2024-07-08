@@ -1,0 +1,46 @@
+[[service-instance-logging]]
+:acceptance-tests-dir: ../../../spring-cloud-app-broker-acceptance-tests/src/main/java/org/springframework/cloud/appbroker/acceptance/
+== Service Instance Logging
+
+You can configure the service broker to be compatible with the https://github.com/pivotal-cf/service-instance-logs-cli-plugin[Service instance logs CLI plugin] in order to tail and stream the logs of the backing application.
+
+
+If you use Gradle, include the following in your application's `build.gradle` file:
+
+====
+[source,groovy,subs="attributes+"]
+----
+dependencies {
+    api 'spring-cloud-starter-app-broker-logging:{project-version}'
+}
+----
+====
+
+Then, include the `serviceInstanceLogsEndpoint` in the catalog metadata properties:
+
+====
+[source,yaml,subs="+quotes"]
+----
+spring:
+    cloud:
+        openservicebroker:
+          catalog:
+            services:
+            - id: "service-id"
+              name: "service-name"
+              metadata:
+                properties:
+                  serviceInstanceLogsEndpoint: https://scg-service-broker.system.domain.com/logs/
+----
+====
+
+Finally, provide an implementation for `ApplicationIdsProvider` in order to retrieve the backing application id given a service instance id, for example:
+
+====
+[source,java,%autofit]
+----
+include::{acceptance-tests-dir}logging/BackingApplicationIdsProvider.java[]
+----
+====
+
+

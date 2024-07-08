@@ -31,6 +31,8 @@ include::getting-started.adoc[]
 
 include::advertising-services.adoc[]
 
+include::service-instance-logging.adoc[]
+
 include::service-instances.adoc[]
 
 include::service-bindings.adoc[]

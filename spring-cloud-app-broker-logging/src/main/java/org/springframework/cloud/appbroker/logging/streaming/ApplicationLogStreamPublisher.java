@@ -65,13 +65,11 @@ public class ApplicationLogStreamPublisher implements ApplicationListener<Servic
 	}
 
 	private void startPublishing(String serviceInstanceId) {
-		synchronized (registry) {
-			final Registration registration = registry.get(serviceInstanceId);
-			if (registration != null) {
+		registry.compute(serviceInstanceId, (key, existingRegistration) -> {
+			if (existingRegistration != null) {
 				LOG.debug("Incrementing registration subscription count for {}", serviceInstanceId);
-				registration.increment();
-
-				return;
+				existingRegistration.increment();
+				return existingRegistration;
 			}
 
 			Flux<org.cloudfoundry.dropsonde.events.Envelope> logStream = this.logStreamPublisher
@@ -84,8 +82,8 @@ public class ApplicationLogStreamPublisher implements ApplicationListener<Servic
 				.subscribe();
 
 			LOG.debug("Creating new registration for {}", serviceInstanceId);
-			registry.put(serviceInstanceId, new Registration(subscription));
-		}
+			return new Registration(subscription);
+		});
 	}
 
 	private void stopPublishing(String serviceInstanceId) {
@@ -93,23 +91,25 @@ public class ApplicationLogStreamPublisher implements ApplicationListener<Servic
 			LOG.debug("Received event to stop publishing logs for {}", serviceInstanceId);
 		}
 
-		synchronized (registry) {
-			final Registration registration = registry.get(serviceInstanceId);
+		registry.compute(serviceInstanceId, (key, registration) -> {
 			if (registration == null) {
 				if (LOG.isWarnEnabled()) {
 					LOG.warn("Received deregister event for service instance {} but there no event handler registered",
 						serviceInstanceId);
 				}
+				return null;
 			}
-			else if (registration.decrement() == 0) {
+
+			if (registration.decrement() == 0) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("Disposing of registration since there are no more subscriptions");
 				}
-
 				registration.getSubscription().dispose();
-				registry.remove(serviceInstanceId);
+				return null;
 			}
-		}
+
+			return registration;
+		});
 	}
 
 	private final static class Registration {

@@ -17,9 +17,10 @@
 package org.springframework.cloud.appbroker.logging.recent.endpoint;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 
-class MultipartEncoder {
+class MultipartEncoder implements Closeable {
 
 	private final byte[] bytesCRLF = {'\r', '\n'};
 
@@ -61,6 +62,11 @@ class MultipartEncoder {
 		catch (IOException e) {
 			throw new EncodingException(e);
 		}
+	}
+
+	@Override
+	public void close() throws IOException {
+		out.close();
 	}
 
 }

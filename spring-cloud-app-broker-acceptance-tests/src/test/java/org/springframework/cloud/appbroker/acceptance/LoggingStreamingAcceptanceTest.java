@@ -60,7 +60,6 @@ class LoggingStreamingAcceptanceTest extends CloudFoundryAcceptanceTest {
 	@AppBrokerTestProperties({
 		"spring.cloud.appbroker.services[0].service-name=" + APP_SERVICE_NAME,
 		"spring.cloud.appbroker.services[0].plan-name=" + PLAN_NAME,
-
 		"spring.cloud.appbroker.services[0].apps[0].name=" + APP_CREATE_1,
 		"spring.cloud.appbroker.services[0].apps[0].path=" + BACKING_APP_PATH,
 		"spring.cloud.appbroker.services[0].target.name=SpacePerServiceInstance",

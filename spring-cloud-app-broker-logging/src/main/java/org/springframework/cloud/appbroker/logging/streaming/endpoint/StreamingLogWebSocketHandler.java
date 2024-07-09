@@ -66,8 +66,8 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 				.map(envelope -> session.binaryMessage(
 					dataBufferFactory -> dataBufferFactory.wrap(Envelope.ADAPTER.encode(envelope)))))
 			.doFinally(signalType -> afterConnectionClosed(session, serviceInstanceId))
-			.doOnError(throwable -> LOG.error("Error handling logging stream for service instance {}",
-				serviceInstanceId, throwable));
+			.doOnError(throwable -> LOG.error(String.format("Error handling logging stream for service instance %s",
+				serviceInstanceId), throwable));
 	}
 
 	@Override

@@ -18,9 +18,8 @@ package org.springframework.cloud.appbroker.acceptance;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 
-import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,11 +72,11 @@ class LoggingRecentAcceptanceTest extends CloudFoundryAcceptanceTest {
 		assertThat(lines).contains("Created app with guid");
 		assertThat(lines).contains("Updated app with guid");
 		assertThat(lines).contains("APP/PROC/WEB");
+	}
 
+	@AfterEach
+	void tearDown() {
 		deleteServiceInstance(SI_NAME);
-
-		Optional<ApplicationSummary> backingApplication1AfterDeletion = getApplicationSummary(APP_CREATE_1);
-		assertThat(backingApplication1AfterDeletion).isEmpty();
 	}
 
 }

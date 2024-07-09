@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -90,7 +91,10 @@ class LoggingStreamingAcceptanceTest extends CloudFoundryAcceptanceTest {
 				assertThat(tuple.getT2()).doesNotContain("websocket: close");
 			})
 			.verifyComplete();
+	}
 
+	@AfterEach
+	void tearDown() {
 		deleteServiceInstance(SI_NAME);
 	}
 

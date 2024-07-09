@@ -37,6 +37,10 @@ import reactor.util.retry.Retry;
 import org.springframework.cloud.appbroker.logging.ApplicationIdsProvider;
 import org.springframework.cloud.appbroker.logging.LoggingUtils;
 
+/***
+ * Class to Stream LocCache Envelopes using the same pattern as the
+ * <a href="https://github.com/cloudfoundry/log-cache-cli/blob/main/internal/command/tail.go#L134">loc-cache-cli</a>
+ */
 public class LogCacheStreamPublisher implements LogStreamPublisher<Envelope> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LogCacheStreamPublisher.class);

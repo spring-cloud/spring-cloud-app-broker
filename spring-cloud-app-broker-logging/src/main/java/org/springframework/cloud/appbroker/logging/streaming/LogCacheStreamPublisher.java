@@ -106,7 +106,7 @@ public class LogCacheStreamPublisher implements LogStreamPublisher<Envelope> {
 										.map(LoggingUtils::convertLogCacheEnvelopeToDropsonde);
 								}))
 							.onErrorResume(error -> {
-								LOG.error("Error during log polling: ", error);
+								LOG.error("Error during log polling", error);
 								return Flux.empty();
 							});
 

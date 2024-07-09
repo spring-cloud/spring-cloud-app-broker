@@ -532,12 +532,6 @@ abstract class CloudFoundryAcceptanceTest {
 			future.cancel(true);
 			executor.shutdownNow();
 			process.destroyForcibly();
-			try {
-				process.waitFor(5, TimeUnit.SECONDS);
-			}
-			catch (InterruptedException e) {
-				LOG.warn("Interrupted while waiting for process to terminate", e);
-			}
 		}
 		return outputBuilder.toString();
 	}

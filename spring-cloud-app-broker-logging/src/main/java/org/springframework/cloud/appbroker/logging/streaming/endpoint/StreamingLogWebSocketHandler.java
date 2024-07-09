@@ -19,6 +19,7 @@ package org.springframework.cloud.appbroker.logging.streaming.endpoint;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.cloudfoundry.dropsonde.events.Envelope;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 
 	private final ApplicationEventPublisher eventPublisher;
 
-	private final ConcurrentHashMap<String, Sinks.Many<Envelope>> envelopeSinks = new ConcurrentHashMap<>();
+	private final ConcurrentMap<String, Sinks.Many<Envelope>> envelopeSinks = new ConcurrentHashMap<>();
 
 	public StreamingLogWebSocketHandler(ApplicationEventPublisher eventPublisher) {
 		this.eventPublisher = eventPublisher;

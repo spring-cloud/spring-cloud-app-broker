@@ -27,9 +27,11 @@ import org.cloudfoundry.dropsonde.events.Envelope;
 import org.cloudfoundry.logcache.v1.EnvelopeType;
 import org.cloudfoundry.logcache.v1.LogCacheClient;
 import org.cloudfoundry.logcache.v1.ReadRequest;
+import org.cloudfoundry.logcache.v1.ReadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import org.springframework.cloud.appbroker.logging.ApplicationIdsProvider;
@@ -63,47 +65,18 @@ public class LogCacheStreamPublisher implements LogStreamPublisher<Envelope> {
 	}
 
 	protected Flux<Envelope> createApplicationStreamer(String applicationId) {
-		return client.applicationsV2()
-			.get(GetApplicationRequest.builder()
-				.applicationId(applicationId)
-				.build())
-			.map(response -> response.getEntity().getName())
+		return getApplicationName(applicationId)
 			.flatMapMany(appName -> {
 				long initialStartTime = Instant.now().minus(5, ChronoUnit.SECONDS).toEpochMilli() * 1_000_000L;
-				return logCacheClient.read(
-						ReadRequest.builder()
-							.sourceId(applicationId)
-							.envelopeTypes(EnvelopeType.LOG)
-							.startTime(initialStartTime)
-							.build())
+				return readLogCache(applicationId, initialStartTime)
 					.flatMapMany(initialResponse -> {
-						AtomicLong lastTimestamp = new AtomicLong(
-							initialResponse.getEnvelopes().getBatch().stream()
-								.mapToLong(org.cloudfoundry.logcache.v1.Envelope::getTimestamp)
-								.max()
-								.orElse(initialStartTime)
-						);
-
-						Flux<Envelope> initialLogs = Flux.fromIterable(initialResponse.getEnvelopes().getBatch())
-							.map(LoggingUtils::convertLogCacheEnvelopeToDropsonde);
-
+						AtomicLong lastTimestamp = getLastTimestamp(initialResponse, initialStartTime);
+						Flux<Envelope> initialLogs = convertEnvelopesToDropsonde(initialResponse);
 						Flux<Envelope> polledLogs = Flux.interval(Duration.ofSeconds(1))
-							.flatMap(tick -> logCacheClient.read(
-									ReadRequest.builder()
-										.sourceId(applicationId)
-										.envelopeTypes(EnvelopeType.LOG)
-										.startTime(lastTimestamp.get() + 1)
-										.build())
+							.flatMap(tick -> readLogCache(applicationId, lastTimestamp.get() + 1)
 								.flatMapMany(readResponse -> {
-									long maxTimestamp = readResponse.getEnvelopes().getBatch().stream()
-										.mapToLong(org.cloudfoundry.logcache.v1.Envelope::getTimestamp)
-										.max()
-										.orElse(lastTimestamp.get());
-
-									lastTimestamp.set(maxTimestamp);
-
-									return Flux.fromIterable(readResponse.getEnvelopes().getBatch())
-										.map(LoggingUtils::convertLogCacheEnvelopeToDropsonde);
+									updateLastTimestampFromResponse(readResponse, lastTimestamp);
+									return convertEnvelopesToDropsonde(readResponse);
 								}))
 							.onErrorResume(error -> {
 								LOG.error("Error during log polling", error);
@@ -115,6 +88,46 @@ public class LogCacheStreamPublisher implements LogStreamPublisher<Envelope> {
 							.doOnError(error -> LOG.error("Streaming error", error));
 					});
 			});
+	}
+
+	private static AtomicLong getLastTimestamp(ReadResponse initialResponse, long initialStartTime) {
+		return new AtomicLong(
+			initialResponse.getEnvelopes().getBatch().stream()
+				.mapToLong(org.cloudfoundry.logcache.v1.Envelope::getTimestamp)
+				.max()
+				.orElse(initialStartTime)
+		);
+	}
+
+	private static Flux<Envelope> convertEnvelopesToDropsonde(ReadResponse readResponse) {
+		return Flux.fromIterable(readResponse.getEnvelopes().getBatch())
+			.map(LoggingUtils::convertLogCacheEnvelopeToDropsonde);
+	}
+
+	private Mono<String> getApplicationName(String applicationId) {
+		return client.applicationsV2()
+			.get(GetApplicationRequest.builder()
+				.applicationId(applicationId)
+				.build())
+			.map(response -> response.getEntity().getName());
+	}
+
+	private Mono<ReadResponse> readLogCache(String applicationId, long lastTimestamp) {
+		return logCacheClient.read(
+			ReadRequest.builder()
+				.sourceId(applicationId)
+				.envelopeTypes(EnvelopeType.LOG)
+				.startTime(lastTimestamp)
+				.build());
+	}
+
+	private static void updateLastTimestampFromResponse(ReadResponse readResponse, AtomicLong lastTimestamp) {
+		long maxTimestamp = readResponse.getEnvelopes().getBatch().stream()
+			.mapToLong(org.cloudfoundry.logcache.v1.Envelope::getTimestamp)
+			.max()
+			.orElse(lastTimestamp.get());
+
+		lastTimestamp.set(maxTimestamp);
 	}
 
 }

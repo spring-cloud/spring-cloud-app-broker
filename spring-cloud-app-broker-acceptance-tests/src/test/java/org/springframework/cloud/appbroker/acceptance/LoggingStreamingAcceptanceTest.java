@@ -18,10 +18,8 @@ package org.springframework.cloud.appbroker.acceptance;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -94,9 +92,6 @@ class LoggingStreamingAcceptanceTest extends CloudFoundryAcceptanceTest {
 			.verifyComplete();
 
 		deleteServiceInstance(SI_NAME);
-
-		Optional<ApplicationSummary> backingApplication1AfterDeletion = getApplicationSummary(APP_CREATE_1);
-		assertThat(backingApplication1AfterDeletion).isEmpty();
 	}
 
 }

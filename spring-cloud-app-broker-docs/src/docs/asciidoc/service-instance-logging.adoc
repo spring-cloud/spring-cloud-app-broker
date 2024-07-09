@@ -16,21 +16,36 @@ dependencies {
 ----
 ====
 
+If you use Maven, include the following in your application's `pom.xml` file:
+
+====
+[source,xml,subs="attributes+"]
+----
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-app-broker-logging</artifactId>
+        <version>{project-version}</version>
+    </dependency>
+</dependencies>
+----
+====
+
 Then, include the `serviceInstanceLogsEndpoint` in the catalog metadata properties:
 
 ====
 [source,yaml,subs="+quotes"]
 ----
 spring:
-    cloud:
-        openservicebroker:
-          catalog:
-            services:
-            - id: "service-id"
-              name: "service-name"
-              metadata:
-                properties:
-                  serviceInstanceLogsEndpoint: https://scg-service-broker.system.domain.com/logs/
+  cloud:
+    openservicebroker:
+      catalog:
+        services:
+          - id: "service-id"
+            name: "service-name"
+            metadata:
+              properties:
+                serviceInstanceLogsEndpoint: https://scg-service-broker.system.domain.com/logs/
 ----
 ====
 

@@ -48,7 +48,7 @@ class ServiceInstanceLogStreamAutoConfigurationTest {
 		);
 
 	@Test
-	void servicesAreNotCreatedWithoutLoggingOnClasspath() {
+	void servicesAreNotCreatedWhenPublisherIsNotConfigured() {
 		contextRunner
 			.withClassLoader(new FilteredClassLoader(ApplicationLogStreamPublisher.class))
 			.withUserConfiguration(LoggingConfiguration.class)
@@ -61,7 +61,7 @@ class ServiceInstanceLogStreamAutoConfigurationTest {
 	}
 
 	@Test
-	void servicesAreNotCreatedWithoutRequiredBeansOnClasspath() {
+	void servicesAreNotCreatedWhenLoggingIsNotConfigured() {
 		contextRunner
 			.run(context -> assertThat(context)
 				.doesNotHaveBean(StreamingLogWebSocketHandler.class)

@@ -112,7 +112,7 @@ public class LogCacheStreamPublisher implements LogStreamPublisher<Envelope> {
 
 						return Flux.merge(initialLogs, polledLogs)
 							.retryWhen(Retry.backoff(3, Duration.ofSeconds(5)))
-							.doOnError(error -> LOG.error("Streaming error: ", error));
+							.doOnError(error -> LOG.error("Streaming error", error));
 					});
 			});
 	}

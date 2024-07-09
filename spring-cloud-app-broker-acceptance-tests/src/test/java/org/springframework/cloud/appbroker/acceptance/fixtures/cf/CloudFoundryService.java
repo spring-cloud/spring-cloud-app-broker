@@ -306,7 +306,7 @@ public class CloudFoundryService {
 	public Mono<List<String>> getSpaces() {
 		return cloudFoundryOperations.spaces().list()
 			.doOnComplete(() -> LOG.info("Success listing spaces"))
-			.doOnError(e -> LOG.error(String.format("Error listing spaces. error={}" + e.getMessage()), e))
+			.doOnError(e -> LOG.error(String.format("Error listing spaces. error=%s", e.getMessage()), e))
 			.map(SpaceSummary::getName)
 			.collectList();
 	}

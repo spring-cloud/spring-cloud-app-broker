@@ -23,7 +23,7 @@ buildscript {
 		commonsTextVersion = "1.12.0"
 		immutablesVersion = "2.10.1"
 		openServiceBrokerVersion = "4.3.0"
-		wiremockVersion = "3.8.0"
+		wiremockVersion = "3.9.0"
 	}
 }
 

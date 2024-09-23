@@ -21,6 +21,8 @@ spring:
           *client-secret: EXAMPLE_SECRET*
           *default-org: test*
           *default-space: development*
+          *staging-timeout: 15*
+          *deployment-timeout: 10*
 ----
 ====
 

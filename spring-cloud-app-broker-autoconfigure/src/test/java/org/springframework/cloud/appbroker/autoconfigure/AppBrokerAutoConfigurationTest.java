@@ -30,6 +30,7 @@ import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionServ
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
+import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryTargetProperties;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
@@ -217,7 +218,9 @@ class AppBrokerAutoConfigurationTest {
 
 				"spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.local",
 				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
-				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret"
+				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret",
+				"spring.cloud.appbroker.deployer.cloudfoundry.staging-timeout=3",
+				"spring.cloud.appbroker.deployer.cloudfoundry.deployment-timeout=4"
 			);
 	}
 
@@ -255,6 +258,12 @@ class AppBrokerAutoConfigurationTest {
 	}
 
 	private void assertPropertiesLoaded(AssertableApplicationContext context) {
+		CloudFoundryTargetProperties cloudFoundryTargetProperties = context.getBean(CloudFoundryTargetProperties.class);
+		assertThat(cloudFoundryTargetProperties.getUsername()).isEqualTo("user");
+		assertThat(cloudFoundryTargetProperties.getPassword()).isEqualTo("secret");
+		assertThat(cloudFoundryTargetProperties.getDeploymentTimeout()).isEqualTo(4L);
+		assertThat(cloudFoundryTargetProperties.getStagingTimeout()).isEqualTo(3L);
+
 		BrokeredServices brokeredServices = context.getBean(BrokeredServices.class);
 		assertThat(brokeredServices).hasSize(2);
 

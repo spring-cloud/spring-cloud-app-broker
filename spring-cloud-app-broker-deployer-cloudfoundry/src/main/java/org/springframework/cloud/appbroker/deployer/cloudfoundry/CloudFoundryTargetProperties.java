@@ -44,6 +44,10 @@ public class CloudFoundryTargetProperties {
 
 	private String identityZoneSubdomain;
 
+	private Long deploymentTimeout;
+
+	private Long stagingTimeout;
+
 	public String getApiHost() {
 		return apiHost;
 	}
@@ -134,6 +138,22 @@ public class CloudFoundryTargetProperties {
 
 	public ProxyConfiguration getProxyConfiguration() {
 		return null;
+	}
+
+	public Long getDeploymentTimeout() {
+		return deploymentTimeout;
+	}
+
+	public void setDeploymentTimeout(Long deploymentTimeout) {
+		this.deploymentTimeout = deploymentTimeout;
+	}
+
+	public Long getStagingTimeout() {
+		return stagingTimeout;
+	}
+
+	public void setStagingTimeout(Long stagingTimeout) {
+		this.stagingTimeout = stagingTimeout;
 	}
 
 	private static String parseApiHost(String api) {

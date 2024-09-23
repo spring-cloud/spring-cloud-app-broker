@@ -137,9 +137,10 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 
-//TODO: refactor this class
 @SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.ExcessiveClassLength"})
 public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware {
+
+	private static final Duration DEFAULT_PLATFORM_OPERATION_DURATION = Duration.ofMinutes(10);
 
 	private static final Logger LOG = LoggerFactory.getLogger(CloudFoundryAppDeployer.class);
 
@@ -454,7 +455,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				.deploymentId(deploymentId)
 				.build())
 			.filter(this::deploymentFinished)
-			.repeatWhenEmpty(getExponentialBackOff())
+			.repeatWhenEmpty(getExponentialBackOff(getDeploymentTimeout()))
 			.doOnRequest(l -> LOG.debug("Waiting for deployment to complete. deploymentId={}", deploymentId))
 			.doOnSuccess(response -> {
 				LOG.info("Success waiting for deployment to complete. deploymentId={}", deploymentId);
@@ -503,7 +504,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.buildId(buildId)
 			.build())
 			.filter(p -> p.getState().equals(BuildState.STAGED))
-			.repeatWhenEmpty(getExponentialBackOff())
+			.repeatWhenEmpty(getExponentialBackOff(getStagingTimeout()))
 			.doOnRequest(l -> LOG.debug("Waiting for build to stage. buildId={}", buildId))
 			.doOnSuccess(response -> {
 				LOG.info("Success waiting for build to stage. buildId={}", buildId);
@@ -535,7 +536,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.packages()
 			.get(GetPackageRequest.builder().packageId(packageId).build())
 			.filter(p -> p.getState().equals(PackageState.READY))
-			.repeatWhenEmpty(getExponentialBackOff())
+			.repeatWhenEmpty(getExponentialBackOff(DEFAULT_PLATFORM_OPERATION_DURATION))
 			.doOnRequest(l -> LOG.debug("Waiting for package ready. packageId={}", packageId))
 			.doOnSuccess(response -> {
 				LOG.info("Success waiting for package ready. packageId={}", packageId);
@@ -679,8 +680,22 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				applicationId, e.getMessage()), e));
 	}
 
-	private Function<Flux<Long>, Publisher<?>> getExponentialBackOff() {
-		return DelayUtils.exponentialBackOff(Duration.ofSeconds(2), Duration.ofMinutes(5), Duration.ofMinutes(10));
+	private Duration getStagingTimeout() {
+		if (targetProperties.getStagingTimeout() == null) {
+			return DEFAULT_PLATFORM_OPERATION_DURATION;
+		}
+		return Duration.ofMinutes(targetProperties.getStagingTimeout());
+	}
+
+	private Duration getDeploymentTimeout() {
+		if (targetProperties.getDeploymentTimeout() == null) {
+			return DEFAULT_PLATFORM_OPERATION_DURATION;
+		}
+		return Duration.ofMinutes(targetProperties.getDeploymentTimeout());
+	}
+
+	private Function<Flux<Long>, Publisher<?>> getExponentialBackOff(Duration timeout) {
+		return DelayUtils.exponentialBackOff(Duration.ofSeconds(2), Duration.ofMinutes(5), timeout);
 	}
 
 	private Mono<Void> pushApplication(DeployApplicationRequest request, Map<String, String> deploymentProperties,

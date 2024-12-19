@@ -26,14 +26,12 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 
 class BrokerPropertiesParameterResolver implements ParameterResolver {
 
-	@SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")
 	@Override
 	public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
 		throws ParameterResolutionException {
 		return parameterContext.getParameter().getType() == BrokerProperties.class;
 	}
 
-	@SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")
 	@Override
 	public BrokerProperties resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
 		throws ParameterResolutionException {

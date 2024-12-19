@@ -137,7 +137,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 
-@SuppressWarnings({"PMD.GodClass", "PMD.CyclomaticComplexity", "PMD.ExcessiveClassLength"})
 public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware {
 
 	private static final Duration DEFAULT_PLATFORM_OPERATION_DURATION = Duration.ofMinutes(10);

@@ -124,7 +124,6 @@ class CreateInstanceWithCustomTargetComponentTest extends WiremockComponentTest 
 			return new CustomSpaceTarget(customSpaceService);
 		}
 
-		@SuppressWarnings({"PMD.UnusedFormalParameter"})
 		static final class CustomSpaceTarget extends TargetFactory<CustomSpaceTarget.Config> {
 
 			private final CustomSpaceService customSpaceService;

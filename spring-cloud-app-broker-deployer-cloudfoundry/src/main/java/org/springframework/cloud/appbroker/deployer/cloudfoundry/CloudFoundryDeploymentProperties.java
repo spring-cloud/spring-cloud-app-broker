@@ -32,7 +32,7 @@ import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
  * @author Greg Turnquist
  * @author Ilayaperumal Gopinathan
  */
-@SuppressWarnings({"unused", "PMD.TooManyFields"})
+@SuppressWarnings("unused")
 public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 
 	/**

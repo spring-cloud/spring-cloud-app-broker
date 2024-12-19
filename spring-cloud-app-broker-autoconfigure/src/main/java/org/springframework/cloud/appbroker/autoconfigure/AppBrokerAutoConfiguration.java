@@ -73,7 +73,6 @@ import org.springframework.context.annotation.Configuration;
 /**
  * App Broker Auto-configuration
  */
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 @Configuration
 @AutoConfigureAfter(CloudFoundryAppDeployerAutoConfiguration.class)
 @ConditionalOnBean(AppDeployer.class)

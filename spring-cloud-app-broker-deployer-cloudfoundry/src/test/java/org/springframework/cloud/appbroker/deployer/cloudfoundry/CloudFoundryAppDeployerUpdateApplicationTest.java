@@ -154,7 +154,7 @@ class CloudFoundryAppDeployerUpdateApplicationTest {
 	private ResourceLoader resourceLoader;
 
 	@BeforeEach
-	@SuppressWarnings({"PMD.ExcessiveMethodLength", "deprecation"})
+	@SuppressWarnings("deprecation")
 	void setUp() {
 		CloudFoundryDeploymentProperties deploymentProperties = new CloudFoundryDeploymentProperties();
 		CloudFoundryTargetProperties targetProperties = new CloudFoundryTargetProperties();

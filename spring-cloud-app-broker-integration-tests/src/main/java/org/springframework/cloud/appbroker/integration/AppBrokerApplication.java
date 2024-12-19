@@ -22,7 +22,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * A Spring Boot application for running integration tests
  */
-@SuppressWarnings("PMD.UseUtilityClass")
 @SpringBootApplication
 public class AppBrokerApplication {
 

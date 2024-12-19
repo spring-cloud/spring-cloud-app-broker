@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-@SuppressWarnings("PMD.DoNotUseThreads")
 @Service
 class HealthListener {
 

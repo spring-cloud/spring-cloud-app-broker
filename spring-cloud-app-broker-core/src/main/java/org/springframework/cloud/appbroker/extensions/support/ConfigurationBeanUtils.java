@@ -55,7 +55,7 @@ public final class ConfigurationBeanUtils {
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "PMD.AvoidCatchingGenericException"})
+	@SuppressWarnings("unchecked")
 	private static <T> T getTargetObject(Object candidate) {
 		try {
 			if (AopUtils.isAopProxy(candidate) && candidate instanceof Advised) {

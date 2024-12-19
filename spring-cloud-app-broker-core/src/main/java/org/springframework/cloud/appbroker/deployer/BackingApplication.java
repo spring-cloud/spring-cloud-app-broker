@@ -29,7 +29,6 @@ import org.springframework.util.CollectionUtils;
 /**
  * An application deployed as part of the service provisioning process
  */
-@SuppressWarnings("PMD.GodClass")
 public class BackingApplication {
 
 	private static final String VALUE_HIDDEN = "<value hidden>";

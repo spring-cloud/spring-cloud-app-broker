@@ -103,7 +103,6 @@ import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFo
 @ExtendWith(SpringExtension.class)
 @ExtendWith(BrokerPropertiesParameterResolver.class)
 @EnableConfigurationProperties(AcceptanceTestProperties.class)
-@SuppressWarnings("PMD.GodClass")
 abstract class CloudFoundryAcceptanceTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CloudFoundryAcceptanceTest.class);

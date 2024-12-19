@@ -91,7 +91,7 @@ import static org.mockito.BDDMockito.then;
 import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.DEFAULT_API_POLLING_TIMEOUT_SECONDS;
 
-@SuppressWarnings({"UnassignedFluxMonoInstance", "PMD.ExcessiveClassLength"})
+@SuppressWarnings("UnassignedFluxMonoInstance")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CloudFoundryAppDeployerTest {

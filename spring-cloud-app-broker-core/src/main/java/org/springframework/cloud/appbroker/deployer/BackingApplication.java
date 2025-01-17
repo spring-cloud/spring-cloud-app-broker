@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,13 @@ import java.util.stream.Collectors;
 import org.springframework.util.CollectionUtils;
 
 /**
- * An application deployed as part of the service provisioning process
+ * An application deployed as part of the service provisioning process.
+ *
+ * @author Scott Frederick
+ * @author Roy Clarkson
+ * @author Oliver Hughes
+ * @author Alexey Nesterov
+ * @author Alberto Rios
  */
 public class BackingApplication {
 
@@ -49,8 +55,7 @@ public class BackingApplication {
 	}
 
 	/**
-	 * Construct a new {@link BackingApplication}
-	 *
+	 * Construct a new {@link BackingApplication}.
 	 * @param name the name of the application
 	 * @param path the path to the application
 	 * @param properties the properties
@@ -58,11 +63,8 @@ public class BackingApplication {
 	 * @param services the services required by the application
 	 * @param parametersTransformers the parameter transformers
 	 */
-	public BackingApplication(String name, String path,
-		Map<String, String> properties,
-		Map<String, Object> environment,
-		List<ServicesSpec> services,
-		List<ParametersTransformerSpec> parametersTransformers) {
+	public BackingApplication(String name, String path, Map<String, String> properties, Map<String, Object> environment,
+			List<ServicesSpec> services, List<ParametersTransformerSpec> parametersTransformers) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
@@ -72,7 +74,7 @@ public class BackingApplication {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -80,7 +82,7 @@ public class BackingApplication {
 	}
 
 	public String getPath() {
-		return path;
+		return this.path;
 	}
 
 	public void setPath(String path) {
@@ -88,7 +90,7 @@ public class BackingApplication {
 	}
 
 	public Map<String, String> getProperties() {
-		return properties;
+		return this.properties;
 	}
 
 	public void setProperties(Map<String, String> properties) {
@@ -96,8 +98,7 @@ public class BackingApplication {
 	}
 
 	/**
-	 * Add a single property
-	 *
+	 * Add a single property.
 	 * @param key the key
 	 * @param value the value
 	 */
@@ -106,7 +107,7 @@ public class BackingApplication {
 	}
 
 	public Map<String, Object> getEnvironment() {
-		return environment;
+		return this.environment;
 	}
 
 	public void setEnvironment(Map<String, Object> environment) {
@@ -114,17 +115,16 @@ public class BackingApplication {
 	}
 
 	/**
-	 * Add a single environment value
-	 *
+	 * Add a single environment value.
 	 * @param key the key
 	 * @param value the value
 	 */
 	public void addEnvironment(String key, Object value) {
-		environment.put(key, value);
+		this.environment.put(key, value);
 	}
 
 	public List<ServicesSpec> getServices() {
-		return services;
+		return this.services;
 	}
 
 	public void setServices(List<ServicesSpec> services) {
@@ -132,7 +132,7 @@ public class BackingApplication {
 	}
 
 	public List<ParametersTransformerSpec> getParametersTransformers() {
-		return parametersTransformers;
+		return this.parametersTransformers;
 	}
 
 	public void setParametersTransformers(List<ParametersTransformerSpec> parametersTransformers) {
@@ -140,8 +140,8 @@ public class BackingApplication {
 	}
 
 	/**
-	 * Create a builder that provides a fluent API for constructing a {@literal BackingApplication}.
-	 *
+	 * Create a builder that provides a fluent API for constructing a
+	 * {@literal BackingApplication}.
 	 * @return the builder
 	 */
 	public static BackingApplicationBuilder builder() {
@@ -157,29 +157,23 @@ public class BackingApplication {
 			return false;
 		}
 		BackingApplication that = (BackingApplication) o;
-		return Objects.equals(name, that.name) &&
-			Objects.equals(path, that.path) &&
-			Objects.equals(properties, that.properties) &&
-			Objects.equals(environment, that.environment) &&
-			Objects.equals(services, that.services) &&
-			Objects.equals(parametersTransformers, that.parametersTransformers);
+		return Objects.equals(this.name, that.name) && Objects.equals(this.path, that.path)
+				&& Objects.equals(this.properties, that.properties)
+				&& Objects.equals(this.environment, that.environment) && Objects.equals(this.services, that.services)
+				&& Objects.equals(this.parametersTransformers, that.parametersTransformers);
 	}
 
 	@Override
 	public final int hashCode() {
-		return Objects.hash(name, path, properties, environment, services, parametersTransformers);
+		return Objects.hash(this.name, this.path, this.properties, this.environment, this.services,
+				this.parametersTransformers);
 	}
 
 	@Override
 	public String toString() {
-		return "BackingApplication{" +
-			"name='" + name + '\'' +
-			", path='" + path + '\'' +
-			", properties=" + properties +
-			", environment=" + sanitizeEnvironment(environment) +
-			", services=" + services +
-			", parametersTransformers=" + parametersTransformers +
-			'}';
+		return "BackingApplication{" + "name='" + this.name + '\'' + ", path='" + this.path + '\'' + ", properties="
+				+ this.properties + ", environment=" + sanitizeEnvironment(this.environment) + ", services="
+				+ this.services + ", parametersTransformers=" + this.parametersTransformers + '}';
 	}
 
 	private Map<String, Object> sanitizeEnvironment(Map<String, Object> environment) {
@@ -214,8 +208,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Build a backing application based on another application definition
-		 *
+		 * Build a backing application based on another application definition.
 		 * @param backingApplication the backing application from which to copy properties
 		 * @return the builder
 		 */
@@ -225,25 +218,22 @@ public class BackingApplication {
 				.properties(backingApplication.getProperties())
 				.environment(backingApplication.getEnvironment());
 			if (!CollectionUtils.isEmpty(backingApplication.getServices())) {
-				this.services(backingApplication.getServices().stream()
-					.map(spec -> ServicesSpec.builder()
-						.spec(spec)
-						.build())
+				this.services(backingApplication.getServices()
+					.stream()
+					.map((spec) -> ServicesSpec.builder().spec(spec).build())
 					.collect(Collectors.toList()));
 			}
 			if (!CollectionUtils.isEmpty(backingApplication.getParametersTransformers())) {
-				this.parameterTransformers(backingApplication.getParametersTransformers().stream()
-					.map(spec -> ParametersTransformerSpec.builder()
-						.spec(spec)
-						.build())
+				this.parameterTransformers(backingApplication.getParametersTransformers()
+					.stream()
+					.map((spec) -> ParametersTransformerSpec.builder().spec(spec).build())
 					.collect(Collectors.toList()));
 			}
 			return this;
 		}
 
 		/**
-		 * The name of the application
-		 *
+		 * The name of the application.
 		 * @param name the name
 		 * @return the builder
 		 */
@@ -253,8 +243,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * The path to the application
-		 *
+		 * The path to the application.
 		 * @param path the path
 		 * @return the builder
 		 */
@@ -264,8 +253,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Properties that describe the application
-		 *
+		 * Properties that describe the application.
 		 * @param key the property key
 		 * @param value the property value
 		 * @return the builder
@@ -278,8 +266,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Properties that describe the application
-		 *
+		 * Properties that describe the application.
 		 * @param properties the properties
 		 * @return the builder
 		 */
@@ -291,8 +278,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Environment variables to be set for the application
-		 *
+		 * Environment variables to be set for the application.
 		 * @param key the env var key
 		 * @param value the env var value
 		 * @return the builder
@@ -305,8 +291,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Environment variables to be set for the application
-		 *
+		 * Environment variables to be set for the application.
 		 * @param environment the env vars
 		 * @return the builder
 		 */
@@ -318,8 +303,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Services required by the application
-		 *
+		 * Services required by the application.
 		 * @param services the services
 		 * @return the builder
 		 */
@@ -331,8 +315,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Services required by the application
-		 *
+		 * Services required by the application.
 		 * @param services the services
 		 * @return the builder
 		 */
@@ -344,8 +327,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Parameter transformers for the application
-		 *
+		 * Parameter transformers for the application.
 		 * @param parameterTransformers the parameter transformers
 		 * @return the builder
 		 */
@@ -357,8 +339,7 @@ public class BackingApplication {
 		}
 
 		/**
-		 * Parameter transformers for the application
-		 *
+		 * Parameter transformers for the application.
 		 * @param parameterTransformers the parameter transformers
 		 * @return the builder
 		 */
@@ -371,11 +352,11 @@ public class BackingApplication {
 
 		/**
 		 * Construct a {@link BackingApplication} from the provided values.
-		 *
 		 * @return the newly constructed {@literal BackingApplication}
 		 */
 		public BackingApplication build() {
-			return new BackingApplication(name, path, properties, environment, services, parameterTransformers);
+			return new BackingApplication(this.name, this.path, this.properties, this.environment, this.services,
+					this.parameterTransformers);
 		}
 
 	}

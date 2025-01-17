@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.appbroker.deployer.BackingService;
 
-public class ParameterMappingParametersTransformerFactory extends
-	ParametersTransformerFactory<BackingService, ParameterMappingParametersTransformerFactory.Config> {
+public class ParameterMappingParametersTransformerFactory
+		extends ParametersTransformerFactory<BackingService, ParameterMappingParametersTransformerFactory.Config> {
 
 	public ParameterMappingParametersTransformerFactory() {
 		super(Config.class);
@@ -36,13 +36,13 @@ public class ParameterMappingParametersTransformerFactory extends
 		return (backingType, parameters) -> transform(backingType, parameters, config.getIncludes());
 	}
 
-	private Mono<BackingService> transform(BackingService backingService,
-		Map<String, Object> parameters,
-		List<String> include) {
+	private Mono<BackingService> transform(BackingService backingService, Map<String, Object> parameters,
+			List<String> include) {
 		if (parameters != null) {
-			parameters.keySet().stream()
+			parameters.keySet()
+				.stream()
 				.filter(include::contains)
-				.forEach(key -> backingService.addParameter(key, parameters.get(key)));
+				.forEach((key) -> backingService.addParameter(key, parameters.get(key)));
 		}
 
 		return Mono.just(backingService);
@@ -54,7 +54,7 @@ public class ParameterMappingParametersTransformerFactory extends
 		private String include;
 
 		public List<String> getIncludes() {
-			return Arrays.asList(include.split(","));
+			return Arrays.asList(this.include.split(","));
 		}
 
 		public void setInclude(String include) {

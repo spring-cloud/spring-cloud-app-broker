@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,13 +35,11 @@ public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstan
 		properties.put(DeploymentProperties.HOST_PROPERTY_KEY, name + "-" + serviceInstanceId);
 		properties.put(DeploymentProperties.TARGET_PROPERTY_KEY, serviceInstanceId);
 
-		return ArtifactDetails.builder()
-			.name(name)
-			.properties(properties)
-			.build();
+		return ArtifactDetails.builder().name(name).properties(properties).build();
 	}
 
 	public static class Config {
+
 	}
 
 }

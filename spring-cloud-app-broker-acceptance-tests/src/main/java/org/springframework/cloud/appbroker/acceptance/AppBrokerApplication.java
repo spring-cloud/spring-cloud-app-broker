@@ -29,14 +29,15 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingSer
 import org.springframework.context.annotation.Bean;
 
 /**
- * A Spring Boot application for running acceptance tests
+ * A Spring Boot application for running acceptance tests.
+ *
+ * @author Roy Clarkson
  */
 @SpringBootApplication
 public class AppBrokerApplication {
 
 	/**
-	 * main application entry point
-	 *
+	 * main application entry point.
 	 * @param args the args
 	 */
 	public static void main(String[] args) {
@@ -44,8 +45,7 @@ public class AppBrokerApplication {
 	}
 
 	/**
-	 * A no-op CreateServiceInstanceWorkflow bean
-	 *
+	 * A no-op CreateServiceInstanceWorkflow bean.
 	 * @return the bean
 	 */
 	@Bean
@@ -54,8 +54,7 @@ public class AppBrokerApplication {
 	}
 
 	/**
-	 * A no-op UpdateServiceInstanceWorkflow bean
-	 *
+	 * A no-op UpdateServiceInstanceWorkflow bean.
 	 * @return the bean
 	 */
 	@Bean
@@ -64,8 +63,7 @@ public class AppBrokerApplication {
 	}
 
 	/**
-	 * A no-op DeleteServiceInstanceWorkflow bean
-	 *
+	 * A no-op DeleteServiceInstanceWorkflow bean.
 	 * @return the bean
 	 */
 	@Bean
@@ -74,8 +72,7 @@ public class AppBrokerApplication {
 	}
 
 	/**
-	 * A no-op ServiceInstanceBindingService bean
-	 *
+	 * A no-op ServiceInstanceBindingService bean.
 	 * @return the bean
 	 */
 	@Bean

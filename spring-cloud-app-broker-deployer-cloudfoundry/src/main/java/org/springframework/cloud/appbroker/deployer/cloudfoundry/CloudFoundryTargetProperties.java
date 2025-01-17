@@ -49,7 +49,7 @@ public class CloudFoundryTargetProperties {
 	private Long stagingTimeout;
 
 	public String getApiHost() {
-		return apiHost;
+		return this.apiHost;
 	}
 
 	public void setApiHost(String apiHost) {
@@ -57,7 +57,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public Integer getApiPort() {
-		return apiPort;
+		return this.apiPort;
 	}
 
 	public void setApiPort(int apiPort) {
@@ -65,7 +65,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public String getDefaultOrg() {
-		return defaultOrg;
+		return this.defaultOrg;
 	}
 
 	public void setDefaultOrg(String defaultOrg) {
@@ -73,7 +73,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public String getDefaultSpace() {
-		return defaultSpace;
+		return this.defaultSpace;
 	}
 
 	public void setDefaultSpace(String defaultSpace) {
@@ -81,7 +81,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public String getUsername() {
-		return username;
+		return this.username;
 	}
 
 	public void setUsername(String username) {
@@ -89,7 +89,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public String getPassword() {
-		return password;
+		return this.password;
 	}
 
 	public void setPassword(String password) {
@@ -97,7 +97,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public String getClientId() {
-		return clientId;
+		return this.clientId;
 	}
 
 	public void setClientId(String clientId) {
@@ -105,7 +105,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public String getClientSecret() {
-		return clientSecret;
+		return this.clientSecret;
 	}
 
 	public void setClientSecret(String clientSecret) {
@@ -113,7 +113,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public String getIdentityZoneSubdomain() {
-		return identityZoneSubdomain;
+		return this.identityZoneSubdomain;
 	}
 
 	public void setIdentityZoneSubdomain(String identityZoneSubdomain) {
@@ -121,7 +121,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public boolean isSecure() {
-		return secure;
+		return this.secure;
 	}
 
 	public void setSecure(boolean secure) {
@@ -129,7 +129,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public boolean isSkipSslValidation() {
-		return skipSslValidation;
+		return this.skipSslValidation;
 	}
 
 	public void setSkipSslValidation(boolean skipSslValidation) {
@@ -141,7 +141,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public Long getDeploymentTimeout() {
-		return deploymentTimeout;
+		return this.deploymentTimeout;
 	}
 
 	public void setDeploymentTimeout(Long deploymentTimeout) {
@@ -149,7 +149,7 @@ public class CloudFoundryTargetProperties {
 	}
 
 	public Long getStagingTimeout() {
-		return stagingTimeout;
+		return this.stagingTimeout;
 	}
 
 	public void setStagingTimeout(Long stagingTimeout) {
@@ -158,7 +158,7 @@ public class CloudFoundryTargetProperties {
 
 	private static String parseApiHost(String api) {
 		final URI uri = URI.create(api);
-		return uri.getHost() == null ? api : uri.getHost();
+		return (uri.getHost() == null) ? api : uri.getHost();
 	}
 
 }

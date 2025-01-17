@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,45 +21,52 @@ import java.util.List;
 import reactor.core.publisher.Flux;
 
 /**
- * This interface is implemented by service brokers to process requests to deploy, update, and undeploy backing
- * applications associated with a service instance.
+ * This interface is implemented by service brokers to process requests to deploy, update,
+ * and undeploy backing applications associated with a service instance.
+ *
+ * @author Scott Frederick
+ * @author Roy Clarkson
+ * @author Oliver Hughes
+ * @author Alexey Nesterov
+ * @author Gareth Clay
  */
 public interface BackingAppDeploymentService {
 
 	/**
-	 * Deploy the backing applications and associate with the service instance
-	 *
+	 * Deploy the backing applications and associate with the service instance.
 	 * @param backingApps a collection of backing applications
 	 * @param serviceInstanceId the service instance ID
-	 * @return a set of strings, where each corresponds to an application e.g. the application name
+	 * @return a set of strings, where each corresponds to an application e.g. the
+	 * application name
 	 */
 	Flux<String> deploy(List<BackingApplication> backingApps, String serviceInstanceId);
 
 	/**
-	 * Performs any steps necessary prior to backing application and backing service updates
-	 *
+	 * Performs any steps necessary prior to backing application and backing service
+	 * updates.
 	 * @param backingApps a collection of backing applications
 	 * @param serviceInstanceId the service instance ID
-	 * @return a set of strings, where each corresponds to an application. e.g. the application name
+	 * @return a set of strings, where each corresponds to an application. e.g. the
+	 * application name
 	 */
 	default Flux<String> prepareForUpdate(List<BackingApplication> backingApps, String serviceInstanceId) {
 		return Flux.empty();
 	}
 
 	/**
-	 * Update the backing applications and associate with the service instance
-	 *
+	 * Update the backing applications and associate with the service instance.
 	 * @param backingApps a collection of backing applications
 	 * @param serviceInstanceId the service instance ID
-	 * @return a set of strings, where each corresponds to an application. e.g. the application name
+	 * @return a set of strings, where each corresponds to an application. e.g. the
+	 * application name
 	 */
 	Flux<String> update(List<BackingApplication> backingApps, String serviceInstanceId);
 
 	/**
-	 * Undeploy the backing applications
-	 *
+	 * Undeploy the backing applications.
 	 * @param backingApps a collection of backing applications
-	 * @return a set of strings, where each corresponds to an application. e.g. the application name
+	 * @return a set of strings, where each corresponds to an application. e.g. the
+	 * application name
 	 */
 	Flux<String> undeploy(List<BackingApplication> backingApps);
 

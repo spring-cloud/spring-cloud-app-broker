@@ -28,15 +28,18 @@ import org.springframework.util.StringUtils;
  */
 public final class ByteSizeUtils {
 
-	private static final Pattern SIZE_PATTERN = Pattern
-		.compile("(?<amount>\\d+)(?<unit>([mg])?)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern SIZE_PATTERN = Pattern.compile("(?<amount>\\d+)(?<unit>([mg])?)",
+			Pattern.CASE_INSENSITIVE);
 
 	private ByteSizeUtils() {
 	}
 
 	/**
-	 * Return the number of mebibytes (1024*1024) denoted by the given text, where an optional case-insensitive unit of
-	 * 'm' or 'g' can be used to mean mebi- or gebi- bytes, respectively. Lack of unit assumes mebibytes.
+	 * Return the number of mebibytes (1024*1024) denoted by the given text, where an
+	 * optional case-insensitive unit of 'm' or 'g' can be used to mean mebi- or gebi-
+	 * bytes, respectively. Lack of unit assumes mebibytes.
+	 * @param text the text to parse
+	 * @return the number of mebibytes
 	 */
 	public static Integer parseToMebibytes(String text) {
 		if (!StringUtils.hasText(text)) {
@@ -45,8 +48,9 @@ public final class ByteSizeUtils {
 
 		Matcher matcher = SIZE_PATTERN.matcher(text);
 		if (!matcher.matches()) {
-			throw new IllegalArgumentException(String.format("Could not parse '%s' as a byte size." +
-				" Expected a number with optional 'm' or 'g' suffix", text));
+			throw new IllegalArgumentException(String.format(
+					"Could not parse '%s' as a byte size." + " Expected a number with optional 'm' or 'g' suffix",
+					text));
 		}
 		int size = Integer.parseInt(matcher.group("amount"));
 		if ("g".equalsIgnoreCase(matcher.group("unit"))) {

@@ -29,7 +29,7 @@ public class DeployApplicationResponse {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public static final class DeployApplicationResponseBuilder {
@@ -45,7 +45,7 @@ public class DeployApplicationResponse {
 		}
 
 		public DeployApplicationResponse build() {
-			return new DeployApplicationResponse(name);
+			return new DeployApplicationResponse(this.name);
 		}
 
 	}

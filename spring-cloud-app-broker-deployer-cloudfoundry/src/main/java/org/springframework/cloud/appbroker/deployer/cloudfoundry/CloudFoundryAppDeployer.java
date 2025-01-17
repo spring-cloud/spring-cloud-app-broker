@@ -164,11 +164,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private ResourceLoader resourceLoader;
 
 	public CloudFoundryAppDeployer(CloudFoundryDeploymentProperties deploymentProperties,
-		CloudFoundryOperations operations,
-		CloudFoundryClient client,
-		CloudFoundryOperationsUtils operationsUtils,
-		CloudFoundryTargetProperties targetProperties,
-		ResourceLoader resourceLoader) {
+			CloudFoundryOperations operations, CloudFoundryClient client, CloudFoundryOperationsUtils operationsUtils,
+			CloudFoundryTargetProperties targetProperties, ResourceLoader resourceLoader) {
 		this.defaultDeploymentProperties = deploymentProperties;
 		this.operations = operations;
 		this.client = client;
@@ -186,44 +183,43 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	public Mono<GetApplicationResponse> get(GetApplicationRequest request) {
 		final String appName = request.getName();
 
-		return operationsUtils.getOperations(request.getProperties())
-			.flatMap(cfOperations -> cfOperations.applications()
-				.get(org.cloudfoundry.operations.applications.GetApplicationRequest.builder()
-					.name(appName)
-					.build())
-				.doOnRequest(l -> {
+		return this.operationsUtils.getOperations(request.getProperties())
+			.flatMap((cfOperations) -> cfOperations.applications()
+				.get(org.cloudfoundry.operations.applications.GetApplicationRequest.builder().name(appName).build())
+				.doOnRequest((l) -> {
 					LOG.info("Getting application. appName={}", appName);
 					LOG.debug(REQUEST_LOG_TEMPLATE, request);
 				})
-				.doOnSuccess(response -> {
+				.doOnSuccess((response) -> {
 					LOG.info("Success getting application. appName={}", appName);
 					LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 				})
-				.doOnError(e -> LOG.error(String.format("Error getting application. appName=%s, " + ERROR_LOG_TEMPLATE,
-					appName, e.getMessage()), e))
+				.doOnError(
+						(e) -> LOG.error(String.format("Error getting application. appName=%s, " + ERROR_LOG_TEMPLATE,
+								appName, e.getMessage()), e))
 				.map(ApplicationDetail::getId)
-				.flatMap(id -> client.applicationsV2().summary(SummaryApplicationRequest.builder()
-					.applicationId(id)
-					.build())))
-			.flatMap(summary -> Flux.fromIterable(summary.getServices())
+				.flatMap((id) -> this.client.applicationsV2()
+					.summary(SummaryApplicationRequest.builder().applicationId(id).build())))
+			.flatMap((summary) -> Flux.fromIterable(summary.getServices())
 				.map(org.cloudfoundry.client.v2.serviceinstances.ServiceInstance::getName)
 				.collectList()
-				.map(services -> GetApplicationResponse.builder()
+				.map((services) -> GetApplicationResponse.builder()
 					.id(summary.getId())
 					.name(summary.getName())
 					.services(services)
 					.environment(summary.getEnvironmentJsons())
 					.build()))
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Getting application summary. appName={}", appName);
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			})
-			.doOnSuccess(response -> {
+			.doOnSuccess((response) -> {
 				LOG.info("Success getting application summary. appName={}", appName);
 				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 			})
-			.doOnError(e -> LOG.error(String.format("Error getting application summary. appName=%s, " +
-				ERROR_LOG_TEMPLATE, appName, e.getMessage()), e));
+			.doOnError((e) -> LOG
+				.error(String.format("Error getting application summary. appName=%s, " + ERROR_LOG_TEMPLATE, appName,
+						e.getMessage()), e));
 	}
 
 	@Override
@@ -233,37 +229,31 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		Map<String, String> deploymentProperties = request.getProperties();
 
 		if (LOG.isTraceEnabled()) {
-			LOG.trace("Deploying application: request={}, resource={}",
-				appName, appResource);
+			LOG.trace("Deploying application: request={}, resource={}", appName, appResource);
 		}
 
 		return pushApplication(request, deploymentProperties, appResource)
 			.timeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiTimeout()))
-			.doOnSuccess(item -> LOG.info("Successfully deployed {}", appName))
-			.doOnError(e -> {
+			.doOnSuccess((item) -> LOG.info("Successfully deployed {}", appName))
+			.doOnError((e) -> {
 				if (httpStatusNotFoundPredicate().test(e)) {
-				LOG.error(String.format("Unable to deploy application. It may have been destroyed before " +
-						"start completed. " + ERROR_LOG_TEMPLATE, e.getMessage()), e);
+					LOG.error(String.format("Unable to deploy application. It may have been destroyed before "
+							+ "start completed. " + ERROR_LOG_TEMPLATE, e.getMessage()), e);
 				}
 				else {
 					logError(String.format("Error deploying application. appName=%s", appName)).accept(e);
 				}
 			})
-			.thenReturn(DeployApplicationResponse.builder()
-				.name(appName)
-				.build());
+			.thenReturn(DeployApplicationResponse.builder().name(appName).build());
 	}
 
 	@Override
 	public Mono<UpdateApplicationResponse> preUpdate(UpdateApplicationRequest request) {
 		final String appName = request.getName();
 
-		return get(GetApplicationRequest.builder()
-			.name(appName)
-			.properties(request.getProperties())
-			.build())
+		return get(GetApplicationRequest.builder().name(appName).properties(request.getProperties()).build())
 			.map(GetApplicationResponse::getId)
-			.flatMap(applicationId -> updateApplication(request, applicationId))
+			.flatMap((applicationId) -> updateApplication(request, applicationId))
 			.thenReturn(UpdateApplicationResponse.builder().name(appName).build());
 	}
 
@@ -271,12 +261,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	public Mono<UpdateApplicationResponse> update(UpdateApplicationRequest request) {
 		final String appName = request.getName();
 
-		return get(GetApplicationRequest.builder()
-			.name(appName)
-			.properties(request.getProperties())
-			.build())
-			.flatMap(response -> bindNewServices(response, request.getServices(), request.getProperties()))
-			.flatMap(applicationId -> {
+		return get(GetApplicationRequest.builder().name(appName).properties(request.getProperties()).build())
+			.flatMap((response) -> bindNewServices(response, request.getServices(), request.getProperties()))
+			.flatMap((applicationId) -> {
 				if (request.getProperties().containsKey("routes")) {
 					return associateRoutes(applicationId, request.getProperties());
 				}
@@ -284,41 +271,41 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 					return associateHostName(applicationId, request.getProperties());
 				}
 			})
-			.flatMap(applicationId -> updateApplication(request, applicationId))
-			.flatMap(applicationId -> Mono.zip(Mono.just(applicationId),
-				upgradeApplicationIfRequired(request, applicationId)))
-			.flatMap(tuple2 -> {
+			.flatMap((applicationId) -> updateApplication(request, applicationId))
+			.flatMap((applicationId) -> Mono.zip(Mono.just(applicationId),
+					upgradeApplicationIfRequired(request, applicationId)))
+			.flatMap((tuple2) -> {
 				String appId = tuple2.getT1();
 				String packageId = tuple2.getT2();
 				return Mono.zip(Mono.just(appId), createBuildForPackage(packageId));
 			})
-			.flatMap(tuple2 -> {
+			.flatMap((tuple2) -> {
 				String appId = tuple2.getT1();
 				String buildId = tuple2.getT2();
 				return Mono.zip(Mono.just(appId), waitForBuildStaged(buildId));
 			})
-			.map(tuple2 -> tuple2.mapT2((t2) -> t2.getDroplet().getId()))
-			.flatMap(tuple2 -> {
+			.map((tuple2) -> tuple2.mapT2((t2) -> t2.getDroplet().getId()))
+			.flatMap((tuple2) -> {
 				String appId = tuple2.getT1();
 				String dropletId = tuple2.getT2();
 				return createDeployment(dropletId, appId);
 			})
 			.map(CreateDeploymentResponse::getId)
 			.flatMap(this::waitForDeploymentDeployed)
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Updating application. appName={}", appName);
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			})
-			.doOnSuccess(response -> {
+			.doOnSuccess((response) -> {
 				LOG.info("Success updating application. appName={}", appName);
 				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 			})
-			.doOnError(e -> LOG.error(String.format("Error updating application. appName=%s", appName), e))
+			.doOnError((e) -> LOG.error(String.format("Error updating application. appName=%s", appName), e))
 			.thenReturn(UpdateApplicationResponse.builder().name(appName).build());
 	}
 
 	private Mono<String> bindNewServices(GetApplicationResponse deployedApp, List<String> services,
-		Map<String, String> properties) {
+			Map<String, String> properties) {
 		String id = deployedApp.getId();
 		List<String> boundServices = deployedApp.getServices();
 		List<String> servicesToBind = new ArrayList<>(services);
@@ -329,18 +316,20 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 
 		String appName = deployedApp.getName();
-		return operationsUtils.getOperations(properties)
-			.flatMapMany(cfOperations -> Flux.fromIterable(servicesToBind)
-				.flatMap(service -> cfOperations.services().bind(BindServiceInstanceRequest.builder()
-					.applicationName(appName)
-					.serviceInstanceName(service)
-					.build())
-					.doOnRequest(
-						l -> LOG.info("Binding application to service. appName={}, serviceName={}", appName, service))
-					.doOnNext(v -> LOG.info("Success binding application to service. appName={}, service={}", appName,
-						service))
-					.doOnError(e -> LOG.error(String.format("Error binding application to service. appName=%s, " +
-						"service=%s", appName, service), e))))
+		return this.operationsUtils.getOperations(properties)
+			.flatMapMany((cfOperations) -> Flux.fromIterable(servicesToBind)
+				.flatMap((service) -> cfOperations.services()
+					.bind(BindServiceInstanceRequest.builder()
+						.applicationName(appName)
+						.serviceInstanceName(service)
+						.build())
+					.doOnRequest((l) -> LOG.info("Binding application to service. appName={}, serviceName={}", appName,
+							service))
+					.doOnNext((v) -> LOG.info("Success binding application to service. appName={}, service={}", appName,
+							service))
+					.doOnError((e) -> LOG.error(String
+						.format("Error binding application to service. appName=%s, " + "service=%s", appName, service),
+							e))))
 			.then()
 			.thenReturn(id);
 	}
@@ -353,60 +342,61 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			return Mono.just(applicationId);
 		}
 
-		return operationsUtils.getOperations(properties)
-			.map(cfOperations -> cfOperations.domains().list())
+		return this.operationsUtils.getOperations(properties)
+			.map((cfOperations) -> cfOperations.domains().list())
 			.flatMap(Flux::collectList)
-			.map(allDomains -> Stream.concat(Stream.of(domain), domains.stream())
-				.map(d -> getDomainId(d, allDomains))
+			.map((allDomains) -> Stream.concat(Stream.of(domain), domains.stream())
+				.map((d) -> getDomainId(d, allDomains))
 				.collect(Collectors.toSet()))
 			.zipWith(getSpaceId(properties))
-			.flatMapMany(domainIdsWithSpaceId -> {
+			.flatMapMany((domainIdsWithSpaceId) -> {
 				Set<String> uniqueDomainIds = domainIdsWithSpaceId.getT1();
 				String spaceId = domainIdsWithSpaceId.getT2();
 				return Flux.fromIterable(uniqueDomainIds)
-					.flatMap(domainId -> associateHostForDomain(applicationId, host, domainId, spaceId));
+					.flatMap((domainId) -> associateHostForDomain(applicationId, host, domainId, spaceId));
 			})
 			.then(Mono.just(applicationId));
 	}
 
 	private Mono<String> associateRoutes(String applicationId, Map<String, String> properties) {
 		List<String[]> routes = Arrays.stream(properties.get("routes").split(","))
-			.map(uri -> uri.split("\\.", 2))
+			.map((uri) -> uri.split("\\.", 2))
 			.collect(Collectors.toList());
 
 		return Mono.just(routes)
-			.zipWith(operationsUtils.getOperations(properties)
-				.map(cfOperations -> cfOperations.domains().list())
-				.flatMap(domains -> domains.collectMap(Domain::getName)))
+			.zipWith(this.operationsUtils.getOperations(properties)
+				.map((cfOperations) -> cfOperations.domains().list())
+				.flatMap((domains) -> domains.collectMap(Domain::getName)))
 			.zipWith(getSpaceId(properties))
-			.flatMapMany(routesDomainsAndSpace -> {
+			.flatMapMany((routesDomainsAndSpace) -> {
 				List<String[]> routesComponents = routesDomainsAndSpace.getT1().getT1();
 				Map<String, Domain> domainsByName = routesDomainsAndSpace.getT1().getT2();
 				String spaceId = routesDomainsAndSpace.getT2();
 
-				return Flux.fromStream(routesComponents.stream()
-					.map(route -> new String[] {route[0], domainsByName.get(route[1]).getId()}))
-					.flatMap(
-						hostAndDomainId -> associateHostForDomain(applicationId, hostAndDomainId[0], hostAndDomainId[1],
-							spaceId));
+				return Flux
+					.fromStream(routesComponents.stream()
+						.map((route) -> new String[] { route[0], domainsByName.get(route[1]).getId() }))
+					.flatMap((hostAndDomainId) -> associateHostForDomain(applicationId, hostAndDomainId[0],
+							hostAndDomainId[1], spaceId));
 			})
 			.then(Mono.just(applicationId));
 	}
 
 	private Mono<Void> associateHostForDomain(String applicationId, String host, String domainId, String spaceId) {
-		return client.routes()
+		return this.client.routes()
 			.create(org.cloudfoundry.client.v2.routes.CreateRouteRequest.builder()
 				.domainId(domainId)
 				.spaceId(spaceId)
 				.host(host)
 				.build())
-			.map(response -> response.getMetadata().getId())
-			.doOnError(error -> LOG.info("Host was already associated. host={}", host))
-			.onErrorResume(e -> Mono.empty())
-			.flatMap(routeId -> client.applicationsV2().associateRoute(AssociateApplicationRouteRequest.builder()
-				.applicationId(applicationId)
-				.routeId(routeId)
-				.build()))
+			.map((response) -> response.getMetadata().getId())
+			.doOnError((error) -> LOG.info("Host was already associated. host={}", host))
+			.onErrorResume((e) -> Mono.empty())
+			.flatMap((routeId) -> this.client.applicationsV2()
+				.associateRoute(AssociateApplicationRouteRequest.builder()
+					.applicationId(applicationId)
+					.routeId(routeId)
+					.build()))
 			.then();
 	}
 
@@ -416,15 +406,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			space = properties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
 		}
 		else {
-			space = targetProperties.getDefaultSpace();
+			space = this.targetProperties.getDefaultSpace();
 		}
-		return operations
-			.spaces()
-			.get(GetSpaceRequest
-				.builder()
-				.name(space)
-				.build())
-			.map(SpaceDetail::getId);
+		return this.operations.spaces().get(GetSpaceRequest.builder().name(space).build()).map(SpaceDetail::getId);
 	}
 
 	private String getDomainId(String domain, List<Domain> domains) {
@@ -433,7 +417,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 
 		return domains.stream()
-			.filter(d -> d.getName().equals(domain))
+			.filter((d) -> d.getName().equals(domain))
 			.findFirst()
 			.orElseThrow(() -> new RuntimeException("Non existing domain"))
 			.getId();
@@ -441,27 +425,25 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private String getDefaultDomainId(List<Domain> domains) {
 		return domains.stream()
-			.filter(d -> !"internal".equals(d.getType()))
-			.findFirst().orElseThrow(RuntimeException::new)
+			.filter((d) -> !"internal".equals(d.getType()))
+			.findFirst()
+			.orElseThrow(RuntimeException::new)
 			.getId();
 	}
 
 	private Mono<GetDeploymentResponse> waitForDeploymentDeployed(String deploymentId) {
-		return this.client
-			.deploymentsV3()
-			.get(GetDeploymentRequest
-				.builder()
-				.deploymentId(deploymentId)
-				.build())
+		return this.client.deploymentsV3()
+			.get(GetDeploymentRequest.builder().deploymentId(deploymentId).build())
 			.filter(this::deploymentFinished)
 			.repeatWhenEmpty(getExponentialBackOff(getDeploymentTimeout()))
-			.doOnRequest(l -> LOG.debug("Waiting for deployment to complete. deploymentId={}", deploymentId))
-			.doOnSuccess(response -> {
+			.doOnRequest((l) -> LOG.debug("Waiting for deployment to complete. deploymentId={}", deploymentId))
+			.doOnSuccess((response) -> {
 				LOG.info("Success waiting for deployment to complete. deploymentId={}", deploymentId);
 				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 			})
-			.doOnError(e -> LOG.error(String.format("Error waiting for deployment to complete. deploymentId=%s, " +
-				ERROR_LOG_TEMPLATE, deploymentId, e.getMessage()), e));
+			.doOnError((e) -> LOG
+				.error(String.format("Error waiting for deployment to complete. deploymentId=%s, " + ERROR_LOG_TEMPLATE,
+						deploymentId, e.getMessage()), e));
 	}
 
 	@SuppressWarnings("deprecation")
@@ -471,113 +453,102 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 
 		return p.getStatus().getValue().equals(DeploymentStatusValue.FINALIZED)
-			&& p.getStatus().getReason().equals(DeploymentStatusReason.DEPLOYED);
+				&& p.getStatus().getReason().equals(DeploymentStatusReason.DEPLOYED);
 	}
 
 	private Mono<CreateDeploymentResponse> createDeployment(String dropletId, String applicationId) {
-		return this.client
-			.deploymentsV3()
-			.create(CreateDeploymentRequest
-				.builder()
-				.droplet(Relationship
-					.builder()
-					.id(dropletId).build()).relationships(DeploymentRelationships
-					.builder()
-					.app(ToOneRelationship
-						.builder()
-						.data(Relationship.builder().id(applicationId).build())
-						.build()
-					).build())
+		return this.client.deploymentsV3()
+			.create(CreateDeploymentRequest.builder()
+				.droplet(Relationship.builder().id(dropletId).build())
+				.relationships(DeploymentRelationships.builder()
+					.app(ToOneRelationship.builder().data(Relationship.builder().id(applicationId).build()).build())
+					.build())
 				.build())
-			.doOnRequest(l -> LOG.debug("Creating deployment for application. applicationId={}", applicationId))
-			.doOnSuccess(response -> {
+			.doOnRequest((l) -> LOG.debug("Creating deployment for application. applicationId={}", applicationId))
+			.doOnSuccess((response) -> {
 				LOG.info("Success creating deployment for application. applicationId={}", applicationId);
 				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 			})
-			.doOnError(e -> LOG.error(String.format("Error creating deployment for application. applicationId=%s, " +
-				ERROR_LOG_TEMPLATE, applicationId, e.getMessage()), e));
+			.doOnError((e) -> LOG.error(
+					String.format("Error creating deployment for application. applicationId=%s, " + ERROR_LOG_TEMPLATE,
+							applicationId, e.getMessage()),
+					e));
 	}
 
 	private Mono<GetBuildResponse> waitForBuildStaged(String buildId) {
-		return this.client.builds().get(GetBuildRequest.builder()
-			.buildId(buildId)
-			.build())
-			.filter(p -> p.getState().equals(BuildState.STAGED))
+		return this.client.builds()
+			.get(GetBuildRequest.builder().buildId(buildId).build())
+			.filter((p) -> p.getState().equals(BuildState.STAGED))
 			.repeatWhenEmpty(getExponentialBackOff(getStagingTimeout()))
-			.doOnRequest(l -> LOG.debug("Waiting for build to stage. buildId={}", buildId))
-			.doOnSuccess(response -> {
+			.doOnRequest((l) -> LOG.debug("Waiting for build to stage. buildId={}", buildId))
+			.doOnSuccess((response) -> {
 				LOG.info("Success waiting for build to stage. buildId={}", buildId);
 				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 			})
-			.doOnError(e -> LOG.error(String.format("Error waiting for build to stage. buildId=%s, " +
-				ERROR_LOG_TEMPLATE, buildId, e.getMessage()), e));
+			.doOnError((e) -> LOG.error(String
+				.format("Error waiting for build to stage. buildId=%s, " + ERROR_LOG_TEMPLATE, buildId, e.getMessage()),
+					e));
 	}
 
 	private Mono<String> createBuildForPackage(String packageId) {
-		return this.client
-			.builds()
-			.create(CreateBuildRequest
-				.builder()
-				.getPackage(Relationship.builder().id(packageId).build())
-				.build())
+		return this.client.builds()
+			.create(CreateBuildRequest.builder().getPackage(Relationship.builder().id(packageId).build()).build())
 			.map(CreateBuildResponse::getId)
-			.doOnRequest(l -> LOG.debug("Creating build for package. packageId={}", packageId))
-			.doOnSuccess(response -> {
+			.doOnRequest((l) -> LOG.debug("Creating build for package. packageId={}", packageId))
+			.doOnSuccess((response) -> {
 				LOG.info("Success creating build for package. packageId={}", packageId);
 				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 			})
-			.doOnError(e -> LOG.error(String.format("Error creating build package. packageId=%s, " +
-				ERROR_LOG_TEMPLATE, packageId, e.getMessage()), e));
+			.doOnError(
+					(e) -> LOG.error(String.format("Error creating build package. packageId=%s, " + ERROR_LOG_TEMPLATE,
+							packageId, e.getMessage()), e));
 	}
 
 	private Mono<GetPackageResponse> waitForPackageReady(String packageId) {
-		return this.client
-			.packages()
+		return this.client.packages()
 			.get(GetPackageRequest.builder().packageId(packageId).build())
-			.filter(p -> p.getState().equals(PackageState.READY))
+			.filter((p) -> p.getState().equals(PackageState.READY))
 			.repeatWhenEmpty(getExponentialBackOff(DEFAULT_PLATFORM_OPERATION_DURATION))
-			.doOnRequest(l -> LOG.debug("Waiting for package ready. packageId={}", packageId))
-			.doOnSuccess(response -> {
+			.doOnRequest((l) -> LOG.debug("Waiting for package ready. packageId={}", packageId))
+			.doOnSuccess((response) -> {
 				LOG.info("Success waiting for package ready. packageId={}", packageId);
 				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 			})
-			.doOnError(e -> LOG.error(String.format("Error waiting for package ready. packageId=%s, " +
-				ERROR_LOG_TEMPLATE, packageId, e.getMessage()), e));
+			.doOnError((e) -> LOG
+				.error(String.format("Error waiting for package ready. packageId=%s, " + ERROR_LOG_TEMPLATE, packageId,
+						e.getMessage()), e));
 	}
 
 	private Mono<UploadPackageResponse> uploadPackage(UpdateApplicationRequest request, String packageId) {
 		try {
-			return this.client
-				.packages()
-				.upload(UploadPackageRequest
-					.builder()
+			return this.client.packages()
+				.upload(UploadPackageRequest.builder()
 					.packageId(packageId)
 					.bits(Paths.get(getAppResource(request.getPath()).getURI()))
 					.build())
-				.doOnRequest(l -> {
+				.doOnRequest((l) -> {
 					LOG.info("Uploading package. packageId={}", packageId);
 					LOG.debug(REQUEST_LOG_TEMPLATE, request);
 				})
-				.doOnSuccess(response -> {
+				.doOnSuccess((response) -> {
 					LOG.info("Success uploading package. packageId={}", packageId);
 					LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 				})
-				.doOnError(e -> LOG.error(String.format("Error uploading package. packageId=%s, " + ERROR_LOG_TEMPLATE,
-					packageId, e.getMessage()), e));
+				.doOnError(
+						(e) -> LOG.error(String.format("Error uploading package. packageId=%s, " + ERROR_LOG_TEMPLATE,
+								packageId, e.getMessage()), e));
 		}
-		catch (IOException e) {
-			throw Exceptions.propagate(e);
+		catch (IOException ex) {
+			throw Exceptions.propagate(ex);
 		}
 	}
 
 	private Mono<String> upgradeApplicationIfRequired(UpdateApplicationRequest request, String applicationId) {
 		if (request.getProperties().containsKey("upgrade")) {
-			return createPackageForApplication(applicationId)
-				.map(CreatePackageResponse::getId)
-				.flatMap(packageId -> uploadPackage(request, packageId))
+			return createPackageForApplication(applicationId).map(CreatePackageResponse::getId)
+				.flatMap((packageId) -> uploadPackage(request, packageId))
 				.map(UploadPackageResponse::getId)
-				.flatMap(packageId -> waitForPackageReady(packageId)
-					.map(Package::getId));
+				.flatMap((packageId) -> waitForPackageReady(packageId).map(Package::getId));
 		}
 
 		return getPackageForApplication(applicationId);
@@ -585,112 +556,100 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Mono<String> updateApplication(UpdateApplicationRequest request, String applicationId) {
 		final Map<String, Object> environmentVariables = getApplicationEnvironment(request.getProperties(),
-			request.getEnvironment(), request.getServiceInstanceId());
+				request.getEnvironment(), request.getServiceInstanceId());
 		Map<String, String> properties = request.getProperties();
 
-		return updateStackIfPresent(request, applicationId)
-			.then(this.client.applicationsV2()
-				.update(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.builder()
-					.applicationId(applicationId)
-					.instances(instances(properties))
-					.diskQuota(diskQuota(properties))
-					.memory(memory(properties))
-					.putAllEnvironmentJsons(environmentVariables)
-					.build())
-				.doOnRequest(l -> LOG.debug("Updating environment. applicationId={}", applicationId))
-				.doOnSuccess(response -> {
-					LOG.info("Success updating environment. applicationId={}", applicationId);
-					LOG.debug(RESPONSE_LOG_TEMPLATE, response);
-				})
-				.doOnError(e -> LOG.error(String.format("Error updating environment. applicationId=%s, " +
-					ERROR_LOG_TEMPLATE, applicationId, e.getMessage()), e)))
+		return updateStackIfPresent(request, applicationId).then(this.client.applicationsV2()
+			.update(org.cloudfoundry.client.v2.applications.UpdateApplicationRequest.builder()
+				.applicationId(applicationId)
+				.instances(instances(properties))
+				.diskQuota(diskQuota(properties))
+				.memory(memory(properties))
+				.putAllEnvironmentJsons(environmentVariables)
+				.build())
+			.doOnRequest((l) -> LOG.debug("Updating environment. applicationId={}", applicationId))
+			.doOnSuccess((response) -> {
+				LOG.info("Success updating environment. applicationId={}", applicationId);
+				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
+			})
+			.doOnError((e) -> LOG
+				.error(String.format("Error updating environment. applicationId=%s, " + ERROR_LOG_TEMPLATE,
+						applicationId, e.getMessage()), e)))
 			.thenReturn(applicationId);
 	}
 
 	private Mono<String> updateStackIfPresent(UpdateApplicationRequest request, String applicationId) {
-		if (!request.getProperties().containsKey("upgrade") ||
-			!StringUtils.hasText(this.defaultDeploymentProperties.getStack())) {
+		if (!request.getProperties().containsKey("upgrade")
+				|| !StringUtils.hasText(this.defaultDeploymentProperties.getStack())) {
 			return Mono.just(applicationId);
 		}
 		String stackName = this.defaultDeploymentProperties.getStack();
-		return this.client.applicationsV3().
-			update(org.cloudfoundry.client.v3.applications.UpdateApplicationRequest.builder()
+		return this.client.applicationsV3()
+			.update(org.cloudfoundry.client.v3.applications.UpdateApplicationRequest.builder()
 				.applicationId(applicationId)
 				.lifecycle(Lifecycle.builder()
 					.type(LifecycleType.BUILDPACK)
-					.data(BuildpackData.builder()
-						.stack(stackName)
-						.build())
+					.data(BuildpackData.builder().stack(stackName).build())
 					.build())
 				.build())
 			.thenReturn(applicationId);
 	}
 
 	private Mono<String> getPackageForApplication(String applicationId) {
-		return this.client
-			.applicationsV3()
-			.listPackages(ListApplicationPackagesRequest
-				.builder()
+		return this.client.applicationsV3()
+			.listPackages(ListApplicationPackagesRequest.builder()
 				.applicationId(applicationId)
 				.state(PackageState.READY)
 				.build())
-			.doOnRequest(l -> LOG.debug("Getting application package. applicationId={}", applicationId))
-			.doOnSuccess(response -> {
+			.doOnRequest((l) -> LOG.debug("Getting application package. applicationId={}", applicationId))
+			.doOnSuccess((response) -> {
 				LOG.info("Success getting application package. applicationId={}", applicationId);
 				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 			})
-			.doOnError(e -> LOG.error(String.format("Error getting application package. applicationId=%s, " +
-				ERROR_LOG_TEMPLATE, applicationId, e.getMessage()), e))
+			.doOnError((e) -> LOG
+				.error(String.format("Error getting application package. applicationId=%s, " + ERROR_LOG_TEMPLATE,
+						applicationId, e.getMessage()), e))
 			.map(ListApplicationPackagesResponse::getResources)
 			.map(this::getLastUpdatedPackageId);
 	}
 
 	private String getLastUpdatedPackageId(List<PackageResource> packageResources) {
-		return packageResources
-			.stream()
+		return packageResources.stream()
 			.min((h1, h2) -> Instant.parse(h2.getUpdatedAt()).compareTo(Instant.parse(h1.getUpdatedAt())))
 			.orElse(packageResources.get(0))
 			.getId();
 	}
 
 	private Mono<CreatePackageResponse> createPackageForApplication(String applicationId) {
-		return this.client
-			.packages()
-			.create(CreatePackageRequest
-				.builder()
-				.relationships(PackageRelationships
-					.builder()
-					.application(ToOneRelationship
-						.builder()
-						.data(Relationship
-							.builder()
-							.id(applicationId)
-							.build())
-						.build())
+		return this.client.packages()
+			.create(CreatePackageRequest.builder()
+				.relationships(PackageRelationships.builder()
+					.application(
+							ToOneRelationship.builder().data(Relationship.builder().id(applicationId).build()).build())
 					.build())
 				.type(PackageType.BITS)
 				.build())
-			.doOnRequest(l -> LOG.debug("Creating package. applicationId={}", applicationId))
-			.doOnSuccess(response -> {
+			.doOnRequest((l) -> LOG.debug("Creating package. applicationId={}", applicationId))
+			.doOnSuccess((response) -> {
 				LOG.info("Success creating package. applicationId={}", applicationId);
 				LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 			})
-			.doOnError(e -> LOG.error(String.format("Error creating package. applicationId=%s, " + ERROR_LOG_TEMPLATE,
-				applicationId, e.getMessage()), e));
+			.doOnError((e) -> LOG.error(String.format("Error creating package. applicationId=%s, " + ERROR_LOG_TEMPLATE,
+					applicationId, e.getMessage()), e));
 	}
 
 	private Duration getStagingTimeout() {
-		if (targetProperties.getStagingTimeout() == null) {
+		if (this.targetProperties.getStagingTimeout() == null) {
 			return DEFAULT_PLATFORM_OPERATION_DURATION;
 		}
-		return Duration.ofMinutes(targetProperties.getStagingTimeout());
+		return Duration.ofMinutes(this.targetProperties.getStagingTimeout());
 	}
 
 	private Duration getDeploymentTimeout() {
-		if (targetProperties.getDeploymentTimeout() == null) {
+		if (this.targetProperties.getDeploymentTimeout() == null) {
 			return DEFAULT_PLATFORM_OPERATION_DURATION;
 		}
-		return Duration.ofMinutes(targetProperties.getDeploymentTimeout());
+		return Duration.ofMinutes(this.targetProperties.getDeploymentTimeout());
 	}
 
 	private Function<Flux<Long>, Publisher<?>> getExponentialBackOff(Duration timeout) {
@@ -698,18 +657,17 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<Void> pushApplication(DeployApplicationRequest request, Map<String, String> deploymentProperties,
-		Resource appResource) {
+			Resource appResource) {
 		ApplicationManifest manifest = buildAppManifest(request, deploymentProperties, appResource);
 
 		LOG.debug("Pushing app manifest. manifest={}", manifest.toString());
 
-		PushApplicationManifestRequest applicationManifestRequest =
-			PushApplicationManifestRequest.builder()
-				.manifest(manifest)
-				.stagingTimeout(this.defaultDeploymentProperties.getStagingTimeout())
-				.startupTimeout(this.defaultDeploymentProperties.getStartupTimeout())
-				.noStart(!start(deploymentProperties))
-				.build();
+		PushApplicationManifestRequest applicationManifestRequest = PushApplicationManifestRequest.builder()
+			.manifest(manifest)
+			.stagingTimeout(this.defaultDeploymentProperties.getStagingTimeout())
+			.startupTimeout(this.defaultDeploymentProperties.getStartupTimeout())
+			.noStart(!start(deploymentProperties))
+			.build();
 
 		Mono<Void> requestPushApplication;
 		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
@@ -721,19 +679,18 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 
 		return requestPushApplication
-			.doOnSuccess(v -> LOG.info("Success pushing app manifest. appName={}", request.getName()))
-			.doOnError(e -> LOG.error(String.format("Error pushing app manifest. appName=%s, " + ERROR_LOG_TEMPLATE,
-				request.getName(), e.getMessage()), e));
+			.doOnSuccess((v) -> LOG.info("Success pushing app manifest. appName={}", request.getName()))
+			.doOnError((e) -> LOG.error(String.format("Error pushing app manifest. appName=%s, " + ERROR_LOG_TEMPLATE,
+					request.getName(), e.getMessage()), e));
 	}
 
 	private ApplicationManifest buildAppManifest(DeployApplicationRequest request,
-		Map<String, String> deploymentProperties,
-		Resource appResource) {
+			Map<String, String> deploymentProperties, Resource appResource) {
 		ApplicationManifest.Builder manifest = ApplicationManifest.builder()
 			.name(request.getName())
 			.path(getApplication(appResource))
-			.environmentVariables(getEnvironmentVariables(deploymentProperties,
-				request.getEnvironment(), request.getServiceInstanceId()))
+			.environmentVariables(getEnvironmentVariables(deploymentProperties, request.getEnvironment(),
+					request.getServiceInstanceId()))
 			.services(request.getServices())
 			.instances(instances(deploymentProperties))
 			.memory(memory(deploymentProperties))
@@ -755,7 +712,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 		else {
 			Set<Route> routes = routes(deploymentProperties).stream()
-				.map(r -> Route.builder().route(r).build())
+				.map((r) -> Route.builder().route(r).build())
 				.collect(Collectors.toSet());
 			manifest.routes(routes);
 		}
@@ -775,70 +732,67 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<Void> pushManifest(PushApplicationManifestRequest request) {
-		return this.operations.applications()
-			.pushManifest(request);
+		return this.operations.applications().pushManifest(request);
 	}
 
 	private Mono<Void> pushManifestInSpace(PushApplicationManifestRequest request, String spaceName) {
-		return createSpace(spaceName)
-			.then(operationsUtils.getOperationsForSpace(spaceName))
-			.flatMap(cfOperations -> cfOperations.applications().pushManifest(request));
+		return createSpace(spaceName).then(this.operationsUtils.getOperationsForSpace(spaceName))
+			.flatMap((cfOperations) -> cfOperations.applications().pushManifest(request));
 	}
 
 	private Mono<String> createSpace(String spaceName) {
-		return getSpaceId(spaceName)
-			.switchIfEmpty(Mono.justOrEmpty(targetProperties.getDefaultOrg())
-				.flatMap(orgName -> getOrganizationId(orgName)
-					.flatMap(orgId -> client.spaces().create(CreateSpaceRequest.builder()
-						.organizationId(orgId)
-						.name(spaceName)
-						.build())
-						.doOnSuccess(response -> {
-							LOG.info("Success creating space. spaceName={}", spaceName);
-							LOG.debug(RESPONSE_LOG_TEMPLATE, response);
-						})
-						.doOnError(e -> LOG.error(String.format("Error creating space. spaceName=%s, " +
-							ERROR_LOG_TEMPLATE, spaceName, e.getMessage()), e))
-						.onErrorResume(e -> Mono.empty())
-						.map(response -> response.getMetadata().getId())
-						.flatMap(spaceId -> addSpaceDeveloperRoleForCurrentUser(orgName, spaceName, spaceId)
-							.thenReturn(spaceId)))));
+		return getSpaceId(spaceName).switchIfEmpty(Mono.justOrEmpty(this.targetProperties.getDefaultOrg())
+			.flatMap((orgName) -> getOrganizationId(orgName).flatMap((orgId) -> this.client.spaces()
+				.create(CreateSpaceRequest.builder().organizationId(orgId).name(spaceName).build())
+				.doOnSuccess((response) -> {
+					LOG.info("Success creating space. spaceName={}", spaceName);
+					LOG.debug(RESPONSE_LOG_TEMPLATE, response);
+				})
+				.doOnError((e) -> LOG.error(String.format("Error creating space. spaceName=%s, " + ERROR_LOG_TEMPLATE,
+						spaceName, e.getMessage()), e))
+				.onErrorResume((e) -> Mono.empty())
+				.map((response) -> response.getMetadata().getId())
+				.flatMap((spaceId) -> addSpaceDeveloperRoleForCurrentUser(orgName, spaceName, spaceId)
+					.thenReturn(spaceId)))));
 	}
 
 	private Mono<Void> addSpaceDeveloperRoleForCurrentUser(String orgName, String spaceName, String spaceId) {
 		return Mono.defer(() -> {
-			if (StringUtils.hasText(targetProperties.getClientId())) {
-				return client.spaces().associateDeveloper(AssociateSpaceDeveloperRequest.builder()
-					.spaceId(spaceId)
-					.developerId(targetProperties.getClientId())
-					.build())
-					.doOnSuccess(response -> {
+			if (StringUtils.hasText(this.targetProperties.getClientId())) {
+				return this.client.spaces()
+					.associateDeveloper(AssociateSpaceDeveloperRequest.builder()
+						.spaceId(spaceId)
+						.developerId(this.targetProperties.getClientId())
+						.build())
+					.doOnSuccess((response) -> {
 						LOG.info("Setting space developer role. spaceName={}", spaceName);
 						LOG.debug(RESPONSE_LOG_TEMPLATE, response);
 					})
-					.doOnError(e -> LOG.error(String.format("Error setting space developer role. spaceName=%s, " +
-						ERROR_LOG_TEMPLATE, spaceName, e.getMessage()), e))
+					.doOnError((e) -> LOG
+						.error(String.format("Error setting space developer role. spaceName=%s, " + ERROR_LOG_TEMPLATE,
+								spaceName, e.getMessage()), e))
 					.then();
 			}
-			else if (StringUtils.hasText(targetProperties.getUsername())) {
-				return operations.userAdmin().setSpaceRole(SetSpaceRoleRequest.builder()
-					.spaceRole(SpaceRole.DEVELOPER)
-					.organizationName(orgName)
-					.spaceName(spaceName)
-					.username(targetProperties.getUsername())
-					.build())
-					.doOnSuccess(v -> LOG.info("Seting space developer role. spaceName={}", spaceName))
-					.doOnError(e -> LOG.error(String.format("Error setting space developer role. spaceName=%s, " +
-						ERROR_LOG_TEMPLATE, spaceName, e.getMessage()), e));
+			else if (StringUtils.hasText(this.targetProperties.getUsername())) {
+				return this.operations.userAdmin()
+					.setSpaceRole(SetSpaceRoleRequest.builder()
+						.spaceRole(SpaceRole.DEVELOPER)
+						.organizationName(orgName)
+						.spaceName(spaceName)
+						.username(this.targetProperties.getUsername())
+						.build())
+					.doOnSuccess((v) -> LOG.info("Seting space developer role. spaceName={}", spaceName))
+					.doOnError((e) -> LOG
+						.error(String.format("Error setting space developer role. spaceName=%s, " + ERROR_LOG_TEMPLATE,
+								spaceName, e.getMessage()), e));
 			}
 			return Mono.empty();
 		});
 	}
 
 	private Mono<String> getOrganizationId(String orgName) {
-		return operations.organizations().get(OrganizationInfoRequest.builder()
-			.name(orgName)
-			.build())
+		return this.operations.organizations()
+			.get(OrganizationInfoRequest.builder().name(orgName).build())
 			.map(OrganizationDetail::getId);
 	}
 
@@ -858,13 +812,10 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			requestDeleteApplication = deleteApplication(appName);
 		}
 
-		return requestDeleteApplication
-			.timeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiTimeout()))
-			.doOnSuccess(v -> LOG.info("Success undeploying application. appName={}", appName))
+		return requestDeleteApplication.timeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiTimeout()))
+			.doOnSuccess((v) -> LOG.info("Success undeploying application. appName={}", appName))
 			.doOnError(logError(String.format("Error undeploying application. appName=%s", appName)))
-			.then(Mono.just(UndeployApplicationResponse.builder()
-				.name(appName)
-				.build()));
+			.then(Mono.just(UndeployApplicationResponse.builder().name(appName).build()));
 	}
 
 	private Mono<Void> deleteApplication(String name) {
@@ -877,52 +828,49 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Mono<Void> deleteApplicationInSpace(String name, String spaceName) {
 		return getSpaceId(spaceName)
-			.doOnError(e -> LOG.error(String.format("Unable to get space name. spaceName=%s, " + ERROR_LOG_TEMPLATE,
-				spaceName, e.getMessage()), e))
-			.then(operationsUtils.getOperationsForSpace(spaceName))
-			.flatMap(cfOperations -> cfOperations.applications().delete(DeleteApplicationRequest.builder()
-				.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
-				.name(name)
-				.build())
-				.doOnError(e -> LOG.error(String.format("Error deleting application. appName=%s, " + ERROR_LOG_TEMPLATE,
-					name, e.getMessage()), e)))
-			.onErrorResume(e -> Mono.empty());
+			.doOnError((e) -> LOG.error(String.format("Unable to get space name. spaceName=%s, " + ERROR_LOG_TEMPLATE,
+					spaceName, e.getMessage()), e))
+			.then(this.operationsUtils.getOperationsForSpace(spaceName))
+			.flatMap((cfOperations) -> cfOperations.applications()
+				.delete(DeleteApplicationRequest.builder()
+					.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
+					.name(name)
+					.build())
+				.doOnError((e) -> LOG.error(String
+					.format("Error deleting application. appName=%s, " + ERROR_LOG_TEMPLATE, name, e.getMessage()), e)))
+			.onErrorResume((e) -> Mono.empty());
 	}
 
 	@Override
 	public Mono<DeleteBackingSpaceResponse> deleteBackingSpace(DeleteBackingSpaceRequest request) {
 		String spaceName = request.getName();
 		return getSpaceId(spaceName)
-			.doOnError(e -> LOG.error(String.format("Unable to get space name. spaceName=%s, " + ERROR_LOG_TEMPLATE,
-				spaceName, e.getMessage()), e))
-			.onErrorResume(e -> Mono.empty())
-			.flatMap(spaceId -> this.client.spaces()
-				.delete(DeleteSpaceRequest.builder()
-					.spaceId(spaceId)
-					.recursive(true)
-					.build()))
-			.doOnError(e -> LOG.error(String.format("Error deleting space. spaceName=%s, " + ERROR_LOG_TEMPLATE,
-				spaceName, e.getMessage()), e))
+			.doOnError((e) -> LOG.error(String.format("Unable to get space name. spaceName=%s, " + ERROR_LOG_TEMPLATE,
+					spaceName, e.getMessage()), e))
+			.onErrorResume((e) -> Mono.empty())
+			.flatMap((spaceId) -> this.client.spaces()
+				.delete(DeleteSpaceRequest.builder().spaceId(spaceId).recursive(true).build()))
+			.doOnError((e) -> LOG.error(String.format("Error deleting space. spaceName=%s, " + ERROR_LOG_TEMPLATE,
+					spaceName, e.getMessage()), e))
 			.thenReturn(DeleteBackingSpaceResponse.builder().name(spaceName).build());
 	}
 
 	private Mono<String> getSpaceId(String spaceName) {
-		return Mono.justOrEmpty(targetProperties.getDefaultOrg())
-			.flatMap(orgName -> getOrganizationId(orgName)
-				.flatMap(orgId -> PaginationUtils.requestClientV2Resources(page -> client.organizations()
+		return Mono.justOrEmpty(this.targetProperties.getDefaultOrg())
+			.flatMap((orgName) -> getOrganizationId(orgName).flatMap((orgId) -> PaginationUtils
+				.requestClientV2Resources((page) -> this.client.organizations()
 					.listSpaces(ListOrganizationSpacesRequest.builder()
 						.name(spaceName)
 						.organizationId(orgId)
 						.page(page)
 						.build()))
-					.filter(resource -> resource.getEntity().getName().equals(spaceName))
-					.map(resource -> resource.getMetadata().getId())
-					.next()));
+				.filter((resource) -> resource.getEntity().getName().equals(spaceName))
+				.map((resource) -> resource.getMetadata().getId())
+				.next()));
 	}
 
-	private Map<String, Object> getEnvironmentVariables(Map<String, String> properties,
-		Map<String, Object> environment,
-		String serviceInstanceId) {
+	private Map<String, Object> getEnvironmentVariables(Map<String, String> properties, Map<String, Object> environment,
+			String serviceInstanceId) {
 		Map<String, Object> envVariables = getApplicationEnvironment(properties, environment, serviceInstanceId);
 
 		String javaOpts = javaOpts(properties);
@@ -934,8 +882,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Map<String, Object> getApplicationEnvironment(Map<String, String> properties,
-		Map<String, Object> environment,
-		String serviceInstanceId) {
+			Map<String, Object> environment, String serviceInstanceId) {
 		Map<String, Object> applicationEnvironment = sanitizeApplicationEnvironment(environment);
 
 		if (serviceInstanceId != null) {
@@ -948,8 +895,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				applicationEnvironment = new HashMap<>(1);
 				applicationEnvironment.put("SPRING_APPLICATION_JSON", jsonEnvironment);
 			}
-			catch (JsonProcessingException e) {
-				throw new IllegalArgumentException("Error writing environment to SPRING_APPLICATION_JSON", e);
+			catch (JsonProcessingException ex) {
+				throw new IllegalArgumentException("Error writing environment to SPRING_APPLICATION_JSON", ex);
 			}
 		}
 
@@ -959,11 +906,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private Map<String, Object> sanitizeApplicationEnvironment(Map<String, Object> environment) {
 		Map<String, Object> applicationEnvironment = new HashMap<>(environment);
 
-		// Remove server.port as CF assigns a port for us, and we don't want to override that
+		// Remove server.port as CF assigns a port for us, and we don't want to override
+		// that
 		Optional.ofNullable(applicationEnvironment.remove("server.port"))
-			.ifPresent(port -> LOG.warn("Ignoring 'server.port={}', " +
-				"as Cloud Foundry will assign a local dynamic port. " +
-				"Route to the app will use port 80.", port));
+			.ifPresent((port) -> LOG.warn("Ignoring 'server.port={}', "
+					+ "as Cloud Foundry will assign a local dynamic port. " + "Route to the app will use port 80.",
+					port));
 
 		return applicationEnvironment;
 	}
@@ -983,7 +931,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		Set<String> domains = new HashSet<>();
 		domains.addAll(this.defaultDeploymentProperties.getDomains());
 		domains.addAll(
-			StringUtils.commaDelimitedListToSet(properties.get(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY)));
+				StringUtils.commaDelimitedListToSet(properties.get(CloudFoundryDeploymentProperties.DOMAINS_PROPERTY)));
 		return domains;
 	}
 
@@ -997,10 +945,11 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		try {
 			return ApplicationHealthCheck.from(raw);
 		}
-		catch (IllegalArgumentException e) {
+		catch (IllegalArgumentException ex) {
 			throw new IllegalArgumentException(
-				String.format("Unsupported health-check value '%s'. Available values are %s", raw,
-					StringUtils.arrayToCommaDelimitedString(ApplicationHealthCheck.values())), e);
+					String.format("Unsupported health-check value '%s'. Available values are %s", raw,
+							StringUtils.arrayToCommaDelimitedString(ApplicationHealthCheck.values())),
+					ex);
 		}
 	}
 
@@ -1018,9 +967,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	private Duration apiPollingTimeout(Map<String, String> properties) {
 		return Duration.ofSeconds(
-			Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.API_POLLING_TIMEOUT_PROPERTY_KEY))
-				.map(Long::parseLong)
-				.orElse(this.defaultDeploymentProperties.getApiPollingTimeout()));
+				Optional.ofNullable(properties.get(CloudFoundryDeploymentProperties.API_POLLING_TIMEOUT_PROPERTY_KEY))
+					.map(Long::parseLong)
+					.orElse(this.defaultDeploymentProperties.getApiPollingTimeout()));
 	}
 
 	private Integer instances(Map<String, String> properties) {
@@ -1038,7 +987,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		String routePath = properties.get(CloudFoundryDeploymentProperties.ROUTE_PATH_PROPERTY);
 		if (StringUtils.hasText(routePath) && routePath.charAt(0) != '/') {
 			throw new IllegalArgumentException(
-				"Cloud Foundry routes must start with \"/\". Route passed = [" + routePath + "].");
+					"Cloud Foundry routes must start with \"/\". Route passed = [" + routePath + "].");
 		}
 		return routePath;
 	}
@@ -1047,7 +996,7 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		Set<String> routes = new HashSet<>();
 		routes.addAll(this.defaultDeploymentProperties.getRoutes());
 		routes.addAll(
-			StringUtils.commaDelimitedListToSet(properties.get(CloudFoundryDeploymentProperties.ROUTES_PROPERTY)));
+				StringUtils.commaDelimitedListToSet(properties.get(CloudFoundryDeploymentProperties.ROUTES_PROPERTY)));
 		return routes;
 	}
 
@@ -1060,13 +1009,13 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	private Integer memory(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(DeploymentProperties.MEMORY_PROPERTY_KEY))
 			.map(ByteSizeUtils::parseToMebibytes)
-			.orElse(ByteSizeUtils.parseToMebibytes(defaultDeploymentProperties.getMemory()));
+			.orElse(ByteSizeUtils.parseToMebibytes(this.defaultDeploymentProperties.getMemory()));
 	}
 
 	private Integer diskQuota(Map<String, String> properties) {
 		return Optional.ofNullable(properties.get(DeploymentProperties.DISK_PROPERTY_KEY))
 			.map(ByteSizeUtils::parseToMebibytes)
-			.orElse(ByteSizeUtils.parseToMebibytes(defaultDeploymentProperties.getDisk()));
+			.orElse(ByteSizeUtils.parseToMebibytes(this.defaultDeploymentProperties.getDisk()));
 	}
 
 	private String buildpack(Map<String, String> properties) {
@@ -1096,14 +1045,15 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Predicate<Throwable> httpStatusNotFoundPredicate() {
-		return t -> t instanceof AbstractCloudFoundryException &&
-			((AbstractCloudFoundryException) t).getStatusCode() == HttpStatus.NOT_FOUND.value();
+		return (t) -> t instanceof AbstractCloudFoundryException
+				&& ((AbstractCloudFoundryException) t).getStatusCode() == HttpStatus.NOT_FOUND.value();
 	}
 
 	/**
-	 * Return a Docker image identifier if the application Resource is for a Docker image, or {@literal null}
-	 * otherwise.
-	 *
+	 * Return a Docker image identifier if the application Resource is for a Docker image,
+	 * or {@literal null} otherwise.
+	 * @param resource the resource
+	 * @return docker image identifier
 	 * @see #getApplication(Resource)
 	 */
 	private String getDockerImage(Resource resource) {
@@ -1116,19 +1066,20 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				return null;
 			}
 		}
-		catch (IOException e) {
-			throw Exceptions.propagate(e);
+		catch (IOException ex) {
+			throw Exceptions.propagate(ex);
 		}
 	}
 
 	private Resource getAppResource(String path) {
-		return resourceLoader.getResource(path);
+		return this.resourceLoader.getResource(path);
 	}
 
 	/**
-	 * Return a Path to the application Resource or {@literal null} if the request is for a Docker image.
-	 *
+	 * Return a Path to the application Resource or {@literal null} if the request is for
+	 * a Docker image.
 	 * @param resource the resource representing the app bits
+	 * @return path to the application resource
 	 * @see #getDockerImage(Resource)
 	 */
 	private Path getApplication(Resource resource) {
@@ -1140,8 +1091,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 				return resource.getFile().toPath();
 			}
 		}
-		catch (IOException e) {
-			throw Exceptions.propagate(e);
+		catch (IOException ex) {
+			throw Exceptions.propagate(ex);
 		}
 	}
 
@@ -1150,18 +1101,18 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		return Mono.defer(() -> {
 			if (StringUtils.hasText(request.getServiceInstanceId())) {
 				return getServiceInstance(request.getServiceInstanceId())
-					.flatMap(serviceInstanceEntity -> getSpace(serviceInstanceEntity.getSpaceId())
-						.flatMap(spaceEntity -> getServiceInstance(serviceInstanceEntity.getName(), spaceEntity)));
+					.flatMap((serviceInstanceEntity) -> getSpace(serviceInstanceEntity.getSpaceId())
+						.flatMap((spaceEntity) -> getServiceInstance(serviceInstanceEntity.getName(), spaceEntity)));
 			}
 			else {
-				return operationsUtils.getOperations(request.getProperties())
-					.flatMap(cfOperations -> cfOperations.services()
+				return this.operationsUtils.getOperations(request.getProperties())
+					.flatMap((cfOperations) -> cfOperations.services()
 						.getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
 							.name(request.getName())
 							.build()));
 			}
 		})
-			.map(serviceInstance -> GetServiceInstanceResponse.builder()
+			.map((serviceInstance) -> GetServiceInstanceResponse.builder()
 				.name(serviceInstance.getName())
 				.service(serviceInstance.getService())
 				.plan(serviceInstance.getPlan())
@@ -1169,17 +1120,15 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<ServiceInstance> getServiceInstance(String name, SpaceEntity spaceEntity) {
-		return getOrganization(spaceEntity.getOrganizationId())
-			.flatMap(organizationEntity ->
-				operationsUtils.getOperationsForOrgAndSpace(organizationEntity.getName(), spaceEntity.getName())
-					.flatMap(cfOperations -> cfOperations.services()
-						.getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
-							.name(name)
-							.build())));
+		return getOrganization(spaceEntity.getOrganizationId()).flatMap((organizationEntity) -> this.operationsUtils
+			.getOperationsForOrgAndSpace(organizationEntity.getName(), spaceEntity.getName())
+			.flatMap((cfOperations) -> cfOperations.services()
+				.getInstance(
+						org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder().name(name).build())));
 	}
 
 	private Mono<ServiceInstanceEntity> getServiceInstance(String serviceInstanceId) {
-		return client.serviceInstances()
+		return this.client.serviceInstances()
 			.get(org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceRequest.builder()
 				.serviceInstanceId(serviceInstanceId)
 				.build())
@@ -1187,46 +1136,40 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<SpaceEntity> getSpace(String spaceId) {
-		return client.spaces().get(org.cloudfoundry.client.v2.spaces.GetSpaceRequest.builder()
-			.spaceId(spaceId)
-			.build())
+		return this.client.spaces()
+			.get(org.cloudfoundry.client.v2.spaces.GetSpaceRequest.builder().spaceId(spaceId).build())
 			.map(ResourceUtils::getEntity);
 	}
 
 	private Mono<OrganizationEntity> getOrganization(String organizationId) {
-		return client.organizations()
+		return this.client.organizations()
 			.get(GetOrganizationRequest.builder().organizationId(organizationId).build())
 			.map(GetOrganizationResponse::getEntity);
 	}
 
 	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
-		org.cloudfoundry.operations.services.CreateServiceInstanceRequest createServiceInstanceRequest =
-			org.cloudfoundry.operations.services.CreateServiceInstanceRequest
-				.builder()
-				.serviceInstanceName(request.getServiceInstanceName())
-				.serviceName(request.getName())
-				.planName(request.getPlan())
-				.parameters(request.getParameters())
-				.completionTimeout(apiPollingTimeout(request.getProperties()))
-				.build();
+		org.cloudfoundry.operations.services.CreateServiceInstanceRequest createServiceInstanceRequest = org.cloudfoundry.operations.services.CreateServiceInstanceRequest
+			.builder()
+			.serviceInstanceName(request.getServiceInstanceName())
+			.serviceName(request.getName())
+			.planName(request.getPlan())
+			.parameters(request.getParameters())
+			.completionTimeout(apiPollingTimeout(request.getProperties()))
+			.build();
 
-		Mono<CreateServiceInstanceResponse> createServiceInstanceResponseMono =
-			Mono.just(CreateServiceInstanceResponse.builder()
-				.name(request.getServiceInstanceName())
-				.build());
+		Mono<CreateServiceInstanceResponse> createServiceInstanceResponseMono = Mono
+			.just(CreateServiceInstanceResponse.builder().name(request.getServiceInstanceName()).build());
 
 		if (request.getProperties().containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
 			return createSpace(request.getProperties().get(DeploymentProperties.TARGET_PROPERTY_KEY))
-				.then(
-					operationsUtils.getOperations(request.getProperties())
-						.flatMap(cfOperations -> cfOperations.services()
-							.createInstance(createServiceInstanceRequest)
-							.then(createServiceInstanceResponseMono)));
+				.then(this.operationsUtils.getOperations(request.getProperties())
+					.flatMap((cfOperations) -> cfOperations.services()
+						.createInstance(createServiceInstanceRequest)
+						.then(createServiceInstanceResponseMono)));
 		}
 		else {
-			return operations
-				.services()
+			return this.operations.services()
 				.createInstance(createServiceInstanceRequest)
 				.then(createServiceInstanceResponseMono);
 		}
@@ -1234,8 +1177,8 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
-		return operationsUtils.getOperations(request.getProperties())
-			.flatMap(cfOperations -> rebindServiceInstanceIfNecessary(request, cfOperations)
+		return this.operationsUtils.getOperations(request.getProperties())
+			.flatMap((cfOperations) -> rebindServiceInstanceIfNecessary(request, cfOperations)
 				.then(updateServiceInstanceIfNecessary(request, cfOperations)));
 	}
 
@@ -1246,85 +1189,84 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 		Mono<Void> requestDeleteServiceInstance;
 		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			requestDeleteServiceInstance = operationsUtils.getOperations(deploymentProperties)
-				.flatMap(cfOperations -> unbindServiceInstance(serviceInstanceName, cfOperations)
+			requestDeleteServiceInstance = this.operationsUtils.getOperations(deploymentProperties)
+				.flatMap((cfOperations) -> unbindServiceInstance(serviceInstanceName, cfOperations)
 					.then(deleteServiceInstance(serviceInstanceName, cfOperations, deploymentProperties)));
 		}
 		else {
-			requestDeleteServiceInstance = unbindServiceInstance(serviceInstanceName, operations)
-				.then(deleteServiceInstance(serviceInstanceName, operations, deploymentProperties));
+			requestDeleteServiceInstance = unbindServiceInstance(serviceInstanceName, this.operations)
+				.then(deleteServiceInstance(serviceInstanceName, this.operations, deploymentProperties));
 		}
 
 		return requestDeleteServiceInstance
-			.doOnSuccess(v -> LOG.info("Success deleting service instance. serviceInstanceName={}",
-				serviceInstanceName))
-			.doOnError(logError(String.format("Error deleting service instance. serviceInstanceName=%s",
-				serviceInstanceName)))
-			.thenReturn(DeleteServiceInstanceResponse.builder()
-				.name(serviceInstanceName)
-				.build());
+			.doOnSuccess(
+					(v) -> LOG.info("Success deleting service instance. serviceInstanceName={}", serviceInstanceName))
+			.doOnError(logError(
+					String.format("Error deleting service instance. serviceInstanceName=%s", serviceInstanceName)))
+			.thenReturn(DeleteServiceInstanceResponse.builder().name(serviceInstanceName).build());
 	}
 
-	private Mono<Void> deleteServiceInstance(String serviceInstanceName,
-		CloudFoundryOperations cloudFoundryOperations,
-		Map<String, String> deploymentProperties) {
-		return cloudFoundryOperations.services().deleteInstance(
-			org.cloudfoundry.operations.services.DeleteServiceInstanceRequest.builder()
+	private Mono<Void> deleteServiceInstance(String serviceInstanceName, CloudFoundryOperations cloudFoundryOperations,
+			Map<String, String> deploymentProperties) {
+		return cloudFoundryOperations.services()
+			.deleteInstance(org.cloudfoundry.operations.services.DeleteServiceInstanceRequest.builder()
 				.name(serviceInstanceName)
 				.completionTimeout(apiPollingTimeout(deploymentProperties))
 				.build())
-			.doOnError(e -> LOG.error(String.format("Error deleting service instance. serviceInstanceName=%s, " +
-				ERROR_LOG_TEMPLATE, serviceInstanceName, e.getMessage()), e))
-			.onErrorResume(e -> Mono.empty());
+			.doOnError((e) -> LOG
+				.error(String.format("Error deleting service instance. serviceInstanceName=%s, " + ERROR_LOG_TEMPLATE,
+						serviceInstanceName, e.getMessage()), e))
+			.onErrorResume((e) -> Mono.empty());
 	}
 
 	private Mono<Void> unbindServiceInstance(String serviceInstanceName,
-		CloudFoundryOperations cloudFoundryOperations) {
+			CloudFoundryOperations cloudFoundryOperations) {
 		return cloudFoundryOperations.services()
 			.getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
 				.name(serviceInstanceName)
 				.build())
-			.doOnError(e -> LOG.error(String.format("Error getting service instance. serviceInstanceName=%s, " +
-				ERROR_LOG_TEMPLATE, serviceInstanceName, e.getMessage()), e))
-			.onErrorResume(e -> Mono.empty())
+			.doOnError((e) -> LOG
+				.error(String.format("Error getting service instance. serviceInstanceName=%s, " + ERROR_LOG_TEMPLATE,
+						serviceInstanceName, e.getMessage()), e))
+			.onErrorResume((e) -> Mono.empty())
 			.map(ServiceInstance::getApplications)
-			.flatMap(applications -> Flux.fromIterable(applications)
-				.flatMap(application -> cloudFoundryOperations.services().unbind(
-					UnbindServiceInstanceRequest.builder()
+			.flatMap((applications) -> Flux.fromIterable(applications)
+				.flatMap((application) -> cloudFoundryOperations.services()
+					.unbind(UnbindServiceInstanceRequest.builder()
 						.applicationName(application)
 						.serviceInstanceName(serviceInstanceName)
-						.build())
-				)
-				.doOnError(e -> LOG.error(String.format("Error unbinding service instance. serviceInstanceName=%s, " +
-					ERROR_LOG_TEMPLATE, serviceInstanceName, e.getMessage()), e))
-				.onErrorResume(e -> Mono.empty())
+						.build()))
+				.doOnError((e) -> LOG.error(
+						String.format("Error unbinding service instance. serviceInstanceName=%s, " + ERROR_LOG_TEMPLATE,
+								serviceInstanceName, e.getMessage()),
+						e))
+				.onErrorResume((e) -> Mono.empty())
 				.then(Mono.empty()));
 	}
 
 	private Mono<Void> rebindServiceInstance(String serviceInstanceName,
-		CloudFoundryOperations cloudFoundryOperations) {
+			CloudFoundryOperations cloudFoundryOperations) {
 		return cloudFoundryOperations.services()
 			.getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder()
 				.name(serviceInstanceName)
 				.build())
 			.map(ServiceInstance::getApplications)
-			.flatMap(applications -> Flux.fromIterable(applications)
-				.flatMap(application -> cloudFoundryOperations.services().unbind(
-					UnbindServiceInstanceRequest.builder()
+			.flatMap((applications) -> Flux.fromIterable(applications)
+				.flatMap((application) -> cloudFoundryOperations.services()
+					.unbind(UnbindServiceInstanceRequest.builder()
 						.applicationName(application)
 						.serviceInstanceName(serviceInstanceName)
 						.build())
-					.then(cloudFoundryOperations.services().bind(
-						BindServiceInstanceRequest.builder()
+					.then(cloudFoundryOperations.services()
+						.bind(BindServiceInstanceRequest.builder()
 							.applicationName(application)
 							.serviceInstanceName(serviceInstanceName)
-							.build()))
-				)
+							.build())))
 				.then(Mono.empty()));
 	}
 
 	private Mono<Void> rebindServiceInstanceIfNecessary(UpdateServiceInstanceRequest request,
-		CloudFoundryOperations cloudFoundryOperations) {
+			CloudFoundryOperations cloudFoundryOperations) {
 		if (request.isRebindOnUpdate()) {
 			return rebindServiceInstance(request.getServiceInstanceName(), cloudFoundryOperations);
 		}
@@ -1332,8 +1274,9 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<UpdateServiceInstanceResponse> updateServiceInstanceIfNecessary(UpdateServiceInstanceRequest request,
-		CloudFoundryOperations cloudFoundryOperations) {
-		// service instances can be updated with a change to the plan, name, or parameters;
+			CloudFoundryOperations cloudFoundryOperations) {
+		// service instances can be updated with a change to the plan, name, or
+		// parameters;
 		// of these only parameter changes are supported, so don't update if the
 		// backing service instance has no parameters
 		if (request.getParameters() == null || request.getParameters().isEmpty()) {
@@ -1342,27 +1285,27 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 
 		final String serviceInstanceName = request.getServiceInstanceName();
 
-		return cloudFoundryOperations.services().updateInstance(
-			org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
+		return cloudFoundryOperations.services()
+			.updateInstance(org.cloudfoundry.operations.services.UpdateServiceInstanceRequest.builder()
 				.serviceInstanceName(serviceInstanceName)
 				.completionTimeout(apiPollingTimeout(request.getProperties()))
 				.parameters(request.getParameters())
 				.build())
-			.then(Mono.just(UpdateServiceInstanceResponse.builder()
-				.name(serviceInstanceName)
-				.build()));
+			.then(Mono.just(UpdateServiceInstanceResponse.builder().name(serviceInstanceName).build()));
 	}
 
 	/**
-	 * Return a function usable in {@literal doOnError} constructs that will unwrap unrecognized Cloud Foundry
-	 * Exceptions and log the text payload.
+	 * Return a function usable in {@literal doOnError} constructs that will unwrap
+	 * unrecognized Cloud Foundry Exceptions and log the text payload.
+	 * @param msg the message
+	 * @return throwable
 	 */
 	private Consumer<Throwable> logError(String msg) {
-		return e -> {
+		return (e) -> {
 			if (e instanceof UnknownCloudFoundryException) {
 				if (LOG.isErrorEnabled()) {
 					LOG.error(msg + "\nUnknownCloudFoundryException encountered, whose payload follows:\n"
-						+ ((UnknownCloudFoundryException) e).getPayload(), e);
+							+ ((UnknownCloudFoundryException) e).getPayload(), e);
 				}
 			}
 			else {

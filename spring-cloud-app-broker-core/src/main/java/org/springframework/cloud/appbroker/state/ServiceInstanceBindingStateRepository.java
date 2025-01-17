@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,14 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
 /**
+ * Interface for a service instance binding state repository.
+ *
  * @author Roy Clarkson
  */
 public interface ServiceInstanceBindingStateRepository {
 
 	default Mono<ServiceInstanceState> saveState(String serviceInstanceId, String bindingId, OperationState state,
-		String description) {
+			String description) {
 		return Mono.empty();
 	}
 

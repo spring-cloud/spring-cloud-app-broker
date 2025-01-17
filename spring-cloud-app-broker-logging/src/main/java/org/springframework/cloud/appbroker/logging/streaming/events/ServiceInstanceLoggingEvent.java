@@ -25,14 +25,15 @@ public class ServiceInstanceLoggingEvent extends ApplicationEvent {
 	public enum Operation {
 
 		/**
-		 * Start publishing log stream for a given service instance id
+		 * Start publishing log stream for a given service instance id.
 		 */
 		START,
 
 		/**
-		 * Stop publishing log stream for a given service instance id
+		 * Stop publishing log stream for a given service instance id.
 		 */
 		STOP
+
 	}
 
 	private final String serviceInstanceId;
@@ -46,11 +47,11 @@ public class ServiceInstanceLoggingEvent extends ApplicationEvent {
 	}
 
 	public String getServiceInstanceId() {
-		return serviceInstanceId;
+		return this.serviceInstanceId;
 	}
 
 	public Operation getOperation() {
-		return operation;
+		return this.operation;
 	}
 
 }

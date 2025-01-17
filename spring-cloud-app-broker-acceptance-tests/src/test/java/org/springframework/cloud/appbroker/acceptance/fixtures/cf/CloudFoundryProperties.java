@@ -16,23 +16,20 @@
 
 package org.springframework.cloud.appbroker.acceptance.fixtures.cf;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-
 import java.net.URI;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import org.cloudfoundry.reactor.ProxyConfiguration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-import static org.springframework.cloud.appbroker.acceptance.fixtures.cf.CloudFoundryProperties.PROPERTY_PREFIX;
-
-@ConfigurationProperties(PROPERTY_PREFIX)
+@ConfigurationProperties(CloudFoundryProperties.PROPERTY_PREFIX)
 @Validated
 public class CloudFoundryProperties {
 
-	protected static final String PROPERTY_PREFIX = "spring.cloud.appbroker.acceptancetest.cloudfoundry";
+	protected static final String PROPERTY_PREFIX = "spring.cloud.appbroker.acceptancetest" + ".cloudfoundry";
 
 	@NotBlank
 	private String apiHost;
@@ -65,7 +62,7 @@ public class CloudFoundryProperties {
 	private boolean skipSslValidation;
 
 	public String getApiHost() {
-		return apiHost;
+		return this.apiHost;
 	}
 
 	public void setApiHost(String apiHost) {
@@ -73,7 +70,7 @@ public class CloudFoundryProperties {
 	}
 
 	public Integer getApiPort() {
-		return apiPort;
+		return this.apiPort;
 	}
 
 	public void setApiPort(int apiPort) {
@@ -81,7 +78,7 @@ public class CloudFoundryProperties {
 	}
 
 	public String getDefaultOrg() {
-		return defaultOrg;
+		return this.defaultOrg;
 	}
 
 	public void setDefaultOrg(String defaultOrg) {
@@ -89,7 +86,7 @@ public class CloudFoundryProperties {
 	}
 
 	public String getDefaultSpace() {
-		return defaultSpace;
+		return this.defaultSpace;
 	}
 
 	public void setDefaultSpace(String defaultSpace) {
@@ -97,7 +94,7 @@ public class CloudFoundryProperties {
 	}
 
 	public String getUsername() {
-		return username;
+		return this.username;
 	}
 
 	public void setUsername(String username) {
@@ -105,7 +102,7 @@ public class CloudFoundryProperties {
 	}
 
 	public String getPassword() {
-		return password;
+		return this.password;
 	}
 
 	public void setPassword(String password) {
@@ -113,7 +110,7 @@ public class CloudFoundryProperties {
 	}
 
 	public String getClientId() {
-		return clientId;
+		return this.clientId;
 	}
 
 	public void setClientId(String clientId) {
@@ -121,7 +118,7 @@ public class CloudFoundryProperties {
 	}
 
 	public String getClientSecret() {
-		return clientSecret;
+		return this.clientSecret;
 	}
 
 	public void setClientSecret(String clientSecret) {
@@ -129,7 +126,7 @@ public class CloudFoundryProperties {
 	}
 
 	public String getIdentityZoneSubdomain() {
-		return identityZoneSubdomain;
+		return this.identityZoneSubdomain;
 	}
 
 	public void setIdentityZoneSubdomain(String identityZoneSubdomain) {
@@ -141,7 +138,7 @@ public class CloudFoundryProperties {
 	}
 
 	public boolean isSecure() {
-		return secure;
+		return this.secure;
 	}
 
 	public void setSecure(boolean secure) {
@@ -149,7 +146,7 @@ public class CloudFoundryProperties {
 	}
 
 	public boolean isSkipSslValidation() {
-		return skipSslValidation;
+		return this.skipSslValidation;
 	}
 
 	public void setSkipSslValidation(boolean skipSslValidation) {
@@ -158,7 +155,7 @@ public class CloudFoundryProperties {
 
 	private static String parseApiHost(String api) {
 		final URI uri = URI.create(api);
-		return uri.getHost() == null ? api : uri.getHost();
+		return (uri.getHost() == null) ? api : uri.getHost();
 	}
 
 }

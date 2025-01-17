@@ -45,7 +45,7 @@ public class UndeployApplicationResponse {
 		}
 
 		public UndeployApplicationResponse build() {
-			return new UndeployApplicationResponse(name);
+			return new UndeployApplicationResponse(this.name);
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import org.springframework.core.annotation.Order;
 
 @Order(0)
 public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentInstanceWorkflow
-	implements UpdateServiceInstanceWorkflow {
+		implements UpdateServiceInstanceWorkflow {
 
 	private static final Logger LOG = Loggers.getLogger(AppDeploymentUpdateServiceInstanceWorkflow.class);
 
@@ -67,12 +67,11 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 	private final TargetService targetService;
 
 	public AppDeploymentUpdateServiceInstanceWorkflow(BrokeredServices brokeredServices,
-		BackingAppDeploymentService deploymentService,
-		BackingAppManagementService backingAppManagementService,
-		BackingServicesProvisionService backingServicesProvisionService,
-		BackingApplicationsParametersTransformationService appsParametersTransformationService,
-		BackingServicesParametersTransformationService servicesParametersTransformationService,
-		TargetService targetService) {
+			BackingAppDeploymentService deploymentService, BackingAppManagementService backingAppManagementService,
+			BackingServicesProvisionService backingServicesProvisionService,
+			BackingApplicationsParametersTransformationService appsParametersTransformationService,
+			BackingServicesParametersTransformationService servicesParametersTransformationService,
+			TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.backingAppManagementService = backingAppManagementService;
@@ -85,36 +84,38 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 	@Override
 	public Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
 		return preUpdateBackingApplications(request)
-			.flatMap(backingApps -> updateBackingServices(request).then(Mono.just(backingApps)))
-			.flatMapMany(backingApps -> updateBackingApplications(request, backingApps))
+			.flatMap((backingApps) -> updateBackingServices(request).then(Mono.just(backingApps)))
+			.flatMapMany((backingApps) -> updateBackingApplications(request, backingApps))
 			.then();
 	}
 
 	private Mono<List<BackingApplication>> preUpdateBackingApplications(UpdateServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingApps -> getTargetForService(request.getServiceDefinition(), request.getPlan())
-				.flatMap(targetSpec -> targetService.addToBackingApplications(backingApps, targetSpec,
-					request.getServiceInstanceId()))
+			.flatMap((backingApps) -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap((targetSpec) -> this.targetService.addToBackingApplications(backingApps, targetSpec,
+						request.getServiceInstanceId()))
 				.defaultIfEmpty(backingApps))
-			.flatMap(backingApps ->
-				appsParametersTransformationService.transformParameters(backingApps, request.getParameters()))
-			.flatMap(backingApps -> deploymentService.prepareForUpdate(backingApps, request.getServiceInstanceId())
+			.flatMap((backingApps) -> this.appsParametersTransformationService.transformParameters(backingApps,
+					request.getParameters()))
+			.flatMap((backingApps) -> this.deploymentService
+				.prepareForUpdate(backingApps, request.getServiceInstanceId())
 				.then(Mono.just(backingApps)))
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Preparing for update of backing applications. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
+						request.getServiceDefinition().getName(), request.getPlan().getName());
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			})
-			.doOnSuccess(backingApplications -> {
+			.doOnSuccess((backingApplications) -> {
 				LOG.info("Finish preparing for update of backing applications. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
+						request.getServiceDefinition().getName(), request.getPlan().getName());
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			})
-			.doOnError(e -> {
+			.doOnError((e) -> {
 				if (LOG.isErrorEnabled()) {
-					LOG.error(String.format("Error preparing for update of backing applications. serviceDefinitionName=%s, " +
-							"planName=%s, error=%s", request.getServiceDefinition().getName(), request.getPlan().getName(),
-						e.getMessage()), e);
+					LOG.error(String.format(
+							"Error preparing for update of backing applications. serviceDefinitionName=%s, "
+									+ "planName=%s, error=%s",
+							request.getServiceDefinition().getName(), request.getPlan().getName(), e.getMessage()), e);
 				}
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			});
@@ -122,17 +123,16 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 
 	private Flux<String> updateBackingServices(UpdateServiceInstanceRequest request) {
 		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingServices -> getTargetForService(request.getServiceDefinition(), request.getPlan())
-				.flatMap(targetSpec -> targetService.addToBackingServices(backingServices, targetSpec,
-					request.getServiceInstanceId()))
+			.flatMap((backingServices) -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap((targetSpec) -> this.targetService.addToBackingServices(backingServices, targetSpec,
+						request.getServiceInstanceId()))
 				.defaultIfEmpty(backingServices))
-			.flatMap(backingServices ->
-				servicesParametersTransformationService.transformParameters(backingServices,
-					request.getParameters()))
-			.flatMap(backingServices -> Flux.fromIterable(backingServices)
+			.flatMap((backingServices) -> this.servicesParametersTransformationService
+				.transformParameters(backingServices, request.getParameters()))
+			.flatMap((backingServices) -> Flux.fromIterable(backingServices)
 				.collectMap(BackingService::getServiceInstanceName, Function.identity()))
 			.zipWith(getExistingBackingServiceNameMap(request))
-			.flatMapMany(newAndExisting -> {
+			.flatMapMany((newAndExisting) -> {
 				Map<String, BackingService> newServices = newAndExisting.getT1();
 				Map<String, BackingService> existingServices = newAndExisting.getT2();
 
@@ -142,66 +142,64 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 
 				List<BackingService> servicesToUpdate = servicesInNameList(newServices, serviceNamesToUpdate);
 				List<BackingService> servicesToCreate = servicesInNameList(newServices, serviceNamesToCreate);
-				List<BackingService> servicesToDelete = servicesInNameList(existingServices,
-					serviceNamesToDelete);
+				List<BackingService> servicesToDelete = servicesInNameList(existingServices, serviceNamesToDelete);
 
 				LOG.debug("Backing services to update: {}", serviceNamesToUpdate);
 				LOG.debug("Backing services to create: {}", serviceNamesToCreate);
 				LOG.debug("Backing services to delete: {}", serviceNamesToDelete);
 
-				return Flux.concat(
-					backingServicesProvisionService.updateServiceInstance(servicesToUpdate),
-					backingServicesProvisionService.createServiceInstance(servicesToCreate),
-					backingServicesProvisionService.deleteServiceInstance(servicesToDelete))
+				return Flux
+					.concat(this.backingServicesProvisionService.updateServiceInstance(servicesToUpdate),
+							this.backingServicesProvisionService.createServiceInstance(servicesToCreate),
+							this.backingServicesProvisionService.deleteServiceInstance(servicesToDelete))
 					.parallel()
 					.runOn(Schedulers.parallel());
 			})
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Updating backing services. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
+						request.getServiceDefinition().getName(), request.getPlan().getName());
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			})
 			.doOnComplete(() -> {
 				LOG.info("Finish updating backing services. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
+						request.getServiceDefinition().getName(), request.getPlan().getName());
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			})
-			.doOnError(e -> {
+			.doOnError((e) -> {
 				if (LOG.isErrorEnabled()) {
-					LOG.error(String.format("Error updating backing services. serviceDefinitionName=%s, planName=%s, " +
-							"error=%s", request.getServiceDefinition().getName(), request.getPlan().getName(),
-						e.getMessage()), e);
+					LOG.error(String.format(
+							"Error updating backing services. serviceDefinitionName=%s, planName=%s, " + "error=%s",
+							request.getServiceDefinition().getName(), request.getPlan().getName(), e.getMessage()), e);
 				}
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			});
 	}
 
 	private Mono<Map<String, BackingService>> getExistingBackingServiceNameMap(UpdateServiceInstanceRequest request) {
-		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
-			request.getServiceDefinition().getName(), request.getPlan().getName())
+		return this.backingAppManagementService
+			.getDeployedBackingApplications(request.getServiceInstanceId(), request.getServiceDefinition().getName(),
+					request.getPlan().getName())
 			.flatMapMany(Flux::fromIterable)
-			.flatMap(backingApplication -> Flux
-				.fromIterable(backingApplication.getServices())
-				.map(servicesSpec -> {
-					Map<String, String> properties = null;
-					if (backingApplication.getProperties() != null) {
-						String target = backingApplication.getProperties().get(DeploymentProperties.TARGET_PROPERTY_KEY);
-						if (target != null) {
-							properties = Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, target);
-						}
+			.flatMap((backingApplication) -> Flux.fromIterable(backingApplication.getServices()).map((servicesSpec) -> {
+				Map<String, String> properties = null;
+				if (backingApplication.getProperties() != null) {
+					String target = backingApplication.getProperties().get(DeploymentProperties.TARGET_PROPERTY_KEY);
+					if (target != null) {
+						properties = Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, target);
 					}
-					return BackingService.builder()
-						.serviceInstanceName(servicesSpec.getServiceInstanceName())
-						.properties(properties)
-						.build();
-				}))
+				}
+				return BackingService.builder()
+					.serviceInstanceName(servicesSpec.getServiceInstanceName())
+					.properties(properties)
+					.build();
+			}))
 			.distinct()
 			.collectMap(BackingService::getServiceInstanceName, Function.identity());
 	}
 
 	private List<BackingService> servicesInNameList(Map<String, BackingService> services, Set<String> nameList) {
 		List<BackingService> servicesToKeep = new ArrayList<>(services.values());
-		servicesToKeep.removeIf(service -> !nameList.contains(service.getServiceInstanceName()));
+		servicesToKeep.removeIf((service) -> !nameList.contains(service.getServiceInstanceName()));
 		return servicesToKeep;
 	}
 
@@ -218,24 +216,24 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 	}
 
 	private Flux<String> updateBackingApplications(UpdateServiceInstanceRequest request,
-		List<BackingApplication> preTransformedBackingApplications) {
+			List<BackingApplication> preTransformedBackingApplications) {
 		return Mono.just(preTransformedBackingApplications)
-			.flatMapMany(backingApps -> deploymentService.update(backingApps, request.getServiceInstanceId()))
-			.doOnRequest(l -> {
+			.flatMapMany((backingApps) -> this.deploymentService.update(backingApps, request.getServiceInstanceId()))
+			.doOnRequest((l) -> {
 				LOG.info("Updating backing applications. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
+						request.getServiceDefinition().getName(), request.getPlan().getName());
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			})
 			.doOnComplete(() -> {
 				LOG.info("Finish updating backing applications. serviceDefinitionName={}, planName={}",
-					request.getServiceDefinition().getName(), request.getPlan().getName());
+						request.getServiceDefinition().getName(), request.getPlan().getName());
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			})
-			.doOnError(e -> {
+			.doOnError((e) -> {
 				if (LOG.isErrorEnabled()) {
-					LOG.error(String.format("Error updating backing applications. serviceDefinitionName=%s, " +
-							"planName=%s, error=%s", request.getServiceDefinition().getName(), request.getPlan().getName(),
-						e.getMessage()), e);
+					LOG.error(String.format(
+							"Error updating backing applications. serviceDefinitionName=%s, " + "planName=%s, error=%s",
+							request.getServiceDefinition().getName(), request.getPlan().getName(), e.getMessage()), e);
 				}
 				LOG.debug(REQUEST_LOG_TEMPLATE, request);
 			});
@@ -248,7 +246,7 @@ public class AppDeploymentUpdateServiceInstanceWorkflow extends AppDeploymentIns
 
 	@Override
 	public Mono<UpdateServiceInstanceResponseBuilder> buildResponse(UpdateServiceInstanceRequest request,
-		UpdateServiceInstanceResponseBuilder responseBuilder) {
+			UpdateServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder.async(true));
 	}
 

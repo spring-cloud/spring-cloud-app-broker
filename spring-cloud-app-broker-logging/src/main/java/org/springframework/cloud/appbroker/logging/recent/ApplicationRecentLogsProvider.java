@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,20 +32,18 @@ public class ApplicationRecentLogsProvider implements RecentLogsProvider {
 
 	private final ApplicationIdsProvider applicationIdsProvider;
 
-	public ApplicationRecentLogsProvider(LogCacheClient logCacheClient,
-		ApplicationIdsProvider applicationIdsProvider) {
+	public ApplicationRecentLogsProvider(LogCacheClient logCacheClient, ApplicationIdsProvider applicationIdsProvider) {
 		this.logCacheClient = logCacheClient;
 		this.applicationIdsProvider = applicationIdsProvider;
 	}
 
 	@Override
 	public Flux<Envelope> getLogs(String serviceInstanceId) {
-		return this.applicationIdsProvider.getApplicationIds(serviceInstanceId)
-			.flatMap(this::recentLogs);
+		return this.applicationIdsProvider.getApplicationIds(serviceInstanceId).flatMap(this::recentLogs);
 	}
 
 	protected Flux<Envelope> recentLogs(String applicationId) {
-		return logCacheClient
+		return this.logCacheClient
 			.read(ReadRequest.builder()
 				.sourceId(applicationId)
 				.descending(true)
@@ -53,7 +51,7 @@ public class ApplicationRecentLogsProvider implements RecentLogsProvider {
 				.limit(1000)
 				.startTime(Instant.MIN.getEpochSecond())
 				.build())
-			.flatMapMany(readResponse -> Flux.fromIterable(readResponse.getEnvelopes().getBatch()));
+			.flatMapMany((readResponse) -> Flux.fromIterable(readResponse.getEnvelopes().getBatch()));
 	}
 
 }

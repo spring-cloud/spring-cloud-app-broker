@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,49 +33,44 @@ public class TargetService {
 	private final ExtensionLocator<Target> locator;
 
 	public TargetService(List<TargetFactory<?>> factories) {
-		locator = new ExtensionLocator<>(factories);
+		this.locator = new ExtensionLocator<>(factories);
 	}
 
 	public Mono<List<BackingApplication>> addToBackingApplications(List<BackingApplication> backingApplications,
-		TargetSpec targetSpec, String serviceInstanceId) {
-		return Flux.fromIterable(backingApplications)
-			.flatMap(backingApplication -> {
-				if (targetSpec != null) {
-					ArtifactDetails appDetails = getArtifactDetails(targetSpec, serviceInstanceId,
+			TargetSpec targetSpec, String serviceInstanceId) {
+		return Flux.fromIterable(backingApplications).flatMap((backingApplication) -> {
+			if (targetSpec != null) {
+				ArtifactDetails appDetails = getArtifactDetails(targetSpec, serviceInstanceId,
 						backingApplication.getName(), backingApplication.getProperties());
-					backingApplication.setName(appDetails.getName());
-					backingApplication.setProperties(appDetails.getProperties());
+				backingApplication.setName(appDetails.getName());
+				backingApplication.setProperties(appDetails.getProperties());
 
-					backingApplication.getServices().forEach(servicesSpec -> {
-						ArtifactDetails serviceDetails = getArtifactDetails(targetSpec, serviceInstanceId,
-							servicesSpec.getServiceInstanceName(), new HashMap<>());
-						servicesSpec.setServiceInstanceName(serviceDetails.getName());
-					});
-				}
-				return Mono.just(backingApplication);
-			})
-			.collectList();
-	}
-
-	public Mono<List<BackingService>> addToBackingServices(List<BackingService> backingServices,
-		TargetSpec targetSpec,
-		String serviceInstanceId) {
-		return Flux.fromIterable(backingServices)
-			.flatMap(backingService -> {
-				if (targetSpec != null) {
+				backingApplication.getServices().forEach((servicesSpec) -> {
 					ArtifactDetails serviceDetails = getArtifactDetails(targetSpec, serviceInstanceId,
-						backingService.getServiceInstanceName(), backingService.getProperties());
-					backingService.setServiceInstanceName(serviceDetails.getName());
-					backingService.setProperties(serviceDetails.getProperties());
-				}
-				return Mono.just(backingService);
-			})
-			.collectList();
+							servicesSpec.getServiceInstanceName(), new HashMap<>());
+					servicesSpec.setServiceInstanceName(serviceDetails.getName());
+				});
+			}
+			return Mono.just(backingApplication);
+		}).collectList();
 	}
 
-	private ArtifactDetails getArtifactDetails(TargetSpec targetSpec, String serviceInstanceId,
-		String name, Map<String, String> properties) {
-		Target target = locator.getByName(targetSpec.getName());
+	public Mono<List<BackingService>> addToBackingServices(List<BackingService> backingServices, TargetSpec targetSpec,
+			String serviceInstanceId) {
+		return Flux.fromIterable(backingServices).flatMap((backingService) -> {
+			if (targetSpec != null) {
+				ArtifactDetails serviceDetails = getArtifactDetails(targetSpec, serviceInstanceId,
+						backingService.getServiceInstanceName(), backingService.getProperties());
+				backingService.setServiceInstanceName(serviceDetails.getName());
+				backingService.setProperties(serviceDetails.getProperties());
+			}
+			return Mono.just(backingService);
+		}).collectList();
+	}
+
+	private ArtifactDetails getArtifactDetails(TargetSpec targetSpec, String serviceInstanceId, String name,
+			Map<String, String> properties) {
+		Target target = this.locator.getByName(targetSpec.getName());
 		return target.apply(properties, name, serviceInstanceId);
 	}
 

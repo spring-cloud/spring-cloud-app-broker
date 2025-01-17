@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2020 the original author or authors
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,23 +41,23 @@ public class CloudFoundryAppManager implements AppManager {
 	@Override
 	public Mono<Void> start(StartApplicationRequest request) {
 		return Mono.justOrEmpty(request)
-			.flatMap(req -> operationsUtils.getOperations(req.getProperties())
-				.flatMap(cfOperations -> Mono.justOrEmpty(req.getName())
-					.flatMap(appName -> cfOperations.applications().start(
-						org.cloudfoundry.operations.applications.StartApplicationRequest.builder()
+			.flatMap((req) -> this.operationsUtils.getOperations(req.getProperties())
+				.flatMap((cfOperations) -> Mono.justOrEmpty(req.getName())
+					.flatMap((appName) -> cfOperations.applications()
+						.start(org.cloudfoundry.operations.applications.StartApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> {
+						.doOnRequest((l) -> {
 							LOG.info("Starting application. appName={}", appName);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						})
-						.doOnSuccess(v -> {
+						.doOnSuccess((v) -> {
 							LOG.info("Success starting application. appName={}", appName);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						})
-						.doOnError(e -> {
+						.doOnError((e) -> {
 							LOG.error(String.format("Error starting application. appName=%s, error=%s", appName,
-								e.getMessage()), e);
+									e.getMessage()), e);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						}))));
 	}
@@ -65,23 +65,23 @@ public class CloudFoundryAppManager implements AppManager {
 	@Override
 	public Mono<Void> stop(StopApplicationRequest request) {
 		return Mono.justOrEmpty(request)
-			.flatMap(req -> operationsUtils.getOperations(req.getProperties())
-				.flatMap(cfOperations -> Mono.justOrEmpty(req.getName())
-					.flatMap(appName -> cfOperations.applications().stop(
-						org.cloudfoundry.operations.applications.StopApplicationRequest.builder()
+			.flatMap((req) -> this.operationsUtils.getOperations(req.getProperties())
+				.flatMap((cfOperations) -> Mono.justOrEmpty(req.getName())
+					.flatMap((appName) -> cfOperations.applications()
+						.stop(org.cloudfoundry.operations.applications.StopApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> {
+						.doOnRequest((l) -> {
 							LOG.info("Stopping application. appName={}", appName);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						})
-						.doOnSuccess(v -> {
+						.doOnSuccess((v) -> {
 							LOG.info("Success stopping application. appName={}", appName);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						})
-						.doOnError(e -> {
+						.doOnError((e) -> {
 							LOG.error(String.format("Error stopping application. appName=%s, error=%s", appName,
-								e.getMessage()), e);
+									e.getMessage()), e);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						}))));
 	}
@@ -89,23 +89,23 @@ public class CloudFoundryAppManager implements AppManager {
 	@Override
 	public Mono<Void> restart(RestartApplicationRequest request) {
 		return Mono.justOrEmpty(request)
-			.flatMap(req -> operationsUtils.getOperations(req.getProperties())
-				.flatMap(cfOperations -> Mono.justOrEmpty(req.getName())
-					.flatMap(appName -> cfOperations.applications().restart(
-						org.cloudfoundry.operations.applications.RestartApplicationRequest.builder()
+			.flatMap((req) -> this.operationsUtils.getOperations(req.getProperties())
+				.flatMap((cfOperations) -> Mono.justOrEmpty(req.getName())
+					.flatMap((appName) -> cfOperations.applications()
+						.restart(org.cloudfoundry.operations.applications.RestartApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> {
+						.doOnRequest((l) -> {
 							LOG.info("Restarting application. appName={}", appName);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						})
-						.doOnSuccess(v -> {
+						.doOnSuccess((v) -> {
 							LOG.info("Success restarting application. appName={}", appName);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						})
-						.doOnError(e -> {
+						.doOnError((e) -> {
 							LOG.error(String.format("Error restarting application. appName=%s, error=%s", appName,
-								e.getMessage()), e);
+									e.getMessage()), e);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						}))));
 	}
@@ -113,23 +113,23 @@ public class CloudFoundryAppManager implements AppManager {
 	@Override
 	public Mono<Void> restage(RestageApplicationRequest request) {
 		return Mono.justOrEmpty(request)
-			.flatMap(req -> operationsUtils.getOperations(req.getProperties())
-				.flatMap(cfOperations -> Mono.justOrEmpty(req.getName())
-					.flatMap(appName -> cfOperations.applications().restage(
-						org.cloudfoundry.operations.applications.RestageApplicationRequest.builder()
+			.flatMap((req) -> this.operationsUtils.getOperations(req.getProperties())
+				.flatMap((cfOperations) -> Mono.justOrEmpty(req.getName())
+					.flatMap((appName) -> cfOperations.applications()
+						.restage(org.cloudfoundry.operations.applications.RestageApplicationRequest.builder()
 							.name(appName)
 							.build())
-						.doOnRequest(l -> {
+						.doOnRequest((l) -> {
 							LOG.info("Restaging application. appName={}", appName);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						})
-						.doOnSuccess(v -> {
+						.doOnSuccess((v) -> {
 							LOG.info("Success restaging application. appName={}", appName);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						})
-						.doOnError(e -> {
+						.doOnError((e) -> {
 							LOG.error(String.format("Error restaging application. appName=%s, error=%s", appName,
-								e.getMessage()), e);
+									e.getMessage()), e);
 							LOG.debug(REQUEST_LOG_TEMPLATE, request);
 						}))));
 	}

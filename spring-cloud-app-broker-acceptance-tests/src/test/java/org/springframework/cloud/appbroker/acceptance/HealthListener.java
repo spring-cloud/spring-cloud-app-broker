@@ -44,55 +44,55 @@ class HealthListener {
 
 	private final RestTemplate restTemplate;
 
-	public HealthListener(RestTemplate restTemplate) {
+	HealthListener(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
 
-	public void start(String path) {
-		if (running.get()) {
+	void start(String path) {
+		if (this.running.get()) {
 			throw new IllegalStateException("cannot start when test is already running");
 		}
-		requests.set(0);
-		errors.set(0);
-		running.set(true);
+		this.requests.set(0);
+		this.errors.set(0);
+		this.running.set(true);
 
-		runner = new Thread(() -> {
-			while (running.get()) {
+		this.runner = new Thread(() -> {
+			while (this.running.get()) {
 				try {
-					requests.incrementAndGet();
-					ResponseEntity<String> response = restTemplate
+					this.requests.incrementAndGet();
+					ResponseEntity<String> response = this.restTemplate
 						.getForEntity(URI.create("http://" + path + "/actuator/health"), String.class);
 					if (response.getStatusCode() != HttpStatus.OK) {
-						errors.incrementAndGet();
+						this.errors.incrementAndGet();
 					}
 					Thread.sleep(1000);
 				}
 				catch (RestClientException | InterruptedException re) {
-					errors.incrementAndGet();
+					this.errors.incrementAndGet();
 				}
 			}
 		});
-		runner.start();
+		this.runner.start();
 	}
 
-	public void stop() {
-		running.set(false);
+	void stop() {
+		this.running.set(false);
 		try {
-			runner.join();
+			this.runner.join();
 		}
-		catch (InterruptedException e) {
+		catch (InterruptedException ex) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("thread was interrupted while waiting to die", e);
+				LOG.debug("thread was interrupted while waiting to die", ex);
 			}
 		}
 	}
 
-	public int getSuccesses() {
-		return requests.get();
+	int getSuccesses() {
+		return this.requests.get();
 	}
 
-	public int getFailures() {
-		return errors.get();
+	int getFailures() {
+		return this.errors.get();
 	}
 
 }

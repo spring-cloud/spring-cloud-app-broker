@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class ParametersTransformerSpec {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -44,7 +44,7 @@ public class ParametersTransformerSpec {
 	}
 
 	public Map<String, Object> getArgs() {
-		return args;
+		return this.args;
 	}
 
 	public void setArgs(Map<String, Object> args) {
@@ -65,8 +65,7 @@ public class ParametersTransformerSpec {
 		}
 
 		public ParametersTransformerSpecBuilder spec(ParametersTransformerSpec spec) {
-			return this.name(spec.getName())
-				.args(spec.getArgs());
+			return this.name(spec.getName()).args(spec.getArgs());
 		}
 
 		public ParametersTransformerSpecBuilder name(String name) {
@@ -89,7 +88,7 @@ public class ParametersTransformerSpec {
 		}
 
 		public ParametersTransformerSpec build() {
-			return new ParametersTransformerSpec(name, args);
+			return new ParametersTransformerSpec(this.name, this.args);
 		}
 
 	}

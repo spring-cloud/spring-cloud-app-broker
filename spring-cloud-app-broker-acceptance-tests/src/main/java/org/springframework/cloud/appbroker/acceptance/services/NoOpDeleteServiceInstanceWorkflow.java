@@ -25,7 +25,9 @@ import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceResponse.DeleteServiceInstanceResponseBuilder;
 
 /**
- * A no-op implementation of {@link DeleteServiceInstanceWorkflow}
+ * A no-op implementation of {@link DeleteServiceInstanceWorkflow}.
+ *
+ * @author Scott Frederick
  */
 public class NoOpDeleteServiceInstanceWorkflow implements DeleteServiceInstanceWorkflow {
 
@@ -39,12 +41,12 @@ public class NoOpDeleteServiceInstanceWorkflow implements DeleteServiceInstanceW
 
 	@Override
 	public Mono<Boolean> accept(DeleteServiceInstanceRequest request) {
-		return Mono.just(request.getServiceDefinitionId().equals(backingServiceId));
+		return Mono.just(request.getServiceDefinitionId().equals(this.backingServiceId));
 	}
 
 	@Override
 	public Mono<DeleteServiceInstanceResponseBuilder> buildResponse(DeleteServiceInstanceRequest request,
-		DeleteServiceInstanceResponseBuilder responseBuilder) {
+			DeleteServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder);
 	}
 

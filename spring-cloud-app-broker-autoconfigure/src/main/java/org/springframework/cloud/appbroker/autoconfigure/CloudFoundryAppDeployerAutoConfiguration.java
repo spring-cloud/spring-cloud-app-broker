@@ -58,7 +58,11 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.StringUtils;
 
 /**
- * Auto-configuration support for deploying apps to Cloud Foundry
+ * Auto-configuration support for deploying apps to Cloud Foundry.
+ *
+ * @author Roy Clarkson
+ * @author Scott Frederick
+ * @author Alberto Rios
  */
 @Configuration
 @ConditionalOnProperty(CloudFoundryAppDeployerAutoConfiguration.PROPERTY_PREFIX + ".api-host")
@@ -68,8 +72,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	protected static final String PROPERTY_PREFIX = "spring.cloud.appbroker.deployer.cloudfoundry";
 
 	/**
-	 * Provide a {@link CloudFoundryDeploymentProperties} bean
-	 *
+	 * Provide a {@link CloudFoundryDeploymentProperties} bean.
 	 * @return the bean
 	 */
 	@Bean
@@ -79,8 +82,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link CloudFoundryTargetProperties} bean
-	 *
+	 * Provide a {@link CloudFoundryTargetProperties} bean.
 	 * @return the bean
 	 */
 	@Bean
@@ -90,8 +92,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link AppDeployer} bean
-	 *
+	 * Provide a {@link AppDeployer} bean.
 	 * @param deploymentProperties the CloudFoundryDeploymentProperties bean
 	 * @param cloudFoundryOperations the CloudFoundryOperations bean
 	 * @param cloudFoundryClient the CloudFoundryClient bean
@@ -102,16 +103,15 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	 */
 	@Bean
 	public AppDeployer cloudFoundryAppDeployer(CloudFoundryDeploymentProperties deploymentProperties,
-		CloudFoundryOperations cloudFoundryOperations, CloudFoundryClient cloudFoundryClient,
-		CloudFoundryOperationsUtils operationsUtils, CloudFoundryTargetProperties targetProperties,
-		ResourceLoader resourceLoader) {
+			CloudFoundryOperations cloudFoundryOperations, CloudFoundryClient cloudFoundryClient,
+			CloudFoundryOperationsUtils operationsUtils, CloudFoundryTargetProperties targetProperties,
+			ResourceLoader resourceLoader) {
 		return new CloudFoundryAppDeployer(deploymentProperties, cloudFoundryOperations, cloudFoundryClient,
-			operationsUtils, targetProperties, resourceLoader);
+				operationsUtils, targetProperties, resourceLoader);
 	}
 
 	/**
-	 * Provide an {@link AppManager} bean
-	 *
+	 * Provide an {@link AppManager} bean.
 	 * @param cloudFoundryOperationsUtils the CloudFoundryOperationsUtils bean
 	 * @return the bean
 	 */
@@ -121,8 +121,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	/**
-	 * Provide an {@link OAuth2Client} bean
-	 *
+	 * Provide an {@link OAuth2Client} bean.
 	 * @param uaaClient the UaaClient bean
 	 * @return the bean
 	 */
@@ -132,15 +131,14 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link ReactorCloudFoundryClient} bean
-	 *
+	 * Provide a {@link ReactorCloudFoundryClient} bean.
 	 * @param connectionContext the ConnectionContext bean
 	 * @param tokenProvider the TokenProvider bean
 	 * @return the bean
 	 */
 	@Bean
 	public ReactorCloudFoundryClient cloudFoundryClient(@ConnectionContextQualifier ConnectionContext connectionContext,
-		@TokenQualifier TokenProvider tokenProvider) {
+			@TokenQualifier TokenProvider tokenProvider) {
 		return ReactorCloudFoundryClient.builder()
 			.connectionContext(connectionContext)
 			.tokenProvider(tokenProvider)
@@ -148,8 +146,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link CloudFoundryOperations} bean
-	 *
+	 * Provide a {@link CloudFoundryOperations} bean.
 	 * @param properties the CloudFoundryTargetProperties bean
 	 * @param client the CloudFoundryClient bean
 	 * @param dopplerClient the DopplerClient bean
@@ -158,7 +155,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	 */
 	@Bean
 	public CloudFoundryOperations cloudFoundryOperations(CloudFoundryTargetProperties properties,
-		CloudFoundryClient client, DopplerClient dopplerClient, @UaaClientQualifier UaaClient uaaClient) {
+			CloudFoundryClient client, DopplerClient dopplerClient, @UaaClientQualifier UaaClient uaaClient) {
 		return DefaultCloudFoundryOperations.builder()
 			.cloudFoundryClient(client)
 			.dopplerClient(dopplerClient)
@@ -169,8 +166,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link CloudFoundryOperationsUtils} bean
-	 *
+	 * Provide a {@link CloudFoundryOperationsUtils} bean.
 	 * @param operations the CloudFoundryOperations bean
 	 * @return the bean
 	 */
@@ -180,8 +176,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link DefaultConnectionContext} bean
-	 *
+	 * Provide a {@link DefaultConnectionContext} bean.
 	 * @param properties the CloudFoundryTargetProperties bean
 	 * @return the bean
 	 */
@@ -197,31 +192,26 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link ReactorDopplerClient} bean
-	 *
+	 * Provide a {@link ReactorDopplerClient} bean.
 	 * @param connectionContext the ConnectionContext bean
 	 * @param tokenProvider the TokenProvider bean
 	 * @return the bean
 	 */
 	@Bean
 	public ReactorDopplerClient dopplerClient(@ConnectionContextQualifier ConnectionContext connectionContext,
-		@TokenQualifier TokenProvider tokenProvider) {
-		return ReactorDopplerClient.builder()
-			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
-			.build();
+			@TokenQualifier TokenProvider tokenProvider) {
+		return ReactorDopplerClient.builder().connectionContext(connectionContext).tokenProvider(tokenProvider).build();
 	}
 
 	/**
-	 * Provide a {@link LogCacheClient} bean
-	 *
+	 * Provide a {@link LogCacheClient} bean.
 	 * @param connectionContext the ConnectionContext bean
 	 * @param tokenProvider the TokenProvider bean
 	 * @return the bean
 	 */
 	@Bean
 	public LogCacheClient logCacheClient(@ConnectionContextQualifier ConnectionContext connectionContext,
-		@TokenQualifier TokenProvider tokenProvider) {
+			@TokenQualifier TokenProvider tokenProvider) {
 		return ReactorLogCacheClient.builder()
 			.connectionContext(connectionContext)
 			.tokenProvider(tokenProvider)
@@ -229,8 +219,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	/**
-	 * Provide a {@link TokenProvider} bean
-	 *
+	 * Provide a {@link TokenProvider} bean.
 	 * @param properties the CloudFoundryTargetProperties bean
 	 * @return the bean
 	 */
@@ -242,9 +231,8 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 		boolean isUsernameAndPasswordSet = Stream.of(properties.getUsername(), properties.getPassword())
 			.allMatch(StringUtils::hasText);
 		if (isClientIdAndSecretSet && isUsernameAndPasswordSet) {
-			throw new IllegalStateException(
-				String.format("(%1$s.client_id / %1$s.client_secret) must not be set when\n" +
-					"(%1$s.username / %1$s.password) are also set", PROPERTY_PREFIX));
+			throw new IllegalStateException(String.format("(%1$s.client_id / %1$s.client_secret) must not be set when\n"
+					+ "(%1$s.username / %1$s.password) are also set", PROPERTY_PREFIX));
 		}
 		else if (isClientIdAndSecretSet) {
 			return ClientCredentialsGrantTokenProvider.builder()
@@ -260,15 +248,13 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 				.build();
 		}
 		else {
-			throw new IllegalStateException(
-				String.format("Either (%1$s.client_id and %1$s.client_secret) or\n" +
-					"(%1$s.username and %1$s.password) properties must be set", PROPERTY_PREFIX));
+			throw new IllegalStateException(String.format("Either (%1$s.client_id and %1$s.client_secret) or\n"
+					+ "(%1$s.username and %1$s.password) properties must be set", PROPERTY_PREFIX));
 		}
 	}
 
 	/**
-	 * Provide a {@link ReactorUaaClient} bean
-	 *
+	 * Provide a {@link ReactorUaaClient} bean.
 	 * @param connectionContext the ConnectionContext bean
 	 * @param tokenProvider the TokenProvider bean
 	 * @return the bean
@@ -276,15 +262,12 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	@UaaClientQualifier
 	@Bean
 	public ReactorUaaClient uaaClient(@ConnectionContextQualifier ConnectionContext connectionContext,
-		@TokenQualifier TokenProvider tokenProvider) {
-		return ReactorUaaClient.builder()
-			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
-			.build();
+			@TokenQualifier TokenProvider tokenProvider) {
+		return ReactorUaaClient.builder().connectionContext(connectionContext).tokenProvider(tokenProvider).build();
 	}
 
 	@Qualifier
-	@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+	@Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface TokenQualifier {
 
@@ -293,7 +276,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	@Qualifier
-	@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+	@Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface UaaClientQualifier {
 
@@ -302,7 +285,7 @@ public class CloudFoundryAppDeployerAutoConfiguration {
 	}
 
 	@Qualifier
-	@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+	@Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface ConnectionContextQualifier {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
 /**
- * Default implementation of {@link ServiceInstanceBindingStateRepository} meant for demonstration and testing purposes
- * only.
+ * Default implementation of {@link ServiceInstanceBindingStateRepository} meant for
+ * demonstration and testing purposes only.
  * <p/>
  * WARNING: This implementation is not intended for production applications!
+ *
+ * @author Roy Clarkson
  */
 public class InMemoryServiceInstanceBindingStateRepository implements ServiceInstanceBindingStateRepository {
 
@@ -38,41 +40,39 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 
 	@Override
 	public Mono<ServiceInstanceState> saveState(String serviceInstanceId, String bindingId, OperationState state,
-		String description) {
+			String description) {
 		return Mono.just(new BindingKey(serviceInstanceId, bindingId))
-			.flatMap(bindingKey -> Mono
+			.flatMap((bindingKey) -> Mono
 				.just(new ServiceInstanceState(state, description, new Timestamp(Instant.now().toEpochMilli())))
-				.flatMap(
-					serviceInstanceState -> Mono.fromCallable(() -> this.states.put(bindingKey, serviceInstanceState))
-						.thenReturn(serviceInstanceState)));
+				.flatMap((serviceInstanceState) -> Mono
+					.fromCallable(() -> this.states.put(bindingKey, serviceInstanceState))
+					.thenReturn(serviceInstanceState)));
 	}
 
 	@Override
 	public Mono<ServiceInstanceState> getState(String serviceInstanceId, String bindingId) {
 		return Mono.just(new BindingKey(serviceInstanceId, bindingId))
-			.flatMap(bindingKey -> containsState(bindingKey)
-				.flatMap(contains -> Mono.defer(() -> {
-					if (contains) {
-						return Mono.fromCallable(() -> this.states.get(bindingKey));
-					}
-					else {
-						return Mono.error(new IllegalArgumentException("Unknown binding " + bindingKey));
-					}
-				})));
+			.flatMap((bindingKey) -> containsState(bindingKey).flatMap((contains) -> Mono.defer(() -> {
+				if (contains) {
+					return Mono.fromCallable(() -> this.states.get(bindingKey));
+				}
+				else {
+					return Mono.error(new IllegalArgumentException("Unknown binding " + bindingKey));
+				}
+			})));
 	}
 
 	@Override
 	public Mono<ServiceInstanceState> removeState(String serviceInstanceId, String bindingId) {
 		return Mono.just(new BindingKey(serviceInstanceId, bindingId))
-			.flatMap(bindingKey -> containsState(bindingKey)
-				.flatMap(contains -> Mono.defer(() -> {
-					if (contains) {
-						return Mono.fromCallable(() -> this.states.remove(bindingKey));
-					}
-					else {
-						return Mono.error(new IllegalArgumentException("Unknown binding " + bindingKey));
-					}
-				})));
+			.flatMap((bindingKey) -> containsState(bindingKey).flatMap((contains) -> Mono.defer(() -> {
+				if (contains) {
+					return Mono.fromCallable(() -> this.states.remove(bindingKey));
+				}
+				else {
+					return Mono.error(new IllegalArgumentException("Unknown binding " + bindingKey));
+				}
+			})));
 	}
 
 	private Mono<Boolean> containsState(BindingKey bindingKey) {
@@ -85,15 +85,15 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 
 		private final String bindingId;
 
-		public String getServiceInstanceId() {
+		String getServiceInstanceId() {
 			return this.serviceInstanceId;
 		}
 
-		public String getBindingId() {
+		String getBindingId() {
 			return this.bindingId;
 		}
 
-		public BindingKey(String serviceInstanceId, String bindingId) {
+		BindingKey(String serviceInstanceId, String bindingId) {
 			this.serviceInstanceId = serviceInstanceId;
 			this.bindingId = bindingId;
 		}
@@ -107,27 +107,25 @@ public class InMemoryServiceInstanceBindingStateRepository implements ServiceIns
 				return false;
 			}
 			BindingKey that = (BindingKey) obj;
-			return Objects.equals(this.bindingId, that.bindingId) &&
-				Objects.equals(this.serviceInstanceId, that.serviceInstanceId);
+			return Objects.equals(this.bindingId, that.bindingId)
+					&& Objects.equals(this.serviceInstanceId, that.serviceInstanceId);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(serviceInstanceId, bindingId);
+			return Objects.hash(this.serviceInstanceId, this.bindingId);
 		}
 
 		@Override
 		public String toString() {
-			return "BindingKey{" +
-				"serviceInstanceId='" + serviceInstanceId + '\'' +
-				", bindingId='" + bindingId + '\'' +
-				'}';
+			return "BindingKey{" + "serviceInstanceId='" + this.serviceInstanceId + '\'' + ", bindingId='"
+					+ this.bindingId + '\'' + '}';
 		}
 
 		@Override
 		public int compareTo(BindingKey other) {
 			int compare = this.serviceInstanceId.compareTo(other.serviceInstanceId);
-			return compare == 0 ? this.bindingId.compareTo(other.bindingId) : compare;
+			return (compare == 0) ? this.bindingId.compareTo(other.bindingId) : compare;
 		}
 
 	}

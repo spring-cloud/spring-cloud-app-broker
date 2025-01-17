@@ -25,8 +25,8 @@ import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties;
 
 /**
- * Holds configuration properties for specifying what resources and services an app deployed to a Cloud Foundry runtime
- * will get.
+ * Holds configuration properties for specifying what resources and services an app
+ * deployed to a Cloud Foundry runtime will get.
  *
  * @author Eric Bottard
  * @author Greg Turnquist
@@ -36,17 +36,17 @@ import org.springframework.cloud.appbroker.deployer.deployer.DeploymentPropertie
 public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 
 	/**
-	 * Key for storing the health check deployment property
+	 * Key for storing the health check deployment property.
 	 */
 	protected static final String HEALTHCHECK_PROPERTY_KEY = "health-check";
 
 	/**
-	 * Key for storing the health check endpoint deployment property
+	 * Key for storing the health check endpoint deployment property.
 	 */
 	protected static final String HEALTHCHECK_HTTP_ENDPOINT_PROPERTY_KEY = "health-check-http-endpoint";
 
 	/**
-	 * Key for storing the health check timeout deployment property
+	 * Key for storing the health check timeout deployment property.
 	 */
 	protected static final String HEALTHCHECK_TIMEOUT_PROPERTY_KEY = "health-check-timeout";
 
@@ -56,53 +56,53 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	protected static final String API_POLLING_TIMEOUT_PROPERTY_KEY = "api-polling-timeout";
 
 	/**
-	 * Key for storing the route path deployment property
+	 * Key for storing the route path deployment property.
 	 */
 	protected static final String ROUTE_PATH_PROPERTY = "route-path";
 
 	/**
-	 * Key for storing the routes deployment property
+	 * Key for storing the routes deployment property.
 	 */
 	protected static final String ROUTES_PROPERTY = "routes";
 
 	/**
-	 * Key for storing a property describing whether routes are defined
+	 * Key for storing a property describing whether routes are defined.
 	 */
 	protected static final String NO_ROUTE_PROPERTY = "no-route";
 
 	/**
-	 * Key for storing the domain deployment property
+	 * Key for storing the domain deployment property.
 	 */
 	protected static final String DOMAIN_PROPERTY = "domain";
 
 	/**
-	 * Key for storing the domains deployment property
+	 * Key for storing the domains deployment property.
 	 */
 	protected static final String DOMAINS_PROPERTY = "domains";
 
 	/**
-	 * Key for storing the buildpack deployment property
+	 * Key for storing the buildpack deployment property.
 	 */
 	protected static final String BUILDPACK_PROPERTY_KEY = "buildpack";
 
 	/**
-	 * Key for storing the buildpacks deployment property
+	 * Key for storing the buildpacks deployment property.
 	 */
 	protected static final String BUILDPACKS_PROPERTY_KEY = "buildpacks";
 
 	/**
-	 * Key for storing the stack deployment property
+	 * Key for storing the stack deployment property.
 	 */
 	protected static final String STACK_PROPERTY_KEY = "stack";
 
 	/**
-	 * Key for storing JAVA_OPTS deployment property
+	 * Key for storing JAVA_OPTS deployment property.
 	 */
 	protected static final String JAVA_OPTS_PROPERTY_KEY = "javaOpts";
 
 	/**
-	 * The default value for the  {@link #apiPollingTimeout} property.
-	 * Useful in unit tests to assert default value when not assigned specifically.
+	 * The default value for the {@link #apiPollingTimeout} property. Useful in unit tests
+	 * to assert default value when not assigned specifically.
 	 */
 	public static final long DEFAULT_API_POLLING_TIMEOUT_SECONDS = Duration.ofMinutes(5).getSeconds();
 
@@ -117,7 +117,8 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	private Set<String> domains = new HashSet<>();
 
 	/**
-	 * The routes that the application should be bound to. Mutually exclusive with host and domain.
+	 * The routes that the application should be bound to. Mutually exclusive with host
+	 * and domain.
 	 */
 	private Set<String> routes = new HashSet<>();
 
@@ -137,17 +138,18 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	private String stack;
 
 	/**
-	 * The type of health check to perform on deployed application, if not overridden per-app.  Defaults to PORT
+	 * The type of health check to perform on deployed application, if not overridden
+	 * per-app. Defaults to PORT
 	 */
 	private ApplicationHealthCheck healthCheck;
 
 	/**
-	 * The path that the http health check will use, defaults to @{code /health}
+	 * The path that the http health check will use, defaults to @{code /health}.
 	 */
 	private String healthCheckHttpEndpoint;
 
 	/**
-	 * The timeout value for health checks in seconds.  Defaults to 120 seconds.
+	 * The timeout value for health checks in seconds. Defaults to 120 seconds.
 	 */
 	private Integer healthCheckTimeout;
 
@@ -162,12 +164,13 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	private long apiTimeout = 360L;
 
 	/**
-	 * Timeout for polled async CF API calls, in seconds. Named "completionTimeout" in cf-java-client
+	 * Timeout for polled async CF API calls, in seconds. Named "completionTimeout" in
+	 * cf-java-client
 	 */
 	private long apiPollingTimeout = DEFAULT_API_POLLING_TIMEOUT_SECONDS;
 
 	/**
-	 * Timeout for name API operations in milliseconds
+	 * Timeout for name API operations in milliseconds.
 	 */
 	private long statusTimeout = 5_000L;
 
@@ -189,7 +192,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	private String javaOpts;
 
 	public String getBuildpack() {
-		return buildpack;
+		return this.buildpack;
 	}
 
 	public void setBuildpack(String buildpack) {
@@ -197,7 +200,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public String getBuildpacks() {
-		return buildpacks;
+		return this.buildpacks;
 	}
 
 	public void setBuildpacks(String buildpacks) {
@@ -205,7 +208,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public String getStack() {
-		return stack;
+		return this.stack;
 	}
 
 	public void setStack(String stack) {
@@ -213,7 +216,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public boolean isEnableRandomAppNamePrefix() {
-		return enableRandomAppNamePrefix;
+		return this.enableRandomAppNamePrefix;
 	}
 
 	public void setEnableRandomAppNamePrefix(boolean enableRandomAppNamePrefix) {
@@ -221,7 +224,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public long getApiTimeout() {
-		return apiTimeout;
+		return this.apiTimeout;
 	}
 
 	public void setApiTimeout(long apiTimeout) {
@@ -229,7 +232,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public ApplicationHealthCheck getHealthCheck() {
-		return healthCheck;
+		return this.healthCheck;
 	}
 
 	public void setHealthCheck(ApplicationHealthCheck healthCheck) {
@@ -237,7 +240,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public String getHealthCheckHttpEndpoint() {
-		return healthCheckHttpEndpoint;
+		return this.healthCheckHttpEndpoint;
 	}
 
 	public void setHealthCheckHttpEndpoint(String healthCheckHttpEndpoint) {
@@ -245,7 +248,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public Integer getHealthCheckTimeout() {
-		return healthCheckTimeout;
+		return this.healthCheckTimeout;
 	}
 
 	public void setHealthCheckTimeout(Integer healthCheckTimeout) {
@@ -253,7 +256,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public String getDomain() {
-		return domain;
+		return this.domain;
 	}
 
 	public void setDomain(String domain) {
@@ -261,7 +264,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public Set<String> getDomains() {
-		return domains;
+		return this.domains;
 	}
 
 	public void setDomains(Set<String> domains) {
@@ -269,7 +272,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public Set<String> getRoutes() {
-		return routes;
+		return this.routes;
 	}
 
 	public void setRoutes(Set<String> routes) {
@@ -277,7 +280,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public Duration getStagingTimeout() {
-		return stagingTimeout;
+		return this.stagingTimeout;
 	}
 
 	public void setStagingTimeout(Duration stagingTimeout) {
@@ -285,7 +288,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public Duration getStartupTimeout() {
-		return startupTimeout;
+		return this.startupTimeout;
 	}
 
 	public void setStartupTimeout(Duration startupTimeout) {
@@ -293,7 +296,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public long getStatusTimeout() {
-		return statusTimeout;
+		return this.statusTimeout;
 	}
 
 	public void setStatusTimeout(long statusTimeout) {
@@ -301,7 +304,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public boolean isDeleteRoutes() {
-		return deleteRoutes;
+		return this.deleteRoutes;
 	}
 
 	public void setDeleteRoutes(boolean deleteRoutes) {
@@ -309,7 +312,7 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public String getJavaOpts() {
-		return javaOpts;
+		return this.javaOpts;
 	}
 
 	public void setJavaOpts(String javaOpts) {
@@ -317,12 +320,11 @@ public class CloudFoundryDeploymentProperties extends DeploymentProperties {
 	}
 
 	public long getApiPollingTimeout() {
-		return apiPollingTimeout;
+		return this.apiPollingTimeout;
 	}
 
 	public void setApiPollingTimeout(long apiPollingTimeout) {
 		this.apiPollingTimeout = apiPollingTimeout;
 	}
-
 
 }

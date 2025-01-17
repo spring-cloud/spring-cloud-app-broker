@@ -37,11 +37,11 @@ public class DeleteServiceInstanceRequest {
 	}
 
 	public String getServiceInstanceName() {
-		return serviceInstanceName;
+		return this.serviceInstanceName;
 	}
 
 	public Map<String, String> getProperties() {
-		return properties;
+		return this.properties;
 	}
 
 	public static final class DeleteServiceInstanceRequestBuilder {
@@ -66,7 +66,7 @@ public class DeleteServiceInstanceRequest {
 		}
 
 		public DeleteServiceInstanceRequest build() {
-			return new DeleteServiceInstanceRequest(serviceInstanceName, properties);
+			return new DeleteServiceInstanceRequest(this.serviceInstanceName, this.properties);
 		}
 
 	}

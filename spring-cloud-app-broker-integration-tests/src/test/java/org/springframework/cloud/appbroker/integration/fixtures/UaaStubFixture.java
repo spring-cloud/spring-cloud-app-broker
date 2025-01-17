@@ -38,76 +38,38 @@ public class UaaStubFixture extends WiremockStubFixture {
 	}
 
 	/**
-	 * {
-	 *  "jti": "9fd596e1fcd34c12a3f74695e8951b70",
-	 *  "sub": "9f1a1425-a7ab-4e38-b2b9-d6f221b16cea",
-	 *  "scope": [
-	 *   "openid",
-	 *   "routing.router_groups.write",
-	 *   "network.write",
-	 *   "scim.read",
-	 *   "cloud_controller.admin",
-	 *   "uaa.user",
-	 *   "routing.router_groups.read",
-	 *   "cloud_controller.read",
-	 *   "password.write",
-	 *   "cloud_controller.write",
-	 *   "network.admin",
-	 *   "doppler.firehose",
-	 *   "scim.write"
-	 *  ],
-	 *  "client_id": "cf",
-	 *  "cid": "cf",
-	 *  "azp": "cf",
-	 *  "grant_type": "password",
-	 *  "user_id": "9f1a1425-a7ab-4e38-b2b9-d6f221b16cea",
-	 *  "origin": "uaa",
-	 *  "user_name": "admin",
-	 *  "email": "admin",
-	 *  "rev_sig": "c594512e",
-	 *  "iat": 1539188141,
-	 *  "exp": 1539195341,
-	 *  "iss": "https://uaa.system.example.local/oauth/token",
-	 *  "zid": "uaa",
-	 *  "aud": [
-	 *   "cloud_controller",
-	 *   "scim",
-	 *   "password",
-	 *   "cf",
-	 *   "uaa",
-	 *   "openid",
-	 *   "doppler",
-	 *   "network",
-	 *   "routing.router_groups"
-	 *  ]
-	 * }
+	 * { "jti": "9fd596e1fcd34c12a3f74695e8951b70", "sub":
+	 * "9f1a1425-a7ab-4e38-b2b9-d6f221b16cea", "scope": [ "openid",
+	 * "routing.router_groups.write", "network.write", "scim.read",
+	 * "cloud_controller.admin", "uaa.user", "routing.router_groups.read",
+	 * "cloud_controller.read", "password.write", "cloud_controller.write",
+	 * "network.admin", "doppler.firehose", "scim.write" ], "client_id": "cf", "cid":
+	 * "cf", "azp": "cf", "grant_type": "password", "user_id":
+	 * "9f1a1425-a7ab-4e38-b2b9-d6f221b16cea", "origin": "uaa", "user_name": "admin",
+	 * "email": "admin", "rev_sig": "c594512e", "iat": 1539188141, "exp": 1539195341,
+	 * "iss": "https://uaa.system.example.local/oauth/token", "zid": "uaa", "aud": [
+	 * "cloud_controller", "scim", "password", "cf", "uaa", "openid", "doppler",
+	 * "network", "routing.router_groups" ] }
 	 */
 	private void stubRetrieveAccessToken() {
-		stubFor(post(urlPathEqualTo("/oauth/token"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(uaa("put-oauth-token"))));
+		stubFor(post(urlPathEqualTo("/oauth/token")).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(uaa("put-oauth-token"))));
 	}
 
 	private void stubRetrieveTokenKeys() {
-		stubFor(get(urlPathEqualTo("/token_keys"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(uaa("get-token-keys"))));
+		stubFor(get(urlPathEqualTo("/token_keys")).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(uaa("get-token-keys"))));
 	}
 
 	public void stubCreateClient(String clientId) {
 		stubFor(post(urlPathEqualTo("/oauth/clients"))
 			.withRequestBody(matchingJsonPath("$.[?(@.client_id == '" + clientId + "')]"))
-			.willReturn(ok()
-				.withBody(uaa("post-oauth-clients",
-					replace("@client-id", clientId)))));
+			.willReturn(ok().withBody(uaa("post-oauth-clients", replace("@client-id", clientId)))));
 	}
 
 	public void stubDeleteClient(String clientId) {
 		stubFor(delete(urlPathEqualTo("/oauth/clients/" + clientId))
-			.willReturn(ok()
-				.withBody(uaa("delete-oauth-clients"))));
+			.willReturn(ok().withBody(uaa("delete-oauth-clients"))));
 	}
 
 	private String uaa(String fileRoot, StringReplacementPair... replacements) {

@@ -16,15 +16,15 @@
 
 package org.springframework.cloud.appbroker.integration.fixtures;
 
-import jakarta.annotation.PostConstruct;
-
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +32,6 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.cloud.appbroker.autoconfigure.CloudFoundryAppDeployerAutoConfiguration;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @AutoConfigureBefore(CloudFoundryAppDeployerAutoConfiguration.class)
@@ -52,35 +51,38 @@ public class WiremockServerFixture {
 
 	@PostConstruct
 	public void startWiremock() {
-		ccUaaWiremockServer = new WireMockServer(wireMockConfig()
-			.port(cfApiPort)
-			.usingFilesUnderClasspath("recordings"));
-		ccUaaWiremockServer.start();
+		this.ccUaaWiremockServer = new WireMockServer(
+				WireMockConfiguration.wireMockConfig().port(this.cfApiPort).usingFilesUnderClasspath("recordings"));
+		this.ccUaaWiremockServer.start();
 
-		uaaFixture.stubCommonUaaRequests();
-		cloudFoundryFixture.stubCommonCloudControllerRequests();
+		this.uaaFixture.stubCommonUaaRequests();
+		this.cloudFoundryFixture.stubCommonCloudControllerRequests();
 	}
 
 	public void stopWiremock() {
-		ccUaaWiremockServer.stop();
+		this.ccUaaWiremockServer.stop();
 	}
 
 	public void resetWiremock() {
-		ccUaaWiremockServer.resetAll();
+		this.ccUaaWiremockServer.resetAll();
 	}
 
 	public void verifyAllRequiredStubsUsed() {
-		verifyStubs(ccUaaWiremockServer);
+		verifyStubs(this.ccUaaWiremockServer);
 	}
 
 	private void verifyStubs(WireMockServer wireMockServer) {
-		Set<UUID> servedStubIds = wireMockServer.getServeEvents().getRequests().stream()
-			.filter(event -> event.getStubMapping() != null)
-			.map(event -> event.getStubMapping().getId())
+		Set<UUID> servedStubIds = wireMockServer.getServeEvents()
+			.getRequests()
+			.stream()
+			.filter((event) -> event.getStubMapping() != null)
+			.map((event) -> event.getStubMapping().getId())
 			.collect(Collectors.toSet());
 
-		List<StubMapping> unusedStubs = wireMockServer.listAllStubMappings().getMappings().stream()
-			.filter(stub -> !servedStubIds.contains(stub.getId()))
+		List<StubMapping> unusedStubs = wireMockServer.listAllStubMappings()
+			.getMappings()
+			.stream()
+			.filter((stub) -> !servedStubIds.contains(stub.getId()))
 			.filter(this::stubIsRequired)
 			.collect(Collectors.toList());
 

@@ -33,11 +33,8 @@ public class CreateServiceInstanceRequest {
 
 	private final Map<String, String> properties;
 
-	protected CreateServiceInstanceRequest(String serviceInstanceName,
-		String name,
-		String plan,
-		Map<String, Object> parameters,
-		Map<String, String> properties) {
+	protected CreateServiceInstanceRequest(String serviceInstanceName, String name, String plan,
+			Map<String, Object> parameters, Map<String, String> properties) {
 		this.serviceInstanceName = serviceInstanceName;
 		this.name = name;
 		this.plan = plan;
@@ -50,23 +47,23 @@ public class CreateServiceInstanceRequest {
 	}
 
 	public String getServiceInstanceName() {
-		return serviceInstanceName;
+		return this.serviceInstanceName;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public String getPlan() {
-		return plan;
+		return this.plan;
 	}
 
 	public Map<String, Object> getParameters() {
-		return parameters;
+		return this.parameters;
 	}
 
 	public Map<String, String> getProperties() {
-		return properties;
+		return this.properties;
 	}
 
 	public static final class CreateServiceInstanceRequestBuilder {
@@ -121,7 +118,8 @@ public class CreateServiceInstanceRequest {
 		}
 
 		public CreateServiceInstanceRequest build() {
-			return new CreateServiceInstanceRequest(serviceInstanceName, name, plan, parameters, properties);
+			return new CreateServiceInstanceRequest(this.serviceInstanceName, this.name, this.plan, this.parameters,
+					this.properties);
 		}
 
 	}

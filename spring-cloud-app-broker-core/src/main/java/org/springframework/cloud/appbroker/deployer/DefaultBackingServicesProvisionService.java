@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,9 +40,9 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 		return Flux.fromIterable(backingServices)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			.flatMap(deployerClient::createServiceInstance)
+			.flatMap(this.deployerClient::createServiceInstance)
 			.sequential()
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Creating backing services");
 				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
 			})
@@ -50,7 +50,7 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 				LOG.info("Finish creating backing services");
 				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
 			})
-			.doOnError(e -> LOG.error(String.format("Error creating backing services. error=%s", e.getMessage()), e));
+			.doOnError((e) -> LOG.error(String.format("Error creating backing services. error=%s", e.getMessage()), e));
 	}
 
 	@Override
@@ -58,9 +58,9 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 		return Flux.fromIterable(backingServices)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			.flatMap(deployerClient::updateServiceInstance)
+			.flatMap(this.deployerClient::updateServiceInstance)
 			.sequential()
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Updating backing services");
 				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
 			})
@@ -68,7 +68,7 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 				LOG.info("Finish updating backing services");
 				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
 			})
-			.doOnError(e -> LOG.error(String.format("Error updating backing services. error=%s", e.getMessage()), e));
+			.doOnError((e) -> LOG.error(String.format("Error updating backing services. error=%s", e.getMessage()), e));
 	}
 
 	@Override
@@ -76,9 +76,9 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 		return Flux.fromIterable(backingServices)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			.flatMap(deployerClient::deleteServiceInstance)
+			.flatMap(this.deployerClient::deleteServiceInstance)
 			.sequential()
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Deleting backing services");
 				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
 			})
@@ -86,7 +86,7 @@ public class DefaultBackingServicesProvisionService implements BackingServicesPr
 				LOG.info("Finish deleting backing services");
 				LOG.debug(BACKINGSERVICES_LOG_TEMPLATE, backingServices);
 			})
-			.doOnError(e -> LOG.error(String.format("Error deleting backing services. error=%s", e.getMessage()), e));
+			.doOnError((e) -> LOG.error(String.format("Error deleting backing services. error=%s", e.getMessage()), e));
 	}
 
 }

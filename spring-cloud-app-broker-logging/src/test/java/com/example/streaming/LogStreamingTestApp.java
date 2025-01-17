@@ -28,15 +28,13 @@ import org.springframework.cloud.servicebroker.autoconfigure.web.reactive.Servic
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 
-@SpringBootApplication(exclude = {
-	ServiceBrokerAutoConfiguration.class,
-	ServiceBrokerWebFluxAutoConfiguration.class
-})
+@SpringBootApplication(exclude = { ServiceBrokerAutoConfiguration.class, ServiceBrokerWebFluxAutoConfiguration.class })
 public class LogStreamingTestApp {
 
 	private static final String APP_ID = UUID.randomUUID().toString();
 
 	private static boolean receivedStopEvent;
+
 	private static String receivedStopEventServiceInstanceId;
 
 	public static String getAppId() {
@@ -53,7 +51,7 @@ public class LogStreamingTestApp {
 
 	@Bean
 	ApplicationIdsProvider applicationIdsProvider() {
-		return serviceInstanceId -> Flux.just(APP_ID);
+		return (serviceInstanceId) -> Flux.just(APP_ID);
 	}
 
 	@EventListener

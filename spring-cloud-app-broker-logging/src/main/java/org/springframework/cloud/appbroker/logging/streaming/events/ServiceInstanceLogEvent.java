@@ -28,19 +28,18 @@ public class ServiceInstanceLogEvent extends ApplicationEvent {
 
 	private final Envelope envelope;
 
-	public ServiceInstanceLogEvent(Object source, String serviceInstanceId,
-		Envelope envelope) {
+	public ServiceInstanceLogEvent(Object source, String serviceInstanceId, Envelope envelope) {
 		super(source);
 		this.serviceInstanceId = serviceInstanceId;
 		this.envelope = envelope;
 	}
 
 	public String getServiceInstanceId() {
-		return serviceInstanceId;
+		return this.serviceInstanceId;
 	}
 
 	public Envelope getEnvelope() {
-		return envelope;
+		return this.envelope;
 	}
 
 }

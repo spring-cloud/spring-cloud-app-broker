@@ -26,18 +26,18 @@ class BrokerProperties {
 
 	private final List<String> properties = new ArrayList<>();
 
-	public BrokerProperties(List<String> properties) {
+	BrokerProperties(List<String> properties) {
 		if (!CollectionUtils.isEmpty(properties)) {
 			this.properties.addAll(properties);
 		}
 	}
 
-	public BrokerProperties(String... properties) {
+	BrokerProperties(String... properties) {
 		this(Arrays.asList(properties));
 	}
 
-	public List<String> getProperties() {
-		return properties;
+	List<String> getProperties() {
+		return this.properties;
 	}
 
 }

@@ -53,22 +53,23 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 	@Override
 	public Mono<Void> handle(WebSocketSession session) {
 		String serviceInstanceId = getServiceInstanceId(session);
-		LOG.info("Connection established [{}], service instance {}",
-			session.getHandshakeInfo().getRemoteAddress(),
-			serviceInstanceId);
+		LOG.info("Connection established [{}], service instance {}", session.getHandshakeInfo().getRemoteAddress(),
+				serviceInstanceId);
 
-		Sinks.Many<Envelope> envelopeSink = envelopeSinks
-			.computeIfAbsent(serviceInstanceId, s -> Sinks.many().multicast().onBackpressureBuffer());
+		Sinks.Many<Envelope> envelopeSink = this.envelopeSinks.computeIfAbsent(serviceInstanceId,
+				(s) -> Sinks.many().multicast().onBackpressureBuffer());
 
-		eventPublisher.publishEvent(new StartServiceInstanceLoggingEvent(this, serviceInstanceId));
+		this.eventPublisher.publishEvent(new StartServiceInstanceLoggingEvent(this, serviceInstanceId));
 		LOG.info("Published event to start streaming logs for service instance with ID {}", serviceInstanceId);
 
-		return session.send(envelopeSink.asFlux()
-				.map(envelope -> session.binaryMessage(
-					dataBufferFactory -> dataBufferFactory.wrap(Envelope.ADAPTER.encode(envelope)))))
-			.doFinally(signalType -> afterConnectionClosed(session, serviceInstanceId))
-			.doOnError(throwable -> LOG.error(String.format("Error handling logging stream for service instance %s",
-				serviceInstanceId), throwable));
+		return session
+			.send(envelopeSink.asFlux()
+				.map((envelope) -> session
+					.binaryMessage((dataBufferFactory) -> dataBufferFactory.wrap(Envelope.ADAPTER.encode(envelope)))))
+			.doFinally((signalType) -> afterConnectionClosed(session, serviceInstanceId))
+			.doOnError((throwable) -> LOG.error(
+					String.format("Error handling logging stream for service instance %s", serviceInstanceId),
+					throwable));
 	}
 
 	@Override
@@ -87,7 +88,7 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 				LOG.warn("No sink found for {}, stopping log streaming", event.getServiceInstanceId());
 			}
 
-			eventPublisher.publishEvent(new StopServiceInstanceLoggingEvent(this, event.getServiceInstanceId()));
+			this.eventPublisher.publishEvent(new StopServiceInstanceLoggingEvent(this, event.getServiceInstanceId()));
 			return;
 		}
 
@@ -100,11 +101,11 @@ public class StreamingLogWebSocketHandler implements WebSocketHandler, Applicati
 
 	private void afterConnectionClosed(WebSocketSession webSocketSession, String serviceInstanceId) {
 		LOG.info("Connection closed [{}], service instance {}", webSocketSession.getHandshakeInfo().getRemoteAddress(),
-			serviceInstanceId);
+				serviceInstanceId);
 
-		eventPublisher.publishEvent(new StopServiceInstanceLoggingEvent(this, serviceInstanceId));
+		this.eventPublisher.publishEvent(new StopServiceInstanceLoggingEvent(this, serviceInstanceId));
 
-		Sinks.Many<Envelope> sink = envelopeSinks.remove(serviceInstanceId);
+		Sinks.Many<Envelope> sink = this.envelopeSinks.remove(serviceInstanceId);
 		if (sink != null) {
 			sink.emitComplete(Sinks.EmitFailureHandler.FAIL_FAST);
 		}

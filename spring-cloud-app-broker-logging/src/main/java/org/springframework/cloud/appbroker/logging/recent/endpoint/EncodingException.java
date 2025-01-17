@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ class EncodingException extends RuntimeException {
 
 	private static final long serialVersionUID = 1837485200518028161L;
 
-	public EncodingException(Throwable throwable) {
+	EncodingException(Throwable throwable) {
 		super("Failed to encode: " + throwable.getMessage(), throwable);
 	}
 

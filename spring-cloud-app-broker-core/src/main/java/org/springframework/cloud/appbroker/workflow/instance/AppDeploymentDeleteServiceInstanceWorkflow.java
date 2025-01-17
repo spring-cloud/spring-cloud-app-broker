@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2016-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +42,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.util.CollectionUtils;
 
 @Order(0)
-public class AppDeploymentDeleteServiceInstanceWorkflow
-	extends AppDeploymentInstanceWorkflow
-	implements DeleteServiceInstanceWorkflow {
+public class AppDeploymentDeleteServiceInstanceWorkflow extends AppDeploymentInstanceWorkflow
+		implements DeleteServiceInstanceWorkflow {
 
 	private static final Logger LOG = Loggers.getLogger(AppDeploymentDeleteServiceInstanceWorkflow.class);
 
@@ -61,11 +60,9 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 	private final TargetService targetService;
 
 	public AppDeploymentDeleteServiceInstanceWorkflow(BrokeredServices brokeredServices,
-		BackingAppDeploymentService deploymentService,
-		BackingAppManagementService backingAppManagementService,
-		BackingServicesProvisionService backingServicesProvisionService,
-		BackingSpaceManagementService backingSpaceManagementService,
-		TargetService targetService) {
+			BackingAppDeploymentService deploymentService, BackingAppManagementService backingAppManagementService,
+			BackingServicesProvisionService backingServicesProvisionService,
+			BackingSpaceManagementService backingSpaceManagementService, TargetService targetService) {
 		super(brokeredServices);
 		this.deploymentService = deploymentService;
 		this.backingAppManagementService = backingAppManagementService;
@@ -76,74 +73,67 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	@Override
 	public Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
-		return deleteBackingServices(request)
-			.flatMapMany(Flux::fromIterable)
+		return deleteBackingServices(request).flatMapMany(Flux::fromIterable)
 			.map(BackingService::getProperties)
-			.concatWith(undeployBackingApplications(request)
-				.flatMapMany(Flux::fromIterable)
+			.concatWith(undeployBackingApplications(request).flatMapMany(Flux::fromIterable)
 				.map(BackingApplication::getProperties))
-			.filter(properties ->
-				properties != null && properties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY))
-			.map(properties -> properties.get(DeploymentProperties.TARGET_PROPERTY_KEY))
+			.filter((properties) -> properties != null
+					&& properties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY))
+			.map((properties) -> properties.get(DeploymentProperties.TARGET_PROPERTY_KEY))
 			.distinct()
 			.collectList()
-			.flatMapMany(backingSpaceManagementService::deleteTargetSpaces)
+			.flatMapMany(this.backingSpaceManagementService::deleteTargetSpaces)
 			.then();
 	}
 
 	private Mono<List<BackingService>> deleteBackingServices(DeleteServiceInstanceRequest request) {
-		return collectBackingServices(request)
-			.collectList()
-			.delayUntil(backingServices -> {
-				if (!CollectionUtils.isEmpty(backingServices)) {
-					return backingServicesProvisionService.deleteServiceInstance(backingServices)
-						.doOnRequest(l -> {
-							LOG.info("Deleting backing services. serviceDefinitionName={}, planName={}",
-								request.getServiceDefinition().getName(), request.getPlan().getName());
-							LOG.debug(REQUEST_LOG_TEMPLATE, request);
-						})
-						.doOnComplete(() -> {
-							LOG.info("Finish deleting backing services. serviceDefinitionName={}, planName={}",
-								request.getServiceDefinition().getName(), request.getPlan().getName());
-							LOG.debug(REQUEST_LOG_TEMPLATE, request);
-						})
-						.doOnError(e -> {
-							if (LOG.isErrorEnabled()) {
-								LOG.error(String.format("Error deleting backing services. " +
-										"serviceDefinitionName=%s, planName=%s, error=%s",
-									request.getServiceDefinition().getName(),
-									request.getPlan().getName(), e.getMessage()), e);
-							}
-							LOG.debug(REQUEST_LOG_TEMPLATE, request);
-						});
-				}
-				return Flux.empty();
-			});
+		return collectBackingServices(request).collectList().delayUntil((backingServices) -> {
+			if (!CollectionUtils.isEmpty(backingServices)) {
+				return this.backingServicesProvisionService.deleteServiceInstance(backingServices).doOnRequest((l) -> {
+					LOG.info("Deleting backing services. serviceDefinitionName={}, planName={}",
+							request.getServiceDefinition().getName(), request.getPlan().getName());
+					LOG.debug(REQUEST_LOG_TEMPLATE, request);
+				}).doOnComplete(() -> {
+					LOG.info("Finish deleting backing services. serviceDefinitionName={}, planName={}",
+							request.getServiceDefinition().getName(), request.getPlan().getName());
+					LOG.debug(REQUEST_LOG_TEMPLATE, request);
+				}).doOnError((e) -> {
+					if (LOG.isErrorEnabled()) {
+						LOG.error(String.format(
+								"Error deleting backing services. " + "serviceDefinitionName=%s, planName=%s, error=%s",
+								request.getServiceDefinition().getName(), request.getPlan().getName(), e.getMessage()),
+								e);
+					}
+					LOG.debug(REQUEST_LOG_TEMPLATE, request);
+				});
+			}
+			return Flux.empty();
+		});
 	}
 
 	private Flux<BackingService> collectBackingServices(DeleteServiceInstanceRequest request) {
-		return collectConfiguredBackingServices(request)
-			.concatWith(collectBoundBackingServices(request))
+		return collectConfiguredBackingServices(request).concatWith(collectBoundBackingServices(request))
 			.distinct(BackingService::serviceInstanceNameAndSpaceHashCode);
 	}
 
 	private Flux<BackingService> collectConfiguredBackingServices(DeleteServiceInstanceRequest request) {
 		return getBackingServicesForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingServices -> getTargetForService(request.getServiceDefinition(), request.getPlan())
-				.flatMap(targetSpec -> targetService.addToBackingServices(backingServices, targetSpec,
-					request.getServiceInstanceId()))
+			.flatMap((backingServices) -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap((targetSpec) -> this.targetService.addToBackingServices(backingServices, targetSpec,
+						request.getServiceInstanceId()))
 				.defaultIfEmpty(backingServices))
 			.flatMapMany(Flux::fromIterable);
 	}
 
 	private Flux<BackingService> collectBoundBackingServices(DeleteServiceInstanceRequest request) {
-		return backingAppManagementService.getDeployedBackingApplications(request.getServiceInstanceId(),
-			request.getServiceDefinition().getName(), request.getPlan().getName())
+		return this.backingAppManagementService
+			.getDeployedBackingApplications(request.getServiceInstanceId(), request.getServiceDefinition().getName(),
+					request.getPlan().getName())
 			.flatMapMany(Flux::fromIterable)
-			.flatMap(backingApplication -> Mono.justOrEmpty(backingApplication.getServices())
+			.flatMap((backingApplication) -> Mono.justOrEmpty(backingApplication.getServices())
 				.flatMapMany(Flux::fromIterable)
-				.flatMap(servicesSpec -> Mono.justOrEmpty(servicesSpec.getServiceInstanceName()))
-				.map(serviceInstanceName -> {
+				.flatMap((servicesSpec) -> Mono.justOrEmpty(servicesSpec.getServiceInstanceName()))
+				.map((serviceInstanceName) -> {
 					Map<String, String> properties = null;
 					if (!CollectionUtils.isEmpty(backingApplication.getProperties())) {
 						String target = backingApplication.getProperties()
@@ -159,30 +149,27 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	private Mono<List<BackingApplication>> undeployBackingApplications(DeleteServiceInstanceRequest request) {
 		return getBackingApplicationsForService(request.getServiceDefinition(), request.getPlan())
-			.flatMap(backingApps -> getTargetForService(request.getServiceDefinition(), request.getPlan())
-				.flatMap(targetSpec -> targetService.addToBackingApplications(backingApps, targetSpec,
-					request.getServiceInstanceId()))
+			.flatMap((backingApps) -> getTargetForService(request.getServiceDefinition(), request.getPlan())
+				.flatMap((targetSpec) -> this.targetService.addToBackingApplications(backingApps, targetSpec,
+						request.getServiceInstanceId()))
 				.defaultIfEmpty(backingApps))
-			.delayUntil(backingApps -> deploymentService.undeploy(backingApps)
-				.doOnRequest(l -> {
-					LOG.info("Undeploying backing applications. serviceDefinitionName={}, planName={}",
+			.delayUntil((backingApps) -> this.deploymentService.undeploy(backingApps).doOnRequest((l) -> {
+				LOG.info("Undeploying backing applications. serviceDefinitionName={}, planName={}",
 						request.getServiceDefinition().getName(), request.getPlan().getName());
-					LOG.debug(REQUEST_LOG_TEMPLATE, request);
-				})
-				.doOnComplete(() -> {
-					LOG.info("Finish undeploying backing applications. serviceDefinitionName={}, planName={}",
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			}).doOnComplete(() -> {
+				LOG.info("Finish undeploying backing applications. serviceDefinitionName={}, planName={}",
 						request.getServiceDefinition().getName(), request.getPlan().getName());
-					LOG.debug(REQUEST_LOG_TEMPLATE, request);
-				})
-				.doOnError(e -> {
-					if (LOG.isErrorEnabled()) {
-						LOG.error(String.format("Error undeploying backing applications. serviceDefinitionName=%s, " +
-								"planName=%s, error=%s", request.getServiceDefinition().getName(),
-							request.getPlan().getName(),
-							e.getMessage()), e);
-					}
-					LOG.debug(REQUEST_LOG_TEMPLATE, request);
-				}));
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			}).doOnError((e) -> {
+				if (LOG.isErrorEnabled()) {
+					LOG.error(String.format(
+							"Error undeploying backing applications. serviceDefinitionName=%s, "
+									+ "planName=%s, error=%s",
+							request.getServiceDefinition().getName(), request.getPlan().getName(), e.getMessage()), e);
+				}
+				LOG.debug(REQUEST_LOG_TEMPLATE, request);
+			}));
 	}
 
 	@Override
@@ -192,7 +179,7 @@ public class AppDeploymentDeleteServiceInstanceWorkflow
 
 	@Override
 	public Mono<DeleteServiceInstanceResponseBuilder> buildResponse(DeleteServiceInstanceRequest request,
-		DeleteServiceInstanceResponseBuilder responseBuilder) {
+			DeleteServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder.async(true));
 	}
 

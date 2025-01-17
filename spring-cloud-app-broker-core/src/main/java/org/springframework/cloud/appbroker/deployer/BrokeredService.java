@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public class BrokeredService {
 	}
 
 	public BrokeredService(String serviceName, String planName, BackingApplications apps, BackingServices services,
-		TargetSpec target) {
+			TargetSpec target) {
 		super();
 		this.serviceName = serviceName;
 		this.planName = planName;
@@ -47,7 +47,7 @@ public class BrokeredService {
 	}
 
 	public String getServiceName() {
-		return serviceName;
+		return this.serviceName;
 	}
 
 	public void setServiceName(String serviceName) {
@@ -55,7 +55,7 @@ public class BrokeredService {
 	}
 
 	public String getPlanName() {
-		return planName;
+		return this.planName;
 	}
 
 	public void setPlanName(String planName) {
@@ -63,7 +63,7 @@ public class BrokeredService {
 	}
 
 	public BackingApplications getApps() {
-		return apps;
+		return this.apps;
 	}
 
 	public void setApps(BackingApplications apps) {
@@ -71,7 +71,7 @@ public class BrokeredService {
 	}
 
 	public BackingServices getServices() {
-		return services;
+		return this.services;
 	}
 
 	public void setServices(BackingServices services) {
@@ -79,7 +79,7 @@ public class BrokeredService {
 	}
 
 	public TargetSpec getTarget() {
-		return target;
+		return this.target;
 	}
 
 	public void setTarget(TargetSpec target) {
@@ -99,27 +99,20 @@ public class BrokeredService {
 			return false;
 		}
 		BrokeredService that = (BrokeredService) o;
-		return Objects.equals(serviceName, that.serviceName) &&
-			Objects.equals(planName, that.planName) &&
-			Objects.equals(apps, that.apps) &&
-			Objects.equals(services, that.services) &&
-			Objects.equals(target, that.target);
+		return Objects.equals(this.serviceName, that.serviceName) && Objects.equals(this.planName, that.planName)
+				&& Objects.equals(this.apps, that.apps) && Objects.equals(this.services, that.services)
+				&& Objects.equals(this.target, that.target);
 	}
 
 	@Override
 	public final int hashCode() {
-		return Objects.hash(serviceName, planName, apps, services, target);
+		return Objects.hash(this.serviceName, this.planName, this.apps, this.services, this.target);
 	}
 
 	@Override
 	public String toString() {
-		return "BrokeredService{" +
-			"serviceName='" + serviceName + '\'' +
-			", planName='" + planName + '\'' +
-			", apps=" + apps +
-			", services=" + services +
-			", target=" + target +
-			'}';
+		return "BrokeredService{" + "serviceName='" + this.serviceName + '\'' + ", planName='" + this.planName + '\''
+				+ ", apps=" + this.apps + ", services=" + this.services + ", target=" + this.target + '}';
 	}
 
 	public static class BrokeredServiceBuilder {
@@ -155,9 +148,7 @@ public class BrokeredService {
 
 		public BrokeredServiceBuilder services(BackingServices backingServices) {
 			if (!CollectionUtils.isEmpty(backingServices)) {
-				this.backingServices = BackingServices.builder()
-					.backingServices(backingServices)
-					.build();
+				this.backingServices = BackingServices.builder().backingServices(backingServices).build();
 			}
 			return this;
 		}
@@ -168,7 +159,8 @@ public class BrokeredService {
 		}
 
 		public BrokeredService build() {
-			return new BrokeredService(id, planId, backingApplications, backingServices, target);
+			return new BrokeredService(this.id, this.planId, this.backingApplications, this.backingServices,
+					this.target);
 		}
 
 	}

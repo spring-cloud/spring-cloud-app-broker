@@ -25,7 +25,9 @@ import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceResponse.UpdateServiceInstanceResponseBuilder;
 
 /**
- * A no-op implementation of {@link UpdateServiceInstanceWorkflow}
+ * A no-op implementation of {@link UpdateServiceInstanceWorkflow}.
+ *
+ * @author Scott Frederick
  */
 public class NoOpUpdateServiceInstanceWorkflow implements UpdateServiceInstanceWorkflow {
 
@@ -39,12 +41,12 @@ public class NoOpUpdateServiceInstanceWorkflow implements UpdateServiceInstanceW
 
 	@Override
 	public Mono<Boolean> accept(UpdateServiceInstanceRequest request) {
-		return Mono.just(request.getServiceDefinitionId().equals(backingServiceId));
+		return Mono.just(request.getServiceDefinitionId().equals(this.backingServiceId));
 	}
 
 	@Override
 	public Mono<UpdateServiceInstanceResponseBuilder> buildResponse(UpdateServiceInstanceRequest request,
-		UpdateServiceInstanceResponseBuilder responseBuilder) {
+			UpdateServiceInstanceResponseBuilder responseBuilder) {
 		return Mono.just(responseBuilder);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,15 +51,14 @@ public class BackingApplications extends ArrayList<BackingApplication> {
 
 		public BackingApplicationsBuilder backingApplications(List<BackingApplication> backingApplications) {
 			if (!CollectionUtils.isEmpty(backingApplications)) {
-				backingApplications.forEach(backingApplication -> this.backingApplication(BackingApplication.builder()
-					.backingApplication(backingApplication)
-					.build()));
+				backingApplications.forEach((backingApplication) -> this
+					.backingApplication(BackingApplication.builder().backingApplication(backingApplication).build()));
 			}
 			return this;
 		}
 
 		public BackingApplications build() {
-			return new BackingApplications(backingApplications);
+			return new BackingApplications(this.backingApplications);
 		}
 
 	}

@@ -40,8 +40,8 @@ public class ApplicationLogStreamPublisher implements ApplicationListener<Servic
 	private final ApplicationEventPublisher publisher;
 
 	public ApplicationLogStreamPublisher(
-		LogStreamPublisher<org.cloudfoundry.dropsonde.events.Envelope> logStreamPublisher,
-		ApplicationEventPublisher publisher) {
+			LogStreamPublisher<org.cloudfoundry.dropsonde.events.Envelope> logStreamPublisher,
+			ApplicationEventPublisher publisher) {
 		this.logStreamPublisher = logStreamPublisher;
 		this.publisher = publisher;
 	}
@@ -65,7 +65,7 @@ public class ApplicationLogStreamPublisher implements ApplicationListener<Servic
 	}
 
 	private void startPublishing(String serviceInstanceId) {
-		registry.compute(serviceInstanceId, (key, existingRegistration) -> {
+		this.registry.compute(serviceInstanceId, (key, existingRegistration) -> {
 			if (existingRegistration != null) {
 				LOG.debug("Incrementing registration subscription count for {}", serviceInstanceId);
 				existingRegistration.increment();
@@ -76,9 +76,8 @@ public class ApplicationLogStreamPublisher implements ApplicationListener<Servic
 				.getLogStream(serviceInstanceId);
 
 			final Disposable subscription = logStream
-				.doOnNext(
-					envelope -> publisher
-						.publishEvent(new ServiceInstanceLogEvent(this, serviceInstanceId, envelope)))
+				.doOnNext((envelope) -> this.publisher
+					.publishEvent(new ServiceInstanceLogEvent(this, serviceInstanceId, envelope)))
 				.subscribe();
 
 			LOG.debug("Creating new registration for {}", serviceInstanceId);
@@ -91,11 +90,11 @@ public class ApplicationLogStreamPublisher implements ApplicationListener<Servic
 			LOG.debug("Received event to stop publishing logs for {}", serviceInstanceId);
 		}
 
-		registry.compute(serviceInstanceId, (key, registration) -> {
+		this.registry.compute(serviceInstanceId, (key, registration) -> {
 			if (registration == null) {
 				if (LOG.isWarnEnabled()) {
 					LOG.warn("Received deregister event for service instance {} but there no event handler registered",
-						serviceInstanceId);
+							serviceInstanceId);
 				}
 				return null;
 			}
@@ -112,7 +111,7 @@ public class ApplicationLogStreamPublisher implements ApplicationListener<Servic
 		});
 	}
 
-	private final static class Registration {
+	private static final class Registration {
 
 		private final Disposable subscription;
 
@@ -122,24 +121,24 @@ public class ApplicationLogStreamPublisher implements ApplicationListener<Servic
 			this.subscription = subscription;
 		}
 
-		public void increment() {
+		void increment() {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Incrementing subscription count from {} to {}", count, count + 1);
+				LOG.debug("Incrementing subscription count from {} to {}", this.count, this.count + 1);
 			}
 
-			++count;
+			++this.count;
 		}
 
-		public int decrement() {
+		int decrement() {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Decrementing subscription count from {} to {}", count, count - 1);
+				LOG.debug("Decrementing subscription count from {} to {}", this.count, this.count - 1);
 			}
 
-			return --count;
+			return --this.count;
 		}
 
-		public Disposable getSubscription() {
-			return subscription;
+		Disposable getSubscription() {
+			return this.subscription;
 		}
 
 	}

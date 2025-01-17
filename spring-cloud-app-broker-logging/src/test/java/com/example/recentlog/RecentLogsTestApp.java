@@ -26,10 +26,7 @@ import org.springframework.cloud.servicebroker.autoconfigure.web.ServiceBrokerAu
 import org.springframework.cloud.servicebroker.autoconfigure.web.reactive.ServiceBrokerWebFluxAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
-@SpringBootApplication(exclude = {
-	ServiceBrokerAutoConfiguration.class,
-	ServiceBrokerWebFluxAutoConfiguration.class
-})
+@SpringBootApplication(exclude = { ServiceBrokerAutoConfiguration.class, ServiceBrokerWebFluxAutoConfiguration.class })
 public class RecentLogsTestApp {
 
 	static final String APP_ID = UUID.randomUUID().toString();
@@ -40,7 +37,7 @@ public class RecentLogsTestApp {
 
 	@Bean
 	ApplicationIdsProvider applicationIdsProvider() {
-		return serviceInstanceId -> Flux.just(APP_ID);
+		return (serviceInstanceId) -> Flux.just(APP_ID);
 	}
 
 }

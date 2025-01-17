@@ -20,14 +20,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * A Spring Boot application for running integration tests
+ * A Spring Boot application for running integration tests.
+ *
+ * @author Scott Frederick
  */
 @SpringBootApplication
 public class AppBrokerApplication {
 
 	/**
-	 * main application entry point
-	 *
+	 * main application entry point.
 	 * @param args the args
 	 */
 	public static void main(String[] args) {

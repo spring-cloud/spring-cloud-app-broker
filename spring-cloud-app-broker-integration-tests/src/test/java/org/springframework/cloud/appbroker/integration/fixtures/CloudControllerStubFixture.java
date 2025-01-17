@@ -57,73 +57,44 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	private void stubGetPlatformInfo() {
-		stubFor(get(urlEqualTo("/"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-root"))));
+		stubFor(get(urlEqualTo("/")).withMetadata(optionalStubMapping()).willReturn(ok().withBody(cc("get-root"))));
 
-		stubFor(get(urlEqualTo("/v2/info"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-info"))));
+		stubFor(get(urlEqualTo("/v2/info")).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("get-info"))));
 	}
 
 	public void stubFindTestOrg() {
-		stubFor(get(urlPathEqualTo("/v2/organizations"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("list-organizations",
-					replace("@org-guid", TEST_ORG_GUID)))));
+		stubFor(get(urlPathEqualTo("/v2/organizations")).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("list-organizations", replace("@org-guid", TEST_ORG_GUID)))));
 
-		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-organization",
-					replace("@org-guid", TEST_ORG_GUID)))));
+		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID)).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("get-organization", replace("@org-guid", TEST_ORG_GUID)))));
 	}
 
 	private void stubFindTestOrgV3() {
-		stubFor(get(urlPathEqualTo("/v3/organizations"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("list-organizations-v3",
-					replace("@org-guid", TEST_ORG_GUID)))));
+		stubFor(get(urlPathEqualTo("/v3/organizations")).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("list-organizations-v3", replace("@org-guid", TEST_ORG_GUID)))));
 
-		stubFor(get(urlPathEqualTo("/v3/organizations/" + TEST_ORG_GUID))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-organization-v3",
-					replace("@org-guid", TEST_ORG_GUID)))));
+		stubFor(get(urlPathEqualTo("/v3/organizations/" + TEST_ORG_GUID)).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("get-organization-v3", replace("@org-guid", TEST_ORG_GUID)))));
 	}
 
 	public void stubFindSpace(String spaceName, String spaceGuid) {
-		stubFor(get(urlPathEqualTo("/v2/spaces"))
-			.withQueryParam("q", equalTo("name:" + spaceName))
+		stubFor(get(urlPathEqualTo("/v2/spaces")).withQueryParam("q", equalTo("name:" + spaceName))
 			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("list-spaces",
-					replace("@org-guid", TEST_ORG_GUID),
-					replace("@name", spaceName),
+			.willReturn(ok().withBody(cc("list-spaces", replace("@org-guid", TEST_ORG_GUID),
+					replace("@name", spaceName), replace("@space-guid", spaceGuid)))));
+
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid)).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("get-space", replace("@name", "test"), replace("@org-guid", TEST_ORG_GUID),
 					replace("@space-guid", spaceGuid)))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid))
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/apps")).withQueryParam("page", equalTo("1"))
 			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-space",
-					replace("@name", "test"),
-					replace("@org-guid", TEST_ORG_GUID),
-					replace("@space-guid", spaceGuid)))));
+			.willReturn(ok().withBody(cc("empty-query-results"))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/apps"))
-			.withQueryParam("page", equalTo("1"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
-
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/security_groups"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-space-security_groups"))));
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/security_groups")).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("get-space-security_groups"))));
 	}
 
 	public void stubFindSpaceV3() {
@@ -135,78 +106,53 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubFindSpaceV3(String spaceName, String spaceGuid) {
-		stubFor(get(urlPathEqualTo("/v3/spaces"))
-			.withQueryParam("names", equalTo(spaceName))
+		stubFor(get(urlPathEqualTo("/v3/spaces")).withQueryParam("names", equalTo(spaceName))
 			.withQueryParam("organization_guids", equalTo(TEST_ORG_GUID))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("list-spaces-v3",
-					replace("@org-guid", TEST_ORG_GUID),
-					replace("@name", spaceName),
+			.willReturn(ok().withBody(cc("list-spaces-v3", replace("@org-guid", TEST_ORG_GUID),
+					replace("@name", spaceName), replace("@space-guid", spaceGuid)))));
+
+		stubFor(get(urlPathEqualTo("/v3/spaces/" + spaceGuid)).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("get-space-v3", replace("@name", "test"), replace("@org-guid", TEST_ORG_GUID),
 					replace("@space-guid", spaceGuid)))));
 
-		stubFor(get(urlPathEqualTo("/v3/spaces/" + spaceGuid))
+		stubFor(get(urlPathEqualTo("/v3/spaces/" + spaceGuid + "/apps")).withQueryParam("page", equalTo("1"))
 			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-space-v3",
-					replace("@name", "test"),
-					replace("@org-guid", TEST_ORG_GUID),
-					replace("@space-guid", spaceGuid)))));
+			.willReturn(ok().withBody(cc("empty-query-results"))));
 
-		stubFor(get(urlPathEqualTo("/v3/spaces/" + spaceGuid + "/apps"))
-			.withQueryParam("page", equalTo("1"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
-
-		stubFor(get(urlPathEqualTo("/v3/spaces/" + spaceGuid + "/security_groups"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-space-security_groups"))));
+		stubFor(get(urlPathEqualTo("/v3/spaces/" + spaceGuid + "/security_groups")).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("get-space-security_groups"))));
 	}
 
 	private void stubFindDomains() {
-		stubFor(get(urlPathEqualTo("/v2/shared_domains"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("list-shared-domains",
-					replace("@org-guid", TEST_ORG_GUID)))));
+		stubFor(get(urlPathEqualTo("/v2/shared_domains")).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("list-shared-domains", replace("@org-guid", TEST_ORG_GUID)))));
 
 		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/private_domains"))
 			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
+			.willReturn(ok().withBody(cc("empty-query-results"))));
 
 		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/spaces"))
 			.withQueryParam("page", equalTo("1"))
 			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("list-spaces",
-					replace("@org-guid", TEST_ORG_GUID),
-					replace("@space-guid", TEST_SPACE_GUID)))));
+			.willReturn(ok().withBody(
+					cc("list-spaces", replace("@org-guid", TEST_ORG_GUID), replace("@space-guid", TEST_SPACE_GUID)))));
 
 		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/space_quota_definitions"))
 			.withQueryParam("page", equalTo("1"))
 			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("list-organizations-quota",
-					replace("@org-guid", TEST_ORG_GUID)))));
+			.willReturn(ok().withBody(cc("list-organizations-quota", replace("@org-guid", TEST_ORG_GUID)))));
 
 		stubFor(get(urlPathEqualTo("/v2/quota_definitions/" + TEST_QUOTA_DEFINITION_GUID))
 			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-organizations-quota",
-					replace("@org-guid", TEST_ORG_GUID)))));
+			.willReturn(ok().withBody(cc("get-organizations-quota", replace("@org-guid", TEST_ORG_GUID)))));
 	}
 
 	public void stubCreateSpace(final String spaceName, final String spaceGuid) {
 		stubFor(post(urlPathEqualTo("/v2/spaces"))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + spaceName + "')]"))
 			.withRequestBody(matchingJsonPath("$.[?(@.organization_guid == '" + TEST_ORG_GUID + "')]"))
-			.willReturn(ok()
-				.withBody(cc("get-space",
-					replace("@name", spaceName),
-					replace("@space-guid", spaceGuid),
+			.willReturn(ok().withBody(cc("get-space", replace("@name", spaceName), replace("@space-guid", spaceGuid),
 					replace("@org-guid", TEST_ORG_GUID)))));
 
 		stubFindSpace(spaceName, spaceGuid);
@@ -216,90 +162,57 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(get(urlPathEqualTo("/v2/spaces/" + TEST_SPACE_GUID + "/apps"))
 			.withQueryParam("q", equalTo("name:" + appName))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
+			.willReturn(ok().withBody(cc("empty-query-results"))));
 	}
 
 	public void stubAppExistsInSpace(final String appName, final String spaceGuid) {
-		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-app-STAGED",
-					replace("@name", appName)))));
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName))).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("get-app-STAGED", replace("@name", appName)))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/apps"))
-			.withQueryParam("q", equalTo("name:" + appName))
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/apps")).withQueryParam("q", equalTo("name:" + appName))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("list-space-apps",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName)),
-					replace("@space-guid", spaceGuid),
-					replace("@stack-guid", stackGuid(appName))))));
+			.willReturn(
+					ok().withBody(cc("list-space-apps", replace("@name", appName), replace("@guid", appGuid(appName)),
+							replace("@space-guid", spaceGuid), replace("@stack-guid", stackGuid(appName))))));
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/instances"))
-			.willReturn(ok()
-				.withBody(cc("get-app-instances"))));
+			.willReturn(ok().withBody(cc("get-app-instances"))));
 
-		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/summary"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-app-summary",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName)),
-					replace("@stack-guid", stackGuid(appName)),
-					replace("@route-guid", routeGuid(appName))))));
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/summary")).withMetadata(optionalStubMapping())
+			.willReturn(
+					ok().withBody(cc("get-app-summary", replace("@name", appName), replace("@guid", appGuid(appName)),
+							replace("@stack-guid", stackGuid(appName)), replace("@route-guid", routeGuid(appName))))));
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/stats"))
-			.willReturn(ok()
-				.withBody(cc("get-app-stats",
-					replace("@name", appName)))));
+			.willReturn(ok().withBody(cc("get-app-stats", replace("@name", appName)))));
 
 		stubFor(get(urlPathEqualTo("/v2/stacks/" + stackGuid(appName)))
-			.willReturn(ok()
-				.withBody(cc("get-stack",
-					replace("@guid", stackGuid(appName))))));
+			.willReturn(ok().withBody(cc("get-stack", replace("@guid", stackGuid(appName))))));
 	}
 
 	public void stubAppExistsInSpaceV3(final String appName, final String spaceGuid) {
-		stubFor(get(urlPathEqualTo("/v3/apps/" + appGuid(appName)))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-app-STAGED-v3",
-					replace("@name", appName)))));
+		stubFor(get(urlPathEqualTo("/v3/apps/" + appGuid(appName))).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody(cc("get-app-STAGED-v3", replace("@name", appName)))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/apps"))
-			.withQueryParam("q", equalTo("name:" + appName))
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/apps")).withQueryParam("q", equalTo("name:" + appName))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("list-space-apps",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName)),
-					replace("@space-guid", spaceGuid),
-					replace("@stack-guid", stackGuid(appName))))));
+			.willReturn(
+					ok().withBody(cc("list-space-apps", replace("@name", appName), replace("@guid", appGuid(appName)),
+							replace("@space-guid", spaceGuid), replace("@stack-guid", stackGuid(appName))))));
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/instances"))
-			.willReturn(ok()
-				.withBody(cc("get-app-instances"))));
+			.willReturn(ok().withBody(cc("get-app-instances"))));
 
-		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/summary"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("get-app-summary",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName)),
-					replace("@stack-guid", stackGuid(appName)),
-					replace("@route-guid", routeGuid(appName))))));
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/summary")).withMetadata(optionalStubMapping())
+			.willReturn(
+					ok().withBody(cc("get-app-summary", replace("@name", appName), replace("@guid", appGuid(appName)),
+							replace("@stack-guid", stackGuid(appName)), replace("@route-guid", routeGuid(appName))))));
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/stats"))
-			.willReturn(ok()
-				.withBody(cc("get-app-stats",
-					replace("@name", appName)))));
+			.willReturn(ok().withBody(cc("get-app-stats", replace("@name", appName)))));
 
 		stubFor(get(urlPathEqualTo("/v2/stacks/" + stackGuid(appName)))
-			.willReturn(ok()
-				.withBody(cc("get-stack",
-					replace("@guid", stackGuid(appName))))));
+			.willReturn(ok().withBody(cc("get-stack", replace("@guid", stackGuid(appName))))));
 	}
 
 	public void stubAppExists(final String appName) {
@@ -311,23 +224,19 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubAppExistsWithBackingService(final String appName, final String serviceInstanceName,
-		final String serviceName, final String planName) {
+			final String serviceName, final String planName) {
 		stubAppExistsWithBackingService(appName, serviceInstanceName, serviceName, planName, TEST_SPACE_GUID);
 	}
 
 	public void stubAppExistsWithBackingService(final String appName, final String serviceInstanceName,
-		final String serviceName, final String planName, final String spaceGuid) {
+			final String serviceName, final String planName, final String spaceGuid) {
 		stubAppExistsInSpace(appName, spaceGuid);
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/summary"))
-			.willReturn(ok()
-				.withBody(cc("get-app-summary-with-backing-service",
-					replace("@name", appName),
+			.willReturn(ok().withBody(cc("get-app-summary-with-backing-service", replace("@name", appName),
 					replace("@service-instance-name", serviceInstanceName),
-					replace("@service-guid", serviceGuid(serviceName)),
-					replace("@plan-guid", planGuid(planName)),
-					replace("@guid", appGuid(appName)),
-					replace("@stack-guid", stackGuid(appName)),
+					replace("@service-guid", serviceGuid(serviceName)), replace("@plan-guid", planGuid(planName)),
+					replace("@guid", appGuid(appName)), replace("@stack-guid", stackGuid(appName)),
 					replace("@route-guid", routeGuid(appName))))));
 	}
 
@@ -368,12 +277,8 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	private void stubGetV3App(String appName) {
-		stubFor(get(urlPathEqualTo("/v3/apps/" + appGuid(appName)))
-			.willReturn(ok()
-				.withBody(cc("get-v3-app-STARTED",
-					replace("@name", appName),
-					replace("@guid",  appGuid(appName))
-				))));
+		stubFor(get(urlPathEqualTo("/v3/apps/" + appGuid(appName))).willReturn(ok()
+			.withBody(cc("get-v3-app-STARTED", replace("@name", appName), replace("@guid", appGuid(appName))))));
 	}
 
 	private void stubAppAfterCreation(String appName, String host) {
@@ -387,72 +292,49 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(put(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
 			.withRequestBody(matchingJsonPath("$.[?(@.environment_json)]"))
 			.willReturn(ok()
-				.withBody(cc("get-app-STARTED",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName))))));
+				.withBody(cc("get-app-STARTED", replace("@name", appName), replace("@guid", appGuid(appName))))));
 	}
 
 	private void stubCreatePackage(String appName) {
 		stubFor(post(urlPathEqualTo("/v3/packages"))
-			.withRequestBody(
-				matchingJsonPath("$.[?(@.relationships.app.data.guid == '" + appGuid(appName) + "')]"))
-			.willReturn(ok()
-				.withBody(cc("get-package-READY",
-					replace("@guid", packageGuid(appName)),
+			.withRequestBody(matchingJsonPath("$.[?(@.relationships.app.data.guid == '" + appGuid(appName) + "')]"))
+			.willReturn(ok().withBody(cc("get-package-READY", replace("@guid", packageGuid(appName)),
 					replace("@app-guid", appGuid(appName))))));
 
 		stubFor(post(urlPathEqualTo("/v3/packages/" + packageGuid(appName) + "/upload"))
-			.willReturn(ok()
-				.withBody(cc("get-package-READY",
-					replace("@guid", packageGuid(appName)),
+			.willReturn(ok().withBody(cc("get-package-READY", replace("@guid", packageGuid(appName)),
 					replace("@app-guid", appGuid(appName))))));
 
 		stubFor(get(urlPathEqualTo("/v3/packages/" + packageGuid(appName)))
-			.willReturn(ok()
-				.withBody(cc("get-package-READY",
-					replace("@guid", packageGuid(appName)),
+			.willReturn(ok().withBody(cc("get-package-READY", replace("@guid", packageGuid(appName)),
 					replace("@app-guid", appGuid(appName))))));
 	}
 
 	private void stubGetPackage(String appName) {
 		stubFor(get(urlPathEqualTo("/v3/apps/" + appGuid(appName) + "/packages"))
 			.withQueryParam("states", equalTo("READY"))
-			.willReturn(ok()
-				.withBody(cc("get-packages-READY",
-					replace("@package-guid", packageGuid(appName))))));
+			.willReturn(ok().withBody(cc("get-packages-READY", replace("@package-guid", packageGuid(appName))))));
 	}
 
 	private void stubCreateBuild(String appName) {
 		stubFor(post(urlPathEqualTo("/v3/builds"))
-			.withRequestBody(
-				matchingJsonPath("$.[?(@.package.guid == '" + packageGuid(appName) + "')]"))
-			.willReturn(ok()
-				.withBody(cc("get-build-STAGED",
-					replace("@guid", buildGuid(appName)),
-					replace("@package-guid", packageGuid(appName)),
-					replace("@app-guid", appGuid(appName))))));
+			.withRequestBody(matchingJsonPath("$.[?(@.package.guid == '" + packageGuid(appName) + "')]"))
+			.willReturn(ok().withBody(cc("get-build-STAGED", replace("@guid", buildGuid(appName)),
+					replace("@package-guid", packageGuid(appName)), replace("@app-guid", appGuid(appName))))));
 
 		stubFor(get(urlPathEqualTo("/v3/builds/" + buildGuid(appName)))
-			.willReturn(ok()
-				.withBody(cc("get-build-STAGED",
-					replace("@guid", buildGuid(appName)),
-					replace("@package-guid", packageGuid(appName)),
-					replace("@app-guid", appGuid(appName))))));
+			.willReturn(ok().withBody(cc("get-build-STAGED", replace("@guid", buildGuid(appName)),
+					replace("@package-guid", packageGuid(appName)), replace("@app-guid", appGuid(appName))))));
 	}
 
 	private void stubCreateDeployment(String appName) {
 		stubFor(post(urlPathEqualTo("/v3/deployments"))
-			.withRequestBody(
-				matchingJsonPath("$.[?(@.relationships.app.data.guid == '" + appGuid(appName) + "')]"))
-			.willReturn(ok()
-				.withBody(cc("get-deployment-DEPLOYED",
-					replace("@guid", deploymentGuid(appName)),
+			.withRequestBody(matchingJsonPath("$.[?(@.relationships.app.data.guid == '" + appGuid(appName) + "')]"))
+			.willReturn(ok().withBody(cc("get-deployment-DEPLOYED", replace("@guid", deploymentGuid(appName)),
 					replace("@app-guid", appGuid(appName))))));
 
 		stubFor(get(urlPathEqualTo("/v3/deployments/" + deploymentGuid(appName)))
-			.willReturn(ok()
-				.withBody(cc("get-deployment-DEPLOYED",
-					replace("@guid", deploymentGuid(appName)),
+			.willReturn(ok().withBody(cc("get-deployment-DEPLOYED", replace("@guid", deploymentGuid(appName)),
 					replace("@app-guid", appGuid(appName))))));
 	}
 
@@ -462,102 +344,70 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		for (ContentPattern<?> appMetadataPattern : appMetadataPatterns) {
 			mappingBuilder.withRequestBody(appMetadataPattern);
 		}
-		stubFor(mappingBuilder
-			.willReturn(ok()
-				.withBody(cc("get-app-STOPPED",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName))))));
+		stubFor(mappingBuilder.willReturn(
+				ok().withBody(cc("get-app-STOPPED", replace("@name", appName), replace("@guid", appGuid(appName))))));
 	}
 
 	private void stubMapRouteToApp(String appName, String host) {
-		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/routes"))
-			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
+		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/routes")).withQueryParam("page", equalTo("1"))
+			.willReturn(ok().withBody(cc("empty-query-results"))));
 
-		stubFor(get(urlPathEqualTo("/v2/routes"))
-			.withQueryParam("q", equalTo("domain_guid:" + TEST_ORG_GUID))
+		stubFor(get(urlPathEqualTo("/v2/routes")).withQueryParam("q", equalTo("domain_guid:" + TEST_ORG_GUID))
 			.withQueryParam("q", equalTo("host:" + host))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
+			.willReturn(ok().withBody(cc("empty-query-results"))));
 
-		stubFor(post(urlPathEqualTo("/v2/routes"))
-			.withRequestBody(matchingJsonPath("$.[?(@.host == '" + host + "')]"))
+		stubFor(post(urlPathEqualTo("/v2/routes")).withRequestBody(matchingJsonPath("$.[?(@.host == '" + host + "')]"))
 			.willReturn(created()
-				.withBody(cc("list-routes",
-					replace("@name", appName),
-					replace("@guid", routeGuid(appName))))));
+				.withBody(cc("list-routes", replace("@name", appName), replace("@guid", routeGuid(appName))))));
 
 		stubFor(put(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/routes/" + routeGuid(appName)))
 			.willReturn(created()
-				.withBody(cc("get-app-STOPPED",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName))))));
+				.withBody(cc("get-app-STOPPED", replace("@name", appName), replace("@guid", appGuid(appName))))));
 	}
 
 	private void stubUploadAppBits(String appName) {
-		stubFor(put(urlPathEqualTo("/v2/resource_match"))
-			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody("[]")));
+		stubFor(put(urlPathEqualTo("/v2/resource_match")).withMetadata(optionalStubMapping())
+			.willReturn(ok().withBody("[]")));
 
-		stubFor(put(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/bits"))
-			.withQueryParam("async", equalTo("true"))
-			.willReturn(created()
-				.withBody(cc("put-app-bits",
-					replace("@guid", appName + "-JOB-GUID")))));
+		stubFor(put(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/bits")).withQueryParam("async", equalTo("true"))
+			.willReturn(created().withBody(cc("put-app-bits", replace("@guid", appName + "-JOB-GUID")))));
 	}
 
 	private void stubInitializeAppState(String appName) {
 		stubFor(put(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
 			.withRequestBody(matchingJsonPath("$.[?(@.state == 'STOPPED')]"))
 			.willReturn(created()
-				.withBody(cc("get-app-STOPPED",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName))))));
+				.withBody(cc("get-app-STOPPED", replace("@name", appName), replace("@guid", appGuid(appName))))));
 
 		stubFor(put(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
 			.withRequestBody(matchingJsonPath("$.[?(@.state == 'STARTED')]"))
 			.willReturn(created()
-				.withBody(cc("get-app-STARTED",
-					replace("@name", appName),
-					replace("@guid", appGuid(appName))))));
+				.withBody(cc("get-app-STARTED", replace("@name", appName), replace("@guid", appGuid(appName))))));
 	}
 
 	private void stubCheckAppState(String appName) {
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
-			.willReturn(ok()
-				.withBody(cc("get-app-STAGED",
-					replace("@name", appName)))));
+			.willReturn(ok().withBody(cc("get-app-STAGED", replace("@name", appName)))));
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/instances"))
-			.willReturn(ok()
-				.withBody(cc("get-app-instances"))));
+			.willReturn(ok().withBody(cc("get-app-instances"))));
 	}
 
 	private void stubCreateRouteInSpace(final String appName, final String spaceGuid) {
-		stubFor(get(urlPathEqualTo("/v2/private_domains"))
-			.withQueryParam("page", equalTo("1"))
+		stubFor(get(urlPathEqualTo("/v2/private_domains")).withQueryParam("page", equalTo("1"))
 			.withMetadata(optionalStubMapping())
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
+			.willReturn(ok().withBody(cc("empty-query-results"))));
 
-		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/services"))
-			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("list-space-services")
-					.replace("@service-guid", "SERVICE-ID")
-					.replace("@service-name", "db-service"))));
+		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/services")).withQueryParam("page", equalTo("1"))
+			.willReturn(ok().withBody(cc("list-space-services").replace("@service-guid", "SERVICE-ID")
+				.replace("@service-name", "db-service"))));
 
 		stubFor(post(urlPathEqualTo("/v2/routes"))
-			.willReturn(ok()
-				.withBody(cc("post-route")
-					.replace("@guid", routeGuid(appName)))));
+			.willReturn(ok().withBody(cc("post-route").replace("@guid", routeGuid(appName)))));
 
 		stubFor(put(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/routes/" + routeGuid(appName)))
-			.willReturn(ok()
-				.withBody(cc("get-app-summary"))));
+			.willReturn(ok().withBody(cc("get-app-summary"))));
 	}
 
 	private void stubCreateRoute(final String appName) {
@@ -566,12 +416,9 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 
 	public void stubDeleteApp(String appName) {
 		stubFor(delete(urlPathEqualTo("/v2/routes/" + appName + "-ROUTE-GUID"))
-			.willReturn(ok()
-				.withBody(cc("get-route",
-					replace("@guid", routeGuid(appName))))));
+			.willReturn(ok().withBody(cc("get-route", replace("@guid", routeGuid(appName))))));
 
-		stubFor(delete(urlPathEqualTo("/v2/apps/" + appGuid(appName)))
-			.willReturn(noContent()));
+		stubFor(delete(urlPathEqualTo("/v2/apps/" + appGuid(appName))).willReturn(noContent()));
 	}
 
 	public void stubServiceInstanceExists(String serviceInstanceName) {
@@ -583,45 +430,40 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubServiceInstanceExists(String serviceInstanceName, String serviceName, String planName) {
-		stubServiceInstanceExists(serviceInstanceGuid(serviceInstanceName), serviceInstanceName, serviceName,
-			planName, TEST_SPACE_GUID);
+		stubServiceInstanceExists(serviceInstanceGuid(serviceInstanceName), serviceInstanceName, serviceName, planName,
+				TEST_SPACE_GUID);
 	}
 
 	public void stubServiceInstanceExistsInSpace(String serviceInstanceName, String serviceName, String planName,
-		String spaceGuid) {
-		stubServiceInstanceExists(serviceInstanceGuid(serviceInstanceName), serviceInstanceName, serviceName,
-			planName, spaceGuid);
+			String spaceGuid) {
+		stubServiceInstanceExists(serviceInstanceGuid(serviceInstanceName), serviceInstanceName, serviceName, planName,
+				spaceGuid);
 	}
 
-	private void stubServiceInstanceExists(String serviceInstanceId, String serviceInstanceName,
-		String serviceName, String planName, String spaceGuid) {
+	private void stubServiceInstanceExists(String serviceInstanceId, String serviceInstanceName, String serviceName,
+			String planName, String spaceGuid) {
 		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/service_instances"))
 			.withQueryParam("q", equalTo("name:" + serviceInstanceName))
 			.withQueryParam("page", equalTo("1"))
 			.withQueryParam("return_user_provided_service_instances", equalTo("true"))
-			.willReturn(ok()
-				.withBody(cc("list-space-service_instances",
-					replace("@space-guid", spaceGuid),
-					replace("@service-guid", serviceGuid(serviceName)),
-					replace("@plan-guid", planGuid(planName)),
-					replace("@name", serviceInstanceName),
-					replace("@guid", serviceInstanceId)))));
+			.willReturn(ok().withBody(cc("list-space-service_instances", replace("@space-guid", spaceGuid),
+					replace("@service-guid", serviceGuid(serviceName)), replace("@plan-guid", planGuid(planName)),
+					replace("@name", serviceInstanceName), replace("@guid", serviceInstanceId)))));
 	}
 
 	public void stubServiceBindingsDoNotExist(String serviceInstanceName) {
 		stubFor(get(urlPathEqualTo("/v2/service_bindings"))
 			.withQueryParam("q", equalTo("service_instance_guid:" + serviceInstanceGuid(serviceInstanceName)))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
+			.willReturn(ok().withBody(cc("empty-query-results"))));
 	}
 
 	public void stubGetBackingServiceInstance(String serviceInstanceName, String serviceName, String planName) {
 		stubGetBackingServiceInstanceFromSpace(serviceInstanceName, serviceName, planName, TEST_SPACE_GUID);
 	}
 
-	public void stubGetBackingServiceInstanceFromSpace(String serviceInstanceName, String serviceName,
-		String planName, String spaceGuid) {
+	public void stubGetBackingServiceInstanceFromSpace(String serviceInstanceName, String serviceName, String planName,
+			String spaceGuid) {
 		String serviceInstanceId = serviceInstanceGuid(serviceInstanceName);
 		stubServiceInstanceExists(serviceInstanceId, serviceInstanceName, serviceName, planName, spaceGuid);
 		stubGetServiceAndGetPlan(serviceName, planName);
@@ -631,20 +473,16 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(get(urlPathEqualTo("/v2/spaces/" + spaceGuid + "/services"))
 			.withQueryParam("q", equalTo("label:" + serviceName))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("list-space-services")
-					.replace("@service-guid", serviceGuid(serviceName))
-					.replace("@plan-guid", planGuid(planName))
-					.replace("@service-name", serviceName))));
+			.willReturn(ok().withBody(cc("list-space-services").replace("@service-guid", serviceGuid(serviceName))
+				.replace("@plan-guid", planGuid(planName))
+				.replace("@service-name", serviceName))));
 
 		stubFor(get(urlPathEqualTo("/v2/service_plans"))
 			.withQueryParam("q", equalTo("service_guid:" + serviceGuid(serviceName)))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("list-service-plans")
-					.replace("@service-guid", serviceGuid(serviceName))
-					.replace("@plan-name", planName)
-					.replace("@plan-guid", planGuid(planName)))));
+			.willReturn(ok().withBody(cc("list-service-plans").replace("@service-guid", serviceGuid(serviceName))
+				.replace("@plan-name", planName)
+				.replace("@plan-guid", planGuid(planName)))));
 	}
 
 	public void stubServiceExists(String serviceName, String planName) {
@@ -652,15 +490,13 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	}
 
 	public void stubCreateServiceInstance(String serviceInstanceName) {
-		stubFor(post(urlPathEqualTo("/v2/service_instances"))
-			.withQueryParam("accepts_incomplete", equalTo("true"))
+		stubFor(post(urlPathEqualTo("/v2/service_instances")).withQueryParam("accepts_incomplete", equalTo("true"))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + serviceInstanceName + "')]"))
 			.willReturn(ok()));
 	}
 
 	public void stubCreateServiceInstanceWithParameters(String serviceInstanceName, Map<String, Object> params) {
-		stubFor(post(urlPathEqualTo("/v2/service_instances"))
-			.withQueryParam("accepts_incomplete", equalTo("true"))
+		stubFor(post(urlPathEqualTo("/v2/service_instances")).withQueryParam("accepts_incomplete", equalTo("true"))
 			.withRequestBody(matchingJsonPath("$.[?(@.name == '" + serviceInstanceName + "')]"))
 			.withRequestBody(matchingJsonPath("$.[?(@.parameters == " + new JSONObject(params) + ")]"))
 			.willReturn(ok()));
@@ -676,8 +512,7 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 	public void stubDeleteServiceInstance(String serviceInstanceName) {
 		String serviceInstanceGuid = serviceInstanceGuid(serviceInstanceName);
 
-		stubFor(delete(urlPathEqualTo("/v2/service_instances/" + serviceInstanceGuid))
-			.willReturn(ok()));
+		stubFor(delete(urlPathEqualTo("/v2/service_instances/" + serviceInstanceGuid)).willReturn(ok()));
 	}
 
 	public void stubCreateServiceBinding(String appName, String serviceInstanceName) {
@@ -687,11 +522,8 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(post(urlPathEqualTo("/v2/service_bindings"))
 			.withRequestBody(matchingJsonPath("$.[?(@.app_guid == '" + appGuid(appName) + "')]"))
 			.withRequestBody(matchingJsonPath("$.[?(@.service_instance_guid == '" + serviceInstanceGuid + "')]"))
-			.willReturn(created()
-				.withBody(cc("get-service_binding",
-					replace("@guid", serviceBindingGuid),
-					replace("@app-guid", appGuid(appName)),
-					replace("@service-instance-guid", serviceInstanceGuid)))));
+			.willReturn(created().withBody(cc("get-service_binding", replace("@guid", serviceBindingGuid),
+					replace("@app-guid", appGuid(appName)), replace("@service-instance-guid", serviceInstanceGuid)))));
 	}
 
 	public void stubDeleteServiceBinding(String appName, String serviceInstanceName) {
@@ -709,60 +541,44 @@ public class CloudControllerStubFixture extends WiremockStubFixture {
 		stubFor(get(urlPathEqualTo("/v2/service_bindings"))
 			.withQueryParam("q", equalTo("service_instance_guid:" + serviceInstanceGuid))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("list-service-bindings",
-					replace("@guid", serviceBindingGuid),
-					replace("@app-guid", appGuid(appName)),
-					replace("@service-instance-guid", serviceInstanceGuid)))));
+			.willReturn(ok().withBody(cc("list-service-bindings", replace("@guid", serviceBindingGuid),
+					replace("@app-guid", appGuid(appName)), replace("@service-instance-guid", serviceInstanceGuid)))));
 
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/service_bindings"))
 			.withQueryParam("q", equalTo("service_instance_guid:" + serviceInstanceGuid))
 			.withQueryParam("page", equalTo("1"))
-			.willReturn(ok()
-				.withBody(cc("get-service_bindings",
-					replace("@service-binding-guid", serviceBindingGuid),
-					replace("@app-guid", appGuid(appName)),
-					replace("@service-instance-guid", serviceInstanceGuid)))));
+			.willReturn(ok().withBody(cc("get-service_bindings", replace("@service-binding-guid", serviceBindingGuid),
+					replace("@app-guid", appGuid(appName)), replace("@service-instance-guid", serviceInstanceGuid)))));
 	}
 
 	public void stubServiceBindingDoesNotExist(String appName) {
 		stubFor(get(urlPathEqualTo("/v2/apps/" + appGuid(appName) + "/service_bindings"))
-			.willReturn(ok()
-				.withBody(cc("empty-query-results"))));
+			.willReturn(ok().withBody(cc("empty-query-results"))));
 	}
 
 	public void stubAssociatePermissions() {
 		stubFor(get(urlPathEqualTo("/v2/config/feature_flags/set_roles_by_username"))
-			.willReturn(ok()
-				.withBody(cc("get-feature-flag-roles"))));
+			.willReturn(ok().withBody(cc("get-feature-flag-roles"))));
 
-		stubFor(put(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/users"))
-			.willReturn(ok()));
+		stubFor(put(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/users")).willReturn(ok()));
 	}
 
 	private void stubGetServiceAndGetPlan(String serviceName, String planName) {
 		stubFor(get(urlPathEqualTo("/v2/service_plans/" + planGuid(planName)))
-			.willReturn(ok()
-				.withBody(cc("get-service-plan")
-					.replace("@service-guid", serviceGuid(serviceName))
-					.replace("@plan-name", planName)
-					.replace("@plan-guid", planGuid(planName)))));
+			.willReturn(ok().withBody(cc("get-service-plan").replace("@service-guid", serviceGuid(serviceName))
+				.replace("@plan-name", planName)
+				.replace("@plan-guid", planGuid(planName)))));
 
 		stubFor(get(urlPathEqualTo("/v2/services/" + serviceGuid(serviceName)))
-			.willReturn(ok()
-				.withBody(cc("get-service")
-					.replace("@service-guid", serviceGuid(serviceName))
-					.replace("@service-name", serviceName))));
+			.willReturn(ok().withBody(cc("get-service").replace("@service-guid", serviceGuid(serviceName))
+				.replace("@service-name", serviceName))));
 	}
 
 	public void stubSpaceExists(final String spaceName, final String spaceGuid) {
 		stubFor(get(urlPathEqualTo("/v2/organizations/" + TEST_ORG_GUID + "/spaces"))
 			.withQueryParam("q", equalTo("name:" + spaceName))
-			.willReturn(ok()
-				.withBody(cc("list-spaces",
-					replace("@org-guid", TEST_ORG_GUID),
-					replace("@space-guid", spaceGuid),
-					replace("@name", spaceName)))));
+			.willReturn(ok().withBody(cc("list-spaces", replace("@org-guid", TEST_ORG_GUID),
+					replace("@space-guid", spaceGuid), replace("@name", spaceName)))));
 	}
 
 	private String cc(String fileRoot, StringReplacementPair... replacements) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,31 +32,26 @@ public class BackingServicesParametersTransformationService {
 	private final ExtensionLocator<ParametersTransformer<BackingService>> locator;
 
 	public BackingServicesParametersTransformationService(
-		List<ParametersTransformerFactory<BackingService, ?>> factories) {
-		locator = new ExtensionLocator<>(factories);
+			List<ParametersTransformerFactory<BackingService, ?>> factories) {
+		this.locator = new ExtensionLocator<>(factories);
 	}
 
 	public Mono<List<BackingService>> transformParameters(List<BackingService> backingServices,
-		Map<String, Object> parameters) {
-		return Flux.fromIterable(backingServices)
-			.flatMap(backingService -> {
-				List<ParametersTransformerSpec> specs = getTransformerSpecsForService(backingService);
+			Map<String, Object> parameters) {
+		return Flux.fromIterable(backingServices).flatMap((backingService) -> {
+			List<ParametersTransformerSpec> specs = getTransformerSpecsForService(backingService);
 
-				return Flux.fromIterable(specs)
-					.flatMap(spec -> {
-						ParametersTransformer<BackingService> transformer = locator
-							.getByName(spec.getName(), spec.getArgs());
-						return transformer.transform(backingService, parameters);
-					})
-					.then(Mono.just(backingService));
-			})
-			.collectList();
+			return Flux.fromIterable(specs).flatMap((spec) -> {
+				ParametersTransformer<BackingService> transformer = this.locator.getByName(spec.getName(),
+						spec.getArgs());
+				return transformer.transform(backingService, parameters);
+			}).then(Mono.just(backingService));
+		}).collectList();
 	}
 
 	private List<ParametersTransformerSpec> getTransformerSpecsForService(BackingService backingService) {
-		return backingService.getParametersTransformers() == null
-			? Collections.emptyList()
-			: backingService.getParametersTransformers();
+		return (backingService.getParametersTransformers() == null) ? Collections.emptyList()
+				: backingService.getParametersTransformers();
 	}
 
 }

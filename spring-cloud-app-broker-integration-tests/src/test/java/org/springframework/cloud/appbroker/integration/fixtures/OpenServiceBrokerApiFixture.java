@@ -61,9 +61,8 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 	}
 
 	public String deleteServiceInstanceUrl() {
-		return "/service_instances/{instance_id}" +
-			"?service_id=" + serviceDefinitionId +
-			"&plan_id=" + planId;
+		return "/service_instances/{instance_id}" + "?service_id=" + this.serviceDefinitionId + "&plan_id="
+				+ this.planId;
 	}
 
 	public String createBindingUrl() {
@@ -71,58 +70,37 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 	}
 
 	public String deleteBindingUrl() {
-		return "/service_instances/{instance_id}/service_bindings/{binding_id}" +
-			"?service_id=" + serviceDefinitionId +
-			"&plan_id=" + planId;
+		return "/service_instances/{instance_id}/service_bindings/{binding_id}" + "?service_id="
+				+ this.serviceDefinitionId + "&plan_id=" + this.planId;
 	}
 
 	public RequestSpecification serviceInstanceRequest() {
-		return serviceBrokerSpecification()
-			.body("{" +
-				"\"service_id\": \"" + serviceDefinitionId + "\"," +
-				"\"plan_id\": \"" + planId + "\"," +
-				"\"organization_guid\": \"" + ORG_ID + "\"," +
-				"\"space_guid\": \"" + SPACE_ID + "\"" +
-				"}\n");
+		return serviceBrokerSpecification().body("{" + "\"service_id\": \"" + this.serviceDefinitionId + "\","
+				+ "\"plan_id\": \"" + this.planId + "\"," + "\"organization_guid\": \"" + ORG_ID + "\","
+				+ "\"space_guid\": \"" + SPACE_ID + "\"" + "}\n");
 	}
 
 	public RequestSpecification serviceInstanceRequest(Map<String, Object> params) {
 		String stringParams = new JSONObject(params).toString();
-		return serviceBrokerSpecification()
-			.body("{" +
-				"\"service_id\": \"" + serviceDefinitionId + "\"," +
-				"\"plan_id\": \"" + planId + "\"," +
-				"\"organization_guid\": \"" + ORG_ID + "\"," +
-				"\"space_guid\": \"" + SPACE_ID + "\"," +
-				"\"parameters\": " + stringParams +
-				"}");
+		return serviceBrokerSpecification().body("{" + "\"service_id\": \"" + this.serviceDefinitionId + "\","
+				+ "\"plan_id\": \"" + this.planId + "\"," + "\"organization_guid\": \"" + ORG_ID + "\","
+				+ "\"space_guid\": \"" + SPACE_ID + "\"," + "\"parameters\": " + stringParams + "}");
 	}
 
 	public RequestSpecification serviceAppBindingRequest() {
 		return serviceBrokerSpecification()
-			.body("{" +
-				"\"service_id\": \"" + serviceDefinitionId + "\"," +
-				"\"plan_id\": \"" + planId + "\"," +
-				"\"bind_resource\": {" +
-				"\"app_guid\": \"" + APP_ID + "\"" +
-				"}" +
-				"}");
+			.body("{" + "\"service_id\": \"" + this.serviceDefinitionId + "\"," + "\"plan_id\": \"" + this.planId
+					+ "\"," + "\"bind_resource\": {" + "\"app_guid\": \"" + APP_ID + "\"" + "}" + "}");
 	}
 
 	public RequestSpecification serviceKeyRequest() {
-		return serviceBrokerSpecification()
-			.body("{" +
-				"\"service_id\": \"" + serviceDefinitionId + "\"," +
-				"\"plan_id\": \"" + planId + "\"," +
-				"\"bind_resource\": {" +
-				"\"credential_client_id\": \"" + SERVICE_KEY_CLIENT_ID + "\"" +
-				"}" +
-				"}");
+		return serviceBrokerSpecification().body("{" + "\"service_id\": \"" + this.serviceDefinitionId + "\","
+				+ "\"plan_id\": \"" + this.planId + "\"," + "\"bind_resource\": {" + "\"credential_client_id\": \""
+				+ SERVICE_KEY_CLIENT_ID + "\"" + "}" + "}");
 	}
 
 	private RequestSpecification serviceBrokerSpecification() {
-		return with()
-			.baseUri("http://localhost:" + port + "/v2")
+		return with().baseUri("http://localhost:" + this.port + "/v2")
 			.accept(ContentType.JSON)
 			.contentType(ContentType.JSON);
 	}
@@ -132,13 +110,16 @@ public class OpenServiceBrokerApiFixture implements ApplicationListener<Applicat
 			String state;
 			do {
 				Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-				state = given(serviceInstanceRequest())
-					.when()
+				state = given(serviceInstanceRequest()).when()
 					.get(getLastInstanceOperationUrl(), serviceInstanceId)
 					.then()
 					.statusCode(HttpStatus.OK.value())
-					.extract().body().jsonPath().getString("state");
-			} while (state.equals(OperationState.IN_PROGRESS.toString()));
+					.extract()
+					.body()
+					.jsonPath()
+					.getString("state");
+			}
+			while (state.equals(OperationState.IN_PROGRESS.toString()));
 			return state;
 		}
 		catch (InterruptedException ie) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public class ServicesSpec {
 	}
 
 	public String getServiceInstanceName() {
-		return serviceInstanceName;
+		return this.serviceInstanceName;
 	}
 
 	public void setServiceInstanceName(String serviceInstanceName) {
@@ -50,19 +50,17 @@ public class ServicesSpec {
 			return false;
 		}
 		ServicesSpec that = (ServicesSpec) o;
-		return Objects.equals(serviceInstanceName, that.serviceInstanceName);
+		return Objects.equals(this.serviceInstanceName, that.serviceInstanceName);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(serviceInstanceName);
+		return Objects.hash(this.serviceInstanceName);
 	}
 
 	@Override
 	public String toString() {
-		return "ServicesSpec{" +
-			"serviceInstanceName='" + serviceInstanceName + '\'' +
-			'}';
+		return "ServicesSpec{" + "serviceInstanceName='" + this.serviceInstanceName + '\'' + '}';
 	}
 
 	public static final class ServicesSpecBuilder {
@@ -82,7 +80,7 @@ public class ServicesSpec {
 		}
 
 		public ServicesSpec build() {
-			return new ServicesSpec(serviceInstanceName);
+			return new ServicesSpec(this.serviceInstanceName);
 		}
 
 	}

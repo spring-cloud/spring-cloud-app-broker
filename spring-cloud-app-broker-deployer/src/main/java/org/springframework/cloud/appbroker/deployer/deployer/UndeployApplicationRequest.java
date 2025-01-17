@@ -37,11 +37,11 @@ public class UndeployApplicationRequest {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Map<String, String> getProperties() {
-		return properties;
+		return this.properties;
 	}
 
 	public static final class UndeployApplicationRequestBuilder {
@@ -66,7 +66,7 @@ public class UndeployApplicationRequest {
 		}
 
 		public UndeployApplicationRequest build() {
-			return new UndeployApplicationRequest(name, properties);
+			return new UndeployApplicationRequest(this.name, this.properties);
 		}
 
 	}

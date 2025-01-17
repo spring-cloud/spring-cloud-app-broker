@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,11 @@ public class ArtifactDetails {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Map<String, String> getProperties() {
-		return properties;
+		return this.properties;
 	}
 
 	public static ArtifactDetailsBuilder builder() {
@@ -66,7 +66,7 @@ public class ArtifactDetails {
 		}
 
 		public ArtifactDetails build() {
-			return new ArtifactDetails(name, properties);
+			return new ArtifactDetails(this.name, this.properties);
 		}
 
 	}

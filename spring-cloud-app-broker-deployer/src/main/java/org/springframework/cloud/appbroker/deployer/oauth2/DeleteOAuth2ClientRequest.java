@@ -33,15 +33,15 @@ public class DeleteOAuth2ClientRequest {
 	}
 
 	public String getClientId() {
-		return clientId;
+		return this.clientId;
 	}
 
 	public String getIdentityZoneSubdomain() {
-		return identityZoneSubdomain;
+		return this.identityZoneSubdomain;
 	}
 
 	public String getIdentityZoneId() {
-		return identityZoneId;
+		return this.identityZoneId;
 	}
 
 	public static DeleteOAuth2ClientRequestBuilder builder() {
@@ -57,23 +57,20 @@ public class DeleteOAuth2ClientRequest {
 			return false;
 		}
 		DeleteOAuth2ClientRequest that = (DeleteOAuth2ClientRequest) o;
-		return Objects.equals(clientId, that.clientId) &&
-			Objects.equals(identityZoneSubdomain, that.identityZoneSubdomain) &&
-			Objects.equals(identityZoneId, that.identityZoneId);
+		return Objects.equals(this.clientId, that.clientId)
+				&& Objects.equals(this.identityZoneSubdomain, that.identityZoneSubdomain)
+				&& Objects.equals(this.identityZoneId, that.identityZoneId);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(clientId, identityZoneSubdomain, identityZoneId);
+		return Objects.hash(this.clientId, this.identityZoneSubdomain, this.identityZoneId);
 	}
 
 	@Override
 	public String toString() {
-		return "DeleteOAuth2ClientRequest{" +
-			"clientId='" + clientId + '\'' +
-			", identityZoneSubdomain='" + identityZoneSubdomain + '\'' +
-			", identityZoneId='" + identityZoneId + '\'' +
-			'}';
+		return "DeleteOAuth2ClientRequest{" + "clientId='" + this.clientId + '\'' + ", identityZoneSubdomain='"
+				+ this.identityZoneSubdomain + '\'' + ", identityZoneId='" + this.identityZoneId + '\'' + '}';
 	}
 
 	public static final class DeleteOAuth2ClientRequestBuilder {
@@ -103,7 +100,7 @@ public class DeleteOAuth2ClientRequest {
 		}
 
 		public DeleteOAuth2ClientRequest build() {
-			return new DeleteOAuth2ClientRequest(clientId, identityZoneSubdomain, identityZoneId);
+			return new DeleteOAuth2ClientRequest(this.clientId, this.identityZoneSubdomain, this.identityZoneId);
 		}
 
 	}

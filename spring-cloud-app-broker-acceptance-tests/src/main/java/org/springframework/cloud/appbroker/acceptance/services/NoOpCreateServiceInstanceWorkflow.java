@@ -27,7 +27,10 @@ import org.springframework.cloud.servicebroker.model.instance.CreateServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceResponse.CreateServiceInstanceResponseBuilder;
 
 /**
- * A no-op implementation of {@link CreateServiceInstanceWorkflow}
+ * A no-op implementation of {@link CreateServiceInstanceWorkflow}.
+ *
+ * @author Scott Frederick
+ * @author Roy Clarkson
  */
 public class NoOpCreateServiceInstanceWorkflow implements CreateServiceInstanceWorkflow {
 
@@ -46,12 +49,12 @@ public class NoOpCreateServiceInstanceWorkflow implements CreateServiceInstanceW
 		if (LOG.isInfoEnabled()) {
 			LOG.info("Got request to create service instance: " + request);
 		}
-		return Mono.just(request.getServiceDefinitionId().equals(backingServiceId));
+		return Mono.just(request.getServiceDefinitionId().equals(this.backingServiceId));
 	}
 
 	@Override
 	public Mono<CreateServiceInstanceResponseBuilder> buildResponse(CreateServiceInstanceRequest request,
-		CreateServiceInstanceResponseBuilder responseBuilder) {
+			CreateServiceInstanceResponseBuilder responseBuilder) {
 		if (LOG.isInfoEnabled()) {
 			LOG.info("Got request to create service instance: " + request);
 		}

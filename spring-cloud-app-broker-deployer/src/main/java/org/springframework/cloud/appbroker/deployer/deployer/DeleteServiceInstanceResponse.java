@@ -29,7 +29,7 @@ public class DeleteServiceInstanceResponse {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public static final class DeleteServiceInstanceResponseBuilder {
@@ -45,7 +45,7 @@ public class DeleteServiceInstanceResponse {
 		}
 
 		public DeleteServiceInstanceResponse build() {
-			return new DeleteServiceInstanceResponse(name);
+			return new DeleteServiceInstanceResponse(this.name);
 		}
 
 	}

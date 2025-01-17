@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,9 +49,10 @@ public final class ConfigurationBeanUtils {
 			beanUtils.getPropertyUtils().addBeanIntrospector(SuppressPropertiesBeanIntrospector.SUPPRESS_CLASS);
 			beanUtils.copyProperties(target, properties);
 		}
-		catch (IllegalAccessException | InvocationTargetException e) {
-			throw new IllegalArgumentException("Failed to populate target of type " + targetObject.getClass()
-				+ " with properties " + properties, e);
+		catch (IllegalAccessException | InvocationTargetException ex) {
+			throw new IllegalArgumentException(
+					"Failed to populate target of type " + targetObject.getClass() + " with properties " + properties,
+					ex);
 		}
 	}
 
@@ -62,8 +63,8 @@ public final class ConfigurationBeanUtils {
 				return (T) ((Advised) candidate).getTargetSource().getTarget();
 			}
 		}
-		catch (Exception e) {
-			throw new IllegalStateException("Failed to unwrap proxied object", e);
+		catch (Exception ex) {
+			throw new IllegalStateException("Failed to unwrap proxied object", ex);
 		}
 		return (T) candidate;
 	}

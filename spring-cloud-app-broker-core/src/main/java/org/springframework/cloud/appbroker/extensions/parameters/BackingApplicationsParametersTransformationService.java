@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,30 +32,26 @@ public class BackingApplicationsParametersTransformationService {
 	private final ExtensionLocator<ParametersTransformer<BackingApplication>> locator;
 
 	public BackingApplicationsParametersTransformationService(
-		List<ParametersTransformerFactory<BackingApplication, ?>> factories) {
-		locator = new ExtensionLocator<>(factories);
+			List<ParametersTransformerFactory<BackingApplication, ?>> factories) {
+		this.locator = new ExtensionLocator<>(factories);
 	}
 
 	public Mono<List<BackingApplication>> transformParameters(List<BackingApplication> backingApplications,
-		Map<String, Object> parameters) {
-		return Flux.fromIterable(backingApplications)
-			.flatMap(backingApplication -> {
-				List<ParametersTransformerSpec> specs = getTransformerSpecsForApplication(backingApplication);
+			Map<String, Object> parameters) {
+		return Flux.fromIterable(backingApplications).flatMap((backingApplication) -> {
+			List<ParametersTransformerSpec> specs = getTransformerSpecsForApplication(backingApplication);
 
-				return Flux.fromIterable(specs)
-					.flatMap(spec -> {
-						ParametersTransformer<BackingApplication> transformer = locator
-							.getByName(spec.getName(), spec.getArgs());
-						return transformer.transform(backingApplication, parameters);
-					})
-					.then(Mono.just(backingApplication));
-			})
-			.collectList();
+			return Flux.fromIterable(specs).flatMap((spec) -> {
+				ParametersTransformer<BackingApplication> transformer = this.locator.getByName(spec.getName(),
+						spec.getArgs());
+				return transformer.transform(backingApplication, parameters);
+			}).then(Mono.just(backingApplication));
+		}).collectList();
 	}
 
 	private List<ParametersTransformerSpec> getTransformerSpecsForApplication(BackingApplication backingApplication) {
-		return backingApplication.getParametersTransformers() == null ? Collections.emptyList() :
-			backingApplication.getParametersTransformers();
+		return (backingApplication.getParametersTransformers() == null) ? Collections.emptyList()
+				: backingApplication.getParametersTransformers();
 	}
 
 }

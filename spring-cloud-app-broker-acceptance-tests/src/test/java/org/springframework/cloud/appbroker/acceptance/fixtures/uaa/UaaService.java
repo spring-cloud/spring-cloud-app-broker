@@ -43,45 +43,41 @@ public class UaaService {
 	}
 
 	public Mono<GetClientResponse> getUaaClient(String clientId) {
-		return uaaClient.clients().get(GetClientRequest
-			.builder()
-			.clientId(clientId)
-			.build())
-			.onErrorResume(e -> Mono.empty());
+		return this.uaaClient.clients()
+			.get(GetClientRequest.builder().clientId(clientId).build())
+			.onErrorResume((e) -> Mono.empty());
 	}
 
 	public Mono<Void> createClient(String clientId, String clientSecret, String... authorities) {
 		final String clientNotFound = "CLIENT_NOT_FOUND";
 		return getUaaClient(clientId)
-			.defaultIfEmpty(GetClientResponse.builder()
-				.clientId(clientNotFound)
-				.authorities(clientNotFound)
-				.build())
-			.filter(response -> authoritiesChanged(response, authorities))
-			.delayUntil(response -> {
+			.defaultIfEmpty(GetClientResponse.builder().clientId(clientNotFound).authorities(clientNotFound).build())
+			.filter((response) -> authoritiesChanged(response, authorities))
+			.delayUntil((response) -> {
 				if (!clientNotFound.equals(response.getClientId())) {
-					return uaaClient.clients()
+					return this.uaaClient.clients()
 						.delete(DeleteClientRequest.builder().clientId(clientId).build())
-						.doOnError(error -> LOG.error("Error deleting client: " + clientId + " with error: " + error));
+						.doOnError(
+								(error) -> LOG.error("Error deleting client: " + clientId + " with error: " + error));
 				}
 				return Mono.empty();
 			})
-			.flatMap(response -> uaaClient.clients()
-				.create(CreateClientRequest
-					.builder()
+			.flatMap((response) -> this.uaaClient.clients()
+				.create(CreateClientRequest.builder()
 					.clientId(clientId)
 					.clientSecret(clientSecret)
 					.authorizedGrantType(GrantType.CLIENT_CREDENTIALS)
 					.authorities(authorities)
 					.build())
-				.onErrorResume(e -> e.getMessage().contains("Client already exists: " + clientId), e -> Mono.empty())
-				.doOnError(error -> LOG.error("Error creating client: " + clientId + " with error: " + error)))
+				.onErrorResume((e) -> e.getMessage().contains("Client already exists: " + clientId),
+						(e) -> Mono.empty())
+				.doOnError((error) -> LOG.error("Error creating client: " + clientId + " with error: " + error)))
 			.then();
 	}
 
 	private boolean authoritiesChanged(GetClientResponse response, String... authorities) {
-		return !response.getAuthorities().containsAll(Arrays.asList(authorities)) ||
-			response.getAuthorities().size() != authorities.length;
+		return !response.getAuthorities().containsAll(Arrays.asList(authorities))
+				|| response.getAuthorities().size() != authorities.length;
 	}
 
 }

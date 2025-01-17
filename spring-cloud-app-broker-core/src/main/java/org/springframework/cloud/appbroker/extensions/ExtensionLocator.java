@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class ExtensionLocator<T> {
 	private final Map<String, ExtensionFactory<T, ?>> factoriesByName = new HashMap<>();
 
 	public ExtensionLocator(List<? extends ExtensionFactory<T, ?>> factories) {
-		factories.forEach(extension -> this.factoriesByName.put(extension.getName(), extension));
+		factories.forEach((extension) -> this.factoriesByName.put(extension.getName(), extension));
 	}
 
 	public T getByName(String name) {
@@ -41,17 +41,16 @@ public class ExtensionLocator<T> {
 	}
 
 	private ExtensionFactory<T, ?> getFactoryByName(String name) {
-		if (factoriesByName.containsKey(name)) {
-			return factoriesByName.get(name);
+		if (this.factoriesByName.containsKey(name)) {
+			return this.factoriesByName.get(name);
 		}
 		else {
-			throw new ServiceBrokerException("Unknown extension " + name + ". " +
-				"Registered extensions are " + factoriesByName.keySet());
+			throw new ServiceBrokerException(
+					"Unknown extension " + name + ". " + "Registered extensions are " + this.factoriesByName.keySet());
 		}
 	}
 
-	private T getExtensionFromFactory(ExtensionFactory<T, ?> factory,
-		Map<String, Object> args) {
+	private T getExtensionFromFactory(ExtensionFactory<T, ?> factory, Map<String, Object> args) {
 		return factory.createWithConfig(args);
 	}
 

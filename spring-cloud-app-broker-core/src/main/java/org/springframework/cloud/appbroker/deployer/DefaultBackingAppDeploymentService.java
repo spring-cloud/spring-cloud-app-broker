@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,9 +40,9 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 		return Flux.fromIterable(backingApps)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			.flatMap(backingApplication -> deployerClient.deploy(backingApplication, serviceInstanceId))
+			.flatMap((backingApplication) -> this.deployerClient.deploy(backingApplication, serviceInstanceId))
 			.sequential()
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Deploying applications");
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			})
@@ -50,7 +50,7 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 				LOG.info("Finish deploying applications");
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			})
-			.doOnError(e -> {
+			.doOnError((e) -> {
 				LOG.error(String.format("Error deploying applications. error=%s", e.getMessage()), e);
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			});
@@ -61,9 +61,9 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 		return Flux.fromIterable(backingApps)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			.flatMap(backingApplication -> deployerClient.preUpdate(backingApplication, serviceInstanceId))
+			.flatMap((backingApplication) -> this.deployerClient.preUpdate(backingApplication, serviceInstanceId))
 			.sequential()
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Preparing applications for update");
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			})
@@ -71,7 +71,7 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 				LOG.info("Finish preparing applications for update");
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			})
-			.doOnError(e -> {
+			.doOnError((e) -> {
 				LOG.error(String.format("Error preparing applications for update. error=%s", e.getMessage()), e);
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			});
@@ -82,9 +82,9 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 		return Flux.fromIterable(backingApps)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			.flatMap(backingApplication -> deployerClient.update(backingApplication, serviceInstanceId))
+			.flatMap((backingApplication) -> this.deployerClient.update(backingApplication, serviceInstanceId))
 			.sequential()
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Updating applications");
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			})
@@ -92,7 +92,7 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 				LOG.info("Finish updating applications");
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			})
-			.doOnError(e -> {
+			.doOnError((e) -> {
 				LOG.error(String.format("Error updating applications. error=%s", e.getMessage()), e);
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			});
@@ -103,9 +103,9 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 		return Flux.fromIterable(backingApps)
 			.parallel()
 			.runOn(Schedulers.parallel())
-			.flatMap(deployerClient::undeploy)
+			.flatMap(this.deployerClient::undeploy)
 			.sequential()
-			.doOnRequest(l -> {
+			.doOnRequest((l) -> {
 				LOG.info("Undeploying applications");
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			})
@@ -113,7 +113,7 @@ public class DefaultBackingAppDeploymentService implements BackingAppDeploymentS
 				LOG.info("Finish undeploying applications");
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			})
-			.doOnError(e -> {
+			.doOnError((e) -> {
 				LOG.error(String.format("Error undeploying applications. error=%s", e.getMessage()), e);
 				LOG.debug(BACKINGAPPS_LOG_TEMPLATE, backingApps);
 			});

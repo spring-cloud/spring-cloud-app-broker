@@ -29,7 +29,7 @@ public class DeleteBackingSpaceResponse {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public static final class DeleteBackingSpaceResponseBuilder {
@@ -45,7 +45,7 @@ public class DeleteBackingSpaceResponse {
 		}
 
 		public DeleteBackingSpaceResponse build() {
-			return new DeleteBackingSpaceResponse(name);
+			return new DeleteBackingSpaceResponse(this.name);
 		}
 
 	}

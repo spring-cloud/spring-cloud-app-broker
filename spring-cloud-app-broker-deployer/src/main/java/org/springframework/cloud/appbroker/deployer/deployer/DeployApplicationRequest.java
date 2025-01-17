@@ -38,8 +38,7 @@ public class DeployApplicationRequest {
 	private final String serviceInstanceId;
 
 	protected DeployApplicationRequest(String name, String path, Map<String, String> properties,
-		Map<String, Object> environment, List<String> services,
-		String serviceInstanceId) {
+			Map<String, Object> environment, List<String> services, String serviceInstanceId) {
 		this.name = name;
 		this.path = path;
 		this.properties = properties;
@@ -49,27 +48,27 @@ public class DeployApplicationRequest {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public String getPath() {
-		return path;
+		return this.path;
 	}
 
 	public Map<String, String> getProperties() {
-		return properties;
+		return this.properties;
 	}
 
 	public Map<String, Object> getEnvironment() {
-		return environment;
+		return this.environment;
 	}
 
 	public List<String> getServices() {
-		return services;
+		return this.services;
 	}
 
 	public String getServiceInstanceId() {
-		return serviceInstanceId;
+		return this.serviceInstanceId;
 	}
 
 	public static DeployApplicationRequestBuilder builder() {
@@ -151,7 +150,8 @@ public class DeployApplicationRequest {
 		}
 
 		public DeployApplicationRequest build() {
-			return new DeployApplicationRequest(name, path, properties, environment, services, serviceInstanceId);
+			return new DeployApplicationRequest(this.name, this.path, this.properties, this.environment, this.services,
+					this.serviceInstanceId);
 		}
 
 	}

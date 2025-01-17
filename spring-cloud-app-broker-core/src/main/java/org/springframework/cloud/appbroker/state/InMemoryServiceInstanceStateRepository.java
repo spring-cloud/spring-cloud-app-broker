@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,12 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.servicebroker.model.instance.OperationState;
 
 /**
- * Default implementation of {@link ServiceInstanceStateRepository} meant for demonstration and testing purposes only.
+ * Default implementation of {@link ServiceInstanceStateRepository} meant for
+ * demonstration and testing purposes only.
  * <p/>
  * WARNING: This implementation is not intended for production applications!
+ *
+ * @author Roy Clarkson
  */
 public class InMemoryServiceInstanceStateRepository implements ServiceInstanceStateRepository {
 
@@ -37,35 +40,33 @@ public class InMemoryServiceInstanceStateRepository implements ServiceInstanceSt
 	@Override
 	public Mono<ServiceInstanceState> saveState(String serviceInstanceId, OperationState state, String description) {
 		return Mono.just(new ServiceInstanceState(state, description, new Timestamp(Instant.now().toEpochMilli())))
-			.flatMap(serviceInstanceState -> Mono
+			.flatMap((serviceInstanceState) -> Mono
 				.fromCallable(() -> this.states.put(serviceInstanceId, serviceInstanceState))
 				.thenReturn(serviceInstanceState));
 	}
 
 	@Override
 	public Mono<ServiceInstanceState> getState(String serviceInstanceId) {
-		return containsState(serviceInstanceId)
-			.flatMap(contains -> Mono.defer(() -> {
-				if (contains) {
-					return Mono.fromCallable(() -> this.states.get(serviceInstanceId));
-				}
-				else {
-					return Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
-				}
-			}));
+		return containsState(serviceInstanceId).flatMap((contains) -> Mono.defer(() -> {
+			if (contains) {
+				return Mono.fromCallable(() -> this.states.get(serviceInstanceId));
+			}
+			else {
+				return Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
+			}
+		}));
 	}
 
 	@Override
 	public Mono<ServiceInstanceState> removeState(String serviceInstanceId) {
-		return containsState(serviceInstanceId)
-			.flatMap(contains -> Mono.defer(() -> {
-				if (contains) {
-					return Mono.fromCallable(() -> this.states.remove(serviceInstanceId));
-				}
-				else {
-					return Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
-				}
-			}));
+		return containsState(serviceInstanceId).flatMap((contains) -> Mono.defer(() -> {
+			if (contains) {
+				return Mono.fromCallable(() -> this.states.remove(serviceInstanceId));
+			}
+			else {
+				return Mono.error(new IllegalArgumentException("Unknown service instance ID " + serviceInstanceId));
+			}
+		}));
 	}
 
 	private Mono<Boolean> containsState(String serviceInstanceId) {

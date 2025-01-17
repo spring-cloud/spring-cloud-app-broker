@@ -44,16 +44,12 @@ public class CloudFoundryOAuth2Client implements OAuth2Client {
 
 	@Override
 	public Mono<CreateOAuth2ClientResponse> createClient(CreateOAuth2ClientRequest request) {
-		return uaaClient.clients()
-			.create(mapCreateRequest(request))
-			.map(this::mapCreateResponse);
+		return this.uaaClient.clients().create(mapCreateRequest(request)).map(this::mapCreateResponse);
 	}
 
 	@Override
 	public Mono<DeleteOAuth2ClientResponse> deleteClient(DeleteOAuth2ClientRequest request) {
-		return uaaClient.clients()
-			.delete(mapDeleteRequest(request))
-			.map(this::mapDeleteResponse);
+		return this.uaaClient.clients().delete(mapDeleteRequest(request)).map(this::mapDeleteResponse);
 	}
 
 	private CreateClientRequest mapCreateRequest(CreateOAuth2ClientRequest request) {
@@ -102,9 +98,7 @@ public class CloudFoundryOAuth2Client implements OAuth2Client {
 			return null;
 		}
 
-		return grantTypes.stream()
-			.map(GrantType::from)
-			.collect(Collectors.toList());
+		return grantTypes.stream().map(GrantType::from).collect(Collectors.toList());
 	}
 
 	private List<String> mapGrantTypeToString(List<GrantType> grantTypes) {
@@ -112,9 +106,7 @@ public class CloudFoundryOAuth2Client implements OAuth2Client {
 			return null;
 		}
 
-		return grantTypes.stream()
-			.map(GrantType::getValue)
-			.collect(Collectors.toList());
+		return grantTypes.stream().map(GrantType::getValue).collect(Collectors.toList());
 	}
 
 }

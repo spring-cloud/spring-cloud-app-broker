@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,12 @@ public class TargetSpec {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
-
 
 	public static TargetSpecBuilder builder() {
 		return new TargetSpecBuilder();
@@ -51,12 +50,12 @@ public class TargetSpec {
 			return false;
 		}
 		TargetSpec that = (TargetSpec) o;
-		return Objects.equals(name, that.name);
+		return Objects.equals(this.name, that.name);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name);
+		return Objects.hash(this.name);
 	}
 
 	public static final class TargetSpecBuilder {
@@ -70,9 +69,11 @@ public class TargetSpec {
 			this.name = name;
 			return this;
 		}
+
 		public TargetSpec build() {
-			return new TargetSpec(name);
+			return new TargetSpec(this.name);
 		}
 
 	}
+
 }

@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2020 the original author or authors
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,8 +35,8 @@ public class CloudFoundryOperationsUtils {
 
 	protected Mono<CloudFoundryOperations> getOperations(Map<String, String> properties) {
 		return Mono.defer(() -> {
-			if (!CollectionUtils.isEmpty(properties) && properties.containsKey(
-				DeploymentProperties.TARGET_PROPERTY_KEY)) {
+			if (!CollectionUtils.isEmpty(properties)
+					&& properties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
 				return getOperationsForSpace(properties.get(DeploymentProperties.TARGET_PROPERTY_KEY));
 			}
 			return Mono.just(this.operations);
@@ -46,16 +46,13 @@ public class CloudFoundryOperationsUtils {
 	protected Mono<CloudFoundryOperations> getOperationsForSpace(String space) {
 		return Mono.just(this.operations)
 			.cast(DefaultCloudFoundryOperations.class)
-			.map(cfOperations -> DefaultCloudFoundryOperations.builder()
-				.from(cfOperations)
-				.space(space)
-				.build());
+			.map((cfOperations) -> DefaultCloudFoundryOperations.builder().from(cfOperations).space(space).build());
 	}
 
 	protected Mono<CloudFoundryOperations> getOperationsForOrgAndSpace(String organization, String space) {
 		return Mono.just(this.operations)
 			.cast(DefaultCloudFoundryOperations.class)
-			.map(cfOperations -> DefaultCloudFoundryOperations.builder()
+			.map((cfOperations) -> DefaultCloudFoundryOperations.builder()
 				.from(cfOperations)
 				.organization(organization)
 				.space(space)

@@ -19,30 +19,38 @@ package org.springframework.cloud.appbroker.deployer.deployer;
 public class DeploymentProperties {
 
 	/**
-	 * The deployment property for the count (number of app instances). If not provided, a deployer should assume 1
-	 * instance.
+	 * The deployment property for the count (number of app instances). If not provided, a
+	 * deployer should assume 1 instance.
 	 */
 	public static final String COUNT_PROPERTY_KEY = "count";
 
 	/**
-	 * The deployment property for the memory setting for the container that will run the app. The memory is specified
-	 * in <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>, by default, with optional case-insensitive
-	 * trailing unit 'm' and 'g' being supported, for mebi- and giga- respectively.
+	 * The deployment property for the memory setting for the container that will run the
+	 * app. The memory is specified in
+	 * <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>, by default, with
+	 * optional case-insensitive trailing unit 'm' and 'g' being supported, for mebi- and
+	 * giga- respectively.
 	 * <p>
-	 * 1 MiB = 2^20 bytes = 1024*1024 bytes vs. the decimal based 1MB = 10^6 bytes = 1000*1000 bytes,
+	 * 1 MiB = 2^20 bytes = 1024*1024 bytes vs. the decimal based 1MB = 10^6 bytes =
+	 * 1000*1000 bytes,
 	 * <p>
-	 * Implementations are expected to translate this value to the target platform as faithfully as possible.
+	 * Implementations are expected to translate this value to the target platform as
+	 * faithfully as possible.
 	 */
 	public static final String MEMORY_PROPERTY_KEY = "memory";
 
 	/**
-	 * The deployment property for the disk setting for the container that will run the app. The memory is specified in
-	 * <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>, by default, with optional case-insensitive
-	 * trailing unit 'm' and 'g' being supported, for mebi- and giga- respectively.
+	 * The deployment property for the disk setting for the container that will run the
+	 * app. The memory is specified in
+	 * <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>, by default, with
+	 * optional case-insensitive trailing unit 'm' and 'g' being supported, for mebi- and
+	 * giga- respectively.
 	 * <p>
-	 * 1 MiB = 2^20 bytes = 1024*1024 bytes vs. the decimal based 1MB = 10^6 bytes = 1000*1000 bytes,
+	 * 1 MiB = 2^20 bytes = 1024*1024 bytes vs. the decimal based 1MB = 10^6 bytes =
+	 * 1000*1000 bytes,
 	 * <p>
-	 * Implementations are expected to translate this value to the target platform as faithfully as possible.
+	 * Implementations are expected to translate this value to the target platform as
+	 * faithfully as possible.
 	 */
 	public static final String DISK_PROPERTY_KEY = "disk";
 
@@ -52,20 +60,20 @@ public class DeploymentProperties {
 	public static final String HOST_PROPERTY_KEY = "host";
 
 	/**
-	 * The deployment property for the location where the app will be deployed. The location will vary between
-	 * implementations.
+	 * The deployment property for the location where the app will be deployed. The
+	 * location will vary between implementations.
 	 */
 	public static final String TARGET_PROPERTY_KEY = "target";
 
 	/**
-	 * The deployment property indicating whether the application should be automatically started after deployment.
-	 * Defaults to true.
+	 * The deployment property indicating whether the application should be automatically
+	 * started after deployment. Defaults to true.
 	 */
 	public static final String START_PROPERTY_KEY = "start";
 
 	/**
-	 * The deployment property indicating whether the application should use the {@literal SPRING_APPLICATION_JSON}
-	 * environment variable
+	 * The deployment property indicating whether the application should use the
+	 * {@literal SPRING_APPLICATION_JSON} environment variable.
 	 */
 	public static final String USE_SPRING_APPLICATION_JSON_KEY = "use-spring-application-json";
 
@@ -80,7 +88,7 @@ public class DeploymentProperties {
 	private boolean useSpringApplicationJson = true;
 
 	public String getMemory() {
-		return memory;
+		return this.memory;
 	}
 
 	public void setMemory(String memory) {
@@ -88,7 +96,7 @@ public class DeploymentProperties {
 	}
 
 	public String getDisk() {
-		return disk;
+		return this.disk;
 	}
 
 	public void setDisk(String disk) {
@@ -96,7 +104,7 @@ public class DeploymentProperties {
 	}
 
 	public Integer getCount() {
-		return count;
+		return this.count;
 	}
 
 	public void setCount(int count) {
@@ -104,7 +112,7 @@ public class DeploymentProperties {
 	}
 
 	public String getHost() {
-		return host;
+		return this.host;
 	}
 
 	public void setHost(String host) {
@@ -112,7 +120,7 @@ public class DeploymentProperties {
 	}
 
 	public boolean isUseSpringApplicationJson() {
-		return useSpringApplicationJson;
+		return this.useSpringApplicationJson;
 	}
 
 	public void setUseSpringApplicationJson(boolean useSpringApplicationJson) {

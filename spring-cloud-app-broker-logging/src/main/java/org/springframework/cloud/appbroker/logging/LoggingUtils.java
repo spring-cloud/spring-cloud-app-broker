@@ -1,11 +1,11 @@
 /*
- * Copyright 2016-2024 the original author or authors
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,7 +15,6 @@
  */
 
 package org.springframework.cloud.appbroker.logging;
-
 
 import java.util.Base64;
 
@@ -29,8 +28,7 @@ public final class LoggingUtils {
 	}
 
 	public static Envelope convertLogCacheEnvelopeToDropsonde(org.cloudfoundry.logcache.v1.Envelope envelope) {
-		final Envelope.Builder builder = new Envelope.Builder()
-			.eventType(Envelope.EventType.LogMessage)
+		final Envelope.Builder builder = new Envelope.Builder().eventType(Envelope.EventType.LogMessage)
 			.tags(envelope.getTags())
 			.origin(getFromTags(envelope, "rep"))
 			.timestamp(envelope.getTimestamp())

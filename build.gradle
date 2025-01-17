@@ -1,7 +1,7 @@
 import java.util.concurrent.ConcurrentHashMap
 
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ buildscript {
 }
 
 plugins {
-	id "io.spring.nohttp"
+	id 'checkstyle'
+	id 'io.spring.nohttp'
+	id 'io.spring.javaformat'
 	id 'distribution'
 	id 'jacoco'
 }
@@ -193,7 +195,8 @@ configure(libraryProjects) {
 }
 
 configure(staticAnalysisProjects) {
-	apply plugin: "checkstyle"
+	apply plugin: 'checkstyle'
+	apply plugin: 'io.spring.javaformat'
 	apply plugin: "jacoco"
 
 	checkstyle {
@@ -205,6 +208,10 @@ configure(staticAnalysisProjects) {
 	}
 	checkstyleTest {
 		source = "src/test/java"
+		configFile = configDirectory.get().file("checkstyle-test.xml").asFile
+	}
+	dependencies {
+		checkstyle("io.spring.javaformat:spring-javaformat-checkstyle:0.0.43")
 	}
 }
 

@@ -24,7 +24,7 @@ public class AcceptanceTestProperties {
 	private String brokerAppPath;
 
 	public String getBrokerAppPath() {
-		return brokerAppPath;
+		return this.brokerAppPath;
 	}
 
 	public void setBrokerAppPath(String brokerAppPath) {

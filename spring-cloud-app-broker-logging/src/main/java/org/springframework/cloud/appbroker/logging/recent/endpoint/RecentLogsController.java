@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,10 +47,10 @@ public class RecentLogsController {
 		final String multipartBoundary = UUID.randomUUID().toString();
 		final HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.CONTENT_TYPE, "multipart/mixed; boundary=" + multipartBoundary);
-		return recentLogsProviders.getLogs(serviceInstanceId)
+		return this.recentLogsProviders.getLogs(serviceInstanceId)
 			.collectList()
-			.doOnNext(envelopes -> envelopes.sort(LOG_MESSAGE_COMPARATOR))
-			.map(envelopes -> {
+			.doOnNext((envelopes) -> envelopes.sort(LOG_MESSAGE_COMPARATOR))
+			.map((envelopes) -> {
 				final MultipartEncoder multipart = new MultipartEncoder(multipartBoundary);
 				for (Envelope message : envelopes) {
 					var dropsondeEvent = LoggingUtils.convertLogCacheEnvelopeToDropsonde(message);

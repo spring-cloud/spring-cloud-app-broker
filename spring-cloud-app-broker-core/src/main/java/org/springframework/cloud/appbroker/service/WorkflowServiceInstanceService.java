@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,11 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 /**
- * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects for each service broker
- * operation.
+ * A {@code ServiceInstanceService} that delegates to a set of discrete Workflow objects
+ * for each service broker operation.
+ *
+ * @author Scott Frederick
+ * @author Roy Clarkson
  */
 public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
@@ -61,9 +64,9 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 	private final ServiceInstanceStateRepository stateRepository;
 
 	public WorkflowServiceInstanceService(ServiceInstanceStateRepository serviceInstanceStateRepository,
-		List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows,
-		List<DeleteServiceInstanceWorkflow> deleteServiceInstanceWorkflows,
-		List<UpdateServiceInstanceWorkflow> updateServiceInstanceWorkflows) {
+			List<CreateServiceInstanceWorkflow> createServiceInstanceWorkflows,
+			List<DeleteServiceInstanceWorkflow> deleteServiceInstanceWorkflows,
+			List<UpdateServiceInstanceWorkflow> updateServiceInstanceWorkflows) {
 		this.stateRepository = serviceInstanceStateRepository;
 		this.createServiceInstanceWorkflows = createServiceInstanceWorkflows;
 		this.deleteServiceInstanceWorkflows = deleteServiceInstanceWorkflows;
@@ -76,157 +79,147 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	@Override
 	public Mono<CreateServiceInstanceResponse> createServiceInstance(CreateServiceInstanceRequest request) {
-		return invokeCreateResponseBuilders(request)
-			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> create(request, response)
-				.subscribe());
+		return invokeCreateResponseBuilders(request).publishOn(Schedulers.parallel())
+			.doOnNext((response) -> create(request, response).subscribe());
 	}
 
 	private Mono<CreateServiceInstanceResponse> invokeCreateResponseBuilders(CreateServiceInstanceRequest request) {
-		AtomicReference<CreateServiceInstanceResponseBuilder> responseBuilder =
-			new AtomicReference<>(CreateServiceInstanceResponse.builder());
+		AtomicReference<CreateServiceInstanceResponseBuilder> responseBuilder = new AtomicReference<>(
+				CreateServiceInstanceResponse.builder());
 
-		return Flux.fromIterable(createServiceInstanceWorkflows)
-			.filterWhen(workflow -> workflow.accept(request))
-			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
-				.doOnNext(responseBuilder::set))
+		return Flux.fromIterable(this.createServiceInstanceWorkflows)
+			.filterWhen((workflow) -> workflow.accept(request))
+			.flatMap(
+					(workflow) -> workflow.buildResponse(request, responseBuilder.get()).doOnNext(responseBuilder::set))
 			.last(responseBuilder.get())
 			.map(CreateServiceInstanceResponseBuilder::build);
 	}
 
 	private Mono<Void> create(CreateServiceInstanceRequest request, CreateServiceInstanceResponse response) {
-		return stateRepository.saveState(request.getServiceInstanceId(),
-			OperationState.IN_PROGRESS,
-			"create service instance started")
-			.thenMany(invokeCreateWorkflows(request, response)
-				.doOnRequest(l -> {
-					LOG.info("Creating service instance");
-					LOG.debug("request={}", request);
-				})
-				.doOnComplete(() -> {
-					LOG.info("Finish creating service instance");
-					LOG.debug("request={}, response={}", request, response);
-				})
-				.doOnError(e -> LOG.error(String.format("Error creating service instance. error=%s",
-					e.getMessage()), e)))
-			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.SUCCEEDED, "create service instance completed")
+		return this.stateRepository
+			.saveState(request.getServiceInstanceId(), OperationState.IN_PROGRESS, "create service instance started")
+			.thenMany(invokeCreateWorkflows(request, response).doOnRequest((l) -> {
+				LOG.info("Creating service instance");
+				LOG.debug("request={}", request);
+			}).doOnComplete(() -> {
+				LOG.info("Finish creating service instance");
+				LOG.debug("request={}, response={}", request, response);
+			})
+				.doOnError((e) -> LOG.error(String.format("Error creating service instance. error=%s", e.getMessage()),
+						e)))
+			.thenEmpty(this.stateRepository
+				.saveState(request.getServiceInstanceId(), OperationState.SUCCEEDED,
+						"create service instance completed")
 				.then())
-			.onErrorResume(exception -> stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.FAILED, exception.getMessage())
+			.onErrorResume((exception) -> this.stateRepository
+				.saveState(request.getServiceInstanceId(), OperationState.FAILED, exception.getMessage())
 				.then());
 	}
 
 	private Flux<Void> invokeCreateWorkflows(CreateServiceInstanceRequest request,
-		CreateServiceInstanceResponse response) {
-		return Flux.fromIterable(createServiceInstanceWorkflows)
-			.filterWhen(workflow -> workflow.accept(request))
-			.concatMap(workflow -> workflow.create(request, response));
+			CreateServiceInstanceResponse response) {
+		return Flux.fromIterable(this.createServiceInstanceWorkflows)
+			.filterWhen((workflow) -> workflow.accept(request))
+			.concatMap((workflow) -> workflow.create(request, response));
 	}
 
 	@Override
 	public Mono<DeleteServiceInstanceResponse> deleteServiceInstance(DeleteServiceInstanceRequest request) {
-		return invokeDeleteResponseBuilders(request)
-			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> delete(request, response)
-				.subscribe());
+		return invokeDeleteResponseBuilders(request).publishOn(Schedulers.parallel())
+			.doOnNext((response) -> delete(request, response).subscribe());
 	}
 
 	private Mono<DeleteServiceInstanceResponse> invokeDeleteResponseBuilders(DeleteServiceInstanceRequest request) {
-		AtomicReference<DeleteServiceInstanceResponseBuilder> responseBuilder =
-			new AtomicReference<>(DeleteServiceInstanceResponse.builder());
+		AtomicReference<DeleteServiceInstanceResponseBuilder> responseBuilder = new AtomicReference<>(
+				DeleteServiceInstanceResponse.builder());
 
-		return Flux.fromIterable(deleteServiceInstanceWorkflows)
-			.filterWhen(workflow -> workflow.accept(request))
-			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
-				.doOnNext(responseBuilder::set))
+		return Flux.fromIterable(this.deleteServiceInstanceWorkflows)
+			.filterWhen((workflow) -> workflow.accept(request))
+			.flatMap(
+					(workflow) -> workflow.buildResponse(request, responseBuilder.get()).doOnNext(responseBuilder::set))
 			.last(responseBuilder.get())
 			.map(DeleteServiceInstanceResponseBuilder::build);
 	}
 
 	private Mono<Void> delete(DeleteServiceInstanceRequest request, DeleteServiceInstanceResponse response) {
-		return stateRepository.saveState(request.getServiceInstanceId(),
-			OperationState.IN_PROGRESS, "delete service instance started")
-			.thenMany(invokeDeleteWorkflows(request, response)
-				.doOnRequest(l -> {
-					LOG.info("Deleting service instance");
-					LOG.debug("request={}", request);
-				})
-				.doOnComplete(() -> {
-					LOG.info("Finish deleting service instance");
-					LOG.debug("request={}, response={}", request, response);
-				})
-				.doOnError(e -> LOG.error(String.format("Error deleting service instance. error=%s",
-					e.getMessage()), e)))
-			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.SUCCEEDED, "delete service instance completed")
+		return this.stateRepository
+			.saveState(request.getServiceInstanceId(), OperationState.IN_PROGRESS, "delete service instance started")
+			.thenMany(invokeDeleteWorkflows(request, response).doOnRequest((l) -> {
+				LOG.info("Deleting service instance");
+				LOG.debug("request={}", request);
+			}).doOnComplete(() -> {
+				LOG.info("Finish deleting service instance");
+				LOG.debug("request={}, response={}", request, response);
+			})
+				.doOnError((e) -> LOG.error(String.format("Error deleting service instance. error=%s", e.getMessage()),
+						e)))
+			.thenEmpty(this.stateRepository
+				.saveState(request.getServiceInstanceId(), OperationState.SUCCEEDED,
+						"delete service instance completed")
 				.then())
-			.onErrorResume(e -> stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.FAILED, e.getMessage())
+			.onErrorResume((e) -> this.stateRepository
+				.saveState(request.getServiceInstanceId(), OperationState.FAILED, e.getMessage())
 				.then());
 	}
 
 	private Flux<Void> invokeDeleteWorkflows(DeleteServiceInstanceRequest request,
-		DeleteServiceInstanceResponse response) {
-		return Flux.fromIterable(deleteServiceInstanceWorkflows)
-			.filterWhen(workflow -> workflow.accept(request))
-			.concatMap(workflow -> workflow.delete(request, response));
+			DeleteServiceInstanceResponse response) {
+		return Flux.fromIterable(this.deleteServiceInstanceWorkflows)
+			.filterWhen((workflow) -> workflow.accept(request))
+			.concatMap((workflow) -> workflow.delete(request, response));
 	}
 
 	@Override
 	public Mono<UpdateServiceInstanceResponse> updateServiceInstance(UpdateServiceInstanceRequest request) {
-		return invokeUpdateResponseBuilders(request)
-			.publishOn(Schedulers.parallel())
-			.doOnNext(response -> update(request, response)
-				.subscribe());
+		return invokeUpdateResponseBuilders(request).publishOn(Schedulers.parallel())
+			.doOnNext((response) -> update(request, response).subscribe());
 	}
 
 	private Mono<UpdateServiceInstanceResponse> invokeUpdateResponseBuilders(UpdateServiceInstanceRequest request) {
-		AtomicReference<UpdateServiceInstanceResponseBuilder> responseBuilder =
-			new AtomicReference<>(UpdateServiceInstanceResponse.builder());
+		AtomicReference<UpdateServiceInstanceResponseBuilder> responseBuilder = new AtomicReference<>(
+				UpdateServiceInstanceResponse.builder());
 
-		return Flux.fromIterable(updateServiceInstanceWorkflows)
-			.filterWhen(workflow -> workflow.accept(request))
-			.flatMap(workflow -> workflow.buildResponse(request, responseBuilder.get())
-				.doOnNext(responseBuilder::set))
+		return Flux.fromIterable(this.updateServiceInstanceWorkflows)
+			.filterWhen((workflow) -> workflow.accept(request))
+			.flatMap(
+					(workflow) -> workflow.buildResponse(request, responseBuilder.get()).doOnNext(responseBuilder::set))
 			.last(responseBuilder.get())
 			.map(UpdateServiceInstanceResponseBuilder::build);
 	}
 
 	private Mono<Void> update(UpdateServiceInstanceRequest request, UpdateServiceInstanceResponse response) {
-		return stateRepository.saveState(request.getServiceInstanceId(),
-			OperationState.IN_PROGRESS, "update service instance started")
-			.thenMany(invokeUpdateWorkflows(request, response)
-				.doOnRequest(l -> {
-					LOG.info("Updating service instance");
-					LOG.debug("request={}", request);
-				})
-				.doOnComplete(() -> {
-					LOG.info("Finish updating service instance");
-					LOG.debug("request={}, response={}", request, response);
-				})
-				.doOnError(e -> LOG.error(String.format("Error updating service instance. error=%s",
-					e.getMessage()), e)))
-			.thenEmpty(stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.SUCCEEDED, "update service instance completed")
+		return this.stateRepository
+			.saveState(request.getServiceInstanceId(), OperationState.IN_PROGRESS, "update service instance started")
+			.thenMany(invokeUpdateWorkflows(request, response).doOnRequest((l) -> {
+				LOG.info("Updating service instance");
+				LOG.debug("request={}", request);
+			}).doOnComplete(() -> {
+				LOG.info("Finish updating service instance");
+				LOG.debug("request={}, response={}", request, response);
+			})
+				.doOnError((e) -> LOG.error(String.format("Error updating service instance. error=%s", e.getMessage()),
+						e)))
+			.thenEmpty(this.stateRepository
+				.saveState(request.getServiceInstanceId(), OperationState.SUCCEEDED,
+						"update service instance completed")
 				.then())
-			.onErrorResume(exception -> stateRepository.saveState(request.getServiceInstanceId(),
-				OperationState.FAILED, exception.getMessage())
+			.onErrorResume((exception) -> this.stateRepository
+				.saveState(request.getServiceInstanceId(), OperationState.FAILED, exception.getMessage())
 				.then());
 	}
 
 	private Flux<Void> invokeUpdateWorkflows(UpdateServiceInstanceRequest request,
-		UpdateServiceInstanceResponse response) {
-		return Flux.fromIterable(updateServiceInstanceWorkflows)
-			.filterWhen(workflow -> workflow.accept(request))
-			.concatMap(workflow -> workflow.update(request, response));
+			UpdateServiceInstanceResponse response) {
+		return Flux.fromIterable(this.updateServiceInstanceWorkflows)
+			.filterWhen((workflow) -> workflow.accept(request))
+			.concatMap((workflow) -> workflow.update(request, response));
 	}
 
 	@Override
 	public Mono<GetLastServiceOperationResponse> getLastOperation(GetLastServiceOperationRequest request) {
-		return stateRepository.getState(request.getServiceInstanceId())
-			.doOnError(e -> Mono.error(new ServiceInstanceDoesNotExistException(request.getServiceInstanceId())))
-			.map(serviceInstanceState -> GetLastServiceOperationResponse.builder()
+		return this.stateRepository.getState(request.getServiceInstanceId())
+			.doOnError((e) -> Mono.error(new ServiceInstanceDoesNotExistException(request.getServiceInstanceId())))
+			.map((serviceInstanceState) -> GetLastServiceOperationResponse.builder()
 				.operationState(serviceInstanceState.getOperationState())
 				.description(serviceInstanceState.getDescription())
 				.build());
@@ -234,7 +227,7 @@ public class WorkflowServiceInstanceService implements ServiceInstanceService {
 
 	@Override
 	public Mono<GetServiceInstanceResponse> getServiceInstance(GetServiceInstanceRequest request) {
-		//TODO add functionality
+		// TODO add functionality
 		return Mono.empty();
 	}
 

@@ -41,13 +41,11 @@ public class WiremockStubFixture {
 	private ResourceLoader resourceLoader;
 
 	protected WiremockStubFixture(int port) {
-		wireMock = WireMock.create()
-			.port(port)
-			.build();
+		this.wireMock = WireMock.create().port(port).build();
 	}
 
 	public ListStubMappingsResult getAllStubs() {
-		return wireMock.allStubMappings();
+		return this.wireMock.allStubMappings();
 	}
 
 	protected StubMapping stubFor(MappingBuilder mappingBuilder) {
@@ -55,7 +53,7 @@ public class WiremockStubFixture {
 	}
 
 	protected StubMapping givenThat(MappingBuilder mappingBuilder) {
-		return wireMock.register(mappingBuilder);
+		return this.wireMock.register(mappingBuilder);
 	}
 
 	protected CloudControllerStubFixture.StringReplacementPair replace(String regex, String replacement) {
@@ -68,21 +66,17 @@ public class WiremockStubFixture {
 
 	private String readTestDataFile(String filePath) {
 		try {
-			Resource resource = resourceLoader.getResource(filePath);
+			Resource resource = this.resourceLoader.getResource(filePath);
 			InputStreamReader reader = new InputStreamReader(resource.getInputStream());
-			return new BufferedReader(reader)
-				.lines()
-				.collect(Collectors.joining("\n"));
+			return new BufferedReader(reader).lines().collect(Collectors.joining("\n"));
 		}
-		catch (IOException e) {
-			throw new RuntimeException("Error loading resource from location " + filePath, e);
+		catch (IOException ex) {
+			throw new RuntimeException("Error loading resource from location " + filePath, ex);
 		}
 	}
 
 	protected Metadata optionalStubMapping() {
-		return Metadata.metadata()
-			.attr("optional", true)
-			.build();
+		return Metadata.metadata().attr("optional", true).build();
 	}
 
 	protected final class StringReplacementPair {
@@ -97,11 +91,11 @@ public class WiremockStubFixture {
 		}
 
 		public String getRegex() {
-			return regex;
+			return this.regex;
 		}
 
 		public String getReplacement() {
-			return replacement;
+			return this.replacement;
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,51 +22,51 @@ import java.io.IOException;
 
 class MultipartEncoder implements Closeable {
 
-	private final byte[] bytesCRLF = {'\r', '\n'};
+	private final byte[] bytesCRLF = { '\r', '\n' };
 
-	private final byte[] bytesSEP = {'-', '-'};
+	private final byte[] bytesSEP = { '-', '-' };
 
 	private final byte[] boundary;
 
 	private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-	public MultipartEncoder(String boundary) {
+	MultipartEncoder(String boundary) {
 		this.boundary = boundary.getBytes();
 	}
 
-	public void append(byte[] part) {
+	void append(byte[] part) {
 		try {
-			out.write(bytesCRLF);
-			out.write(bytesSEP);
-			out.write(boundary);
-			out.write(bytesCRLF);
-			out.write(bytesCRLF);
-			out.write(part);
+			this.out.write(this.bytesCRLF);
+			this.out.write(this.bytesSEP);
+			this.out.write(this.boundary);
+			this.out.write(this.bytesCRLF);
+			this.out.write(this.bytesCRLF);
+			this.out.write(part);
 		}
-		catch (IOException e) {
-			throw new EncodingException(e);
+		catch (IOException ex) {
+			throw new EncodingException(ex);
 		}
 	}
 
-	public byte[] terminateAndGetBytes() {
+	byte[] terminateAndGetBytes() {
 		try {
-			out.write(bytesCRLF);
-			out.write(bytesSEP);
-			out.write(boundary);
-			out.write(bytesSEP);
-			out.write(bytesCRLF);
-			final byte[] bytes = out.toByteArray();
-			out.close();
+			this.out.write(this.bytesCRLF);
+			this.out.write(this.bytesSEP);
+			this.out.write(this.boundary);
+			this.out.write(this.bytesSEP);
+			this.out.write(this.bytesCRLF);
+			final byte[] bytes = this.out.toByteArray();
+			this.out.close();
 			return bytes;
 		}
-		catch (IOException e) {
-			throw new EncodingException(e);
+		catch (IOException ex) {
+			throw new EncodingException(ex);
 		}
 	}
 
 	@Override
 	public void close() throws IOException {
-		out.close();
+		this.out.close();
 	}
 
 }

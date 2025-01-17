@@ -26,19 +26,22 @@ import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstan
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 
 /**
- * A no-op implementation of {@link ServiceInstanceBindingService}
+ * A no-op implementation of {@link ServiceInstanceBindingService}.
+ *
+ * @author Scott Frederick
+ * @author Roy Clarkson
  */
 public class NoOpServiceInstanceBindingService implements ServiceInstanceBindingService {
 
 	@Override
 	public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(
-		CreateServiceInstanceBindingRequest request) {
+			CreateServiceInstanceBindingRequest request) {
 		return Mono.just(CreateServiceInstanceAppBindingResponse.builder().build());
 	}
 
 	@Override
 	public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(
-		DeleteServiceInstanceBindingRequest request) {
+			DeleteServiceInstanceBindingRequest request) {
 		return Mono.just(DeleteServiceInstanceBindingResponse.builder().build());
 	}
 

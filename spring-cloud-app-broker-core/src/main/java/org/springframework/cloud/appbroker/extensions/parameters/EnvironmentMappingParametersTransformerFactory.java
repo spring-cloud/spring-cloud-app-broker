@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import reactor.util.Loggers;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 
 public class EnvironmentMappingParametersTransformerFactory extends
-	ParametersTransformerFactory<BackingApplication, EnvironmentMappingParametersTransformerFactory.Config> {
+		ParametersTransformerFactory<BackingApplication, EnvironmentMappingParametersTransformerFactory.Config> {
 
 	private static final Logger LOG = Loggers.getLogger(EnvironmentMappingParametersTransformerFactory.class);
 
@@ -44,30 +44,26 @@ public class EnvironmentMappingParametersTransformerFactory extends
 		return (backingType, parameters) -> transform(backingType, parameters, config.getIncludes());
 	}
 
-	private Mono<BackingApplication> transform(BackingApplication backingApplication,
-		Map<String, Object> parameters,
-		List<String> include) {
+	private Mono<BackingApplication> transform(BackingApplication backingApplication, Map<String, Object> parameters,
+			List<String> include) {
 		if (parameters != null) {
-			parameters
-				.keySet().stream()
-				.filter(include::contains)
-				.forEach(key -> {
-					Object value = parameters.get(key);
-					String valueString;
-					if (value instanceof String) {
+			parameters.keySet().stream().filter(include::contains).forEach((key) -> {
+				Object value = parameters.get(key);
+				String valueString;
+				if (value instanceof String) {
+					valueString = value.toString();
+				}
+				else {
+					try {
+						valueString = OBJECT_MAPPER.writeValueAsString(value);
+					}
+					catch (JsonProcessingException ex) {
+						LOG.error("Failed to write object as JSON String", ex);
 						valueString = value.toString();
 					}
-					else {
-						try {
-							valueString = OBJECT_MAPPER.writeValueAsString(value);
-						}
-						catch (JsonProcessingException e) {
-							LOG.error("Failed to write object as JSON String", e);
-							valueString = value.toString();
-						}
-					}
-					backingApplication.addEnvironment(key, valueString);
-				});
+				}
+				backingApplication.addEnvironment(key, valueString);
+			});
 		}
 
 		return Mono.just(backingApplication);
@@ -79,7 +75,7 @@ public class EnvironmentMappingParametersTransformerFactory extends
 		private String include;
 
 		public List<String> getIncludes() {
-			return Arrays.asList(include.split(","));
+			return Arrays.asList(this.include.split(","));
 		}
 
 		public void setInclude(String include) {

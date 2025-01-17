@@ -29,7 +29,7 @@ public class UpdateServiceInstanceResponse {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public static final class UpdateServiceInstanceResponseBuilder {
@@ -45,7 +45,7 @@ public class UpdateServiceInstanceResponse {
 		}
 
 		public UpdateServiceInstanceResponse build() {
-			return new UpdateServiceInstanceResponse(name);
+			return new UpdateServiceInstanceResponse(this.name);
 		}
 
 	}

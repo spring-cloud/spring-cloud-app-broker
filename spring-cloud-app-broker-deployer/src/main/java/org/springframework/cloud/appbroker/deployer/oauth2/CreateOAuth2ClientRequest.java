@@ -41,9 +41,8 @@ public class CreateOAuth2ClientRequest {
 
 	private final String identityZoneId;
 
-	protected CreateOAuth2ClientRequest(String clientId, String clientSecret, String clientName,
-		List<String> scopes, List<String> authorities, List<String> grantTypes,
-		String identityZoneSubdomain, String identityZoneId) {
+	protected CreateOAuth2ClientRequest(String clientId, String clientSecret, String clientName, List<String> scopes,
+			List<String> authorities, List<String> grantTypes, String identityZoneSubdomain, String identityZoneId) {
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
 		this.clientName = clientName;
@@ -55,35 +54,35 @@ public class CreateOAuth2ClientRequest {
 	}
 
 	public String getClientId() {
-		return clientId;
+		return this.clientId;
 	}
 
 	public String getClientSecret() {
-		return clientSecret;
+		return this.clientSecret;
 	}
 
 	public String getClientName() {
-		return clientName;
+		return this.clientName;
 	}
 
 	public List<String> getScopes() {
-		return scopes;
+		return this.scopes;
 	}
 
 	public List<String> getAuthorities() {
-		return authorities;
+		return this.authorities;
 	}
 
 	public List<String> getGrantTypes() {
-		return grantTypes;
+		return this.grantTypes;
 	}
 
 	public String getIdentityZoneSubdomain() {
-		return identityZoneSubdomain;
+		return this.identityZoneSubdomain;
 	}
 
 	public String getIdentityZoneId() {
-		return identityZoneId;
+		return this.identityZoneId;
 	}
 
 	public static CreateOAuth2ClientRequestBuilder builder() {
@@ -99,34 +98,26 @@ public class CreateOAuth2ClientRequest {
 			return false;
 		}
 		CreateOAuth2ClientRequest that = (CreateOAuth2ClientRequest) o;
-		return Objects.equals(clientId, that.clientId) &&
-			Objects.equals(clientSecret, that.clientSecret) &&
-			Objects.equals(clientName, that.clientName) &&
-			Objects.equals(scopes, that.scopes) &&
-			Objects.equals(authorities, that.authorities) &&
-			Objects.equals(grantTypes, that.grantTypes) &&
-			Objects.equals(identityZoneSubdomain, that.identityZoneSubdomain) &&
-			Objects.equals(identityZoneId, that.identityZoneId);
+		return Objects.equals(this.clientId, that.clientId) && Objects.equals(this.clientSecret, that.clientSecret)
+				&& Objects.equals(this.clientName, that.clientName) && Objects.equals(this.scopes, that.scopes)
+				&& Objects.equals(this.authorities, that.authorities)
+				&& Objects.equals(this.grantTypes, that.grantTypes)
+				&& Objects.equals(this.identityZoneSubdomain, that.identityZoneSubdomain)
+				&& Objects.equals(this.identityZoneId, that.identityZoneId);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(clientId, clientSecret, clientName, scopes, authorities,
-			grantTypes, identityZoneSubdomain, identityZoneId);
+		return Objects.hash(this.clientId, this.clientSecret, this.clientName, this.scopes, this.authorities,
+				this.grantTypes, this.identityZoneSubdomain, this.identityZoneId);
 	}
 
 	@Override
 	public String toString() {
-		return "CreateOAuth2ClientRequest{" +
-			"clientId='" + clientId + '\'' +
-			", clientSecret='" + clientSecret + '\'' +
-			", clientName='" + clientName + '\'' +
-			", scopes=" + scopes +
-			", authorities=" + authorities +
-			", grantTypes=" + grantTypes +
-			", identityZoneSubdomain='" + identityZoneSubdomain + '\'' +
-			", identityZoneId='" + identityZoneId + '\'' +
-			'}';
+		return "CreateOAuth2ClientRequest{" + "clientId='" + this.clientId + '\'' + ", clientSecret='"
+				+ this.clientSecret + '\'' + ", clientName='" + this.clientName + '\'' + ", scopes=" + this.scopes
+				+ ", authorities=" + this.authorities + ", grantTypes=" + this.grantTypes + ", identityZoneSubdomain='"
+				+ this.identityZoneSubdomain + '\'' + ", identityZoneId='" + this.identityZoneId + '\'' + '}';
 	}
 
 	public static final class CreateOAuth2ClientRequestBuilder {
@@ -212,9 +203,8 @@ public class CreateOAuth2ClientRequest {
 		}
 
 		public CreateOAuth2ClientRequest build() {
-			return new CreateOAuth2ClientRequest(clientId, clientSecret, clientName,
-				scopes, authorities, grantTypes,
-				identityZoneSubdomain, identityZoneId);
+			return new CreateOAuth2ClientRequest(this.clientId, this.clientSecret, this.clientName, this.scopes,
+					this.authorities, this.grantTypes, this.identityZoneSubdomain, this.identityZoneId);
 		}
 
 	}

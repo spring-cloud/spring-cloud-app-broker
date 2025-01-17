@@ -45,18 +45,17 @@ import org.springframework.context.annotation.Configuration;
 public class CloudFoundryClientConfiguration {
 
 	/**
-	 * The broker client secret
-	 * Please note that acceptance tests setup would not recreate the client if client id or authorities doesn't change.
-	 * Manual environment clean up is needed on existing test environments if secret changes are necessary.
+	 * The broker client secret Please note that acceptance tests setup would not recreate
+	 * the client if client id or authorities doesn't change. Manual environment clean up
+	 * is needed on existing test environments if secret changes are necessary.
 	 */
 	public static final String APP_BROKER_CLIENT_SECRET = "app-broker-client-secret";
 
 	/**
 	 * The broker client authorities
 	 */
-	public static final String[] APP_BROKER_CLIENT_AUTHORITIES = {
-		"cloud_controller.read", "cloud_controller.write", "clients.write"
-	};
+	public static final String[] APP_BROKER_CLIENT_AUTHORITIES = { "cloud_controller.read", "cloud_controller.write",
+			"clients.write" };
 
 	/**
 	 * The user client id
@@ -64,24 +63,20 @@ public class CloudFoundryClientConfiguration {
 	public static final String USER_CLIENT_ID = "app-broker-user-client";
 
 	/**
-	 * The user client secret
-	 * Please note that acceptance tests setup would not recreate the client if client id or authorities doesn't change.
-	 * Manual environment clean up is needed on existing test environments if secret changes are necessary.
+	 * The user client secret Please note that acceptance tests setup would not recreate
+	 * the client if client id or authorities doesn't change. Manual environment clean up
+	 * is needed on existing test environments if secret changes are necessary.
 	 */
 	public static final String USER_CLIENT_SECRET = "app-broker-user-client-secret";
 
 	/**
 	 * The user client authorities
 	 */
-	public static final String[] USER_CLIENT_AUTHORITIES = {
-		"cloud_controller.read", "cloud_controller.write"
-	};
+	public static final String[] USER_CLIENT_AUTHORITIES = { "cloud_controller.read", "cloud_controller.write" };
 
 	@Bean
 	protected CloudFoundryOperations cloudFoundryOperations(CloudFoundryProperties properties,
-		CloudFoundryClient client,
-		DopplerClient dopplerClient,
-		@Qualifier("userCredentials") UaaClient uaaClient) {
+			CloudFoundryClient client, DopplerClient dopplerClient, @Qualifier("userCredentials") UaaClient uaaClient) {
 		return DefaultCloudFoundryOperations.builder()
 			.cloudFoundryClient(client)
 			.dopplerClient(dopplerClient)
@@ -93,7 +88,7 @@ public class CloudFoundryClientConfiguration {
 
 	@Bean
 	protected CloudFoundryClient cloudFoundryClient(ConnectionContext connectionContext,
-		@Qualifier("userCredentials") TokenProvider tokenProvider) {
+			@Qualifier("userCredentials") TokenProvider tokenProvider) {
 		return ReactorCloudFoundryClient.builder()
 			.connectionContext(connectionContext)
 			.tokenProvider(tokenProvider)
@@ -112,16 +107,13 @@ public class CloudFoundryClientConfiguration {
 
 	@Bean
 	protected DopplerClient dopplerClient(ConnectionContext connectionContext,
-		@Qualifier("userCredentials") TokenProvider tokenProvider) {
-		return ReactorDopplerClient.builder()
-			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
-			.build();
+			@Qualifier("userCredentials") TokenProvider tokenProvider) {
+		return ReactorDopplerClient.builder().connectionContext(connectionContext).tokenProvider(tokenProvider).build();
 	}
 
 	@Bean
 	protected LogCacheClient logCacheClient(ConnectionContext connectionContext,
-		@Qualifier("userCredentials") TokenProvider tokenProvider) {
+			@Qualifier("userCredentials") TokenProvider tokenProvider) {
 		return ReactorLogCacheClient.builder()
 			.connectionContext(connectionContext)
 			.tokenProvider(tokenProvider)
@@ -131,29 +123,21 @@ public class CloudFoundryClientConfiguration {
 	@Bean
 	@Qualifier("userCredentials")
 	protected UaaClient userCredentialsUaaClient(ConnectionContext connectionContext,
-		@Qualifier("userCredentials") TokenProvider tokenProvider) {
-		return ReactorUaaClient.builder()
-			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
-			.build();
+			@Qualifier("userCredentials") TokenProvider tokenProvider) {
+		return ReactorUaaClient.builder().connectionContext(connectionContext).tokenProvider(tokenProvider).build();
 	}
 
 	@Bean
 	@Qualifier("clientCredentials")
 	protected UaaClient clientCredentialsUaaClient(ConnectionContext connectionContext,
-		@Qualifier("clientCredentials") TokenProvider tokenProvider) {
-		return ReactorUaaClient.builder()
-			.connectionContext(connectionContext)
-			.tokenProvider(tokenProvider)
-			.build();
+			@Qualifier("clientCredentials") TokenProvider tokenProvider) {
+		return ReactorUaaClient.builder().connectionContext(connectionContext).tokenProvider(tokenProvider).build();
 	}
 
 	@Bean
 	@Qualifier("userCredentials")
-	@ConditionalOnProperty({
-		CloudFoundryProperties.PROPERTY_PREFIX + ".username",
-		CloudFoundryProperties.PROPERTY_PREFIX + ".password"
-	})
+	@ConditionalOnProperty({ CloudFoundryProperties.PROPERTY_PREFIX + ".username",
+			CloudFoundryProperties.PROPERTY_PREFIX + ".password" })
 	protected PasswordGrantTokenProvider passwordTokenProvider(CloudFoundryProperties properties) {
 		return PasswordGrantTokenProvider.builder()
 			.password(properties.getPassword())
@@ -163,10 +147,8 @@ public class CloudFoundryClientConfiguration {
 
 	@Bean
 	@Qualifier("clientCredentials")
-	@ConditionalOnProperty({
-		CloudFoundryProperties.PROPERTY_PREFIX + ".client-id",
-		CloudFoundryProperties.PROPERTY_PREFIX + ".client-secret"
-	})
+	@ConditionalOnProperty({ CloudFoundryProperties.PROPERTY_PREFIX + ".client-id",
+			CloudFoundryProperties.PROPERTY_PREFIX + ".client-secret" })
 	protected ClientCredentialsGrantTokenProvider clientTokenProvider(CloudFoundryProperties properties) {
 		return ClientCredentialsGrantTokenProvider.builder()
 			.clientId(properties.getClientId())

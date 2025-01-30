@@ -20,11 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.appbroker.manager.AppManager;
-import org.springframework.cloud.appbroker.manager.RestageApplicationRequest;
-import org.springframework.cloud.appbroker.manager.RestartApplicationRequest;
-import org.springframework.cloud.appbroker.manager.StartApplicationRequest;
-import org.springframework.cloud.appbroker.manager.StopApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.AppManager;
+import org.springframework.cloud.appbroker.deployer.manager.RestageApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.RestartApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.StartApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.StopApplicationRequest;
 
 public class CloudFoundryAppManager implements AppManager {
 

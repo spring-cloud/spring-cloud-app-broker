@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties;
 import org.springframework.util.CollectionUtils;
 
 public class BackingService {

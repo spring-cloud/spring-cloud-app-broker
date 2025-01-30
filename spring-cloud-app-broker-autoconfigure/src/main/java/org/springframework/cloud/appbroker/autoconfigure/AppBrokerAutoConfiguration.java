@@ -26,7 +26,6 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingAppDeploymentService;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingService;
@@ -37,6 +36,8 @@ import org.springframework.cloud.appbroker.deployer.DefaultBackingAppDeploymentS
 import org.springframework.cloud.appbroker.deployer.DefaultBackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.DefaultBackingSpaceManagementService;
 import org.springframework.cloud.appbroker.deployer.DeployerClient;
+import org.springframework.cloud.appbroker.deployer.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.manager.AppManager;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingApplicationsParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.BackingServicesParametersTransformationService;
 import org.springframework.cloud.appbroker.extensions.parameters.EnvironmentMappingParametersTransformerFactory;
@@ -47,7 +48,6 @@ import org.springframework.cloud.appbroker.extensions.targets.ServiceInstanceGui
 import org.springframework.cloud.appbroker.extensions.targets.SpacePerServiceInstance;
 import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
-import org.springframework.cloud.appbroker.manager.AppManager;
 import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
 import org.springframework.cloud.appbroker.manager.ManagementClient;
 import org.springframework.cloud.appbroker.service.CreateServiceInstanceAppBindingWorkflow;

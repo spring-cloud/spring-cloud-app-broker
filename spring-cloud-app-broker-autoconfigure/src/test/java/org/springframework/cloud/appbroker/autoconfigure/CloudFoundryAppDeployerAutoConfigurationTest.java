@@ -29,12 +29,12 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryOperationsUtils;
 import org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryTargetProperties;
-import org.springframework.cloud.appbroker.manager.AppManager;
-import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
+import org.springframework.cloud.appbroker.deployer.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.manager.AppManager;
+import org.springframework.cloud.appbroker.deployer.oauth2.OAuth2Client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -24,14 +24,14 @@ import reactor.core.scheduler.Schedulers;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
-import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
-import org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest;
 import org.springframework.cloud.appbroker.deployer.ServicesSpec;
+import org.springframework.cloud.appbroker.deployer.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.deployer.GetApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.GetServiceInstanceRequest;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 
 public class BackingAppManagementService {

@@ -21,7 +21,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.extensions.targets.ArtifactDetails;
 import org.springframework.cloud.appbroker.extensions.targets.Target;
 import org.springframework.cloud.appbroker.extensions.targets.TargetFactory;

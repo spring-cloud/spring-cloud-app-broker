@@ -83,8 +83,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import org.springframework.cloud.appbroker.deployer.AppDeployer;
-import org.springframework.cloud.appbroker.deployer.UpdateApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.deployer.UpdateApplicationRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -97,7 +97,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
-import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
+import static org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

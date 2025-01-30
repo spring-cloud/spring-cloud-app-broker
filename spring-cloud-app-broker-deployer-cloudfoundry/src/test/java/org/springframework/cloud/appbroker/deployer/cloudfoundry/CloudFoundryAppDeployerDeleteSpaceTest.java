@@ -36,8 +36,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import org.springframework.cloud.appbroker.deployer.AppDeployer;
-import org.springframework.cloud.appbroker.deployer.DeleteBackingSpaceRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.deployer.DeleteBackingSpaceRequest;
 import org.springframework.core.io.ResourceLoader;
 
 import static org.assertj.core.api.Assertions.assertThat;

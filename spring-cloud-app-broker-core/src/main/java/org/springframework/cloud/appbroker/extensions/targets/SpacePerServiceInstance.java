@@ -18,7 +18,7 @@ package org.springframework.cloud.appbroker.extensions.targets;
 
 import java.util.Map;
 
-import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties;
 
 public class SpacePerServiceInstance extends TargetFactory<SpacePerServiceInstance.Config> {
 

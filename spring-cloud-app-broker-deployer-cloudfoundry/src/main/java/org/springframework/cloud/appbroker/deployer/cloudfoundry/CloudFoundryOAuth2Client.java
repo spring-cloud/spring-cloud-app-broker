@@ -27,11 +27,11 @@ import org.cloudfoundry.uaa.clients.DeleteClientResponse;
 import org.cloudfoundry.uaa.tokens.GrantType;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientRequest;
-import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientResponse;
-import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientRequest;
-import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientResponse;
-import org.springframework.cloud.appbroker.oauth2.OAuth2Client;
+import org.springframework.cloud.appbroker.deployer.oauth2.CreateOAuth2ClientRequest;
+import org.springframework.cloud.appbroker.deployer.oauth2.CreateOAuth2ClientResponse;
+import org.springframework.cloud.appbroker.deployer.oauth2.DeleteOAuth2ClientRequest;
+import org.springframework.cloud.appbroker.deployer.oauth2.DeleteOAuth2ClientResponse;
+import org.springframework.cloud.appbroker.deployer.oauth2.OAuth2Client;
 import org.springframework.util.CollectionUtils;
 
 public class CloudFoundryOAuth2Client implements OAuth2Client {

@@ -31,7 +31,7 @@ import org.springframework.cloud.appbroker.deployer.BackingService;
 import org.springframework.cloud.appbroker.deployer.BackingServicesProvisionService;
 import org.springframework.cloud.appbroker.deployer.BackingSpaceManagementService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 import org.springframework.cloud.appbroker.manager.BackingAppManagementService;
 import org.springframework.cloud.appbroker.service.DeleteServiceInstanceWorkflow;

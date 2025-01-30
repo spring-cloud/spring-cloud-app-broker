@@ -26,16 +26,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import org.springframework.cloud.appbroker.deployer.AppDeployer;
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
 import org.springframework.cloud.appbroker.deployer.BackingApplications;
 import org.springframework.cloud.appbroker.deployer.BrokeredService;
 import org.springframework.cloud.appbroker.deployer.BrokeredServices;
-import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
-import org.springframework.cloud.appbroker.deployer.GetApplicationResponse;
-import org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest;
-import org.springframework.cloud.appbroker.deployer.GetServiceInstanceResponse;
 import org.springframework.cloud.appbroker.deployer.ServicesSpec;
+import org.springframework.cloud.appbroker.deployer.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.deployer.GetApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.GetApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.deployer.GetServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.GetServiceInstanceResponse;
 import org.springframework.cloud.appbroker.extensions.targets.TargetService;
 
 import static org.mockito.ArgumentMatchers.any;

@@ -27,6 +27,11 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.manager.AppManager;
+import org.springframework.cloud.appbroker.deployer.manager.RestageApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.RestartApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.StartApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.StopApplicationRequest;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;

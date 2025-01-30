@@ -22,7 +22,7 @@ import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties;
 import org.springframework.util.CollectionUtils;
 
 public class CloudFoundryOperationsUtils {

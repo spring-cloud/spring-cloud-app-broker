@@ -21,6 +21,11 @@ import reactor.util.Logger;
 import reactor.util.Loggers;
 
 import org.springframework.cloud.appbroker.deployer.BackingApplication;
+import org.springframework.cloud.appbroker.deployer.manager.AppManager;
+import org.springframework.cloud.appbroker.deployer.manager.RestageApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.RestartApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.StartApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.manager.StopApplicationRequest;
 
 public class ManagementClient {
 

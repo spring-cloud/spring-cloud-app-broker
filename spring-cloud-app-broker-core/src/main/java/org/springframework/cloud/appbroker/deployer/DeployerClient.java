@@ -22,6 +22,22 @@ import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
 
+import org.springframework.cloud.appbroker.deployer.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.deployer.CreateServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.CreateServiceInstanceResponse;
+import org.springframework.cloud.appbroker.deployer.deployer.DeleteBackingSpaceRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.DeleteBackingSpaceResponse;
+import org.springframework.cloud.appbroker.deployer.deployer.DeleteServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.DeleteServiceInstanceResponse;
+import org.springframework.cloud.appbroker.deployer.deployer.DeployApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.DeployApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.deployer.UndeployApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.UndeployApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.deployer.UpdateApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.UpdateApplicationResponse;
+import org.springframework.cloud.appbroker.deployer.deployer.UpdateServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.UpdateServiceInstanceResponse;
+
 public class DeployerClient {
 
 	private static final Logger LOG = Loggers.getLogger(DeployerClient.class);

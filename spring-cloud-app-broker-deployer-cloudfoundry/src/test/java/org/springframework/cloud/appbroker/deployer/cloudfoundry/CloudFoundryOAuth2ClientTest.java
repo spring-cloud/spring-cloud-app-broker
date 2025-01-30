@@ -33,8 +33,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import org.springframework.cloud.appbroker.oauth2.CreateOAuth2ClientRequest;
-import org.springframework.cloud.appbroker.oauth2.DeleteOAuth2ClientRequest;
+import org.springframework.cloud.appbroker.deployer.oauth2.CreateOAuth2ClientRequest;
+import org.springframework.cloud.appbroker.deployer.oauth2.DeleteOAuth2ClientRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;

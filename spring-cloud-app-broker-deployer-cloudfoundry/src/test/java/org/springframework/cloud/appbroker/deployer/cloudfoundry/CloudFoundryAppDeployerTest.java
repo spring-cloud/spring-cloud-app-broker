@@ -66,14 +66,14 @@ import org.mockito.quality.Strictness;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import org.springframework.cloud.appbroker.deployer.AppDeployer;
-import org.springframework.cloud.appbroker.deployer.CreateServiceInstanceRequest;
-import org.springframework.cloud.appbroker.deployer.DeleteServiceInstanceRequest;
-import org.springframework.cloud.appbroker.deployer.DeployApplicationRequest;
-import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
-import org.springframework.cloud.appbroker.deployer.GetApplicationRequest;
-import org.springframework.cloud.appbroker.deployer.UpdateApplicationRequest;
-import org.springframework.cloud.appbroker.deployer.UpdateServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.AppDeployer;
+import org.springframework.cloud.appbroker.deployer.deployer.CreateServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.DeleteServiceInstanceRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.DeployApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.deployer.GetApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.UpdateApplicationRequest;
+import org.springframework.cloud.appbroker.deployer.deployer.UpdateServiceInstanceRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.CollectionUtils;
@@ -88,8 +88,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.springframework.cloud.appbroker.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 import static org.springframework.cloud.appbroker.deployer.cloudfoundry.CloudFoundryDeploymentProperties.DEFAULT_API_POLLING_TIMEOUT_SECONDS;
+import static org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties.TARGET_PROPERTY_KEY;
 
 @SuppressWarnings("UnassignedFluxMonoInstance")
 @ExtendWith(MockitoExtension.class)
@@ -871,8 +871,8 @@ class CloudFoundryAppDeployerTest {
 					.build())
 				.build()));
 
-		org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest request =
-			org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest
+		org.springframework.cloud.appbroker.deployer.deployer.GetServiceInstanceRequest request =
+			org.springframework.cloud.appbroker.deployer.deployer.GetServiceInstanceRequest
 				.builder()
 				.serviceInstanceId("foo-service-instance-id")
 				.properties(emptyMap())
@@ -913,7 +913,8 @@ class CloudFoundryAppDeployerTest {
 				.type(ServiceInstanceType.MANAGED)
 				.build()));
 
-		org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest request = org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest
+		org.springframework.cloud.appbroker.deployer.deployer.GetServiceInstanceRequest request =
+				org.springframework.cloud.appbroker.deployer.deployer.GetServiceInstanceRequest
 			.builder()
 			.name("my-foo-service")
 			.build();
@@ -945,7 +946,8 @@ class CloudFoundryAppDeployerTest {
 				.type(ServiceInstanceType.MANAGED)
 				.build()));
 
-		org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest request = org.springframework.cloud.appbroker.deployer.GetServiceInstanceRequest
+		org.springframework.cloud.appbroker.deployer.deployer.GetServiceInstanceRequest request =
+				org.springframework.cloud.appbroker.deployer.deployer.GetServiceInstanceRequest
 			.builder()
 			.name("my-foo-service")
 			.properties(singletonMap(TARGET_PROPERTY_KEY, "foo-space"))

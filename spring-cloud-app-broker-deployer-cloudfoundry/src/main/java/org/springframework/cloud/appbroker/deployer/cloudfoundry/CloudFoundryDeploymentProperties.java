@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 
-import org.springframework.cloud.appbroker.deployer.DeploymentProperties;
+import org.springframework.cloud.appbroker.deployer.deployer.DeploymentProperties;
 
 /**
  * Holds configuration properties for specifying what resources and services an app deployed to a Cloud Foundry runtime

@@ -387,7 +387,7 @@ task codeCoverageReport(type: JacocoReport) {
 }
 
 wrapper {
-	gradleVersion = "7.6"
+	gradleVersion = "8.12.1"
 }
 
 nohttp {

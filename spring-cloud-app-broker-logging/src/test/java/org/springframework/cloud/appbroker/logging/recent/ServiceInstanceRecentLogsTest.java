@@ -39,8 +39,8 @@ import org.mockito.Answers;
 import reactor.core.publisher.Mono;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -52,10 +52,10 @@ class ServiceInstanceRecentLogsTest {
 	@LocalServerPort
 	private int port;
 
-	@MockBean
+	@MockitoBean
 	private LogCacheClient logCacheClient;
 
-	@MockBean(answer = Answers.RETURNS_DEEP_STUBS)
+	@MockitoBean(answers = Answers.RETURNS_DEEP_STUBS)
 	private CloudFoundryClient cloudFoundryClient;
 
 	private String expectedTestMessage;

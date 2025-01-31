@@ -45,11 +45,11 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.appbroker.logging.streaming.events.ServiceInstanceLogEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
@@ -67,10 +67,10 @@ class ServiceInstanceLogStreamingTest {
 	@LocalServerPort
 	private int port;
 
-	@MockBean
+	@MockitoBean
 	private LogCacheClient logCacheClient;
 
-	@MockBean(answer = Answers.RETURNS_DEEP_STUBS)
+	@MockitoBean(answers = Answers.RETURNS_DEEP_STUBS)
 	private CloudFoundryClient cloudFoundryClient;
 
 	@Autowired

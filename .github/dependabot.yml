@@ -2,6 +2,30 @@ version: 2
 updates:
   - package-ecosystem: gradle
     directory: "/"
+    target-branch: "2.4.x"
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "(2.4.x)"
+    milestone: 32
+    labels:
+      - dependencies
+    ignore:
+      - dependency-name: "org.springframework.boot"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "org.springframework.cloud:spring-cloud-starter-open-service-broker"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "org.springframework.cloud:spring-cloud-open-service-broker-core"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: gradle
+    directory: "/"
     target-branch: "2.3.x"
     schedule:
       interval: daily

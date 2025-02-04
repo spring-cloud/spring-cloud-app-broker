@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [ '8', '11', '17' ]
+        java: [ '8', '11', '17', '21' ]
     uses: ./.github/workflows/gradle-build.yml
     with:
       java-version: ${{ matrix.java }}

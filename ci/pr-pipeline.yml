@@ -1,21 +1,4 @@
 ---
-aliases:
-  - &slack-success-notification
-    put: alert
-    params:
-      icon_emoji: ":concourse:"
-      username: concourse
-      channel: ((ab-slack-success-channel))
-      text: "`$BUILD_PIPELINE_NAME` pipeline has succeeded with build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME>!"
-
-  - &slack-failure-notification
-    put: alert
-    params:
-      icon_emoji: ":animal-1252:"
-      username: concourse
-      channel: ((ab-slack-failure-channel))
-      text: "<!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job `$BUILD_JOB_NAME` in the `$BUILD_PIPELINE_NAME` pipeline has failed!"
-
 jobs:
   - name: build
     plan:
@@ -51,27 +34,16 @@ jobs:
           git-repo: pull-request
     on_success:
       in_parallel:
-        - *slack-success-notification
         - put: cf-environment
           params:
             action: release
             resource: cf-environment
-    on_failure: *slack-failure-notification
-    on_error: *slack-failure-notification
 
 resource_types:
   - name: pull-request
     type: registry-image
     source:
       repository: ((app-broker-virtual-docker-registry))/teliaoss/github-pr-resource
-      username: ((broadcom-jfrog-artifactory-robot-account.username))
-      password: ((broadcom-jfrog-artifactory-robot-account.password))
-      tag: latest
-
-  - name: slack-notification
-    type: registry-image
-    source:
-      repository: ((app-broker-virtual-docker-registry))/cfcommunity/slack-notification-resource
       username: ((broadcom-jfrog-artifactory-robot-account.username))
       password: ((broadcom-jfrog-artifactory-robot-account.password))
       tag: latest
@@ -94,11 +66,6 @@ resources:
       base_branch: ((pr.base-branch))
       disable_forks: true
       required_review_approvals: 1
-
-  - name: alert
-    type: slack-notification
-    source:
-      url: ((scs-slack-webhook))
 
   - name: cf-environment
     type: shepherd

@@ -1,20 +1,4 @@
 ---
-aliases:
-  - &slack-success-notification
-    put: alert
-    params:
-      icon_emoji: ":concourse:"
-      username: concourse
-      channel: ((ab-slack-success-channel))
-      text: "`$BUILD_PIPELINE_NAME ((branch))` pipeline has succeeded with build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME>!"
-  - &slack-failure-notification
-    put: alert
-    params:
-      icon_emoji: ":animal-1252:"
-      username: concourse
-      channel: ((ab-slack-failure-channel))
-      text: "<!here> Build <${ATC_EXTERNAL_URL}/builds/$BUILD_ID|$BUILD_NAME> of job `$BUILD_JOB_NAME` in the `$BUILD_PIPELINE_NAME ((branch))` pipeline has failed!"
-
 jobs:
   - name: build-ci-images
     plan:
@@ -42,7 +26,6 @@ jobs:
         params:
           image: image/image.tar
         no_get: true
-    on_failure: *slack-failure-notification
 
   - name: build
     serial: true
@@ -77,10 +60,6 @@ jobs:
                 - /**/*-docs.zip
               properties:
                 zip.type: docs
-    on_failure:
-      *slack-failure-notification
-    on_error:
-      *slack-failure-notification
 
   - name: run-acceptance-tests
     serial: true
@@ -104,16 +83,10 @@ jobs:
           ci-image-tag: ((ci-image-tag))
     on_success:
       in_parallel:
-        - *slack-success-notification
         - put: cf-environment
           params:
             action: release
             resource: cf-environment
-
-    on_failure:
-      *slack-failure-notification
-    on_error:
-      *slack-failure-notification
 
   - name: stage-milestone
     serial: true
@@ -231,14 +204,6 @@ resource_types:
       password: ((broadcom-jfrog-artifactory-robot-account.password))
       tag: 0.0.14
 
-  - name: slack-notification
-    type: registry-image
-    source:
-      repository: ((app-broker-virtual-docker-registry))/cfcommunity/slack-notification-resource
-      username: ((broadcom-jfrog-artifactory-robot-account.username))
-      password: ((broadcom-jfrog-artifactory-robot-account.password))
-      tag: latest
-
   - name: shepherd
     type: registry-image
     source:
@@ -316,11 +281,6 @@ resources:
       username: ((artifactory-username))
       password: ((artifactory-password))
       build_name: ((build-name))
-
-  - name: alert
-    type: slack-notification
-    source:
-      url: ((scs-slack-webhook))
 
   - name: cf-environment
     type: shepherd

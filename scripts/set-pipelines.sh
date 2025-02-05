@@ -6,8 +6,6 @@ readonly FLY_TARGET="${FLY_TARGET:-"app-broker"}"
 readonly PIPELINE_NAME_SUFFIX="${PIPELINE_NAME_SUFFIX:-""}"
 readonly PIPELINE_TYPE=${1:-""}
 
-[[ "$PIPELINE_NAME_SUFFIX" ]] && DISABLE_SLACK_ALERTING="true" || DISABLE_SLACK_ALERTING="false"
-
 set_branch_pipeline() {
   local -r pipeline_name="app-broker${PIPELINE_NAME_SUFFIX:+"-$PIPELINE_NAME_SUFFIX"}"
   local -r branches=("2.4.x" "2.3.x" "2.2.x" "2.1.x" "2.0.x" "1.6.x")
@@ -20,8 +18,7 @@ set_branch_pipeline() {
       --config pipeline.yml \
       --load-vars-from config-concourse.yml \
       --instance-var "branch=$branch" \
-      --var "ci-image-tag=$branch" \
-      --var "disable-slack-alerting=$DISABLE_SLACK_ALERTING" \`
+      --var "ci-image-tag=$branch" \`
   done
 }
 

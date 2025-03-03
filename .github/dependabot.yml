@@ -1,5 +1,11 @@
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "2.4.x"
+    
   - package-ecosystem: gradle
     directory: "/"
     target-branch: "2.4.x"
@@ -7,7 +13,6 @@ updates:
       interval: daily
     commit-message:
       prefix: "(2.4.x)"
-    milestone: 32
     labels:
       - dependencies
     ignore:
@@ -31,7 +36,6 @@ updates:
       interval: daily
     commit-message:
       prefix: "(2.3.x)"
-    milestone: 31
     labels:
       - dependencies
     ignore:
@@ -55,7 +59,6 @@ updates:
       interval: daily
     commit-message:
       prefix: "(2.2.x)"
-    milestone: 30
     labels:
       - dependencies
     ignore:
@@ -79,7 +82,6 @@ updates:
       interval: daily
     commit-message:
       prefix: "(2.1.x)"
-    milestone: 29
     labels:
       - dependencies
     ignore:

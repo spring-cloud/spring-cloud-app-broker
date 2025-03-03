@@ -24,7 +24,7 @@ buildscript {
 		immutablesVersion = "2.10.1"
 		openServiceBrokerVersion = "4.1.2"
 		springFrameworkVersion = "6.0.0"
-		wiremockVersion = "3.11.0"
+		wiremockVersion = "3.12.1"
 	}
 }
 

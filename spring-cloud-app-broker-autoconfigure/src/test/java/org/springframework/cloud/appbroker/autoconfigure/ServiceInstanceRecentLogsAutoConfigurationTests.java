@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.appbroker.autoconfigure;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
@@ -33,12 +34,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ServiceInstanceRecentLogsAutoConfigurationTests {
 
-	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-		.withConfiguration(AutoConfigurations.of(AppBrokerAutoConfiguration.class,
-				CloudFoundryAppDeployerAutoConfiguration.class, ServiceInstanceRecentLogsAutoConfiguration.class))
-		.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.local",
-				"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
-				"spring.cloud.appbroker.deployer.cloudfoundry.password=secret");
+	private ApplicationContextRunner contextRunner;
+
+	@BeforeEach
+	void setUp() {
+		this.contextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(AppBrokerAutoConfiguration.class,
+					CloudFoundryAppDeployerAutoConfiguration.class, ServiceInstanceRecentLogsAutoConfiguration.class))
+			.withPropertyValues("spring.cloud.appbroker.deployer.cloudfoundry.api-host=https://api.example.local",
+					"spring.cloud.appbroker.deployer.cloudfoundry.username=user",
+					"spring.cloud.appbroker.deployer.cloudfoundry.password=secret");
+	}
 
 	@Test
 	void servicesAreNotCreatedWithoutLoggingOnClasspath() {

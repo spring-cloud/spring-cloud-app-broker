@@ -84,10 +84,10 @@ public final class UserCloudFoundryService {
 				.deleteInstance(DeleteServiceInstanceRequest.builder().name(si.getName()).build())
 				.doOnSuccess((v) -> LOG.info("Success deleting service instance. serviceInstanceName={}",
 						serviceInstanceName))
-				.doOnError((error) -> logError("deleting service instance", serviceInstanceName, error))
-				.onErrorResume((e) -> Mono.empty()))
-			.doOnError((error) -> logError("getting service instance", serviceInstanceName, error))
-			.onErrorResume((e) -> Mono.empty());
+				.doOnError((error) -> logError("deleting service instance", serviceInstanceName, error)))
+// TODO check error suppression				.onErrorResume((e) -> Mono.empty()))
+			.doOnError((error) -> logError("getting service instance", serviceInstanceName, error));
+// TODO check error suppression			.onErrorResume((e) -> Mono.empty());
 	}
 
 	public Mono<Void> createServiceInstance(String planName, String serviceName, String serviceInstanceName,
@@ -110,21 +110,20 @@ public final class UserCloudFoundryService {
 				.serviceInstanceName(serviceInstanceName)
 				.parameters(parameters)
 				.build())
-			.doOnSuccess((item) -> LOG.info("Updated service instance " + serviceInstanceName))
+			.doOnSuccess((item) -> LOG.info("Updated service instance {}", serviceInstanceName))
 			.doOnError((error) -> logError("updating service instance", serviceInstanceName, error));
 	}
 
 	public Mono<ServiceInstance> getServiceInstance(String serviceInstanceName) {
 		return this.cloudFoundryOperations.services()
 			.getInstance(GetServiceInstanceRequest.builder().name(serviceInstanceName).build())
-			.doOnSuccess((item) -> LOG.info("Got service instance " + serviceInstanceName))
+			.doOnSuccess((item) -> LOG.info("Got service instance {}", serviceInstanceName))
 			.doOnError((error) -> logError("getting service instance", serviceInstanceName, error));
 	}
 
 	private static void logError(String operation, String serviceInstanceName, Throwable error) {
 		String logMessage;
-		if (error instanceof UnknownCloudFoundryException) {
-			UnknownCloudFoundryException unknownCloudFoundryException = (UnknownCloudFoundryException) error;
+		if (error instanceof UnknownCloudFoundryException unknownCloudFoundryException) {
 			logMessage = String.format("Error %s %s: %s %s", operation, serviceInstanceName,
 					unknownCloudFoundryException.getMessage(), unknownCloudFoundryException.getPayload());
 		}

@@ -17,7 +17,6 @@
 package org.springframework.cloud.appbroker.acceptance;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.file.Files;
@@ -33,15 +32,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import javax.net.ssl.SSLException;
 
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
@@ -53,14 +49,13 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import javax.net.ssl.SSLException;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationEnvironments;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.organizations.OrganizationSummary;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
-import org.cloudfoundry.uaa.clients.GetClientResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
@@ -149,9 +144,10 @@ abstract class CloudFoundryAcceptanceTests {
 	@BeforeEach
 	void setUp(TestInfo testInfo, BrokerProperties brokerProperties) {
 		List<String> appBrokerProperties = getAppBrokerProperties(brokerProperties);
-		blockingSubscribe(initializeUser());
-		blockingSubscribe(initializeBroker(appBrokerProperties));
-		prepareCLI();
+		initializeUser()
+			.then(initializeBroker(appBrokerProperties))
+			.then(prepareCLI())
+			.block(Duration.ofSeconds(60));
 	}
 
 	void setUpForBrokerUpdate(BrokerProperties brokerProperties) {
@@ -218,44 +214,41 @@ abstract class CloudFoundryAcceptanceTests {
 
 	@AfterEach
 	void tearDown(TestInfo testInfo) {
-		blockingSubscribe(this.cloudFoundryService.getOrCreateDefaultOrg()
-			.map(OrganizationSummary::getId)
-			.flatMap((orgId) -> this.cloudFoundryService.getOrCreateDefaultSpace()
+		blockingSubscribe(cloudFoundryService.getOrCreateDefaultOrg()
+			.flatMap((orgId) -> cloudFoundryService.getOrCreateDefaultSpace()
 				.map(SpaceSummary::getId)
 				.flatMap((spaceId) -> cleanup(orgId, spaceId))));
 	}
 
 	private Mono<Void> initializeUser() {
-		return this.cloudFoundryService.getOrCreateOrganization(this.userCloudFoundryService.getOrgName())
-			.map(OrganizationSummary::getId)
-			.flatMap((orgId) -> this.cloudFoundryService
-				.getOrCreateSpace(this.userCloudFoundryService.getOrgName(),
-						this.userCloudFoundryService.getSpaceName())
+		return cloudFoundryService.getOrCreateOrganization(userCloudFoundryService.getOrgName())
+			.flatMap(orgId -> cloudFoundryService
+				.getOrCreateSpace(userCloudFoundryService.getOrgName(),
+						userCloudFoundryService.getSpaceName())
 				.map(SpaceSummary::getId)
-				.flatMap((spaceId) -> this.uaaService
+				.flatMap(spaceId -> uaaService
 					.createClient(CloudFoundryClientConfiguration.USER_CLIENT_ID,
 							CloudFoundryClientConfiguration.USER_CLIENT_SECRET,
 							CloudFoundryClientConfiguration.USER_CLIENT_AUTHORITIES)
-					.then(this.cloudFoundryService.associateClientWithOrgAndSpace(
+					.then(cloudFoundryService.associateClientWithOrgAndSpace(
 							CloudFoundryClientConfiguration.USER_CLIENT_ID, orgId, spaceId))));
 	}
 
 	private Mono<Void> initializeBroker(List<String> appBrokerProperties) {
-		return this.cloudFoundryService.getOrCreateDefaultOrg()
-			.map(OrganizationSummary::getId)
-			.flatMap((orgId) -> this.cloudFoundryService.getOrCreateDefaultSpace()
+		return cloudFoundryService.getOrCreateDefaultOrg()
+			.flatMap(orgId -> cloudFoundryService.getOrCreateDefaultSpace()
 				.map(SpaceSummary::getId)
-				.flatMap((spaceId) -> cleanup(orgId, spaceId)
-					.then(this.uaaService.createClient(brokerClientId(),
+				.flatMap(spaceId -> cleanup(orgId, spaceId)
+					.then(uaaService.createClient(brokerClientId(),
 							CloudFoundryClientConfiguration.APP_BROKER_CLIENT_SECRET,
 							CloudFoundryClientConfiguration.APP_BROKER_CLIENT_AUTHORITIES))
-					.then(this.cloudFoundryService.associateAppBrokerClientWithOrgAndSpace(brokerClientId(), orgId,
+					.then(cloudFoundryService.associateAppBrokerClientWithOrgAndSpace(brokerClientId(), orgId,
 							spaceId))
-					.then(this.cloudFoundryService.pushBrokerApp(testBrokerAppName(), getTestBrokerAppPath(),
+					.then(cloudFoundryService.pushBrokerApp(testBrokerAppName(), getTestBrokerAppPath(),
 							brokerClientId(), appBrokerProperties))
-					.then(this.cloudFoundryService.createServiceBroker(serviceBrokerName(), testBrokerAppName()))
-					.then(this.cloudFoundryService.enableServiceBrokerAccess(appServiceName()))
-					.then(this.cloudFoundryService.enableServiceBrokerAccess(backingServiceName()))));
+					.then(cloudFoundryService.createServiceBroker(serviceBrokerName(), testBrokerAppName()))
+					.then(cloudFoundryService.enableServiceBrokerAccess(appServiceName()))
+					.then(cloudFoundryService.enableServiceBrokerAccess(backingServiceName()))));
 	}
 
 	private Mono<Void> updateBroker(List<String> appBrokerProperties) {
@@ -385,10 +378,6 @@ abstract class CloudFoundryAcceptanceTests {
 		return this.cloudFoundryService.getSpaces().block();
 	}
 
-	protected Optional<GetClientResponse> getUaaClient(String clientId) {
-		return this.uaaService.getUaaClient(clientId).blockOptional();
-	}
-
 	protected void createDomain(String domain) {
 		this.cloudFoundryService.createDomain(domain).block();
 	}
@@ -402,27 +391,29 @@ abstract class CloudFoundryAcceptanceTests {
 	}
 
 	private <T> void blockingSubscribe(Mono<? super T> publisher) {
-		CountDownLatch latch = new CountDownLatch(1);
-		publisher.subscribe(System.out::println, (t) -> {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("error subscribing to publisher", t);
-			}
-			latch.countDown();
-		}, latch::countDown);
-		try {
-			latch.await();
-		}
-		catch (InterruptedException ex) {
-			throw new RuntimeException(ex);
-		}
+		// TODO check this; don't hi
+		publisher.block(Duration.ofSeconds(20));
+//		CountDownLatch latch = new CountDownLatch(1);
+//		publisher.subscribe(System.out::println, (t) -> {
+//			if (LOG.isDebugEnabled()) {
+//				LOG.debug("error subscribing to publisher", t);
+//			}
+//			latch.countDown();
+//		}, latch::countDown);
+//		try {
+//			latch.await();
+//		}
+//		catch (InterruptedException ex) {
+//			throw new RuntimeException(ex);
+//		}
 	}
 
 	protected Mono<String> manageApps(String serviceInstanceName, String serviceName, String planName,
 			String operation) {
-		return this.userCloudFoundryService.getServiceInstance(serviceInstanceName)
+		return userCloudFoundryService.getServiceInstance(serviceInstanceName)
 			.map(ServiceInstance::getId)
-			.flatMap((serviceInstanceId) -> this.cloudFoundryService.getApplicationRoute(testBrokerAppName())
-				.flatMap((appRoute) -> this.webClient.get()
+			.flatMap((serviceInstanceId) -> cloudFoundryService.getApplicationRoute(testBrokerAppName())
+				.flatMap((appRoute) -> webClient.get()
 					.uri(URI.create(
 							appRoute + "/" + operation + "/" + serviceName + "/" + planName + "/" + serviceInstanceId))
 					.retrieve()
@@ -451,20 +442,17 @@ abstract class CloudFoundryAcceptanceTests {
 			.collectList();
 	}
 
-	private void prepareCLI() {
-		try {
-			this.cfHome = Files.createTempDirectory("app-broker-acceptance-tests").toString();
-
-			callCLICommand(List.of("cf", "login", "-a", this.cloudFoundryProperties.getApiHost(),
-					"--skip-ssl-validation", "-u", this.cloudFoundryProperties.getUsername(), "-p",
-					this.cloudFoundryProperties.getPassword(), "-o", "test-instances"))
-				.block(Duration.ofSeconds(60));
-			callCLICommand(List.of("cf", "install-plugin", "-f", "-r", "Cf-Community", "Service Instance Logging"))
-				.block(Duration.ofSeconds(60));
-		}
-		catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
+	private Mono<Void> prepareCLI() {
+		return Mono.fromCallable(
+				() -> {
+					cfHome = Files.createTempDirectory("app-broker-acceptance-tests").toString();
+					return null;
+				}
+			).then(callCLICommand(List.of("cf", "login", "-a", cloudFoundryProperties.getApiHost(),
+				"--skip-ssl-validation", "-u", cloudFoundryProperties.getUsername(), "-p",
+				cloudFoundryProperties.getPassword(), "-o", "test-instances")))
+			.then(callCLICommand(List.of("cf", "install-plugin", "-f", "-r", "Cf-Community", "Service Instance Logging")))
+			.then();
 	}
 
 	protected Mono<String> callCLICommand(List<String> command) {

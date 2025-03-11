@@ -24,16 +24,22 @@ import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.applications.UpdateApplicationRequest;
-import org.cloudfoundry.client.v2.organizations.AssociateOrganizationManagerRequest;
-import org.cloudfoundry.client.v2.organizations.AssociateOrganizationManagerResponse;
-import org.cloudfoundry.client.v2.organizations.AssociateOrganizationUserRequest;
-import org.cloudfoundry.client.v2.organizations.AssociateOrganizationUserResponse;
 import org.cloudfoundry.client.v2.organizations.RemoveOrganizationManagerRequest;
 import org.cloudfoundry.client.v2.organizations.RemoveOrganizationUserRequest;
 import org.cloudfoundry.client.v2.privatedomains.DeletePrivateDomainRequest;
-import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperRequest;
-import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperResponse;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperRequest;
+import org.cloudfoundry.client.v3.Relationship;
+import org.cloudfoundry.client.v3.ToOneRelationship;
+import org.cloudfoundry.client.v3.organizations.CreateOrganizationRequest;
+import org.cloudfoundry.client.v3.organizations.ListOrganizationsRequest;
+import org.cloudfoundry.client.v3.organizations.ListOrganizationsResponse;
+import org.cloudfoundry.client.v3.organizations.Organization;
+import org.cloudfoundry.client.v3.roles.CreateRoleRequest;
+import org.cloudfoundry.client.v3.roles.ListRolesRequest;
+import org.cloudfoundry.client.v3.roles.ListRolesResponse;
+import org.cloudfoundry.client.v3.roles.Role;
+import org.cloudfoundry.client.v3.roles.RoleRelationships;
+import org.cloudfoundry.client.v3.roles.RoleType;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
@@ -48,9 +54,6 @@ import org.cloudfoundry.operations.applications.RestartApplicationRequest;
 import org.cloudfoundry.operations.applications.StopApplicationRequest;
 import org.cloudfoundry.operations.domains.CreateDomainRequest;
 import org.cloudfoundry.operations.domains.Domain;
-import org.cloudfoundry.operations.organizations.CreateOrganizationRequest;
-import org.cloudfoundry.operations.organizations.OrganizationSummary;
-import org.cloudfoundry.operations.organizations.Organizations;
 import org.cloudfoundry.operations.serviceadmin.CreateServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.DeleteServiceBrokerRequest;
 import org.cloudfoundry.operations.serviceadmin.EnableServiceAccessRequest;
@@ -291,7 +294,7 @@ public class CloudFoundryService {
 				this.cloudFoundryProperties.getDefaultSpace());
 	}
 
-	public Mono<OrganizationSummary> getOrCreateDefaultOrg() {
+	public Mono<String> getOrCreateDefaultOrg() {
 		return getOrCreateOrganization(this.cloudFoundryProperties.getDefaultOrg());
 	}
 
@@ -316,20 +319,20 @@ public class CloudFoundryService {
 					.then(getSpace(spaceOperations, spaceName)));
 	}
 
-	public Mono<OrganizationSummary> getOrCreateOrganization(String orgName) {
-		Organizations organizationOperations = this.cloudFoundryOperations.organizations();
-
-		return getOrg(organizationOperations, orgName).switchIfEmpty(
-				organizationOperations.create(CreateOrganizationRequest.builder().organizationName(orgName).build())
-					.then(getOrg(organizationOperations, orgName)));
-	}
-
-	private Mono<OrganizationSummary> getOrg(Organizations orgOperations, String orgName) {
-		return orgOperations.list().filter((r) -> r.getName().equals(orgName)).next();
+	public Mono<String> getOrCreateOrganization(String orgName) {
+		return cloudFoundryClient.organizationsV3()
+			.list(ListOrganizationsRequest.builder().name(orgName).build())
+			.flatMapIterable(ListOrganizationsResponse::getResources)
+			.cast(Organization.class)
+			.singleOrEmpty()
+			.switchIfEmpty(cloudFoundryClient.organizationsV3()
+				.create(CreateOrganizationRequest.builder().name(orgName).build())
+				.cast(Organization.class))
+			.map(Organization::getId);
 	}
 
 	private Mono<SpaceSummary> getSpace(Spaces spaceOperations, String spaceName) {
-		return spaceOperations.list().filter((r) -> r.getName().equals(spaceName)).next();
+		return spaceOperations.list().filter((r) -> r.getName().equals(spaceName)).singleOrEmpty();
 	}
 
 	public Mono<Void> associateAppBrokerClientWithOrgAndSpace(String brokerClientId, String orgId, String spaceId) {
@@ -368,20 +371,66 @@ public class CloudFoundryService {
 			.then();
 	}
 
-	private Mono<AssociateOrganizationUserResponse> associateOrgUser(String orgId, String userId) {
-		return this.cloudFoundryClient.organizations()
-			.associateUser(AssociateOrganizationUserRequest.builder().organizationId(orgId).userId(userId).build());
+	private Mono<Void> createOrgRole(RoleType roleType, String orgId, String userId) {
+		return cloudFoundryClient.rolesV3()
+			.list(ListRolesRequest.builder()
+				.type(roleType)
+				.organizationId(orgId)
+				.userId(userId)
+				.build())
+			.flatMapIterable(ListRolesResponse::getResources)
+			.singleOrEmpty()
+			.cast(Role.class)
+			.switchIfEmpty(cloudFoundryClient.rolesV3()
+				.create(CreateRoleRequest.builder()
+					.type(roleType)
+					.relationships(RoleRelationships.builder()
+						.user(ToOneRelationship.builder()
+							.data(Relationship.builder().id(userId).build())
+							.build())
+						.organization(ToOneRelationship.builder()
+							.data(Relationship.builder().id(orgId).build())
+							.build())
+						.build())
+					.build()))
+			.then();
 	}
 
-	private Mono<AssociateOrganizationManagerResponse> associateOrgManager(String orgId, String userId) {
-		return this.cloudFoundryClient.organizations()
-			.associateManager(
-					AssociateOrganizationManagerRequest.builder().organizationId(orgId).managerId(userId).build());
+	private Mono<Void> associateOrgUser(String orgId, String userId) {
+		return createOrgRole(RoleType.ORGANIZATION_USER, orgId, userId);
 	}
 
-	private Mono<AssociateSpaceDeveloperResponse> associateSpaceDeveloper(String spaceId, String userId) {
-		return this.cloudFoundryClient.spaces()
-			.associateDeveloper(AssociateSpaceDeveloperRequest.builder().spaceId(spaceId).developerId(userId).build());
+	private Mono<Void> associateOrgManager(String orgId, String userId) {
+		return createOrgRole(RoleType.ORGANIZATION_MANAGER, orgId, userId);
+	}
+
+	private Mono<Void> createSpaceRole(RoleType roleType, String spaceId, String userId) {
+		return cloudFoundryClient.rolesV3()
+			.list(ListRolesRequest.builder()
+				.type(roleType)
+				.spaceId(spaceId)
+				.userId(userId)
+				.build())
+			.flatMapIterable(ListRolesResponse::getResources)
+			.singleOrEmpty()
+			.cast(Role.class)
+			.switchIfEmpty(cloudFoundryClient.rolesV3()
+				.create(CreateRoleRequest.builder()
+					.type(roleType)
+					.relationships(RoleRelationships.builder()
+						.user(ToOneRelationship.builder()
+							.data(Relationship.builder().id(userId).build())
+							.build())
+						.space(ToOneRelationship.builder()
+							.data(Relationship.builder().id(spaceId).build())
+							.build())
+						.build())
+					.build()))
+			.then();
+	}
+
+	private Mono<Void> associateSpaceDeveloper(String spaceId, String userId) {
+		return createSpaceRole(RoleType.SPACE_DEVELOPER, spaceId, userId);
 	}
 
 	private Mono<Void> removeOrgUser(String orgId, String userId) {

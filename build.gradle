@@ -51,6 +51,15 @@ configure(javaProjects) {
 	task allDependencyInsight(type: DependencyInsightReportTask)
 	task dependencyReport(type: DependencyReportTask)
 
+	configurations.configureEach {
+		resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+			if (details.requested.group == 'io.projectreactor.netty' && details.requested.version == '1.2.3') {
+				details.useVersion '1.2.4'
+				details.because 'fix https://github.com/reactor/reactor-netty/issues/3660'
+			}
+		}
+	}
+
 	java {
 		toolchain {
 			languageVersion = JavaLanguageVersion.of(17)

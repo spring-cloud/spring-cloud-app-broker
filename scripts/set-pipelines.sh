@@ -8,7 +8,7 @@ readonly PIPELINE_TYPE=${1:-""}
 
 set_branch_pipeline() {
   local -r pipeline_name="app-broker${PIPELINE_NAME_SUFFIX:+"-$PIPELINE_NAME_SUFFIX"}"
-  local -r branches=("2.4.x" "2.3.x" "2.2.x" "2.1.x" "2.0.x" "1.6.x")
+  local -r branches=("2.5.x" "2.4.x" "2.3.x" "2.2.x" "2.1.x" "2.0.x" "1.6.x")
 
 	for branch in "${branches[@]}"; do
   	echo "Setting $pipeline_name $branch pipeline..."
@@ -24,7 +24,7 @@ set_branch_pipeline() {
 
 set_pr_manager_pipeline() {
 	local -r pipeline_name="app-broker-pull-requests${PIPELINE_NAME_SUFFIX:+"-$PIPELINE_NAME_SUFFIX"}"
-	local -r branch="2.3.x"
+	local -r branch="2.5.x"
 
 	echo "Setting PR manager pipeline..."
 

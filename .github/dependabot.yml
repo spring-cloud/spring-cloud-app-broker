@@ -4,8 +4,31 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    target-branch: "2.4.x"
-    
+    target-branch: "2.5.x"
+
+  - package-ecosystem: gradle
+    directory: "/"
+    target-branch: "2.5.x"
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "(2.5.x)"
+    labels:
+      - dependencies
+    ignore:
+      - dependency-name: "org.springframework.boot"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "org.springframework.cloud:spring-cloud-starter-open-service-broker"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "org.springframework.cloud:spring-cloud-open-service-broker-core"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
   - package-ecosystem: gradle
     directory: "/"
     target-branch: "2.4.x"

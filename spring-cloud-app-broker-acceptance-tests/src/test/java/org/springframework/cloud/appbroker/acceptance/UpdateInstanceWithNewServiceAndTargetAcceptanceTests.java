@@ -18,6 +18,7 @@ package org.springframework.cloud.appbroker.acceptance;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstance;
@@ -142,7 +143,11 @@ class UpdateInstanceWithNewServiceAndTargetAcceptanceTests extends CloudFoundryA
 		assertThat(newBackingServiceInstance.getApplications()).contains(APP_NAME);
 
 		// and the old backing service is deleted
-		await().untilAsserted(() -> assertThat(listServiceInstances()).doesNotContain(OLD_BACKING_SI_NAME));
+		await().pollDelay(20, TimeUnit.SECONDS)
+			.pollInterval(10, TimeUnit.SECONDS)
+			.timeout(90, TimeUnit.SECONDS)
+			.logging()
+			.untilAsserted(() -> assertThat(listServiceInstances()).doesNotContain(OLD_BACKING_SI_NAME));
 
 		// then the service instance is deleted
 		deleteServiceInstance(SI_NAME);

@@ -366,9 +366,7 @@ distributions {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			artifact docsDistZip {
-				classifier 'docs'
-			}
+			artifact source:docsDistZip, classifier: 'docs'
 		}
 	}
 }
@@ -399,7 +397,7 @@ task codeCoverageReport(type: JacocoReport) {
 }
 
 wrapper {
-	gradleVersion = "7.6"
+	gradleVersion = "8.14.1"
 }
 
 nohttp {

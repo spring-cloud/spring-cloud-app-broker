@@ -66,10 +66,10 @@
 	</rule>
 	<rule ref="category/java/errorprone.xml">
 		<exclude name="AvoidDuplicateLiterals" />
-		<exclude name="BeanMembersShouldSerialize" />
 		<exclude name="DataflowAnomalyAnalysis" />
 		<exclude name="InvalidLogMessageFormat" />
 		<exclude name="NonStaticInitializer" />
+		<exclude name="TestClassWithoutTestCases" />
 	</rule>
 	<rule ref="category/java/multithreading.xml">
 		<exclude name="UseConcurrentHashMap" />

@@ -211,7 +211,7 @@ configure(staticAnalysisProjects) {
 		configFile = configDirectory.get().file("checkstyle-test.xml").asFile
 	}
 	dependencies {
-		checkstyle("io.spring.javaformat:spring-javaformat-checkstyle:0.0.45")
+		checkstyle("io.spring.javaformat:spring-javaformat-checkstyle:0.0.46")
 	}
 }
 

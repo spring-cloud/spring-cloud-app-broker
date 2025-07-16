@@ -20,6 +20,10 @@ import java.util.Map;
 
 import reactor.core.publisher.Mono;
 
+/**
+ * Mutates the provided backing type.
+ * Returned value is effectively ignored.
+ */
 @FunctionalInterface
 public interface ParametersTransformer<T> {
 

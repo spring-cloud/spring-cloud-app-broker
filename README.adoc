@@ -19,6 +19,24 @@ Join us in our gitter channel: https://gitter.im/spring-cloud-app-broker/communi
 
 === Compatibility
 
+==== 2.5.x
+
+* https://projects.spring.io/spring-framework/[Spring Framework] 6.2.x
+* https://projects.spring.io/spring-boot/[Spring Boot] 3.5.x
+* https://github.com/cloudfoundry/cf-java-client/[Cloud Foundry Java Client] 5.x
+* https://github.com/reactor/[Reactor] 2024.0.x
+* https://spring.io/projects/spring-cloud-open-service-broker/[Spring Cloud Open Service Broker] 4.5.x
+* https://github.com/openservicebrokerapi/servicebroker/tree/v2.16/[Open Service Broker API] 2.16
+
+==== 2.4.x
+
+* https://projects.spring.io/spring-framework/[Spring Framework] 6.2.x
+* https://projects.spring.io/spring-boot/[Spring Boot] 3.4.x
+* https://github.com/cloudfoundry/cf-java-client/[Cloud Foundry Java Client] 5.x
+* https://github.com/reactor/[Reactor] 2024.0.x
+* https://spring.io/projects/spring-cloud-open-service-broker/[Spring Cloud Open Service Broker] 4.4.x
+* https://github.com/openservicebrokerapi/servicebroker/tree/v2.16/[Open Service Broker API] 2.16
+
 ==== 2.3.x
 
 * https://projects.spring.io/spring-framework/[Spring Framework] 6.2.x
@@ -37,6 +55,17 @@ Join us in our gitter channel: https://gitter.im/spring-cloud-app-broker/communi
 * https://spring.io/projects/spring-cloud-open-service-broker/[Spring Cloud Open Service Broker] 4.2.x
 * https://github.com/openservicebrokerapi/servicebroker/tree/v2.16/[Open Service Broker API] 2.16
 
+==== 1.6.x
+
+* https://projects.spring.io/spring-framework/[Spring Framework] 5.3.x
+* https://projects.spring.io/spring-boot/[Spring Boot] 2.7.x
+* https://github.com/cloudfoundry/cf-java-client/[Cloud Foundry Java Client] 5.x
+* https://github.com/reactor/[Reactor] 3.4.x
+* https://spring.io/projects/spring-cloud-open-service-broker/[Spring Cloud Open Service Broker] 3.6.x
+* https://github.com/openservicebrokerapi/servicebroker/tree/v2.16/[Open Service Broker API] 2.16
+
+=== End-of-Support
+
 ==== 2.1.x
 
 * https://projects.spring.io/spring-framework/[Spring Framework] 6.0.x
@@ -54,17 +83,6 @@ Join us in our gitter channel: https://gitter.im/spring-cloud-app-broker/communi
 * https://github.com/reactor/[Reactor] 2022.0.0
 * https://spring.io/projects/spring-cloud-open-service-broker/[Spring Cloud Open Service Broker] 4.0.x
 * https://github.com/openservicebrokerapi/servicebroker/tree/v2.16/[Open Service Broker API] 2.16
-
-==== 1.6.x
-
-* https://projects.spring.io/spring-framework/[Spring Framework] 5.3.x
-* https://projects.spring.io/spring-boot/[Spring Boot] 2.7.x
-* https://github.com/cloudfoundry/cf-java-client/[Cloud Foundry Java Client] 5.x
-* https://github.com/reactor/[Reactor] 3.4.x
-* https://spring.io/projects/spring-cloud-open-service-broker/[Spring Cloud Open Service Broker] 3.6.x
-* https://github.com/openservicebrokerapi/servicebroker/tree/v2.16/[Open Service Broker API] 2.16
-
-=== End-of-Support
 
 ==== 1.5.x
 

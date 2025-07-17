@@ -21,7 +21,7 @@ buildscript {
 		blockHoundVersion = "1.0.13.RELEASE"
 		cfJavaClientVersion = "5.14.0.RELEASE"
 		commonsTextVersion = "1.13.1"
-		immutablesVersion = "2.10.1"
+		immutablesVersion = "2.11.1"
 		openServiceBrokerVersion = "4.2.0"
 		wiremockVersion = "3.13.0"
 	}

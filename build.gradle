@@ -20,7 +20,7 @@ buildscript {
 	ext {
 		blockHoundVersion = "1.0.13.RELEASE"
 		cfJavaClientVersion = "5.14.0.RELEASE"
-		commonsTextVersion = "1.13.1"
+		commonsTextVersion = "1.14.0"
 		immutablesVersion = "2.10.1"
 		openServiceBrokerVersion = "4.1.2"
 		springFrameworkVersion = "6.0.0"

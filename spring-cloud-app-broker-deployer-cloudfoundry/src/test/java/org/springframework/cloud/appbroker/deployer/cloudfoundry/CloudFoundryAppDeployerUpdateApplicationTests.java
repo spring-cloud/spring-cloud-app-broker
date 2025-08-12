@@ -173,7 +173,7 @@ class CloudFoundryAppDeployerUpdateApplicationTests {
 		given(this.cloudFoundryClient.deploymentsV3()).willReturn(this.deploymentsV3);
 		given(this.cloudFoundryClient.routes()).willReturn(this.routes);
 		given(this.operationsUtils.getOperations(anyMap())).willReturn(Mono.just(this.cloudFoundryOperations));
-		given(this.operationsUtils.getOperationsForSpace(anyString()))
+		given(this.operationsUtils.getOperationsForOrgAndSpace(anyString(), anyString()))
 			.willReturn(Mono.just(this.cloudFoundryOperations));
 
 		this.appDeployer = new CloudFoundryAppDeployer(deploymentProperties, this.cloudFoundryOperations,

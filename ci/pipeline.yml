@@ -207,7 +207,7 @@ resource_types:
   - name: shepherd
     type: registry-image
     source:
-      repository: ((shepherd-image-repository))/shepherd-268822/shepherd2/concourse-resource
+      repository: ((shepherd-image-repository))/shepherd/concourse-resource
       tag: v1
 
 resources:

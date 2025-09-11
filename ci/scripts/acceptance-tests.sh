@@ -14,40 +14,12 @@ declare CLIENT_SECRET
 readonly DEFAULT_ORG="test"
 readonly DEFAULT_SPACE="development"
 
-DEPLOYMENT_DIRECTORY="$(mktemp -d)"
-readonly DEPLOYMENT_DIRECTORY
-
 discover_environment() {
-  local env_name
-  env_name=$(jq -r .name <"${METADATA_FILE}")
-
   eval "$(bbl print-env --metadata-file "${METADATA_FILE}")"
 
   CF_API_HOST="$(jq -r .cf.api_url <"${METADATA_FILE}")"
-  CF_PASSWORD="$(credhub get -n "/bosh-${env_name}/cf/cf_admin_password" -q)"
-  CLIENT_SECRET="$(credhub get -n "/bosh-${env_name}/cf/uaa_admin_client_secret" -q)"
-}
-
-prepare_cf_deployment() {
-  pushd "$DEPLOYMENT_DIRECTORY" >/dev/null
-
-  bosh --deployment cf manifest >manifest.yml
-
-  cat <<EOF >ops.yml
-- type: replace
-  path: /instance_groups/name=diego-cell/vm_type
-  value: large
-- type: replace
-  path: /instance_groups/name=router/vm_type
-  value: large
-- type: replace
-  path: /instance_groups/name=api/vm_type
-  value: large
-EOF
-
-  bosh --non-interactive --deployment cf deploy --ops-file ops.yml manifest.yml
-
-  popd >/dev/null
+  CF_PASSWORD="$(credhub get -n "/bosh-lite/cf/cf_admin_password" -q)"
+  CLIENT_SECRET="$(credhub get -n "/bosh-lite/cf/uaa_admin_client_secret" -q)"
 }
 
 prepare_cf() {
@@ -98,7 +70,6 @@ main() {
 
   echo "Running tests against ${CF_API_HOST}"
   echo
-  prepare_cf_deployment
   prepare_cf
 
   run_tests

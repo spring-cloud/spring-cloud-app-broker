@@ -285,12 +285,12 @@ resources:
   - name: cf-environment
     type: shepherd
     source:
-      url: https://v2.shepherd.run
+      url: ((shepherd-url))
       service-account-key: ((shepherd-service-account-key))
       lease:
         namespace: spring-cloud-app-broker
         pool:
-          namespace: official
+          namespace: spring-cloud-app-broker
           name: cfd
       compatibility-mode: environments-app
 

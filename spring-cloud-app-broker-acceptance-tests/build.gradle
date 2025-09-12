@@ -47,7 +47,7 @@ test {
 	// build the test broker from /src into a jar that the tests can deploy
 	dependsOn assemble
 
-	maxParallelForks = Runtime.runtime.availableProcessors() - 1 ?: 1
+	maxParallelForks = 2
 
 	// Only run the tests if acceptanceTests is specified
 	onlyIf {

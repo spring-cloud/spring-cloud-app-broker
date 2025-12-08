@@ -20,7 +20,7 @@ buildscript {
 	ext {
 		blockHoundVersion = "1.0.14.RELEASE"
 		cfJavaClientVersion = "5.14.0.RELEASE"
-		commonsTextVersion = "1.14.0"
+		commonsTextVersion = "1.15.0"
 		immutablesVersion = "2.11.3"
 		openServiceBrokerVersion = "4.5.0"
 		wiremockVersion = "3.13.1"

@@ -66,6 +66,11 @@ public class DeploymentProperties {
 	public static final String TARGET_PROPERTY_KEY = "target";
 
 	/**
+	 * The deployment property for the organization where the app will be deployed.
+	 */
+	public static final String ORGANIZATION_PROPERTY_KEY = "organization";
+
+	/**
 	 * The deployment property indicating whether the application should be automatically
 	 * started after deployment. Defaults to true.
 	 */

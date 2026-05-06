@@ -17,6 +17,8 @@
 package org.springframework.cloud.appbroker.deployer.cloudfoundry;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -43,29 +45,34 @@ class CloudFoundryOperationsUtilsTests {
 
 	@Test
 	void getOperationsWithEmptyProperties() {
-		StepVerifier.create(this.operationsUtils.getOperations(Collections.emptyMap()))
-			.expectNext(this.operations)
-			.verifyComplete();
-	}
-
-	@Test
-	void getOperationsWithProperties() {
 		StepVerifier
-			.create(this.operationsUtils
-				.getOperations(Collections.singletonMap(DeploymentProperties.TARGET_PROPERTY_KEY, "foo-space1")))
+			.create(this.operationsUtils.getOperations(Collections.emptyMap()))
 			.assertNext((ops) -> {
+				String organization = (String) ReflectionTestUtils.getField(ops, "organization");
+				assertThat(organization).isNull();
+
 				String space = (String) ReflectionTestUtils.getField(ops, "space");
-				assertThat(space).isEqualTo("foo-space1");
+				assertThat(space).isNull();
 			})
 			.verifyComplete();
 	}
 
 	@Test
-	void getOperationsForSpace() {
-		StepVerifier.create(this.operationsUtils.getOperationsForSpace("foo-space2")).assertNext((ops) -> {
-			String space = (String) ReflectionTestUtils.getField(ops, "space");
-			assertThat(space).isEqualTo("foo-space2");
-		}).verifyComplete();
+	void getOperationsWithProperties() {
+		Map<String, String> properties = new HashMap<>();
+		properties.put(DeploymentProperties.ORGANIZATION_PROPERTY_KEY, "foo-organization-1");
+		properties.put(DeploymentProperties.TARGET_PROPERTY_KEY, "foo-space-1");
+
+		StepVerifier
+			.create(this.operationsUtils.getOperations(properties))
+			.assertNext((ops) -> {
+				String organization = (String) ReflectionTestUtils.getField(ops, "organization");
+				assertThat(organization).isEqualTo("foo-organization-1");
+
+				String space = (String) ReflectionTestUtils.getField(ops, "space");
+				assertThat(space).isEqualTo("foo-space-1");
+			})
+			.verifyComplete();
 	}
 
 }

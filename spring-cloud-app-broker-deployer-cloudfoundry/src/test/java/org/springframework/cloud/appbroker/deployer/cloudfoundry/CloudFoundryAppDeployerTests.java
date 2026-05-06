@@ -163,7 +163,7 @@ class CloudFoundryAppDeployerTests {
 		given(this.cloudFoundryClient.organizations()).willReturn(this.clientOrganizations);
 		given(this.cloudFoundryClient.applicationsV2()).willReturn(this.clientApplications);
 		given(this.operationsUtils.getOperations(anyMap())).willReturn(Mono.just(this.cloudFoundryOperations));
-		given(this.operationsUtils.getOperationsForSpace(anyString()))
+		given(this.operationsUtils.getOperationsForOrgAndSpace(anyString(), anyString()))
 			.willReturn(Mono.just(this.cloudFoundryOperations));
 		given(this.operationsUtils.getOperationsForOrgAndSpace(anyString(), anyString()))
 			.willReturn(Mono.just(this.cloudFoundryOperations));

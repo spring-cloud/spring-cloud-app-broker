@@ -408,7 +408,13 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		else {
 			space = this.targetProperties.getDefaultSpace();
 		}
-		return this.operations.spaces().get(GetSpaceRequest.builder().name(space).build()).map(SpaceDetail::getId);
+
+		return this.operationsUtils
+			.getOperations(properties)
+			.flatMap(cfOperations -> cfOperations.spaces()
+				.get(GetSpaceRequest.builder().name(space).build())
+			)
+			.map(SpaceDetail::getId);
 	}
 
 	private String getDomainId(String domain, List<Domain> domains) {
@@ -669,16 +675,11 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 			.noStart(!start(deploymentProperties))
 			.build();
 
-		Mono<Void> requestPushApplication;
-		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
-			requestPushApplication = pushManifestInSpace(applicationManifestRequest, space);
-		}
-		else {
-			requestPushApplication = pushManifest(applicationManifestRequest);
-		}
-
-		return requestPushApplication
+		return this.operationsUtils
+			.getOperations(deploymentProperties)
+			.flatMap(cfOperations -> cfOperations.applications()
+				.pushManifest(applicationManifestRequest)
+			)
 			.doOnSuccess((v) -> LOG.info("Success pushing app manifest. appName={}", request.getName()))
 			.doOnError((e) -> LOG.error(String.format("Error pushing app manifest. appName=%s, " + ERROR_LOG_TEMPLATE,
 					request.getName(), e.getMessage()), e));
@@ -729,15 +730,6 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		}
 
 		return manifest.build();
-	}
-
-	private Mono<Void> pushManifest(PushApplicationManifestRequest request) {
-		return this.operations.applications().pushManifest(request);
-	}
-
-	private Mono<Void> pushManifestInSpace(PushApplicationManifestRequest request, String spaceName) {
-		return createSpace(spaceName).then(this.operationsUtils.getOperationsForSpace(spaceName))
-			.flatMap((cfOperations) -> cfOperations.applications().pushManifest(request));
 	}
 
 	private Mono<String> createSpace(String spaceName) {
@@ -803,42 +795,18 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		String appName = request.getName();
 		Map<String, String> deploymentProperties = request.getProperties();
 
-		Mono<Void> requestDeleteApplication;
-		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			String space = deploymentProperties.get(DeploymentProperties.TARGET_PROPERTY_KEY);
-			requestDeleteApplication = deleteApplicationInSpace(appName, space);
-		}
-		else {
-			requestDeleteApplication = deleteApplication(appName);
-		}
-
-		return requestDeleteApplication.timeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiTimeout()))
+		return this.operationsUtils
+			.getOperations(deploymentProperties)
+			.flatMap(cfOperations -> cfOperations.applications()
+				.delete(DeleteApplicationRequest.builder()
+					.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
+					.name(appName)
+					.build())
+			)
+			.timeout(Duration.ofSeconds(this.defaultDeploymentProperties.getApiTimeout()))
 			.doOnSuccess((v) -> LOG.info("Success undeploying application. appName={}", appName))
 			.doOnError(logError(String.format("Error undeploying application. appName=%s", appName)))
 			.then(Mono.just(UndeployApplicationResponse.builder().name(appName).build()));
-	}
-
-	private Mono<Void> deleteApplication(String name) {
-		return this.operations.applications()
-			.delete(DeleteApplicationRequest.builder()
-				.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
-				.name(name)
-				.build());
-	}
-
-	private Mono<Void> deleteApplicationInSpace(String name, String spaceName) {
-		return getSpaceId(spaceName)
-			.doOnError((e) -> LOG.error(String.format("Unable to get space name. spaceName=%s, " + ERROR_LOG_TEMPLATE,
-					spaceName, e.getMessage()), e))
-			.then(this.operationsUtils.getOperationsForSpace(spaceName))
-			.flatMap((cfOperations) -> cfOperations.applications()
-				.delete(DeleteApplicationRequest.builder()
-					.deleteRoutes(this.defaultDeploymentProperties.isDeleteRoutes())
-					.name(name)
-					.build())
-				.doOnError((e) -> LOG.error(String
-					.format("Error deleting application. appName=%s, " + ERROR_LOG_TEMPLATE, name, e.getMessage()), e)))
-			.onErrorResume((e) -> Mono.empty());
 	}
 
 	@Override
@@ -1120,11 +1088,13 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 	}
 
 	private Mono<ServiceInstance> getServiceInstance(String name, SpaceEntity spaceEntity) {
-		return getOrganization(spaceEntity.getOrganizationId()).flatMap((organizationEntity) -> this.operationsUtils
-			.getOperationsForOrgAndSpace(organizationEntity.getName(), spaceEntity.getName())
+		return getOrganization(spaceEntity.getOrganizationId())
+			.flatMap((organizationEntity) -> this.operationsUtils
+				.getOperationsForOrgAndSpace(organizationEntity.getName(), spaceEntity.getName())
+			)
 			.flatMap((cfOperations) -> cfOperations.services()
-				.getInstance(
-						org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder().name(name).build())));
+				.getInstance(org.cloudfoundry.operations.services.GetServiceInstanceRequest.builder().name(name).build())
+			);
 	}
 
 	private Mono<ServiceInstanceEntity> getServiceInstance(String serviceInstanceId) {
@@ -1161,18 +1131,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		Mono<CreateServiceInstanceResponse> createServiceInstanceResponseMono = Mono
 			.just(CreateServiceInstanceResponse.builder().name(request.getServiceInstanceName()).build());
 
-		if (request.getProperties().containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			return createSpace(request.getProperties().get(DeploymentProperties.TARGET_PROPERTY_KEY))
-				.then(this.operationsUtils.getOperations(request.getProperties())
-					.flatMap((cfOperations) -> cfOperations.services()
-						.createInstance(createServiceInstanceRequest)
-						.then(createServiceInstanceResponseMono)));
-		}
-		else {
-			return this.operations.services()
+		return this.operationsUtils
+			.getOperations(request.getProperties())
+			.flatMap(cfOperations -> cfOperations.services()
 				.createInstance(createServiceInstanceRequest)
-				.then(createServiceInstanceResponseMono);
-		}
+			)
+			.then(createServiceInstanceResponseMono);
 	}
 
 	@Override
@@ -1187,18 +1151,12 @@ public class CloudFoundryAppDeployer implements AppDeployer, ResourceLoaderAware
 		String serviceInstanceName = request.getServiceInstanceName();
 		Map<String, String> deploymentProperties = request.getProperties();
 
-		Mono<Void> requestDeleteServiceInstance;
-		if (deploymentProperties.containsKey(DeploymentProperties.TARGET_PROPERTY_KEY)) {
-			requestDeleteServiceInstance = this.operationsUtils.getOperations(deploymentProperties)
-				.flatMap((cfOperations) -> unbindServiceInstance(serviceInstanceName, cfOperations)
-					.then(deleteServiceInstance(serviceInstanceName, cfOperations, deploymentProperties)));
-		}
-		else {
-			requestDeleteServiceInstance = unbindServiceInstance(serviceInstanceName, this.operations)
-				.then(deleteServiceInstance(serviceInstanceName, this.operations, deploymentProperties));
-		}
-
-		return requestDeleteServiceInstance
+		return this.operationsUtils
+			.getOperations(request.getProperties())
+			.flatMap(cfOperations ->
+				unbindServiceInstance(serviceInstanceName, cfOperations)
+					.then(deleteServiceInstance(serviceInstanceName, cfOperations, deploymentProperties))
+			)
 			.doOnSuccess(
 					(v) -> LOG.info("Success deleting service instance. serviceInstanceName={}", serviceInstanceName))
 			.doOnError(logError(
